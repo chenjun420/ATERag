@@ -167,6 +167,10 @@ class ExtractionResult:
     # 产测充分性评估结论 (A6'): 每条需求一条, 含 sufficient/pending_review/
     # insufficient/unnecessary/out_of_scope 与判定依据。
     assessments: list[Any] = field(default_factory=list)
+    # 条件场景矩阵 (A7): 一条需求 × N 个条件组合, 带产测可读名称。
+    scenarios: list[Any] = field(default_factory=list)
+    # 被排除的不可行场景组合 (必须带理由, 不静默丢弃)
+    excluded_scenarios: list[Any] = field(default_factory=list)
     stats: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -181,6 +185,10 @@ class ExtractionResult:
             "needs_review": [r.to_dict() for r in self.needs_review],
             "reviewed_dispositions": [r.to_dict() for r in self.reviewed_dispositions],
             "assessments": [a.to_dict() if hasattr(a, "to_dict") else a for a in self.assessments],
+            "scenarios": [s.to_dict() if hasattr(s, "to_dict") else s for s in self.scenarios],
+            "excluded_scenarios": [
+                e.to_dict() if hasattr(e, "to_dict") else e for e in self.excluded_scenarios
+            ],
             "stats": self.stats,
         }
 

@@ -42,6 +42,7 @@ from aterag.extract.models import (
     TestCondition,
 )
 from aterag.extract.resolve import ReferenceSpec
+from aterag.extract.scenarios import ScenarioRules, expand_scenarios
 from aterag.extract.selector import section_matches, select_sections
 from aterag.extract.sieve import apply_sieve
 from aterag.extract.supplement import (
@@ -294,6 +295,7 @@ def extract_test_conditions(
     patterns: PatternBook | None = None,
     methods: MethodBook | None = None,
     assess_rules: RuleBook | None = None,
+    scenario_rules: ScenarioRules | None = None,
     annotations: AnnotationBook | None = None,
     source: str = SRC_BLOCKS,
     dsn: str | None = None,
@@ -320,6 +322,9 @@ def extract_test_conditions(
     method_book.validate_templates()
     assess_book = assess_rules or RuleBook.load(method_book.path)
     assess_book.validate()
+    # 场景规则缺失时 fail-closed: 静默退化成"不拆场景"会让下游拿到含混判据,
+    # 却没有任何报错指向配置缺失。
+    scen_rules = scenario_rules or ScenarioRules.load()
 
     blocks = load_blocks(model_id, blocks_dir)
     selection = select_sections(blocks, profile.section_keywords)
@@ -510,6 +515,14 @@ def extract_test_conditions(
             review.append(it)
     assess_stats = summarize(assessments)
 
+    # ---- A7 场景拆分 ----
+    # 放在补齐与评估之后: 补齐后的条件才是拆场景的输入(场景绑定的是
+    # "在什么条件下测", 含补齐出来的常识前提)。序号与标识唯一性由引擎内断言
+    # 保证 —— case_code 由此派生, 冲突会让 P2 的幂等导入静默丢条件。
+    scen_res = expand_scenarios(conditions, scen_rules)
+    scenarios = scen_res.scenarios
+    excluded_scenarios = scen_res.excluded
+
     result = ExtractionResult(
         model_id=model_id,
         doc_version=doc_version,
@@ -521,6 +534,8 @@ def extract_test_conditions(
         needs_review=review + prose_audit,
         reviewed_dispositions=reviewed,
         assessments=assessments,
+        scenarios=scenarios,
+        excluded_scenarios=excluded_scenarios,
         stats={
             # rows_total/kept/excluded 只统计"表格行"这一来源, 保持 147 = 94 + 53 的恒等;
             # 引用穿透产出的散文需求单列, 否则对账会凭空多出一条而无法解释。
@@ -573,6 +588,11 @@ def extract_test_conditions(
             "assess_needs_decision": len(assess_stats["needs_decision"]),
             "assess_pending_signoff": len(assess_stats["pending_signoff"]),
             "descriptions_rendered": sum(1 for c in conditions if c.description),
+            # ---- A7 场景拆分 ----
+            "scenarios": len(scenarios),
+            "scenarios_excluded": len(excluded_scenarios),
+            "scenarios_named": sum(1 for s in scenarios if getattr(s, "name", "")),
+            "scenario_tiers": len(scen_res.tiers),
             "reference_resolution": ref_state,
             "reference_hits": ref_counts["references"],
             "reference_resolved": ref_counts["resolved"],

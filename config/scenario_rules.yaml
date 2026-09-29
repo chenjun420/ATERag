@@ -1,0 +1,185 @@
+# 条件场景拆分规则 (缝⑥) —— 把一条需求展开成多个可执行测试场景。
+#
+# 为什么需要: 产测用例不是"一条需求一个用例", 而是"一条需求 × N 个条件组合"。
+# 同一个"输出电流"需求, 在 110Vac 与 230Vac 下满载电流不同 (前者受功率档封顶),
+# 不拆场景就只有一个含混的判据, 产测按哪个值执行都可能是错的。
+#
+# 铁律 (与缝⑤ 同一纪律):
+#   1. 档位与推导公式全部声明在此, 代码不含任何文档数字或单位。
+#      110Vac 满载 -> -54V 轨 7.401A 这类已确认口径写进 tiers/formulas, 供回归比对。
+#   2. 只做"受约束的组合展开": 不可行的组合必须显式排除并给出理由, 不静默丢弃。
+#   3. 不推算规格书没给的限值。场景只绑定"在什么条件下测", 判据仍来自规格书。
+#   4. 场景不替代用例拆分(那是 P2 的职责), 本文件只负责"条件组合"这一层。
+#
+# ---- 维度定义 ----
+# 每个 dimension 是一组可选取值, 取值从规格书原文解析而来:
+#   key      维度标识, 与 ConditionClause.kind 对应(便于把场景绑到条件上)
+#   pattern  解析规格书备注用的正则, 捕获组构成一个取值
+#   unit_hint 取值的单位(仅用于呈现与推导, 不改变规格书原文)
+#
+# ---- 档位 (输入电压 -> 输出功率上限) ----
+# 这是已确认的关键口径: 输出功率按输入电压分档, 因此各轨满载电流受档位封顶。
+#   90~176Vac  -> 400W ; 176~286Vac -> 600W
+# 由此: 110Vac 满载时 -54V 轨 = (400 - 3.45V轨功耗) / 54 = 7.401A, 而非额定 11.1A。
+# 该结论经需求方确认, 已在 verify_110v_fullload.py 固化为回归; 本文件是它的规则来源。
+version: 1
+
+# ---- 条件命名 (业界通行做法) ----
+# 产测人员看的是"满载输出电流""半载输出电压""输入最大值"这类可执行名称,
+# 而不是 load=50% / output_current 这样的碎片 —— 后者要靠人脑内翻译,
+# 既慢又易错(半载到底按额定还是按最大?100%载和满载是同一档吗?)。
+#
+# 命名 = 条件前缀(工况) + 被测对象, 例:
+#   满载 + 输出电流 -> 满载输出电流
+#   半载 + 输出电压 -> 半载输出电压
+#   输入侧(无被测对象) -> 输入最大值 / 输入极限值 / 输入典型值
+#
+# 所有词表与判定规则声明在此, 代码只做匹配与拼接, 不含任何中文词。
+# 匹配顺序: load_levels -> input_levels -> duty, 首个命中即为前缀;
+# 都未命中则不加前缀(用纯被测对象名), 不硬凑。
+naming:
+  # ---- 被测对象 (来自输出侧 kind 或标题) ----
+  # 匹配优先级: kinds 命中 > title_pattern > 兜底用标题原文
+  subjects:
+    - {id: out_voltage, when: {kinds: [output_voltage]}, name: 输出电压}
+    - {id: out_current, when: {kinds: [output_current]}, name: 输出电流}
+    - {id: out_power, when: {kinds: [output_power]}, name: 输出功率}
+    - {id: out_ripple, when: {kinds: [ripple]}, name: 峰峰值杂音电压}
+    - {id: out_timing, when: {kinds: [timing]}, name: 动态响应时间}
+    - {id: out_efficiency, when: {kinds: [efficiency]}, name: 效率}
+    - {id: out_metric, when: {kinds: [output_metric]}, name: 输出量}
+    - {id: out_signal, when: {kinds: [signal_state]}, name: 信号状态}
+    - {id: out_telemetry, when: {kinds: [telemetry_value]}, name: 遥测量}
+    - {id: out_protection, when: {kinds: [protection_action]}, name: 保护动作}
+    - {id: out_presence, when: {kinds: [presence]}, name: 功能要求}
+
+  # ---- 负载档前缀 ----
+  # value_pct_range 为闭区间; 数值取自 load 子句的 value(百分数)。
+  # 命名用整数百分数(20 而不是 20.0), 避免出现"20%载"之外的小数噪声。
+  #
+  # require_unit_percent: 只有单位是百分比的 load 子句才按"x%载"命名。
+  # 必要的原因: 动态响应条目的 load 子句是"负载突变速率≤0.1A/uS",
+  # 数值 0.1 是斜率不是负载比例, 不设这道闸就会命名出"0.1%载动态响应时间"
+  # 这种既不存在的工况、又丢失了速率语义的名字。
+  load_levels_require_unit_percent: true
+  load_levels:
+    - {id: ll_no_load, when: {mode: no_load}, name: 空载}
+    - {id: ll_rated, when: {mode: rated}, name: 满载}
+    - {id: ll_zero, when: {value_eq: 0}, name: 空载}
+    - {id: ll_full, when: {value_gte: 100}, name: 满载}
+    - {id: ll_half, when: {value_pct_range: [40, 60]}, name: 半载}
+    - {id: ll_pct, when: {value_pct_any: true}, name_pattern: "{value_g}%载"}
+  # 固定电流档: 规格书直接给"输出 xx A"而非百分比时, 名称带具体值
+  load_levels_absolute:
+    - {id: lla_current, when: {unit: A, has_value: true}, name_pattern: "固定输出{value_g}A"}
+
+  # ---- 输入电压侧前缀 ----
+  # 依据限值形态命名, 这是业界对输入电压类测点的通行叫法:
+  #   只有上限 -> 输入最大值; 只有下限 -> 输入最小值
+  #   上下限都有且含典型值 -> 输入典型值(标称点)
+  #   标题声明"极限" -> 输入极限值(与工作范围区分)
+  input_levels:
+    - {id: il_extreme, when: {limits_only: [max], title_pattern: "极限"}, name: 输入极限值}
+    - {id: il_max, when: {limits_only: [max]}, name: 输入最大值}
+    - {id: il_min, when: {limits_only: [min]}, name: 输入最小值}
+    - {id: il_typ, when: {limits_all: [min, typ, max]}, name: 输入典型值}
+    # il_range 只对"电压"语义生效: 备注里带输入电压分档的行(如输出功率
+    # "90~176Vac: 400W; 176~286Vac: 600W")也有 min/max, 不加单位闸会被
+    # 命名成"输入范围0~600Vac" —— 把 600W 功率说成 600V 电压, 产测照此
+    # 设输入电压会直接把产品打坏。
+    - {id: il_range, when: {limits_all: [min, max], unit_is: [Vac, Vdc, V]}, name_pattern: "输入范围{min_g}~{max_g}{unit}"}
+    - {id: il_nominal, when: {limits_all: [typ]}, name: 输入典型值}
+
+  # ---- 工作制前缀 (长期/短期) ----
+  duty_levels:
+    - {id: dl_long, when: {value: 长期}, name: 长期工作}
+    - {id: dl_short, when: {value: 短期}, name: 短期工作}
+
+  # ---- 输入侧条目的命名策略 ----
+  # 输入特性类条目的被测量就是输入本身, 没有"输出对象"可言。
+  # 若也拼上输出对象, 会产出"输入典型值输出电压"这种自相矛盾的名字 ——
+  # 产测人员看不懂, 反而比不给名字更糟。故命中输入侧前缀时只输出前缀。
+  input_only_no_subject: true
+
+  # ---- 场景名模板 ----
+  # 场景名 = 前缀 + 被测对象 (+ 轨), 例 "满载输出电流@3.45V"
+  scenario_name: "{prefix}{subject}{rail_suffix}"
+  rail_suffix_pattern: "@{rail}"
+  # 前缀与对象都缺失时的兜底: 用需求标题原文, 不编造
+  fallback_to_title: true
+
+# ---- 条件维度 ----
+# 只声明"规格书确实分档/分档过"的维度。恒定前提(如恒定室温)不进维度 ——
+# 它是所有场景共有的基线, 展开它只会让场景数无意义地翻倍。
+dimensions:
+  # 输入电压档: 由 SR-1204 备注原文 "90~176Vac: 400W; 176~286Vac: 600W" 解析
+  - key: ac_input_tier
+    label: 输入电压档
+    unit_hint: Vac
+    pattern: '(\d+)\s*[~～]\s*(\d+)Vac'
+    from_notes: true
+  # 负载档: 仅在规格书明确分档时声明(当前 4.3 未对某条目声明, 故此处不预设)
+  # 需要时按条目启用, 避免给每条需求都套上三档负载造成场景爆炸。
+
+# ---- 输入电压 -> 输出功率档 (tier) ----
+# parse 出的每个档: {min, max, power}
+tiers:
+  parse:
+    pattern: '(\d+)\s*[~～]\s*(\d+)Vac\s*[:：]\s*(\d+(?:\.\d+)?)\s*W'
+    from_notes: true
+    from_requirement_title: 输出功率
+
+# ---- 轨级负载推导 ----
+# 给定总功率上限, 各轨在满载时如何分配。formula 是受限表达式(仅允许四则与括号),
+# 由代码用受限求值器计算 —— 不用 eval, 也不在代码里写死任何档位数字。
+#
+#   power      该输入档下的总输出功率上限(W)
+#   rails      各轨的 (轨名, 电压, 满载电流) 规格额定值, 取自规格书抽取结果
+#   formula    优先轨的电流推导式。变量: P(总功率) / U(优先轨电压) /
+#              P_other(其余轨在满载时的功耗合计)
+#   priority   用于"先算谁"的顺序: 功率大/电压低的轨优先封顶
+load_derivation:
+  - id: power_capped_by_tier
+    basis: "输出功率按输入电压分档(SR-1204); 各轨满载电流之和不得超过该档功率上限"
+    # P     = 该输入档总功率上限(W)
+    # P_aux = 非优先轨(辅助轨)在满载时的功耗合计(W), 先算辅助轨再算主轨
+    # U     = 当前轨电压
+    # 先算辅助轨: 3.45V 轨按其额定电流取功耗, 再把剩余功率分给主轨。
+    #   400W 档: 3.45V 轨 0.1A*3.45V = 0.345W -> 主轨 (400-0.345)/54 = 7.401A
+    #   600W 档: 主轨 11.1A*54V = 599.4W 已达额定, 辅助轨另计
+    formula: "(P - P_aux) / U"
+    # 轨序: 辅助轨在前(先消耗功率), 主轨在后(吃剩余)
+    priority_rails: ["3.45V", "-54V"]
+    tolerance: 0.001
+    # 推导结果需与已确认口径比对, 不一致立即失败(防止规则漂移)
+    regression_golden:
+      - tier: "90~176Vac"
+        expect_rail: "-54V"
+        expect_current: 7.401
+      - tier: "176~286Vac"
+        expect_rail: "-54V"
+        expect_current: 11.1
+
+# ---- 场景组合约束 ----
+# feasibility: 显式排除不可能执行的组合。排除项必须给理由, 并进入
+# excluded_scenarios 桶 —— 与 conditions/excluded/needs_review 同源的可见性原则。
+feasibility:
+  - id: exclude_cascading_rail_tiers
+    basis: "某档下高功率轨不参与供电时, 其上的场景不成立"
+    when:
+      rail_not_powered_by_tier: true
+    reason: "该轨在此输入档下不供电, 场景不可执行"
+
+  - id: exclude_beyond_rated
+    basis: "轨电流不得超过其额定值"
+    when:
+      derived_current_exceeds_rated: true
+    reason: "推导电流超过该轨额定值, 说明档位分配假设不成立"
+
+# ---- 场景标识与序号 ----
+# case_code 由 P2 生成, 但序号来源在此定义, 保证同一需求每次拆分的顺序稳定 ——
+# 顺序不稳定会导致 case_code 漂移, 幂等导入就失效了。
+ordering:
+  # 维度展开顺序: 电压档由低到高, 其余维度按声明顺序
+  dimension_order: [ac_input_tier]
+  sort_numeric_ascending: true
