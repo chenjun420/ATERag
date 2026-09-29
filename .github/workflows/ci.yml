@@ -102,6 +102,12 @@ jobs:
         env:
           PYTHONIOENCODING: utf-8
         run: python scripts/table_schema_report.py --doc "PA601-D54A 定制电源技术规格书.md" --scope 4.3
+      # 人工注记必须已签字: draft 状态的注记虽已生效 (语义优于正则), 但未经确认,
+      # 下游只能按 confidence=proposed 过滤, 不得视为定稿。
+      - name: "Annotation review sign-off (no drafts allowed)"
+        env:
+          PYTHONIOENCODING: utf-8
+        run: python scripts/review_annotation.py -m PA601-D54A --check
 
   secrets:
     name: Secret scan

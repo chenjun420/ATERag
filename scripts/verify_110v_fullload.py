@@ -132,21 +132,37 @@ async def main() -> int:
         f"{i54_max}A < {rated.get('-54V')}A",
     )
 
-    print("\n" + "=" * 62)
-    print("结论 (仅依据规格书原文, 不引入规格外假设):")
+    # ---------- G. 已确认口径固化 (需求方 2026-09-29 确认) ----------
+    # 110Vac 满载下 -54V 轨受 400W 功率档封顶 (7.401A 而非额定 11.1A)。该口径经需求方
+    # 确认, 故固化为回归: 规则库/档案若改动导致推导漂移, 此处立即失败。
+    print("\n=== G. 已确认口径固化 ===")
+    check("G-110Vac 档功率=400W", power_at_110 == 400.0, f"{power_at_110}W")
+    check(
+        "G-两轨额定仍为 11.1A / 0.1A",
+        rated.get("-54V") == 11.1 and rated.get("3.45V") == 0.1,
+        str(rated),
+    )
+    check(
+        "G-54V 轨封顶电流=7.401A (已确认)",
+        abs(i54_max - 7.401) < 0.001,
+        f"实测 {i54_max}A",
+    )
+    check(
+        "G-功率档约束生效, 未退化为额定值",
+        over and rated.get("-54V") != i54_max,
+        "结论不得直接采用额定 11.1A",
+    )
+
+    n_fail = sum(1 for _, ok, _ in results if not ok)
+    print("\n===== 结论 (仅依据规格书原文, 不引入规格外假设) =====")
     print("  额定轨电流 (SR-1203, 强制, 与输入电压无关):")
     for rail, a in rated.items():
         print(f"    {rail:>6} 轨: 0 ~ {a} A")
     print(f"  110Vac 输入下输出功率档 (SR-1204): {power_at_110}W")
     print(f"  110Vac 满载时 3.45V 轨: {i35}A ({p35}W)")
-    print(f"  110Vac 满载时 -54V 轨可拉至: {i54_max}A (受 {power_at_110}W 约束)")
-    if over:
-        print("  [!] 规格书自身存在约束冲突: 两轨额定值之和 > 110Vac 档功率上限。")
-        print("      即 -54V 轨的 11.1A 只在 176~286Vac (600W 档) 可达;")
-        print("      110Vac 满载时该轨实际受 400W 功率档封顶, 需按 i54_max 设定产测期望。")
-        print("      这属于规格书缺口, 建议向需求方确认, 不应由系统自行取其一。")
-
-    n_fail = sum(1 for _, ok, _ in results if not ok)
+    print(f"  110Vac 满载时 -54V 轨可拉至: {i54_max}A  <- 已确认口径 (需求方 2026-09-29)")
+    print("  依据: 11.1A x 54V = 599.4W > 400W, 故额定值仅在 176~286Vac (600W 档) 可达;")
+    print("        110Vac 满载时该轨由功率档封顶 -> 产测期望值取 7.401A, 非 11.1A。")
     print(f"\n===== {len(results) - n_fail}/{len(results)} passed =====")
     await embed.aclose()
     return 0 if n_fail == 0 else 1

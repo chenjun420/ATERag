@@ -301,6 +301,7 @@ def extract_test_conditions(
 
     conditions: list[TestCondition] = []
     unresolved = 0
+    n_ann_draft = 0
     for row in outcome.kept:
         prior = profile.prior_for(str(row.get("section_path", "")))
         asm = assemble(
@@ -327,6 +328,10 @@ def extract_test_conditions(
             etype="Requirement",
             source=SRC_ENTITY if source == SRC_POSTGRES else SRC_BLOCK,
         )
+        if asm.draft:
+            # 未评审注记: 已应用 (语义更优) 但必须显式可见, 供评审清单与下游过滤
+            n_ann_draft += 1
+            cond.flags.append("annotation_draft")
         if not str(row.get("priority", "")).strip():
             cond.flags.append("priority_unclassified")
         # R5: 单元格短横线 = 该维度无数据 (不是"不要求"), 显式标注便于人工判断覆盖度
@@ -439,6 +444,7 @@ def extract_test_conditions(
             "with_input_condition": sum(1 for c in conditions if c.input_conditions),
             "with_output_condition": sum(1 for c in conditions if c.output_conditions),
             "annotated": sum(1 for c in conditions if _has_annotated(c)),
+            "annotation_draft": n_ann_draft,
             "annotation_stale": sum(1 for c in conditions if "annotation_stale" in c.flags),
             "needs_review": len(review),
             "unresolved_text": unresolved,
@@ -455,8 +461,10 @@ def extract_test_conditions(
 
 
 def _has_annotated(cond: TestCondition) -> bool:
+    """该条件是否由人工注记产出 (不论草稿/已签字 —— 草稿也是人工语义)。"""
     return any(
-        c.confidence == "annotated" for c in (*cond.input_conditions, *cond.output_conditions)
+        c.confidence in {"annotated", "proposed"}
+        for c in (*cond.input_conditions, *cond.output_conditions)
     )
 
 

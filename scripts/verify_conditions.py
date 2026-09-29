@@ -9,10 +9,13 @@ blocks 侧车 (rag_storage/) 不入库, 故 CI 上会由规格书现生成一份
 """
 
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, "src")
 sys.stdout.reconfigure(encoding="utf-8")
+
+import yaml  # noqa: E402
 
 from aterag.config import get_settings  # noqa: E402
 from aterag.extract import (  # noqa: E402
@@ -340,14 +343,72 @@ def main() -> int:
     c1213 = next((c for c in r.conditions if c.req_id == "SR-PA601-D54A-1213"), None)
     check("注记-SR-1213 复合条件已注记", c1213 is not None)
     check(
-        "注记-生效后 confidence=annotated",
+        "注记-草稿状态标 proposed 而非 annotated",
         bool(c1213)
         and all(
-            cl.confidence == "annotated"
+            cl.confidence == "proposed"
             for cl in (*c1213.input_conditions, *c1213.output_conditions)
         ),
-        "人工审核过的语义应覆盖正则推断",
+        "未签字的注记不得以 annotated 身份混进定稿语义",
     )
+    check(
+        "注记-草稿打 annotation_draft 标记",
+        bool(c1213) and "annotation_draft" in c1213.flags,
+        str(c1213.flags) if c1213 else "",
+    )
+    check(
+        "注记-统计计入草稿数",
+        r.stats.get("annotation_draft", 0) >= 1,
+        str(r.stats.get("annotation_draft")),
+    )
+
+    # 签字后必须升为 annotated 且草稿数归零 —— 用临时档案模拟签字, 不改仓库文件
+
+    from aterag.extract import AnnotationBook
+
+    raw1213 = dict(ann.entries["SR-PA601-D54A-1213"])
+    with tempfile.TemporaryDirectory() as td:
+        signed = {
+            "entries": {
+                "SR-PA601-D54A-1213": {
+                    **raw1213,
+                    "status": "approved",
+                    "approved_by": "test",
+                    "approved_at": "2026-09-29",
+                }
+            }
+        }
+        p = Path(td) / "signed.yaml"
+        p.write_text(yaml.safe_dump(signed, allow_unicode=True), encoding="utf-8")
+        book2 = AnnotationBook.load(p)
+        check(
+            "注记-签字后 status=approved",
+            (e := book2.get("SR-PA601-D54A-1213")) is not None and e.status == "approved",
+        )
+        check(
+            "注记-签字后 confidence=annotated",
+            (e := book2.get("SR-PA601-D54A-1213")) is not None
+            and e.confidence == "annotated"
+            and not e.is_draft,
+        )
+        r2 = extract_test_conditions(
+            MODEL,
+            doc_version="B",
+            profiles=ProfileBook.load(),
+            patterns=book,
+            annotations=book2,
+        )
+        c2 = next((c for c in r2.conditions if c.req_id == "SR-PA601-D54A-1213"), None)
+        check(
+            "注记-签字后草稿数归零",
+            r2.stats.get("annotation_draft", 0) == 0,
+            str(r2.stats.get("annotation_draft")),
+        )
+        check(
+            "注记-签字后打标消失",
+            bool(c2) and "annotation_draft" not in c2.flags,
+            str(c2.flags) if c2 else "",
+        )
     check(
         "注记-拆出四层复合条件",
         bool(c1213)
@@ -361,7 +422,7 @@ def main() -> int:
         bool(c1213)
         and {cl.kind for cl in (*c1213.input_conditions, *c1213.output_conditions)} <= book.kinds,
     )
-    check("注记-统计计入 annotated", r.stats["annotated"] >= 1, str(r.stats["annotated"]))
+    check("注记-统计计入 applied", r.stats["annotated"] >= 1, str(r.stats["annotated"]))
 
     # ---------- 8. 备注原文随条件输出 (溯源) + 输入分档可解析 ----------
     # 限值之外的适用条件只存在于备注里 (SR-1204 的 "90~176Vac: 400W; 176~286Vac: 600W"),

@@ -25,6 +25,7 @@ import yaml
 
 from aterag.extract.models import (
     CONF_ANNOTATED,
+    CONF_PROPOSED,
     ROLE_INPUT_DOMAIN,
     ROLE_PROTECTION,
     SRC_ANNOTATION,
@@ -195,6 +196,29 @@ class PatternBook:
 
 
 @dataclass
+class AnnotationEntry:
+    """一条人工注记。status 决定其生效方式:
+
+    draft    —— 语义更优但未经评审。仍会应用 (比规则切分更接近人读语义),
+                但置信度标 proposed 且计入 stats.annotations_draft, 下游可据此过滤。
+    approved —— 已评审签字, 置信度 annotated, 覆盖规则输出。
+    """
+
+    req_id: str
+    status: str
+    fingerprint: str
+    data: Mapping[str, Any] = field(default_factory=dict)
+
+    @property
+    def is_draft(self) -> bool:
+        return self.status != "approved"
+
+    @property
+    def confidence(self) -> str:
+        return CONF_PROPOSED if self.is_draft else CONF_ANNOTATED
+
+
+@dataclass
 class AnnotationBook:
     entries: Mapping[str, Mapping[str, Any]] = field(default_factory=dict)
     source_path: str = ""
@@ -208,13 +232,33 @@ class AnnotationBook:
         doc = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
         return cls(entries=doc.get("entries") or {}, source_path=str(p))
 
+    def get(self, req_id: str) -> AnnotationEntry | None:
+        raw = self.entries.get(req_id)
+        if not raw:
+            return None
+        return AnnotationEntry(
+            req_id=req_id,
+            status=str(raw.get("status", "draft")),
+            fingerprint=str(raw.get("fingerprint", "")),
+            data=raw,
+        )
+
     def lookup(self, req_id: str, fingerprint: str) -> tuple[Mapping[str, Any] | None, bool]:
-        """返回 (注记, 是否新鲜)。指纹不匹配即视为过期 —— 文档改版后不得沿用旧注记。"""
+        """返回 (注记原始数据, 是否新鲜)。指纹不匹配即视为过期 —— 文档改版后不得沿用旧注记。"""
         e = self.entries.get(req_id)
         if not e:
             return None, False
         stored = str(e.get("fingerprint", ""))
         return e, (stored == fingerprint)
+
+    def by_status(self) -> dict[str, list[str]]:
+        out: dict[str, list[str]] = {}
+        for rid in self.entries:
+            e = self.get(rid)
+            if e is None:
+                continue
+            out.setdefault(e.status, []).append(rid)
+        return {k: sorted(v) for k, v in out.items()}
 
 
 # ---------------- 装配 ----------------
@@ -226,6 +270,7 @@ class Assembly:
     outputs: list[ConditionClause] = field(default_factory=list)
     flags: list[str] = field(default_factory=list)
     annotated: bool = False
+    draft: bool = False  # 注记未评审: 已应用但置信度为 proposed
     stale_annotation: bool = False
 
 
@@ -325,24 +370,24 @@ def assemble(
     asm = Assembly()
     fp = row_fingerprint(row)
 
-    # 1) 人工注记优先 (已审核的语义高于规则推断)
+    # 1) 人工注记优先 (人读语义高于正则推断)
     if annotations is not None:
-        entry, fresh = annotations.lookup(_norm(row.get("req_id")), fp)
-        if entry is not None:
+        ann = annotations.get(_norm(row.get("req_id")))
+        if ann is not None:
+            _, fresh = annotations.lookup(ann.req_id, fp)
             if not fresh:
+                # 文档改版 -> 注记失效, 回到规则推断 (不得沿用旧语义)
                 asm.stale_annotation = True
                 asm.flags.append("annotation_stale")
             else:
-                asm.annotated = True
-                for spec in entry.get("input") or []:
-                    asm.inputs.append(
-                        _clause_from_spec(spec, "input", SRC_ANNOTATION, CONF_ANNOTATED)
-                    )
-                for spec in entry.get("output") or []:
-                    asm.outputs.append(
-                        _clause_from_spec(spec, "output", SRC_ANNOTATION, CONF_ANNOTATED)
-                    )
+                conf = ann.confidence
+                for spec in ann.data.get("input") or []:
+                    asm.inputs.append(_clause_from_spec(spec, "input", SRC_ANNOTATION, conf))
+                for spec in ann.data.get("output") or []:
+                    asm.outputs.append(_clause_from_spec(spec, "output", SRC_ANNOTATION, conf))
                 if asm.inputs or asm.outputs:
+                    asm.annotated = True
+                    asm.draft = ann.is_draft
                     return asm
 
     title = _clean_text(row.get("title"))
