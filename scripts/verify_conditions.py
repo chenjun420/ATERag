@@ -1,11 +1,15 @@
 """产测条件抽取验证套件 (对应产测输入/输出条件需求).
 
-覆盖: 章节选择 / 剔除语义 / 短横线语义 / 条件装配 / 章节边界 / 归档元数据。
+覆盖: 章节选择 / 剔除语义 / 短横线语义 / 条件装配 / 章节边界 / 双通道一致性 / 人工注记。
+
+blocks 侧车 (rag_storage/) 不入库, 故 CI 上会由规格书现生成一份再验证 ——
+验证对象始终是真实规格书, 而不是"没数据就跳过"。
 
 用法: .venv\\Scripts\\python.exe scripts/verify_conditions.py
 """
 
 import sys
+from pathlib import Path
 
 sys.path.insert(0, "src")
 sys.stdout.reconfigure(encoding="utf-8")
@@ -37,23 +41,34 @@ def check(name: str, ok: bool, detail: str = "") -> None:
     print(f"{PASS if ok else FAIL} {name}" + (f" | {detail}" if detail else ""))
 
 
+MODEL = "PA601-D54A"
+DOC = "PA601-D54A 定制电源技术规格书.md"
+
+
 def main() -> int:
-    try:
-        load_blocks("PA601-D54A")
-    except Exception:  # noqa: BLE001
-        print("(未找到 blocks 侧车, 先跑 scripts/ingest_pa601.py)")
-        return 0
+    # 4.3 抽取范围为零缺口门禁的前提: 规格书 md 与 blocks 侧车同源。
+    # CI 上 blocks 侧车 (rag_storage/) 不入库, 故无侧车时从规格书现生成一份 ——
+    # 验证对象仍是真实规格书, 而非"跳过"。
+    blocks_path = Path("rag_storage/blocks") / f"{MODEL}.jsonl"
+    if not blocks_path.exists():
+        if not Path(DOC).exists():
+            print(f"(既无 {blocks_path} 也无规格书 {DOC}, 跳过)")
+            return 0
+        from aterag.ingest.markdown_parser import parse_file, write_blocks_jsonl
+
+        write_blocks_jsonl(parse_file(DOC), blocks_path)
+        print(f"(侧车缺失, 已由 {DOC} 现生成 {blocks_path})")
 
     prof = ProfileBook.load().get("power_spec_cn")
     book = PatternBook.load()
-    blocks = load_blocks("PA601-D54A")
+    blocks = load_blocks(MODEL)
     sel = select_sections(blocks, prof.section_keywords)
     r = extract_test_conditions(
-        "PA601-D54A",
+        MODEL,
         doc_version="B",
         profiles=ProfileBook.load(),
         patterns=book,
-        annotations=load_annotations("PA601-D54A"),
+        annotations=load_annotations(MODEL),
     )
     kept = {c.req_id for c in r.conditions}
     excl = {e.req_id for e in r.excluded}
@@ -135,7 +150,7 @@ def main() -> int:
         f"rail 空 {r.stats['no_data_dims'].get('rail', 0)} 条(遥测表无电压轨列)",
     )
     # 单元级: 等级=强制 且限值全空 -> 保留但无子句, 不臆造
-    rows, _, _ = rows_from_blocks(blocks, "PA601-D54A", "B", sel.section_prefixes)
+    rows, _, _ = rows_from_blocks(blocks, MODEL, "B", sel.section_prefixes)
     out = apply_sieve(rows, prof.exclude_words)
     forced_nolimit = [
         rr
@@ -235,9 +250,7 @@ def main() -> int:
     # 两条通道共用同一份档案与装配器, 但一条重跑抽取、一条读 PG 实际落库;
     # 若入库链路与抽取逻辑漂移, 这里会立刻暴露。
     try:
-        rows_pg = rows_from_postgres(
-            get_settings().postgres_dsn, "PA601-D54A", sel.section_prefixes
-        )
+        rows_pg = rows_from_postgres(get_settings().postgres_dsn, MODEL, sel.section_prefixes)
         sig = lambda rr: (  # noqa: E731
             str(rr["section_path"]),
             str(rr["req_id"]),
@@ -289,7 +302,7 @@ def main() -> int:
         "注记-内容变更则指纹变化",
         fp != row_fingerprint({"req_id": "X", "title": "t", "notes": "n2"}),
     )
-    ann = load_annotations("PA601-D54A")
+    ann = load_annotations(MODEL)
     check("注记-档案存在", hasattr(ann, "entries"), ann.source_path)
 
     # ---------- 7. 人工注记 (人工审核的语义应覆盖规则推断) ----------
@@ -319,7 +332,7 @@ def main() -> int:
     )
     check("注记-统计计入 annotated", r.stats["annotated"] >= 1, str(r.stats["annotated"]))
     # 指纹失配的注记不得被采用
-    ann = load_annotations("PA601-D54A")
+    ann = load_annotations(MODEL)
     stale_entry, fresh = ann.lookup("SR-PA601-D54A-1213", "deadbeefdeadbeef")
     check("注记-指纹失配即视为过期", stale_entry is not None and fresh is False)
     real_entry, _ = ann.lookup(
