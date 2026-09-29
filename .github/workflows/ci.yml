@@ -21,11 +21,15 @@ jobs:
           python-version: "3.13"
           cache: pip
       - run: python -m pip install --upgrade pip
-      - run: pip install ruff
+      - run: pip install ruff pyyaml
+      # 工作流自身的 YAML 合法性: 裸标量里的 ": " 会让 GitHub 直接判定 Invalid workflow file,
+      # 流水线根本不会执行 —— 必须在提交前拦下。
+      - name: Validate workflow YAML
+        run: python scripts/validate_workflow.py
       - name: ruff check
         run: ruff check src scripts tests
       - name: ruff format --check
-        run: ruff format --check src/aterag
+        run: ruff format --check src scripts tests
 
   test:
     name: Tests (pytest)
@@ -56,11 +60,11 @@ jobs:
           python-version: "3.13"
           cache: pip
       - run: python -m pip install --upgrade pip
-      - name: Install runtime deps
-        run: |
-          pip install pyyaml pydantic pydantic-settings pyshacl \
-                      "psycopg[binary]" qdrant-client httpx markdown-it-py
-      - name: Rule self-test (117 rules: derive + SHACL)
+      # 不再手工维护"最小依赖清单": verify_no_hardcoded 会经 server.py 连锁引入
+      # mcp / lightrag, 手工清单必然随代码演进而失效。直接装项目本身。
+      - name: Install project
+        run: pip install -e .
+      - name: "Rule self-test (117 rules: derive + SHACL)"
         env:
           PYTHONIOENCODING: utf-8
         run: python scripts/rules_selftest.py power
