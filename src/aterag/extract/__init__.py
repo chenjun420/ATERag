@@ -25,6 +25,12 @@ from aterag.extract.api import (
     rows_from_postgres,
 )
 from aterag.extract.assembler import AnnotationBook, PatternBook, row_fingerprint
+from aterag.extract.assess import (
+    AssessmentItem,
+    AssessRule,
+    RuleBook,
+    assess_conditions,
+)
 from aterag.extract.models import (
     ConditionClause,
     ExcludedItem,
@@ -37,30 +43,44 @@ from aterag.extract.models import (
 )
 from aterag.extract.selector import section_matches, select_sections
 from aterag.extract.sieve import apply_sieve, is_placeholder, no_data_dimensions
+from aterag.extract.supplement import (
+    DescriptionTemplate,
+    MethodBook,
+    render_descriptions,
+    supplement_conditions,
+)
 
 __all__ = [
     "AnnotationBook",
+    "AssessRule",
+    "AssessmentItem",
     "ConditionClause",
+    "DescriptionTemplate",
     "DocProfile",
     "ExcludedItem",
     "ExtractionResult",
+    "MethodBook",
     "ModelNotIngested",
     "PatternBook",
     "ProfileBook",
     "ReviewItem",
+    "RuleBook",
     "SectionKeywordNotFound",
     "SectionPrior",
     "Selection",
     "TestCondition",
     "apply_sieve",
+    "assess_conditions",
     "extract_test_conditions",
     "is_placeholder",
     "load_annotations",
     "load_blocks",
     "no_data_dimensions",
+    "render_descriptions",
     "row_fingerprint",
     "rows_from_blocks",
     "rows_from_postgres",
     "select_sections",
     "section_matches",
+    "supplement_conditions",
 ]

@@ -455,7 +455,6 @@ def main() -> int:
 
     s_excl = r.stats["excluded"]
     s_kept = r.stats["kept"]
-    s_ref = r.stats.get("from_reference", 0)
     s_onesided = r.stats["one_sided_total"]
     s_bydesign = r.stats["one_sided_by_design"]
     s_action = r.stats["one_sided_actionable"]

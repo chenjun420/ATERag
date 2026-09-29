@@ -100,11 +100,16 @@ def main() -> int:
         problems.append("缺少 config/table_schemas.yaml")
 
     dp_path = Path("config/doc_profiles.yaml")
+    # 档案角色词表 —— 供 test_methods.yaml 交叉校验 (角色是档案知识, 不硬编码)
+    pb_roles: frozenset[str] = frozenset()
     if dp_path.exists():
         try:
             from aterag.extract import ProfileBook
 
             pb = ProfileBook.load(dp_path)
+            pb_roles = frozenset(
+                pr.role for p in pb.profiles.values() for pr in p.section_priors.values()
+            )
             print(f"  {PASS} 文档档案: {len(pb.profiles)} 个 profile, 默认 {pb.default_profile}")
             for name, p in pb.profiles.items():
                 if not p.section_keywords:
@@ -121,6 +126,7 @@ def main() -> int:
         problems.append("缺少 config/doc_profiles.yaml")
 
     cp_path = Path("config/condition_patterns.yaml")
+    book = None
     if cp_path.exists():
         try:
             from aterag.extract import PatternBook
@@ -137,6 +143,37 @@ def main() -> int:
             problems.append(f"condition_patterns.yaml: {e}")
     else:
         problems.append("缺少 config/condition_patterns.yaml")
+
+    # ---- 业界方法库 (缝⑤): 与封闭词表/角色词表交叉校验 ----
+    # 这是两仓对接的第一道闸: 方法库引用了词表外的 kind, 下游就无法为它翻译
+    # 出执行动作, 而这种断裂在产线上只表现为"用例缺步骤", 极难定位。
+    tm_path = Path("config/test_methods.yaml")
+    if tm_path.exists():
+        try:
+            from aterag.extract.assess import RuleBook
+            from aterag.extract.supplement import MethodBook
+
+            mbook = MethodBook.load(tm_path)
+            if book is not None and pb_roles:
+                mbook.validate(book.kinds, pb_roles)
+                mbook.validate_templates()
+                rules = RuleBook.load(str(tm_path))
+                rules.validate()
+                print(
+                    f"  {PASS} 业界方法库: {len(mbook.methods)} 条方法 / "
+                    f"{len(mbook.templates)} 个描述模板 / {len(rules.rules)} 条评估规则"
+                )
+                print(
+                    f"       交叉校验通过: kind ⊆ 词表({len(book.kinds)}), "
+                    f"role ∈ 档案({len(pb_roles)})"
+                )
+            else:
+                problems.append("test_methods.yaml 交叉校验跳过: 词表或档案角色未就绪")
+        except Exception as e:  # noqa: BLE001
+            print(f"  {FAIL} 业界方法库校验失败: {e}")
+            problems.append(f"test_methods.yaml: {e}")
+    else:
+        problems.append("缺少 config/test_methods.yaml")
 
     reg_path = Path("registry.yaml")
     if reg_path.exists():

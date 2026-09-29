@@ -1,0 +1,387 @@
+# 业界测试方法库 (缝⑤) —— 规格书没写测试条件时, 用行业通行做法补齐"缺的那一侧"。
+#
+# 定位与边界 (与其它配置文件的分工):
+#   doc_profiles.yaml      管"抽哪个章节 / 剔哪些条目 / 章节角色先验"
+#   condition_patterns.yaml 管"一句话里的激励/响应怎么切成结构化子句"
+#   本文件                 管"当某侧为空时, 按什么标准方法补什么条件"
+#
+# 为什么需要它: 规格书的 4.3 大量条目只写了单边 (如 4.3.2 输出特性给了响应限值,
+# 却不会逐条重述"额定输入下测量" —— 因为那是常识性前提, 不是需求)。产测要能跑,
+# 就必须把这个常识前提显式化, 否则用例缺激励设定值。
+#
+# 铁律 (违反即失效, 由 validate_configs.py 交叉校验):
+#   1. conditions[].kind 必须落在 condition_patterns.yaml 的封闭 kinds 词表内。
+#      下游 ATEStudio 按 kind 聚合执行动作, 出现词表外的值等于两仓对接断裂。
+#   2. 本文件只补"条件"(测试前提), 绝不补"限值"(判据数值)。
+#      判据只能来自规格书或人工注记 —— 凭空造数值等于伪造质量标准。
+#      verdict: curve 的方法表示判据在曲线图上, 无法机读, 只产待审项不做子句。
+#   3. 一律 draft: 补出来的条件 status=draft, 未经人审不得生效 (见 supplement.py)。
+#      业界做法是"默认", 不是"规格书说的", 两者在追溯上不可混同。
+#   4. basis 必填: 每条方法必须写清标准出处或行业实践依据, 供人工评审核对。
+#   5. 精确度优先: pick() 按"命中的选择器有多具体"排序 (kinds > title_pattern >
+#      standard_cites > role > 兜底), 不按文件顺序取第一条 —— 否则写在后面的
+#      专用方法会被前面的泛用兜底顶替 (如纹波的 20MHz 带宽条件被"额定输入+额定
+#      负载"覆盖, 测量值就不可比了)。
+#   6. 不可测项不兜底: 材料/工艺/环保类 (role=other) 的正确处置是显式判"不提取",
+#      不能给它们补一条看似合理实则无意义的激励条件, 让不可测项伪装成可测项。
+#
+# 匹配字段 (applies_to):
+#   kinds         命中已抽出的条件 kind 之一即匹配 (最精确的匹配方式)
+#   title_pattern 需求标题正则 (Python), 匹配 TestCondition.title
+#   standard_cites 规格书备注/标题里出现这些字样时匹配 (如引用了某标准)
+#   role          章节先验角色名 (取自 doc_profiles.yaml 的 section_priors);
+#                 特殊值 any(全兜底) / any_except_other(排除指定角色, 须配 role_exclude)
+version: 1
+
+# ---- 需求描述模板 (把输入/输出条件合成进"需求描述"用) ----
+# 产测下游需要一段可读的需求描述来呈现"这条需求在什么条件下测什么"。描述模板
+# 属于文档呈现知识, 与其它配置同一原则: 声明在配置里, 代码只做套用, 不含词汇。
+# 占位符: {title} {rail} {notes} {inputs} {outputs} {limits} {methods}
+# omit_when_empty 列出的片段, 在其渲染为空时整行省略 (不产出空的"依据:"行)。
+description_templates:
+  - id: default
+    when: any
+    text: |-
+      {title}{rail_suffix}
+      输入条件: {inputs}
+      输出条件: {outputs}
+      判据: {limits}
+      {method_note}
+    parts:
+      rail_suffix: " ({rail})"
+      method_note: "补齐依据: {methods}"
+    omit_when_empty: [method_note]
+
+# ---- 产测充分性评估规则 (A6') ----
+# 补齐只保证"有条件", 不保证"条件对且必要"。本段规则对补齐后的结果做二次判定,
+# 结论一律交人工裁定 (不自动改动需求), 依据必填。
+#
+# 触发条件 (when) 支持的键, 组合为 AND:
+#   role            章节先验角色名
+#   title_pattern   需求标题正则
+#   section_prefix  章节路径前缀
+#   missing_side    该侧仍为空 ("input" / "output")
+#   missing_any_side 任一侧为空
+#   has_kind        已抽出的条件 kind 命中其一 (列表)
+#   has_draft       存在未人审子句
+#   flags_any       命中其一 flag (列表)
+#   min_clauses     子句总数下限
+# 规则按文件顺序求值, 首个命中即为该需求结论。
+assess:
+  assess_rules:
+
+    # ---- 不必要 / 不属于产测: 材料、工艺、环保类 ----
+    # 用标题措辞而非章节前缀圈定: 4.3.5 里同时存在"失效隔离"(故障注入, 产测可验)
+    # 与"混插要求"(保护功能, 产测可验), 按章节一刀切会误伤这两条。
+    # 材料/工艺/环保类的共性是"由IQC与体系文件保证, 产测工位无手段验"。
+    - id: material_process_not_production_testable
+      basis: "材料选型/三防/环保/污染等级属来料与工艺管控, 由IQC与体系文件保证, 产测工位不可验"
+      verdict: out_of_scope
+      when:
+        title_pattern: '器件|元器件|材料|三防|环保|污染等级|认证|安规'
+      hint: "材料/工艺/环保类要求, 产测不可验, 应显式判为不提取并移出产测范围"
+
+    # ---- 不充分: 仍缺一侧, 且业界方法也补不出 ----
+    # 这是最需要人工处理的一类: 规格书未声明该侧, 且没有可引用的标准方法。
+    - id: still_missing_side
+      basis: "补齐后仍单边说明规格书未给出该侧且无对应标准方法, 需人工确认是否补录或放弃"
+      verdict: insufficient
+      when:
+        missing_any_side: true
+      hint: "补齐后仍为单边, 规格书未声明该侧且无适用业界方法"
+
+    # ---- 不充分: 只有存在性要求, 另一侧无任何条件 ----
+    - id: presence_without_criterion
+      basis: "仅'presence'类子句不构成可判定判据; 产测需要可测量的量或明确的状态判定"
+      verdict: insufficient
+      when:
+        has_kind: [presence]
+        missing_any_side: true
+      hint: "仅有存在性要求而无另一侧条件, 无法构成可判定用例"
+
+    # ---- 不充分: 缺测量手段 (动态类必须有观测方式) ----
+    - id: dynamic_needs_observation
+      basis: "动态/时序类条目须有可执行的观测方式(触发沿+采样), 否则只能测到静态值"
+      verdict: insufficient
+      when:
+        has_kind: [timing, ripple]
+        missing_any_side: true
+      hint: "动态量缺观测条件, 建议补测量设置"
+
+    # ---- 充分性达标 (须双边齐全且无未审提案) ----
+    # 放在最后: 前面都不命中且双边齐全 -> 充分。
+    - id: complete_and_reviewed
+      basis: "输入与输出条件齐全、无未人审提案, 具备可判定条件"
+      verdict: sufficient
+      when:
+        has_draft: false
+      hint: "双边齐全且无待审提案"
+
+    # ---- 含未人审提案 (单独一类, 不与'不充分'混计) ----
+    # 单独成类的原因: 补齐刚发生时全体都会命中, 若并入 insufficient 会把
+    # "缺一侧"这个真问题淹没。分开后报告能一眼看出哪些是真缺口、哪些只是待签字。
+    - id: pending_draft_proposal
+      basis: "业界补齐提案未经人审; 未经评审的条件不得作为产测判据(红线: 未批准不生效)"
+      verdict: pending_review
+      when:
+        has_draft: true
+      hint: "含未人审的业界补齐提案, 需评审后方可作为产测条件"
+
+    # ---- 不充分: 缺测量手段 (动态类必须有观测方式) ----
+    - id: dynamic_needs_observation
+      basis: "动态/时序类条目须有可执行的观测方式(触发沿+采样), 否则只能测到静态值"
+      verdict: insufficient
+      when:
+        has_kind: [timing, ripple]
+        missing_any_side: true
+      hint: "动态量缺观测条件, 建议补测量设置"
+
+methods:
+
+  # ============ 冲击电流 (曲线判据, 补方法不补数值) ============
+  # 规格书 SR-1105 原文: "满足ETSI EN 300 132-1(适用AC)的输入冲击电流限值要求, 见注3"
+  # 注3 是 It/Im 限值曲线图 —— 判据不可机读, 但"怎么测"完全可机读:
+  #   参考测试电压 / 额定负载 / 上电事件 / 测量电路参数均有标准规定。
+  - id: en300132_inrush_measurement
+    basis: "ETSI EN 300 132-1 V2.2.1 §9 + Annex G (冲击电流测量方法与限值曲线)"
+    verdict: curve
+    applies_to:
+      title_pattern: '冲击电流|浪涌电流|inrush'
+    supplies: input
+    conditions:
+      - kind: input_voltage
+        value: {min: 100, max: 240, unit: Vac}
+        note: "宽范围产品参考测试电压 UTW1min/UTW1max"
+      - kind: load
+        value: {mode: rated}
+        note: "额定负载下测量; 恒功率产品电流随电压升高"
+      - kind: power_event
+        value: {event: power_on, settle_s: 1}
+        note: "上电瞬间采集; 稳态电流 Im 在浪涌衰减约 1s 后测量"
+    measurement_hints:
+      network: "R=200mΩ±10%, L=10µH±10% (约 10m 2×1.5mm² 铜线), 经 LISN"
+      scope: "记录 dI/dt≥10A/µs, 取最坏脉冲; AC 侧取首个或最高脉冲"
+      pending: "限值曲线 (It/Im 比值 vs 时间) 需人工数字化后才能形成判据"
+
+  # 冲击电流的"输出侧"单独一条: 冲击期间输出尚未建立, 规格书也没写此时
+  # 输出应处于什么状态。若套用通用的"输入特性默认判据"(输出电压应落在额定范围),
+  # 等于断言"冲击过程中输出已正常" —— 这是错的, 会让用例判据失真。
+  # 故声明为 curve: 只产待审项, 由人判定该期间输出该不该验、怎么验。
+  - id: en300132_inrush_output_unstated
+    basis: "冲击期间输出尚未建立, 输出侧判据规格书未声明 -> 不臆造, 交人工判定"
+    verdict: curve
+    applies_to:
+      title_pattern: '冲击电流|浪涌电流|inrush'
+    supplies: output
+    conditions: []
+
+  # ============ 电压跌落/中断耐受 (补激励, 响应由规格书定) ============
+  - id: iec61000_4_11_dips
+    basis: "IEC 61000-4-11 电压跌落/短时中断/电压变化抗扰度"
+    verdict: numeric
+    applies_to:
+      title_pattern: '电压跌落|短时中断|电压暂降|跌落|中断'
+    supplies: input
+    conditions:
+      - kind: fault_stimulus
+        value: {event: voltage_dip}
+      - kind: input_voltage
+        value: {note: "跌落深度/持续时间按 IEC 61000-4-11 表, 由等级配置决定"}
+    measurement_hints:
+      generator: "跌落发生器输出随负载变化<5%, 纹波<1%, 容量≥EUT 额定 120%"
+      compliance: "判据 criteria a (无降级) / criteria b (扰动消失后自恢复)"
+
+  # ============ 接地/绝缘 (规格书只给要求, 未给测法) ============
+  # 注意: 标题正则刻意不含裸词"隔离" —— 4.3.5 的"失效隔离"指的是
+  # "单模块故障不影响系统"(故障注入类), 与绝缘/接地毫无关系,
+  # 写成 '隔离' 会把它误捕进来并补上"加试验电压测绝缘电阻"这种错误前提。
+  # 故只匹配接地与绝缘本身的措辞。
+  - id: isolation_ground_bonding
+    basis: "IEC 62368-1 / GB 4943.3 绝缘与接地连续性常规测量"
+    verdict: numeric
+    applies_to:
+      title_pattern: '接地|共地|绝缘|金属化孔|保护地'
+    supplies: input
+    conditions:
+      - kind: measurement_setup
+        value: {note: "绝缘电阻测试: 加规定试验电压并计时, 判据按安规限值"}
+    measurement_hints:
+      note: "具体试验电压/限值属安规域, 不在电气性能表内, 需引用安规测试项"
+
+  # ============ 保护动作交叉验证 (规格书只说"各路互不影响") ============
+  - id: protection_cross_check
+    basis: "行业通行: 单路保护激励时其余各路输出应保持正常"
+    verdict: numeric
+    applies_to:
+      title_pattern: '保护时|保护.*相关|各路输出之间|交叉'
+    supplies: input
+    conditions:
+      - kind: fault_stimulus
+        value: {note: "对被测轨施加过压/过流/短路激励至保护动作"}
+      - kind: load
+        value: {note: "其余各轨置额定负载, 监测其输出是否维持"}
+
+  # ============ 失效隔离 (4.3.5 "单模块故障不能影响系统") ============
+  # 这类条目的判据是"其余部分照常工作", 属故障注入 + 交叉观测, 与绝缘测量无关。
+  - id: fault_isolation_cross_system
+    basis: "产测通行: 单模块故障注入后, 验证系统其余部分维持正常(不中断、不误保护)"
+    verdict: numeric
+    applies_to:
+      title_pattern: '失效隔离'
+    supplies: input
+    conditions:
+      - kind: fault_stimulus
+        value: {note: "对被测模块注入条目所列故障(输入故障/输出过压保护/内部短路)"}
+      - kind: load
+        value: {note: "其余模块置额定负载, 监测其输出与告警状态"}
+    measurement_hints:
+      note: "判据来自条目原文(如单模块故障不影响系统工作), 此处只补激励与观测面"
+
+  # ============ 输出特性: 默认激励 (4.3.2 绝大多数条目) ============
+  # 这是覆盖面最大的一条: 输出特性章节给了响应限值, 却不会逐条写"额定输入下测"。
+  # 补齐后, 每条输出特性用例都有可执行的输入设定值。
+  - id: psu_output_default_stimulus
+    basis: "开关电源产测通行做法: 输出特性在额定输入 + 规定负载档下测量"
+    verdict: numeric
+    applies_to:
+      role: output_spec
+    supplies: input
+    conditions:
+      - kind: input_voltage
+        value: {note: "额定输入电压 (单相 230Vac/50Hz; 或按本产品额定值)"}
+      - kind: load
+        value: {note: "该条目的额定负载档 (满载或条目自身规定档位)"}
+
+  # ============ 输出特性: 输入电压扫描 (效率/稳压类需跨档) ============
+  - id: psu_output_vin_sweep
+    basis: "产测通行: 效率/功率因数/稳压精度需在输入电压低/标/高三点验证"
+    verdict: numeric
+    applies_to:
+      title_pattern: '效率|功率因数|稳压|稳度|精度'
+    supplies: input
+    conditions:
+      - kind: input_voltage
+        value: {note: "输入电压低/标/高三点扫描 (低压端功率受限, 按分档规则取档)"}
+      - kind: load
+        value: {note: "半载与满载两点 (效率曲线在两端最易越界)"}
+
+  # ============ 纹波/杂音: 补测量条件 ============
+  # 规格书多只给"峰峰值 ≤ 50mV", 不写带宽与探头条件 —— 不补则测量值不可比。
+  - id: psu_ripple_measurement
+    basis: "开关电源纹波测量通行规范: 20MHz 带宽限制 + 弹簧地/短接地线探头"
+    verdict: numeric
+    applies_to:
+      title_pattern: '纹波|杂音|杂讯|峰峰值|波纹'
+    supplies: input
+    conditions:
+      - kind: input_voltage
+        value: {note: "额定输入"}
+      - kind: load
+        value: {note: "满载 (纹波随负载上升, 满载为最恶劣点)"}
+      - kind: measurement_setup
+        value: {bandwidth_hz: 20000000, probe: "弹簧地或接地线<2cm, 避免长地线引入假纹波"}
+
+  # ============ 动态响应: 补负载阶跃激励 ============
+  - id: psu_dynamic_response
+    basis: "产测通行: 动态响应在负载阶跃 (25%/50%/75%/100%) 下用示波器观测"
+    verdict: numeric
+    applies_to:
+      title_pattern: '动态响应|恢复时间|过冲|瞬态|跌落响应'
+    supplies: input
+    conditions:
+      - kind: load
+        value: {note: "负载阶跃: 25%→50%→75%→100% 与反向阶跃"}
+      - kind: measurement_setup
+        value: {note: "示波器触发于负载变化沿, 采样覆盖响应全过程"}
+    measurement_hints:
+      note: "过冲/恢复时间判据以规格书为准, 本方法只补激励与观测方式"
+
+  # ============ 时序类: 补触发与观测点 ============
+  - id: psu_timing_measurement
+    basis: "产测通行: 时序/上升时间/延迟在输入电压跌落或负载变化沿触发观测"
+    verdict: numeric
+    applies_to:
+      title_pattern: '上升时间|下降时间|时序|延时|延迟|启动时间|关机时间'
+    supplies: input
+    conditions:
+      - kind: input_voltage
+        value: {note: "额定输入; 启动类用输入跌落沿触发, 关机类用输入撤除触发"}
+      - kind: measurement_setup
+        value: {note: "同时观测输入与输出, 判据取 10%~90% 电平点 (规格书另有定义以其为准)"}
+
+  # ============ 输入特性: 默认响应判据 ============
+  # 4.3.1 输入特性给了限值 (属激励域), 响应侧是"产品应正常工作" —— 补显式判据。
+  - id: psu_input_default_verdict
+    basis: "产测通行: 输入特性验证后, 产品输出应维持正常 (电压在规格范围且无告警)"
+    verdict: numeric
+    applies_to:
+      role: input_domain
+    supplies: output
+    conditions:
+      - kind: output_voltage
+        value: {note: "各路输出电压应落在其额定范围 ± 允差内"}
+      - kind: signal_state
+        value: {note: "无告警/无保护动作, 遥测正常上报"}
+
+  # ============ 遥测/告警/信号状态 (4.3.4) ============
+  # 这类条目的输出侧是"上报什么/什么电平", 输入侧不是电气激励而是"如何读到它":
+  # 遥测要能读 -> 必须建立通信; 告警要能触发 -> 必须先制造异常。
+  # 用"额定输入+额定负载"补是错的 —— 那只说明产品在动, 读不到信号。
+  - id: telemetry_bus_read
+    basis: "产测通行: 遥测类产测项须经产品自有通信通道读取, 需先建立通信再做数值比对"
+    verdict: numeric
+    applies_to:
+      role: signal_io
+    supplies: input
+    conditions:
+      - kind: measurement_setup
+        value: {note: "按产品接口协议建立通信(主/从、速率、地址), 确认可正常收发后读数"}
+      - kind: input_voltage
+        value: {note: "正常工作范围内供电 (遥测条目原文如已声明则以其为准)"}
+    measurement_hints:
+      note: "读取点数与刷新率按协议; 无通信则该项判 FAIL 而非跳过"
+
+  - id: alarm_trigger_and_report
+    basis: "产测通行: 告警类产测项须先制造对应异常, 再验证上报信号"
+    verdict: numeric
+    applies_to:
+      role: signal_io
+      title_pattern: '告警|报警|保护上报|上报信息'
+    supplies: input
+    conditions:
+      - kind: fault_stimulus
+        value: {note: "制造条目所指异常 (如该路输出异常), 触发告警上报"}
+      - kind: measurement_setup
+        value: {note: "在条目指定检测点(接口总线/ORing 前后)监视上报内容与电平"}
+
+  - id: thermal_telemetry_read
+    basis: "产测通行: 温度类遥测须使产品进入对应热工况后再读上报值"
+    verdict: numeric
+    applies_to:
+      role: signal_io
+      title_pattern: '温度|温升|热点'
+    supplies: input
+    conditions:
+      - kind: temperature
+        value: {note: "按条目所指位置(入风口/热点)施加对应温度工况"}
+      - kind: measurement_setup
+        value: {note: "经通信通道读取上报温度值"}
+
+  # ============ 通用兜底: 仍缺一侧时的最小可用条件 ============
+  # 前面都没命中时的最后防线, 保证"缺哪侧补哪侧"总有回应。
+  # 注意: 它只补最小条件(额定输入 + 额定负载), 不引入任何数值判据。
+  # 刻意不覆盖 role=other: 材料/工艺/环保类要求产测不可验, 应由
+  # doc_profiles.yaml 的 review_dispositions 显式判为"不提取", 而不是拿一条
+  # 看似合理实则无意义的激励条件把它"补全"(那会让不可测项伪装成可测项)。
+  - id: generic_fallback_stimulus
+    basis: "最小可执行前提: 额定输入 + 额定负载 (不引入规格书外的判据)"
+    verdict: numeric
+    applies_to:
+      role: any_except_other
+      role_exclude: other
+    supplies: input
+    conditions:
+      - kind: input_voltage
+        value: {note: "额定输入电压"}
+      - kind: load
+        value: {note: "额定负载"}

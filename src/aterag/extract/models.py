@@ -16,12 +16,22 @@ CONF_RULE = "rule"
 CONF_ANNOTATED = "annotated"
 CONF_PROPOSED = "proposed"
 
-# 条件来源: notes / signal_req / limits / annotation / title
+# 条件来源: notes / signal_req / limits / annotation / title / industry_method
 SRC_NOTES = "notes"
 SRC_SIGNAL_REQ = "signal_req"
 SRC_LIMITS = "limits"
 SRC_TITLE = "title"
 SRC_ANNOTATION = "annotation"
+# 业界方法补齐 (test_methods.yaml): 规格书没写测试条件时按标准/通行做法补。
+# 与 SRC_NOTES 等"规格书原文"来源严格区分 —— 前者是人读不到规格书里的话,
+# 后者在规格书里有出处, 追溯口径不可混同。
+SRC_METHOD = "industry_method"
+
+# 子句状态: approved=已人审可生效; draft=提案/注记草稿, 未人审不得进入导出。
+# 与 AnnotationEntry.status 同构, 但作用在"单个子句"而非"整条注记"上 ——
+# 一条需求的不同子句可以有不同状态 (如规则侧已定、补齐侧待审)。
+STATUS_APPROVED = "approved"
+STATUS_DRAFT = "draft"
 
 # 角色 (章节先验给出的默认语义)
 ROLE_STIMULUS_RESPONSE = "stimulus_response"
@@ -46,6 +56,12 @@ class ConditionClause:
     value: dict[str, Any] | None = None  # 结构化值 {"op": ">=", "value": -25, "unit": "℃"}
     source: str = SRC_NOTES
     confidence: str = CONF_RULE
+    # 人审状态: approved 可进入导出口; draft 未生效。业界补齐/注记草稿一律 draft,
+    # 规则与已签注记为 approved —— 默认 approved 使"有出处即可用"保持不变。
+    status: str = STATUS_APPROVED
+    # 补齐该子句的方法 id (test_methods.yaml 的 methods[].id), 空=非补齐产物。
+    # 溯源用: 让"这条常识前提出自哪条标准"可查, 评审时可核对依据。
+    method_ref: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -66,6 +82,9 @@ class TestCondition:
     # (如 SR-1204 的 "90~176Vac: 400W; 176~286Vac: 600W" 输入分档)。
     # 不带出原文就无法判断"某限值在什么条件下成立", 属于溯源缺失。
     notes: str = ""
+    # 输入/输出条件合成后的可读描述 (由 supplement.render_descriptions 写入,
+    # 模板声明在 test_methods.yaml)。下游产测直接呈现这段, 免得再各自拼一遍。
+    description: str = ""
     role: str = ROLE_STIMULUS_RESPONSE
     input_conditions: list[ConditionClause] = field(default_factory=list)
     output_conditions: list[ConditionClause] = field(default_factory=list)
@@ -105,12 +124,14 @@ class ReviewItem:
     典型来源: 未映射的表 (T2 缺口) 、无任何规则命中的自由文本。
     """
 
-    kind: str  # unmapped_table | unresolved_text
+    kind: str  # unmapped_table | unresolved_text | needs_manual_digitization | ...
     section_path: str
     heading: str
     detail: str
     hint: str = ""  # T1 推断的角色等提示
     rows: int = 0
+    # 补齐方法 id (test_methods.yaml), 让"为何待审"可回溯到具体方法条目。
+    method_ref: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -143,6 +164,9 @@ class ExtractionResult:
     needs_review: list[ReviewItem] = field(default_factory=list)
     # 已被人工评审判定为"不提取"的条目 (附理由) —— 与 needs_review 互斥
     reviewed_dispositions: list[ReviewItem] = field(default_factory=list)
+    # 产测充分性评估结论 (A6'): 每条需求一条, 含 sufficient/pending_review/
+    # insufficient/unnecessary/out_of_scope 与判定依据。
+    assessments: list[Any] = field(default_factory=list)
     stats: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -156,6 +180,7 @@ class ExtractionResult:
             "excluded": [e.to_dict() for e in self.excluded],
             "needs_review": [r.to_dict() for r in self.needs_review],
             "reviewed_dispositions": [r.to_dict() for r in self.reviewed_dispositions],
+            "assessments": [a.to_dict() if hasattr(a, "to_dict") else a for a in self.assessments],
             "stats": self.stats,
         }
 

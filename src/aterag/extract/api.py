@@ -22,11 +22,18 @@ from typing import Any
 import yaml
 
 from aterag.extract.assembler import AnnotationBook, PatternBook, assemble
+from aterag.extract.assess import (
+    RuleBook,
+    assess_conditions,
+    summarize,
+    to_review_items,
+)
 from aterag.extract.models import (
     ROLE_OTHER,
     ROLE_STIMULUS_RESPONSE,
     SRC_BLOCK,
     SRC_ENTITY,
+    STATUS_APPROVED,
     ExcludedItem,
     ExtractionResult,
     ModelNotIngested,
@@ -37,6 +44,11 @@ from aterag.extract.models import (
 from aterag.extract.resolve import ReferenceSpec
 from aterag.extract.selector import section_matches, select_sections
 from aterag.extract.sieve import apply_sieve
+from aterag.extract.supplement import (
+    MethodBook,
+    render_descriptions,
+    supplement_conditions,
+)
 from aterag.ingest.markdown_parser import Block
 
 DEFAULT_PROFILES_PATH = "config/doc_profiles.yaml"
@@ -280,6 +292,8 @@ def extract_test_conditions(
     profile_name: str | None = None,
     profiles: ProfileBook | None = None,
     patterns: PatternBook | None = None,
+    methods: MethodBook | None = None,
+    assess_rules: RuleBook | None = None,
     annotations: AnnotationBook | None = None,
     source: str = SRC_BLOCKS,
     dsn: str | None = None,
@@ -294,6 +308,18 @@ def extract_test_conditions(
     prof_book = profiles or ProfileBook.load()
     profile = prof_book.get(profile_name)
     book = patterns or PatternBook.load(DEFAULT_PATTERNS_PATH)
+    method_book = methods or MethodBook.load()
+    # 角色词表从档案的 section_priors 取, 不在代码里硬编码角色名 ——
+    # 角色是文档档案的知识, 换产品线换档案而非换代码。
+    role_vocab = frozenset(
+        pr.role for p in prof_book.profiles.values() for pr in p.section_priors.values()
+    )
+    # fail-closed: 方法库与词表/角色不自洽时直接抛, 不降级为"没有补齐" ——
+    # 静默降级会表现为"条件一直没补上", 却查不出是配置坏了。
+    method_book.validate(book.kinds, role_vocab)
+    method_book.validate_templates()
+    assess_book = assess_rules or RuleBook.load(method_book.path)
+    assess_book.validate()
 
     blocks = load_blocks(model_id, blocks_dir)
     selection = select_sections(blocks, profile.section_keywords)
@@ -470,6 +496,20 @@ def extract_test_conditions(
 
     one_sided = _one_sided_stats(conditions, profile)
 
+    # ---- A6/A6': 业界方法补齐 + 产测充分性评估 ----
+    # 补齐只保证"有条件", 评估再判定"条件是否充分且必要"。两者都只增不改:
+    # 规格书原有子句一律不动, 提案一律 draft, 结论一律交人工裁定。
+    supp = supplement_conditions(conditions, method_book)
+    render_descriptions(conditions, method_book.templates)
+    assessments = assess_conditions(conditions, assess_book)
+    for it in supp.needs_review:
+        if it not in review:
+            review.append(it)
+    for it in to_review_items(assessments):
+        if it not in review:
+            review.append(it)
+    assess_stats = summarize(assessments)
+
     result = ExtractionResult(
         model_id=model_id,
         doc_version=doc_version,
@@ -480,6 +520,7 @@ def extract_test_conditions(
         excluded=outcome.excluded,
         needs_review=review + prose_audit,
         reviewed_dispositions=reviewed,
+        assessments=assessments,
         stats={
             # rows_total/kept/excluded 只统计"表格行"这一来源, 保持 147 = 94 + 53 的恒等;
             # 引用穿透产出的散文需求单列, 否则对账会凭空多出一条而无法解释。
@@ -516,6 +557,22 @@ def extract_test_conditions(
                 if k.endswith((_CAUSE_RULES_MISSED, _CAUSE_NO_DATA, _CAUSE_SPEC_SINGLE))
             ),
             "prose_skipped": prose_skipped,
+            # ---- A6 业界方法补齐 ----
+            "supplemented": len(supp.supplemented),
+            "supplement_needs_manual": len(supp.needs_review),
+            "supplement_methods_used": len(supp.hits),
+            "draft_clauses": sum(
+                1
+                for c in conditions
+                for cl in (*c.input_conditions, *c.output_conditions)
+                if cl.status != STATUS_APPROVED
+            ),
+            # ---- A6' 产测充分性评估 ----
+            "assessed": assess_stats["assessed"],
+            "assess_by_verdict": {k: len(v) for k, v in assess_stats["by_verdict"].items()},
+            "assess_needs_decision": len(assess_stats["needs_decision"]),
+            "assess_pending_signoff": len(assess_stats["pending_signoff"]),
+            "descriptions_rendered": sum(1 for c in conditions if c.description),
             "reference_resolution": ref_state,
             "reference_hits": ref_counts["references"],
             "reference_resolved": ref_counts["resolved"],
