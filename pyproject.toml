@@ -1,0 +1,72 @@
+[project]
+name = "aterag"
+version = "0.1.0"
+description = "产测智能体系统 - 规格书驱动 RAG 服务 (MCP)"
+# 开发机 3.13 / 板卡 (Debian 12 aarch64) 3.11 均可用; 依赖全部支持 >=3.10
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    # RAG 引擎 (>=1.5.6: Smart Heading / MetadataFilter / workspace)
+    "lightrag-hku>=1.5.6",
+    # 推理 (Datalog / 决策溯源) - PyPI 实际最新 0.7.0
+    "semantica>=0.7",
+    # SHACL 约束验证
+    "pyshacl>=0.30",
+    # MCP 服务 (FastMCP, streamable-http)
+    "mcp>=1.10",
+    # 存储
+    "psycopg[binary,pool]>=3.2",
+    "asyncpg>=0.30",
+    "qdrant-client>=1.12",
+    # 模型适配 (OpenAI 兼容 / DashScope 原生)
+    "httpx>=0.28",
+    # 配置
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "pyyaml>=6.0",
+    # 解析
+    "markdown-it-py>=3.0",
+    # LightRAG hybrid 依赖 (BM25)
+    "bm25s>=0.2",
+    "pgvector>=0.5.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.8",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/aterag"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+# 显式钉住规则集, 不依赖 ruff 默认值 (默认规则随版本漂移, 会让 CI 行为不可复现)
+[tool.ruff.lint]
+# 只钉正确性相关规则: E(pycodestyle 错误) / F(pyflakes 逻辑错误) / I(import 排序)。
+# 曾试过 SIM/PL/RET/B 等更宽集合, 会引出 280+ 条历史风格债, 属重构范畴而非本次提交;
+# 如需推进应单独开分支分批治理, 不在此处把 CI 门禁做成大改。
+select = ["E", "F", "I", "W"]
+ignore = [
+  "E501",  # 行长由 formatter 负责; 中文规格书摘录常超长, 强行折行反而难读
+]
+[tool.ruff.lint.per-file-ignores]
+# 验证脚本: 允许 subprocess 不设 check (自行读 returncode 判定) 与裸 open (一次性读文件)
+"scripts/*" = ["PLW1510", "SIM115", "ASYNC230", "S110", "E402"]
+"tests/*" = ["S101", "PLR2004"]
+
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple"
+default = true
+

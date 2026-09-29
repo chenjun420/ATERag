@@ -1,0 +1,40 @@
+# ATERag 存储栈 - 192.168.5.24 (Debian 12 ARM64, Podman rootful)
+# 组件: PostgreSQL 17 (pgvector + Apache AGE + pg_textsearch + zhparser) + Qdrant
+# 用法: 在板上 cd ~/aterag && sudo podman-compose up -d --build
+name: aterag-storage
+
+services:
+  postgres:
+    build: ./postgres
+    image: localhost/aterag-postgres:latest
+    container_name: aterag-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: powerspec
+      POSTGRES_PASSWORD: ${PG_APP_PASSWORD:?set PG_APP_PASSWORD in .env}
+      POSTGRES_DB: power_specs
+    volumes:
+      - ../pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U powerspec -d power_specs"]
+      interval: 10s
+      retries: 12
+      start_period: 30s
+
+  qdrant:
+    image: docker.io/qdrant/qdrant:latest
+    container_name: aterag-qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - ../qdrant_data:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__HTTP_PORT: "6333"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:6333/healthz || exit 1"]
+      interval: 10s
+      retries: 12
+      start_period: 20s

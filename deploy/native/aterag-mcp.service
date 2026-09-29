@@ -1,0 +1,35 @@
+[Unit]
+Description=ATERag MCP Server (streamable-http, 产测规格书 RAG)
+Documentation=file:///opt/aterag/README.md
+# 依赖板卡本机存储栈: PG (LightRAG 四类存储 + 业务表) 与 Qdrant (业务向量)
+After=network-online.target postgresql.service qdrant.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=aterag
+Group=aterag
+WorkingDirectory=/opt/aterag
+# .env 内含 API Key, 权限 600 属主 aterag
+EnvironmentFile=/opt/aterag/.env
+# 控制台/日志统一 UTF-8 (避免中文规格书名乱码)
+Environment=PYTHONIOENCODING=utf-8
+Environment=PYTHONUNBUFFERED=1
+# 源码以 src 布局直挂, 改代码后 systemctl restart 即可生效, 无需重装包
+Environment=PYTHONPATH=/opt/aterag/src
+ExecStart=/opt/aterag/.venv/bin/python -m aterag.mcp_server.server
+Restart=always
+RestartSec=10
+TimeoutStopSec=30
+# 日志: journalctl 之外额外落盘, 便于板卡侧排障
+StandardOutput=append:/var/log/aterag/mcp.log
+StandardError=append:/var/log/aterag/mcp.err
+# 加固: 禁提权 / 私有 tmp / 只读系统分区 (可写路径仅 /opt/aterag 与 /var/log/aterag)
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/aterag /var/log/aterag
+
+[Install]
+WantedBy=multi-user.target

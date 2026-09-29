@@ -1,0 +1,17 @@
+# 普适内核规则 (全产品类型共享): 单位换算与纯数学恒等, 不含领域语义
+rules:
+  - id: K-CMN-001
+    statement: "SI 词头换算 k=1000, m=0.001 (kV/V/mV, A/mA, W/kW/mW)"
+    category: units
+    scope: universal
+    derive:
+      output: scaled
+      expr: "value * (10 ** exponent)"
+      inputs: [value, exponent]
+    variables: {value: any, exponent: "int (-3..3)"}
+    source:
+      name: SI unit prefixes (BIPM)
+      url: https://www.bipm.org/en/measurement-units
+      retrieved: 2026-09-29
+    confidence: 1.0
+    test: {given: {value: 500, exponent: -3}, expect: {scaled: 0.5}}  # 500mV->0.5V

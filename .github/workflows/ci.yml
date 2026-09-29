@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: pip install ruff
+      - name: ruff check
+        run: ruff check src scripts tests
+      - name: ruff format --check
+        run: ruff format --check src/aterag
+
+  test:
+    name: Tests (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - name: Install project
+        run: pip install -e ".[dev]" || pip install -e .
+      - name: pytest
+        run: python -m pytest tests/ -q
+
+  selfcheck:
+    name: Offline self-checks (rules / hardcode / py3.11)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - name: Install runtime deps
+        run: |
+          pip install pyyaml pydantic pydantic-settings pyshacl \
+                      "psycopg[binary]" qdrant-client httpx markdown-it-py
+      - name: Rule self-test (117 rules: derive + SHACL)
+        env:
+          PYTHONIOENCODING: utf-8
+        run: python scripts/rules_selftest.py power
+      - name: Rule self-test (common)
+        env:
+          PYTHONIOENCODING: utf-8
+        run: python scripts/rules_selftest.py common
+      - name: Python 3.11 syntax compatibility
+        env:
+          PYTHONIOENCODING: utf-8
+        run: python scripts/check_py311.py
+      - name: No hardcoded rail whitelist / no confidence ceiling
+        env:
+          PYTHONIOENCODING: utf-8
+          POSTGRES_DSN: postgresql://x:x@127.0.0.1/x
+          QDRANT_URL: http://127.0.0.1:6333
+          LLM_BASE: http://x/v1
+          LLM_MODEL: x
+          EMBED_BASE: http://x
+          EMBED_MODEL: x
+        run: python scripts/verify_no_hardcoded.py
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Ensure .env is not tracked
+        run: |
+          if git ls-files --error-unmatch .env >/dev/null 2>&1; then
+            echo "::error::.env 被提交进仓库, 立即撤销该提交并轮换所有密钥"
+            exit 1
+          fi
+          echo "OK: .env 未入库"
+      - name: Fail if hardcoded credentials appear in tracked files
+        run: |
+          set -euo pipefail
+          hits=$(git grep -nEI '(sk-[A-Za-z0-9]{20,}|tvly-[A-Za-z0-9_-]{20,})' -- . \
+                 ':!*.example' ':!.github' || true)
+          if [ -n "$hits" ]; then
+            echo "::error::检测到疑似硬编码密钥:"
+            echo "$hits"
+            exit 1
+          fi
+          echo "OK: 未发现硬编码密钥"
+
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
