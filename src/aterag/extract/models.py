@@ -62,6 +62,10 @@ class TestCondition:
     priority: str = ""
     rail: str = ""
     unit: str = ""
+    # 备注原文: 条件装配的输入源之一, 且常含限值之外的适用条件
+    # (如 SR-1204 的 "90~176Vac: 400W; 176~286Vac: 600W" 输入分档)。
+    # 不带出原文就无法判断"某限值在什么条件下成立", 属于溯源缺失。
+    notes: str = ""
     role: str = ROLE_STIMULUS_RESPONSE
     input_conditions: list[ConditionClause] = field(default_factory=list)
     output_conditions: list[ConditionClause] = field(default_factory=list)

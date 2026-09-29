@@ -108,8 +108,13 @@ def run(cli: paramiko.SSHClient, cmd: str, timeout: int = 2400, sudo: bool = Fal
 
 
 def main() -> int:
-    if not PWD:
-        print("未设置 BOARD_SSH_PASSWORD")
+    # 用户名/口令都来自环境变量 (属环境口令, 禁止入库)。缺任一都必须 fail-fast:
+    # 用空用户名去连接会得到语焉不详的 "Authentication failed", 根因极难定位
+    # (曾经就因此误判成"口令失效")。
+    missing = [n for n, v in (("BOARD_SSH_USER", USER), ("BOARD_SSH_PASSWORD", PWD)) if not v]
+    if missing:
+        print("未设置: " + ", ".join(missing))
+        print("用法: $env:BOARD_SSH_USER='<ssh 用户>'; $env:BOARD_SSH_PASSWORD='<口令>'")
         return 1
     print(f"=== 板卡应用层部署 -> {USER}@{HOST}:{APP_DIR} ===")
     cli = paramiko.SSHClient()

@@ -87,6 +87,13 @@ rules:
     kind: input_frequency
     pattern: '交流输入频率[^\n]{0,20}?(\d+)\s*[~～]\s*(\d+)\s*Hz'
     capture: {group: 1, group2: 2, unit: Hz}
+  # 输入电压分档 -> 档内功率上限 (SR-1204 "90~176Vac: 400W; 176~286Vac: 600W")。
+  # 这类分档决定了限值在什么输入条件下成立, 是产测设定激励的关键, 必须切出来。
+  - id: input_voltage_tier_power
+    role: input
+    kind: input_voltage
+    pattern: '(\d+)\s*[~～]\s*(\d+)\s*Vac\s*[:：]\s*(\d+)\s*W'
+    capture: {group: 1, group2: 2, tier_power: 3}
   - id: input_type_ac
     role: input
     kind: input_type

@@ -306,6 +306,7 @@ def extract_test_conditions(
             priority=str(row.get("priority", "")),
             rail=str(row.get("rail", "")),
             unit=str(row.get("unit", "")),
+            notes=str(row.get("notes", "")),
             role=prior.role,
             input_conditions=asm.inputs,
             output_conditions=asm.outputs,

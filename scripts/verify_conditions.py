@@ -331,6 +331,23 @@ def main() -> int:
         and {cl.kind for cl in (*c1213.input_conditions, *c1213.output_conditions)} <= book.kinds,
     )
     check("注记-统计计入 annotated", r.stats["annotated"] >= 1, str(r.stats["annotated"]))
+
+    # ---------- 8. 备注原文随条件输出 (溯源) + 输入分档可解析 ----------
+    # 限值之外的适用条件只存在于备注里 (SR-1204 的 "90~176Vac: 400W; 176~286Vac: 600W"),
+    # 不带出原文就无法判断某限值在什么条件下成立 —— 组合查询 (如 110Vac 满载) 会失据。
+    pw = next((c for c in r.conditions if c.title == "输出功率"), None)
+    check(
+        "溯源-条件带出备注原文", bool(pw) and "176~286Vac" in pw.notes, pw.notes[:56] if pw else ""
+    )
+    tier = [i for i in (pw.input_conditions if pw else []) if (i.value or {}).get("tier_power")]
+    check(
+        "溯源-输入电压分档已切为激励子句",
+        len(tier) == 2,
+        "; ".join(
+            f"{i.value.get('value')}~{i.value.get('value2')}Vac->{i.value.get('tier_power')}W"
+            for i in tier
+        ),
+    )
     # 指纹失配的注记不得被采用
     ann = load_annotations(MODEL)
     stale_entry, fresh = ann.lookup("SR-PA601-D54A-1213", "deadbeefdeadbeef")

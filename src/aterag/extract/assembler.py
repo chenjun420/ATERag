@@ -255,6 +255,13 @@ def _capture_value(rule: PatternRule, m: re.Match[str]) -> dict[str, Any] | None
                 out["value2"] = float(m.group(g2))
             except (TypeError, ValueError):
                 out["value2"] = m.group(g2)
+    if "tier_power" in c:
+        g3 = int(c["tier_power"])
+        if g3 <= (m.re.groups or 0):
+            try:
+                out["tier_power"] = float(m.group(g3))
+            except (TypeError, ValueError):
+                out["tier_power"] = m.group(g3)
     if c.get("unit"):
         out["unit"] = c["unit"]
     if c.get("op"):
