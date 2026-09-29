@@ -67,6 +67,45 @@ profiles:
     # 需求编号形态 (标题里抓 SR 号), 正则字符串
     req_id_pattern: '\b([A-Z]{2,6}[0-9A-Z]*(?:-[A-Z0-9]+)+)\b'
 
+    # 已评审的待审条目处置 (需求方 2026-09-29 确认)
+    #
+    # 作用: 让"人工判定过不提取"变成数据, 而不是靠人记得。命中的条目不再进入
+    # needs_review 队列, 改为进 reviewed_dispositions 并附判定理由 —— 既止住重复
+    # 提示, 又保留"当初为什么没抽"的审计痕迹。新出现的未判定条目仍照常进队列。
+    #
+    # verdict 取值:
+    #   not_test_condition   非产测条件 (设计/功能/选型约束, 产测不验)
+    #   covered_by_sibling   本行无独立数据, 内容已由同编号的其他档位/电压轨抽出
+    #   not_machine_readable 判据存在于图表等非文本载体, 文本抽取不可达
+    review_dispositions:
+      - id: 4.3.1-breaker-selection
+        kind: unmapped_table
+        section: "4.3.1"
+        match: "输入类型 | 插座/电源输入电流 | 支路空开 | 总空开/熔丝"
+        verdict: not_test_condition
+        reason: "支路/总路空开与熔丝选型参考, 产测不验"
+      - req_id: SR-PA601-D54A-1101
+        verdict: covered_by_sibling
+        reason: "Vdc 档限值全为 '-', 无独立数据; Vac 档 88~290Vac 已抽出"
+      - req_id: SR-PA601-D54A-1105
+        verdict: not_machine_readable
+        reason: "输入冲击电流判据在注3 曲线图内, 非文本可机读 (ETSI EN 300 132-1 限值)"
+      - req_id: SR-PA601-D54A-1110
+        verdict: not_test_condition
+        reason: "接地方式属设计约束, 由设计评审与可靠性验证覆盖, 不入产测条件"
+      - req_id: SR-PA601-D54A-1217
+        verdict: covered_by_sibling
+        reason: "3.45V 轨温度系数为 '-', 无独立数据; -54V 轨 ±0.02%/℃ 已抽出"
+      - req_id: SR-PA601-D54A-1222
+        verdict: not_test_condition
+        reason: "ORING 为功能实现要求, 由功能验证覆盖, 不入产测条件"
+      - req_id: SR-PA601-D54A-1225
+        verdict: not_test_condition
+        reason: "输出共地方式属设计约束, 不入产测条件"
+      - req_id: SR-PA601-D54A-1312
+        verdict: not_test_condition
+        reason: "保护时各路输出相关性由保护功能验证覆盖, 不入产测条件"
+
     # 未登记先验的章节使用的兜底角色
     default_role: stimulus_response
     default_limits_to: output

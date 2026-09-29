@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -90,6 +91,23 @@ class DocProfile:
     description: str = ""
     reference_markers: tuple[str, ...] = ()
     req_id_pattern: str = ""
+    review_dispositions: tuple[Mapping[str, Any], ...] = ()
+
+    def disposition_for(
+        self, *, req_id: str = "", kind: str = "", section: str = "", match: str = ""
+    ) -> Mapping[str, Any] | None:
+        """查已评审处置。条目型按 req_id, 表格型按 (kind, 章节, 表头签名)。"""
+        for d in self.review_dispositions:
+            if req_id:
+                if str(d.get("req_id", "")) == req_id:
+                    return d
+            elif (
+                str(d.get("kind", "")) == kind
+                and str(d.get("section", "")) == section
+                and str(d.get("match", "")) == match
+            ):
+                return d
+        return None
 
     def reference_spec(self) -> ReferenceSpec:
         return ReferenceSpec(markers=self.reference_markers, req_id_pattern=self.req_id_pattern)
@@ -140,6 +158,7 @@ class ProfileBook:
                 description=str(spec.get("description", "")),
                 reference_markers=tuple(spec.get("reference_markers") or ()),
                 req_id_pattern=str(spec.get("req_id_pattern", "")),
+                review_dispositions=tuple(spec.get("review_dispositions") or ()),
             )
         if not profiles:
             raise ValueError(f"档案未定义任何 profile: {p}")
@@ -298,6 +317,34 @@ def extract_test_conditions(
         )
 
     outcome = apply_sieve(rows, profile.exclude_words)
+    one_sided: dict[str, list[str]] = {}  # 循环后填充 (见 stats)
+
+    # 剔除清单与已评审处置在主循环之前建立: 两者都要被循环与收尾阶段共同写入
+    excluded: list[ExcludedItem] = list(outcome.excluded)
+    reviewed: list[ReviewItem] = []
+
+    def _resolve_disposition(item: ReviewItem) -> bool:
+        """已评审处置命中则把待审条目移出队列并留痕; 返回是否命中。"""
+        d = profile.disposition_for(
+            req_id=_req_id_in(item.detail),
+            kind=item.kind,
+            section=item.section_path,
+            match=item.detail,
+        )
+        if d is None:
+            return False
+        if item in review:
+            review.remove(item)
+        reviewed.append(
+            ReviewItem(
+                kind=f"resolved:{d.get('verdict', 'decided')}",
+                section_path=item.section_path,
+                heading=item.heading,
+                detail=item.detail[:200],
+                hint=f"已评审不提取: {d.get('reason', '')}",
+            )
+        )
+        return True
 
     conditions: list[TestCondition] = []
     unresolved = 0
@@ -342,18 +389,18 @@ def extract_test_conditions(
         # 一条条件都没切出来 (且不是人工注记) -> 进待审队列, 不静默放过
         if not asm.inputs and not asm.outputs and not asm.annotated:
             unresolved += 1
-            review.append(
-                ReviewItem(
-                    kind="unresolved_text",
-                    section_path=cond.section_path,
-                    heading=cond.heading,
-                    detail=f"{cond.req_id} {cond.title} 备注: {row.get('notes', '')}"[:300],
-                    hint="规则库与标题语义均未切出条件; 可补 condition_patterns 或写人工注记",
-                )
+            item = ReviewItem(
+                kind="unresolved_text",
+                section_path=cond.section_path,
+                heading=cond.heading,
+                detail=f"{cond.req_id} {cond.title} 备注: {row.get('notes', '')}"[:300],
+                hint="规则库与标题语义均未切出条件; 可补 condition_patterns 或写人工注记",
             )
+            review.append(item)
+            _resolve_disposition(item)
 
-    # 剔除清单独立累积: 表格行剔除 (sieve) 与引用穿透后剔除共用同一份审计记录
-    excluded: list[ExcludedItem] = list(outcome.excluded)
+    for it in list(review):
+        _resolve_disposition(it)
 
     prose_skipped = 0
     prose_audit: list[ReviewItem] = []
@@ -421,6 +468,8 @@ def extract_test_conditions(
             and (b.text or "").strip() not in {"-", "—"}
         )
 
+    one_sided = _one_sided_stats(conditions, profile)
+
     result = ExtractionResult(
         model_id=model_id,
         doc_version=doc_version,
@@ -430,6 +479,7 @@ def extract_test_conditions(
         conditions=conditions,
         excluded=outcome.excluded,
         needs_review=review + prose_audit,
+        reviewed_dispositions=reviewed,
         stats={
             # rows_total/kept/excluded 只统计"表格行"这一来源, 保持 147 = 94 + 53 的恒等;
             # 引用穿透产出的散文需求单列, 否则对账会凭空多出一条而无法解释。
@@ -446,8 +496,25 @@ def extract_test_conditions(
             "annotated": sum(1 for c in conditions if _has_annotated(c)),
             "annotation_draft": n_ann_draft,
             "annotation_stale": sum(1 for c in conditions if "annotation_stale" in c.flags),
-            "needs_review": len(review),
+            "needs_review": len(review) + len(prose_audit),
+            "reviewed_dispositions": len(reviewed),
             "unresolved_text": unresolved,
+            # 契约: 每个被抽出的需求都应同时有输入与输出条件 (被过滤的不参与)。
+            # 达不到的必须带成因, 并区分"设计使然"与"待处置":
+            #   by_design   章节先验导致 —— 规格书不会在输入特性里重述"输出正常", 不可修
+            #   actionable  规则未覆盖 / 规格书无数据 —— 需补规则或人工处置
+            "one_sided": one_sided,
+            "one_sided_total": sum(len(v) for v in one_sided.values()),
+            "one_sided_by_design": sum(
+                len(v)
+                for k, v in one_sided.items()
+                if k.endswith((_CAUSE_BY_PRIOR_INPUT, _CAUSE_BY_PRIOR_OUTPUT))
+            ),
+            "one_sided_actionable": sum(
+                len(v)
+                for k, v in one_sided.items()
+                if k.endswith((_CAUSE_RULES_MISSED, _CAUSE_NO_DATA, _CAUSE_SPEC_SINGLE))
+            ),
             "prose_skipped": prose_skipped,
             "reference_resolution": ref_state,
             "reference_hits": ref_counts["references"],
@@ -458,6 +525,65 @@ def extract_test_conditions(
         },
     )
     return result
+
+
+def _req_id_in(text: str) -> str:
+    """从待审详情串里取需求编号 (形如 'SR-PA601-D54A-1101 ...')。"""
+    m = re.search(r"\b([A-Z]{2,6}[0-9A-Z]*(?:-[A-Z0-9]+)+)\b", str(text or ""))
+    return m.group(1) if m else ""
+
+
+# 单边条件成因 (诊断用; 判据来自数据结构, 不含具体文档词汇)
+_CAUSE_NO_DATA = "spec_gives_no_data"  # 规格书该行本身无数据 (限值/备注全为 '-')
+_CAUSE_SPEC_SINGLE = "spec_states_only_one_side"  # 规格书只写了单边
+_CAUSE_RULES_MISSED = "rules_missed"  # 备注里有措辞但规则未覆盖
+# 章节先验导致的对侧缺失: 规格书不会在"输入特性"里重述"输出正常",
+# 也不会在"输出特性"里逐条写"额定输入" —— 这类单边是设计使然, 不是缺陷。
+_CAUSE_BY_PRIOR_INPUT = "prior_input_domain"
+_CAUSE_BY_PRIOR_OUTPUT = "prior_output_spec"
+
+
+def _one_sided_stats(
+    conditions: Sequence[TestCondition], profile: DocProfile
+) -> dict[str, list[str]]:
+    """按"缺哪一侧 + 成因"分组, 供人工判断是补规则还是确认规格书如此。
+
+    键用 req_id + 电压轨: 同一需求编号常有多轨/多档位行 (SR-1203 有 3 行),
+    仅按 req_id 会把不同轨混成一条, 掩盖真实的单边原因。
+
+    关键: 章节先验 (limits_to) 决定了限值归哪一侧, 因此"缺另一侧"往往是
+    先验的必然结果而非缺陷 —— 例如输入特性章节 limits_to=input, 其限值本就
+    只构成激励, 响应侧是"正常工作"而规格书不会逐条重述。这类必须单列,
+    否则统计会把正常设计当成漏洞去"修"。
+    """
+    out: dict[str, list[str]] = {}
+    for c in conditions:
+        missing = [
+            side
+            for side, cl in (("input", c.input_conditions), ("output", c.output_conditions))
+            if not cl
+        ]
+        if not missing:
+            continue
+        ident = f"{c.req_id}@{c.rail}" if c.rail else c.req_id
+        prior = profile.prior_for(c.section_path)
+        has_limits = any(c.limits.get(k) is not None for k in ("min", "typ", "max"))
+        has_text = bool(c.notes.strip()) and c.notes.strip() not in {"-", "—"}
+
+        if not has_limits and not has_text:
+            cause = _CAUSE_NO_DATA
+        elif prior.limits_to == "input" and "output" in missing:
+            # 输入特性: 限值即激励域, 响应侧(正常工作)规格书不逐条声明
+            cause = _CAUSE_BY_PRIOR_INPUT
+        elif prior.limits_to == "output" and "input" in missing:
+            # 输出特性: 限值即响应判据, 激励侧(额定输入等)规格书不逐条声明
+            cause = _CAUSE_BY_PRIOR_OUTPUT
+        elif "input" in missing and has_text and not has_limits:
+            cause = _CAUSE_RULES_MISSED
+        else:
+            cause = _CAUSE_SPEC_SINGLE
+        out.setdefault(f"missing_{'+'.join(missing)}__{cause}", []).append(ident or c.title)
+    return {k: sorted(set(v)) for k, v in out.items()}
 
 
 def _has_annotated(cond: TestCondition) -> bool:

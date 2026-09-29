@@ -141,6 +141,8 @@ class ExtractionResult:
     conditions: list[TestCondition] = field(default_factory=list)
     excluded: list[ExcludedItem] = field(default_factory=list)
     needs_review: list[ReviewItem] = field(default_factory=list)
+    # 已被人工评审判定为"不提取"的条目 (附理由) —— 与 needs_review 互斥
+    reviewed_dispositions: list[ReviewItem] = field(default_factory=list)
     stats: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -153,6 +155,7 @@ class ExtractionResult:
             "conditions": [c.to_dict() for c in self.conditions],
             "excluded": [e.to_dict() for e in self.excluded],
             "needs_review": [r.to_dict() for r in self.needs_review],
+            "reviewed_dispositions": [r.to_dict() for r in self.reviewed_dispositions],
             "stats": self.stats,
         }
 

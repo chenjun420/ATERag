@@ -358,6 +358,27 @@ def _dedupe(clauses: Sequence[ConditionClause]) -> list[ConditionClause]:
     return out
 
 
+def _collapse_redundant(clauses: Sequence[ConditionClause]) -> list[ConditionClause]:
+    """同 kind 下, 若一条子句文本被另一条完整包含, 保留更长的那条。
+
+    多条正则常会命中同一句原文的不同片段 (如 "不共地" 与 "与PE独立" 同出一句),
+    全部保留会让产测侧把一条判据数多遍。包含关系是可靠的冗余判据, 不做语义猜测。
+    """
+    out: list[ConditionClause] = []
+    for c in clauses:
+        dominated = any(
+            o is not c
+            and o.kind == c.kind
+            and o.role == c.role
+            and o.text != c.text
+            and c.text in o.text
+            for o in clauses
+        )
+        if not dominated:
+            out.append(c)
+    return out
+
+
 def assemble(
     row: Mapping[str, Any],
     *,
@@ -508,6 +529,10 @@ def assemble(
 
     asm.inputs = _dedupe(asm.inputs)
     asm.outputs = _dedupe(asm.outputs)
+    # 跨来源按 (role,kind,text) 去重已做; 同一句话被多条规则各捕获一次时,
+    # 仍可能产出语义重复的子句 (如 "不共地,并与PE独立" 同时命中 3 条规则)。
+    # 归一化后按 kind+文本前缀再收敛一次, 避免产测侧把同一条判据数三遍。
+    asm.outputs = _collapse_redundant(asm.outputs)
 
     if not asm.inputs:
         asm.flags.append("no_input_condition")

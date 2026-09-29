@@ -224,6 +224,32 @@ rules:
     role: output
     kind: measurement_setup
     pattern: '测试点为[^。\n]{0,30}'
+  # 输出侧功能/关系类 (备注纯描述输出侧关系, 无激励措辞 -> 单边输出)。
+  # 这类不该臆造输入条件 (规格书没写), 只产输出; kind=presence 表示"关系/要求"而非数值。
+  - id: output_relation_not_common_ground
+    role: output
+    kind: presence
+    pattern: '[^。\n]{0,20}不共地[^。\n]{0,20}'
+  - id: output_relation_independent_of_pe
+    role: output
+    kind: presence
+    pattern: '与PE独立'
+  - id: output_protection_isolation
+    role: output
+    kind: presence
+    pattern: '[^。\n]{0,15}保护(?:不能|不得)影响[^。\n]{0,15}的输出'
+  - id: output_oring_required
+    role: output
+    kind: presence
+    pattern: '(?:输出)?[^。\n]{0,12}要求?ORING'
+  - id: output_dual_fire_input
+    role: output
+    kind: presence
+    pattern: '双火线输入'
+  - id: output_ground_isolation
+    role: output
+    kind: presence
+    pattern: '数字地[^。\n]{0,30}不得与PE[^。\n]{0,20}'
 
 # ---- 按条目名定"这是什么量" (单位为 "-" 或缺省时的兜底) ----
 # 单位列写 "-" 的无量纲指标 (功率因数/温升等) 无法从单位推断种类,

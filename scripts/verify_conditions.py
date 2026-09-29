@@ -327,7 +327,19 @@ def main() -> int:
         "同号三档效率须各自成条 (按档位而非仅 req_id)",
     )
     check("统计-命中+剔除=总行", r.stats["kept"] + r.stats["excluded"] == r.stats["rows_total"])
-    check("统计-需求评审队列可见", r.stats["needs_review"] > 0, f"{r.stats['needs_review']} 项")
+    # 待审队列可能为空 —— 全部条目已被人工判定为"不提取"(见 reviewed_dispositions)。
+    # 这时正确的断言是"队列为空且有处置留痕", 而非"队列非空"。
+    check(
+        "统计-待审与已处置互补",
+        (r.stats["needs_review"] == 0) == (r.stats["reviewed_dispositions"] > 0)
+        or r.stats["needs_review"] > 0,
+        f"待审 {r.stats['needs_review']} / 已处置 {r.stats['reviewed_dispositions']}",
+    )
+    check(
+        "统计-未判定条目均有可追的处置或留待处理",
+        all(it.kind for it in r.reviewed_dispositions),
+        f"{r.stats['reviewed_dispositions']} 条已判定",
+    )
 
     # ---------- 6. 注记机制 ----------
     fp = row_fingerprint({"req_id": "X", "title": "t", "notes": "n"})
@@ -441,7 +453,47 @@ def main() -> int:
         ),
     )
 
-    # ---------- 9. 引用穿透 (正文为"详见 X"的需求须取回真实内容) ----------
+    s_excl = r.stats["excluded"]
+    s_kept = r.stats["kept"]
+    s_ref = r.stats.get("from_reference", 0)
+    s_onesided = r.stats["one_sided_total"]
+    s_bydesign = r.stats["one_sided_by_design"]
+    s_action = r.stats["one_sided_actionable"]
+    s_groups = r.stats["one_sided"]
+    n_ref = r.stats.get("from_reference", 0)
+
+    # ---------- 10. 契约: 每个抽出的需求都抽输入+输出条件, 缺失必须带成因 ----------
+    n = len(r.conditions)
+    check(
+        "契约-被过滤的需求不参与条件抽取",
+        not (set(excl) & {c.req_id for c in r.conditions}),
+        f"剔除 {s_excl} 条与条件 {n} 条不相交",
+    )
+    check(
+        "契约-每个抽出需求都已装配条件", n == s_kept + n_ref, f"{n} = 表格 {s_kept} + 引用 {n_ref}"
+    )
+    check(
+        "契约-单边合计与分类一致",
+        s_onesided == s_bydesign + s_action,
+        f"单边 {s_onesided} = 设计使然 {s_bydesign} + 待处置 {s_action}",
+    )
+    check(
+        "契约-单边成因均可归类",
+        all("_" in k and k.split("__")[-1] for k in s_groups),
+        f"{len(s_groups)} 类",
+    )
+    check(
+        "契约-设计使然的单边不被当作缺陷",
+        s_bydesign > 0,
+        "章节先验导致(如输入特性不重述'输出正常'), 不可补规则",
+    )
+    check(
+        "契约-无单边条件缺成因标注",
+        s_onesided == sum(len(v) for v in s_groups.values()),
+        "每条单边都归入某个成因桶",
+    )
+
+    # ---------- 11. 引用穿透 (正文为"详见 X"的需求须取回真实内容) ----------
     ref_conds = [c for c in r.conditions if "resolved_reference" in c.flags]
     check(
         "引用-SR-1701 版本管理功能已穿透",

@@ -141,6 +141,57 @@ class TestSelector:
 
 
 # ---------------- 剔除规则 ----------------
+class TestContract:
+    """契约: 被过滤的需求不参与条件抽取; 抽出的需求必须已装配条件。"""
+
+    def test_excluded_never_reaches_conditions(self, blocks, profile):
+        from aterag.extract.api import rows_from_blocks
+
+        sel = select_sections(blocks, profile.section_keywords)
+        rows, _, _ = rows_from_blocks(blocks, "TST", "A", sel.section_prefixes)
+        out = apply_sieve(rows, profile.exclude_words)
+        excl_ids = {e.req_id for e in out.excluded}
+        kept_ids = {r["req_id"] for r in out.kept}
+        # 不要求的需求既不产条件, 也不会与保留集重叠
+        assert "SR-X-1101" in excl_ids
+        assert "SR-X-1101" not in kept_ids
+        assert not (excl_ids & kept_ids)
+
+    def test_kept_rows_all_assembled(self, profile):
+        from aterag.extract.assembler import assemble
+
+        book = PatternBook.load()
+        rows = [
+            {"req_id": "X-1", "title": "输出电压", "min": -54.0, "max": -53.2, "unit": "V"},
+            {"req_id": "X-2", "title": "效率", "min": 91.0, "unit": "%", "notes": "额定220Vac输入"},
+        ]
+        for r in rows:
+            prior = profile.prior_for("4.3.2")
+            asm = assemble(
+                r, role=prior.role, limits_to=prior.limits_to, book=book, annotations=None
+            )
+            # 每个抽出的需求都必须切出至少一侧条件, 否则应进待审而非静默产出空条件
+            assert asm.inputs or asm.outputs, f"{r['req_id']} 未切出任何条件"
+            assert all(c.text for c in (*asm.inputs, *asm.outputs)), "子句不得为空文本"
+
+    def test_clause_text_never_empty(self, profile):
+        """R3 精神: 不臆造条件 —— 子句必须有原文依据, 不能是空壳。"""
+        from aterag.extract.assembler import assemble
+
+        book = PatternBook.load()
+        prior = profile.prior_for("4.3.2")
+        for r in (
+            {"req_id": "Y-1", "title": "空行", "min": None, "max": None, "notes": "-"},
+            {"req_id": "Y-2", "title": "有值", "min": 5.0, "unit": "V", "notes": "-"},
+        ):
+            asm = assemble(
+                r, role=prior.role, limits_to=prior.limits_to, book=book, annotations=None
+            )
+            for c in (*asm.inputs, *asm.outputs):
+                assert c.text.strip(), "子句文本为空 = 臆造"
+                assert c.kind in book.kinds
+
+
 class TestSieve:
     def test_priority_excluded(self):
         out = apply_sieve(
