@@ -35,6 +35,13 @@ class Settings(BaseSettings):
     # ---- 知识分层 ----
     registry_path: str = "registry.yaml"
     domain_rules_dir: str = "domain_rules"
+    # 表结构档案: 表头语义 (编号/项目/遥测量/信号要求...) 的唯一来源。
+    # 相对 CWD 解析, 缺失直接报错 —— 静默丢列比报错更危险。
+    table_schemas_path: str = "config/table_schemas.yaml"
+    # 抽取侧档案: 章节选择/剔除词/角色先验 + 条件规则库 + 人工注记目录
+    doc_profiles_path: str = "config/doc_profiles.yaml"
+    condition_patterns_path: str = "config/condition_patterns.yaml"
+    annotations_dir: str = "config/annotations"
     common_workspace: str = "_common"
     domain_workspace_prefix: str = "_domain_"
 

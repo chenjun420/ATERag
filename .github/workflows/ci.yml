@@ -26,6 +26,10 @@ jobs:
       # 流水线根本不会执行 —— 必须在提交前拦下。
       - name: Validate workflow YAML
         run: python scripts/validate_workflow.py
+      # config/*.yaml 同样栽过"未加引号裸标量含 ': '"的坑 (doc_profiles.yaml),
+      # 且这类错误只在解析时暴露, 人眼看不出来 —— 必须在提交前拦下。
+      - name: Validate project configs
+        run: python scripts/validate_configs.py
       - name: ruff check
         run: ruff check src scripts tests
       - name: ruff format --check
@@ -86,6 +90,18 @@ jobs:
           EMBED_BASE: http://x
           EMBED_MODEL: x
         run: python scripts/verify_no_hardcoded.py
+      # 产测条件抽取: 走 blocks 侧车的离线通道, 无需存储栈; PG 一致性检查会自行跳过。
+      # 规格书与 blocks 侧车在仓库内, 故 CI 可直接跑真实数据。
+      - name: "Test conditions (section filter / sieve / assembly)"
+        env:
+          PYTHONIOENCODING: utf-8
+        run: python scripts/verify_conditions.py
+      # 4.3 (产测条件抽取范围) 必须零缺口 —— 范围内有未映射表格就意味着会漏条目。
+      # 4.2 接口 / 4.4 可靠性的缺口是有意保留的范围外待办, 故只对 4.3 设门禁。
+      - name: "Table schema coverage in 4.3 (must be zero gaps)"
+        env:
+          PYTHONIOENCODING: utf-8
+        run: python scripts/table_schema_report.py --doc "PA601-D54A 定制电源技术规格书.md" --scope 4.3
 
   secrets:
     name: Secret scan

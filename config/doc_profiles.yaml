@@ -1,0 +1,70 @@
+# 文档档案 (doc profiles): 抽取侧的"认知"外置。
+#
+# 与 config/table_schemas.yaml 的分工:
+#   table_schemas.yaml  管"表怎么读"  (表头 -> 规范字段, ingest 侧)
+#   doc_profiles.yaml   管"抽什么/怎么判" (章节选择 / 剔除词 / 角色先验, extract 侧)
+#
+# 换文档模板 = 新增一个 profile; 抽取代码不含任何具体文档的中文词。
+version: 1
+
+# 未在 registry.yaml 显式指定 profile 的型号用这个
+default_profile: power_spec_cn
+
+profiles:
+
+  # 中兴系电源定制规格书 (PA601-D54A / PN2000-24A 等)
+  power_spec_cn:
+    description: 定制电源技术规格书 (章节 4.3 = 功能/性能要求)
+
+    # 章节选择: 标题链命中任一关键字的章节 + 其全部子章节
+    section_keywords:
+      - 功能/性能要求
+
+    # 条目剔除词表 (等级列 / 备注整格精确匹配)
+    exclude_words:
+      - 不要求
+      - 无要求
+      - 不做要求
+      - 无此要求
+
+    # 自由文本块是否也作为候选条目 (默认否: 表格才是产测条件的载体,
+    # 但被跳过的散文会计入 stats.prose_skipped, 不会静默消失)
+    include_prose: false
+
+    # 章节角色先验: 决定"限值列"归到激励侧还是响应侧
+    # limits_to: input | output | both
+    # 注意: 说明文字若含 ": " 必须加引号 —— YAML 会把裸标量里的冒号当键值分隔符
+    section_priors:
+      "4.3.1":
+        role: input_domain
+        limits_to: input
+        note: "输入特性: 88~290Vac 本身是激励域 (产测在这些点加激励, 验输出是否正常)"
+      "4.3.2":
+        role: output_spec
+        limits_to: output
+        note: "输出特性: 限值即响应判据"
+      "4.3.3":
+        role: protection_response
+        limits_to: both
+        note: "保护点既是激励阈值(升压到多少触发)也是响应判据"
+      "4.3.4":
+        role: signal_io
+        limits_to: output
+        note: "监控功能: 告警/遥测/遥控均为产品输出信号"
+      "4.3.5":
+        role: other
+        limits_to: output
+
+    # 未登记先验的章节使用的兜底角色
+    default_role: stimulus_response
+    default_limits_to: output
+
+  # 极简示例: 只做章节选择 + 剔除, 不做语义装配 (用于对照与冒烟)
+  minimal:
+    description: 只抽取条目, 不拆输入/输出条件
+    section_keywords:
+      - 功能/性能要求
+    exclude_words:
+      - 不要求
+      - 无要求
+    include_prose: false

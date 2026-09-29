@@ -30,10 +30,17 @@ PORT = "8080"
 FILES = [
     ("src/aterag", "src/aterag"),
     ("domain_rules", "domain_rules"),
+    # 表结构档案: entity_extract 运行时唯一的表头语义来源, 缺失会直接抛
+    # FileNotFoundError (而不是静默丢列), 故必须随代码一起部署
+    # config/ 同时承载表结构档案与抽取档案 (表头语义/章节先验/剔除词/条件规则),
+    # 缺失会让 ingest 与条件抽取直接抛错, 故整目录部署
+    ("config", "config"),
     ("registry.yaml", "registry.yaml"),
     ("pyproject.toml", "pyproject.toml"),
     # 板卡侧新规格书导入 CLI (upload_new_spec.py 远程调用的入口)
     ("scripts/ingest_new_spec.py", "scripts/ingest_new_spec.py"),
+    # rag_storage/blocks 侧车: 条件抽取的离线确定性通道依赖它
+    ("rag_storage", "rag_storage"),
     ("deploy/native/aterag-mcp.service", "native/aterag-mcp.service"),
     ("deploy/native/06-install-aterag.sh", "native/06-install-aterag.sh"),
     ("deploy/native/06a-install-uv-python313.sh", "native/06a-install-uv-python313.sh"),

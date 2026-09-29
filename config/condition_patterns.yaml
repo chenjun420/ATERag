@@ -1,0 +1,263 @@
+# 条件子句的认知外置: 类型词表 + 数值字段映射 + 激励短语规则库。
+#
+# 分工:
+#   doc_profiles.yaml   管"抽哪个章节 / 剔哪些条目 / 章节角色先验"
+#   本文件             管"一句话里的激励/响应怎么切成结构化子句"
+#
+# 设计约束:
+#   * kinds 是封闭词表 —— 规则与 LLM 提案都只能从中取值, 避免同义异名导致下游无法聚合。
+#   * 规则只做"确定性切分": 能用正则稳定抽出的才抽, 抽不出的进 needs_review,
+#     由 LLM 线下提案 + 人工审核后写入 annotations/, 不在运行时猜。
+#   * 每条规则都带 op/unit, 使子句能直接变成测试用例的激励设定值。
+version: 1
+
+# ---- 封闭词表 ----
+kinds:
+  input:
+    - input_voltage       # 供电输入电压 (含范围/标称/极限)
+    - input_frequency     # 输入频率
+    - input_type          # 交流/直流/HVDC 等输入类型适用性
+    - load                # 负载配置 (%/空载/半载/满载)
+    - temperature         # 环境温度
+    - command             # 遥控/外部控制命令
+    - fault_stimulus      # 故障激励 (反接/过压/掉电)
+    - power_event         # 上电/掉电时序事件
+    - test_mode           # 测试模式 (CR 模式/批量/研发阶段)
+    - measurement_setup   # 测量条件 (带宽/并联电容/探头)
+    - cap_load            # 容性负载
+    - duty                # 长期/短期工作制
+  output:
+    - output_voltage
+    - output_current
+    - output_power
+    - output_metric       # 泛化的输出量 (条目名已说明, 但不细分到电压/电流/功率)
+    - efficiency
+    - power_factor        # 功率因数 (无量纲, 单位列常为 "-")
+    - thermal             # 温升/转速
+    - ripple
+    - timing             # 延迟/上升时间/恢复时间
+    - signal_state       # 告警/状态信号的电平与行为
+    - telemetry_value    # 遥测量与精度
+    - protection_action  # 保护动作
+    - presence           # 有无该功能 (而非数值)
+
+# ---- 数值字段 -> 条件种类 (由 min/typ/max 限值派生子句) ----
+# 键为规格书里的单位原文; 值为 kinds 中的成员。
+# 归属"输入侧"还是"输出侧"由 doc_profiles.yaml 的 section_priors.limits_to 决定,
+# 本表只回答"这个限值描述的是什么量", 不回答"它是激励还是判据"。
+limit_kinds:
+  # 输入侧量
+  Vac: input_voltage
+  Vdc: input_voltage
+  Hz: input_frequency
+  # 输出侧量
+  V: output_voltage
+  mV: ripple
+  A: output_current
+  W: output_power
+  "%": efficiency
+  "%/℃": output_voltage      # 温度系数, 归到电压类响应
+  ms: timing
+  mS: timing
+  us: timing
+  s: timing
+  uF: cap_load
+
+# ---- 激励短语规则 ----
+# kind    : kinds 中的成员
+# role    : input | output
+# pattern : 正则 (Python), 只匹配规格书原文, 不做改写
+# capture  : 可选, 把捕获组转成结构化值 {"op","value","unit"}
+# text    : 留空则用整个匹配片段做溯源原文
+rules:
+
+  # ---------- 输入: 供电 ----------
+  - id: input_voltage_nominal_vac
+    role: input
+    kind: input_voltage
+    pattern: '额定\s*(\d+(?:\.\d+)?)\s*Vac\s*输入'
+    capture: {group: 1, unit: Vac}
+  - id: input_voltage_nominal_plain
+    role: input
+    kind: input_voltage
+    pattern: '(?:额定|标称)\s*(?:\(|（)?输入'
+    capture: {unit: Vac, op: nominal}
+  - id: input_frequency_range
+    role: input
+    kind: input_frequency
+    pattern: '交流输入频率[^\n]{0,20}?(\d+)\s*[~～]\s*(\d+)\s*Hz'
+    capture: {group: 1, group2: 2, unit: Hz}
+  - id: input_type_ac
+    role: input
+    kind: input_type
+    pattern: '交流适用'
+    capture: {value: AC}
+  - id: input_type_dc
+    role: input
+    kind: input_type
+    pattern: '直流适用'
+    capture: {value: DC}
+  - id: input_type_hvdc_shutdown
+    role: input
+    kind: input_type
+    pattern: '若输入为高压直流[^。]*'
+    capture: {value: HVDC, op: 触发关断}
+  - id: input_double_fire
+    role: input
+    kind: input_type
+    pattern: '双火线输入'
+    capture: {value: 双火线}
+
+  # ---------- 输入: 负载 ----------
+  - id: load_pct_of_max
+    role: input
+    kind: load
+    pattern: '(\d+)\s*%\s*最大输出负载'
+    capture: {group: 1, unit: "% 最大输出"}
+  - id: load_half
+    role: input
+    kind: load
+    pattern: '半载(?:输出)?'
+    capture: {value: 50, unit: "% 额定"}
+  - id: load_no_load
+    role: input
+    kind: load
+    pattern: '输出?空载'
+    capture: {value: 0, unit: "% 额定"}
+  - id: load_range
+    role: input
+    kind: load
+    pattern: '(\d+)\s*[~～]\s*(\d+)\s*%\s*负载(?:范围)?内?'
+    capture: {group: 1, group2: 2, unit: "% 额定"}
+  - id: load_step
+    role: input
+    kind: load
+    pattern: '\d+%\s*[~～]\s*\d+%\s*[~～]\s*\d+\s*负载变化'
+    capture: {unit: "% 额定, 阶跃"}
+  - id: load_slew_rate
+    role: input
+    kind: load
+    pattern: '负载突变速率\s*[≤<]\s*([\d.]+)\s*A\s*/\s*uS'
+    capture: {group: 1, unit: A/uS, op: "≤"}
+  - id: cap_load_crmode
+    role: input
+    kind: test_mode
+    pattern: '带容性负载时[，,]?\s*采用\s*(\w+)\s*模式进行测试'
+    capture: {group: 1}
+  - id: cap_load_shunt
+    role: input
+    kind: measurement_setup
+    pattern: '并接\s*(\d+(?:\.\d+)?)\s*uF\s*电解电容'
+
+  # ---------- 输入: 温度/时间 ----------
+  - id: temp_bound
+    role: input
+    kind: temperature
+    pattern: '温度\s*([≥≤])\s*(-?\d+)\s*℃'
+    capture: {group: 2, op_from: 1, unit: "℃"}
+  - id: temp_relaxed_limit
+    role: input
+    kind: temperature
+    pattern: '温度\s*≤\s*(-?\d+)\s*°?\s*时[，,]?\s*[^。\n]{0,30}?放宽'
+    capture: {group: 1, op: "≤", unit: "℃"}
+  - id: temp_ambient
+    role: input
+    kind: temperature
+    pattern: '常温'
+    capture: {value: 25, unit: "℃", op: nominal}
+  - id: duty_long_term
+    role: input
+    kind: duty
+    pattern: '长期工作'
+    capture: {value: 长期}
+  - id: duty_short_term
+    role: input
+    kind: duty
+    pattern: '短期工作'
+    capture: {value: 短期}
+
+  # ---------- 输入: 故障/事件激励 ----------
+  - id: fault_reverse_polarity
+    role: input
+    kind: fault_stimulus
+    pattern: '输入反接[^；;。\n]{0,40}'
+  - id: fault_mains_loss
+    role: input
+    kind: power_event
+    pattern: '(?:快速掉电|市电掉电|空开跳闸)[^）)）\n]{0,40}'
+  - id: fault_voltage_extreme
+    role: input
+    kind: fault_stimulus
+    pattern: '在此输入电压条件下可以不工作[^。\n]*'
+  - id: power_on_event
+    role: input
+    kind: power_event
+    pattern: '输入上电到[^，。\n]{0,30}'
+
+  # ---------- 输出: 信号与测量 ----------
+  - id: output_signal_state
+    role: output
+    kind: signal_state
+    pattern: '光耦输出[^。\n]{0,80}'
+  - id: output_bus_voltage_drop
+    role: output
+    kind: output_voltage
+    pattern: '掉电告警送出至[^，。\n]{0,40}'
+  - id: output_ripple_bw
+    role: output
+    kind: ripple
+    pattern: '\d+\s*MHz\s*带宽限制'
+    capture: {value: 20, unit: MHz}
+  - id: output_telemetry_accuracy
+    role: output
+    kind: telemetry_value
+    pattern: '±\s*(\d+(?:\.\d+)?)\s*%'
+    capture: {group: 1, op: "±", unit: "%"}
+  - id: output_measurement_point
+    role: output
+    kind: measurement_setup
+    pattern: '测试点为[^。\n]{0,30}'
+
+# ---- 按条目名定"这是什么量" (单位为 "-" 或缺省时的兜底) ----
+# 单位列写 "-" 的无量纲指标 (功率因数/温升等) 无法从单位推断种类,
+# 但条目名通常已说明是什么量。命中后覆盖 limit_kinds 的推断。
+title_kinds:
+  - pattern: '功率因数'
+    kind: power_factor
+  - pattern: '整机效率|效率'
+    kind: efficiency
+  - pattern: '输出电压|输出电流|输出功率'
+    kind: output_metric
+  - pattern: '杂音|纹波|纹波峰峰值'
+    kind: ripple
+  - pattern: '温升|散热|风扇转速'
+    kind: thermal
+  - pattern: '时延|延迟|上升时间|下降时间|恢复时间|响应时间'
+    kind: timing
+
+# ---- 标题语义规则 (条目名本身就说明了激励与响应) ----
+# 顺序即优先级, 首个命中生效 (装配器 break)。由具体到泛化排列。
+title_rules:
+
+  # 保护点/恢复点/回差: 激励=把外部推到该阈值, 响应=保护动作与恢复
+  - id: protection_point
+    pattern: '^(输入|输出)?(静态|动态)?(过压|欠压|过流|过温|短路)(?:保护)?(点|恢复点|回差)?$'
+    input_kind: fault_stimulus
+    output_kind: protection_action
+
+  # 故障类告警遥信: 激励=故障事件本身, 响应=告警信号上报
+  - id: fault_alarm
+    pattern: '.*(欠压|过压|过流|过温|掉电|欠流|低压限流|低压预警|高压预警|原边|腐蚀|防雷|风扇故障|混插|故障).*$'
+    input_kind: fault_stimulus
+    output_kind: signal_state
+
+  # 控制/遥控类: 激励=外部命令, 响应=输出状态或信号变化
+  - id: control_command
+    pattern: '.*(遥控|控制|开关机|重启|启动|使能|调压|调速|升级|开启|关闭|热插拔).*$'
+    input_kind: command
+    output_kind: signal_state
+
+  # 其余信号/状态类遥信: 只断言输出信号
+  - id: signal_state_generic
+    pattern: '.*(告警|信号|在位|上报|记录|状态).*$'
+    output_kind: signal_state

@@ -1,0 +1,226 @@
+# 表结构档案 (table schema profiles)
+#
+# 为什么存在: 表结构的"认知"(表头词 -> 规范字段)原先硬编码在 entity_extract.py 的
+# _HEADER_MAP / _detect_header / _align_row / 三分支分发里, 实测全文档 22 个表头签名有
+# 12 个失配 (遥测表 18 行整表丢失、遥信表"信号要求"列内容被静默丢弃)。本文件把这份认知
+# 外置: 换文档模板 = 改本文件, 不改代码。
+#
+# 匹配机制 (按声明顺序, 首个命中生效, 顺序即优先级 —— 显式可审计):
+#   T2 声明式: match.require 里的规范字段全部出现在映射结果中即命中
+#   T1 兜底:   未命中任何 schema 的表, 由 table_schema.infer_roles 按值模式推断列角色,
+#              行不丢弃 (blocks.jsonl 是无损底座), 但不产生实体, 并出现在
+#              `python scripts/table_schema_report.py` 的待映射清单里
+#
+# 运行时零 LLM: 本文件是唯一的语义来源, 运行时不做任何模型调用, 保证可复现。
+version: 1
+
+# 派生实体分组 (从行聚合为独立实体)
+grouping:
+  protection:
+    # 章节前缀: 原先硬编码 section.startswith("4.3.3")
+    sections: ["4.3.3"]
+    # 标题模式: 原先硬编码 _PROTECTION_TITLE_RE
+    title_pattern: '^(输入|输出)?(静态|动态)?(过压|欠压|过流|过温|短路)(?:保护)?(点|恢复点|回差)?$'
+
+# 规范字段白名单: YAML 只能映射到这些字段, 拼错会在加载时立刻报错而非静默丢列
+fields:
+  - req_id
+  - title
+  - subject
+  - unit
+  - min
+  - typ
+  - max
+  - notes
+  - priority
+  - exists
+  - requirement_text
+  - standard
+  - rail
+  - signal_name
+  - signal_req
+  - range_text
+  - accuracy
+  - connector
+  - pin
+  - signal_def
+  - current_rating
+  - attr
+  - level
+  - src_dst
+  - key
+  - description
+  # 元数据表 (修改记录/标准清单) 的字段: 只用于让这些表"已知忽略"而非"缺口",
+  # 不产生实体, 也不参与任何下游抽取
+  - file_no
+  - version
+  - author
+  - date
+  - change_no
+  - summary
+  - reason_class
+  - std_no
+  - std_name
+  - safety_std
+  - safety_content
+  - metric
+  - value
+  - condition
+  # 选型/参考型表字段 (不产生实体, 仅用于显式承认其存在)
+  - input_type
+  - input_current
+  - branch_breaker
+  - breaker_type
+  - connector_key
+  - device_key
+  - name
+  - model
+  - vendor
+  - contact
+  - indicator
+  - color
+  - normal_state
+  - abnormal_state
+  - abnormal_cause
+
+schemas:
+
+  # 遥信/遥控功能表 (4.3.4.1 / 4.3.4.2)
+  # 必须排在 param_table 之前: require 列表更长 = 更具体, 优先命中,
+  # 否则"信号要求"列会被参数表策略吞掉 (字段虽被映射, 但旧代码的 props 白名单会裁掉它)
+  signal_req_table:
+    match: {require: [req_id, title, signal_req]}
+    entity: requirement
+    row_strategy: anchor_align
+    columns:
+      编号: req_id
+      项目: title
+      信号名称: signal_name
+      信号要求: signal_req
+      备注: notes
+      等级: priority
+      要求: requirement_text
+
+  # 遥测功能表 (4.3.4.3) —— 修复"遥测量"无同义词导致整表 18 行丢失
+  telemetry_table:
+    match: {require: [req_id, subject]}
+    entity: requirement
+    row_strategy: anchor_align
+    columns:
+      编号: req_id
+      遥测量: subject
+      检测范围: range_text
+      精度: accuracy
+      备注: notes
+      等级: priority
+
+  # 参数类需求表 (4.3.1/4.3.2/4.3.3/4.3.5 等) —— 主力 schema
+  # 注意: 表头词变体 (有/无列、要求列、标准列) 都归到同一 schema, 变体差异由
+  # columns 覆盖, 未知变体会落入 report 的"部分映射"提示
+  param_table:
+    match: {require: [req_id, title]}
+    entity: requirement
+    row_strategy: anchor_align
+    columns:
+      编号: req_id
+      项目: title
+      单位: unit
+      有/无: exists
+      最小值: min
+      典型值: typ
+      最大值: max
+      备注: notes
+      等级: priority
+      要求: requirement_text
+      指标要求: requirement_text
+      标准: standard
+      标准（或测试条件）: standard
+      试验条件: standard
+
+  # 接口信号定义表 (4.2.4.x) —— 产生 Signal 实体
+  # 已知未覆盖: 4.2.4.3 的"信号名称|属性|电平|源/宿|说明"(11 行) 缺连接器维度,
+  # 归属 4.2 非本轮 4.3 抽取范围, 仍留在 report 待映射清单中
+  signal_table:
+    match: {require: [connector, signal_name]}
+    entity: signal
+    row_strategy: anchor_align
+    columns:
+      连接器: connector
+      管脚: pin
+      信号定义: signal_def
+      信号名称: signal_name
+      通流量: current_rating
+      通流能力: current_rating
+      属性: attr
+      电平: level
+      源/宿: src_dst
+      说明: notes
+      备注: notes
+
+  # 键值型属性表 (4.3.4.4 通信协议"基本参数|描述")
+  attribute_table:
+    match: {require: [key, description]}
+    entity: attribute
+    row_strategy: positional
+    columns:
+      基本参数: key
+      描述: description
+
+  # 选型/参考型表: 有工程价值但不是测试条件 (空开熔丝选型、连接器型号、器件清单)。
+  # reference: true 让报告把它与"缺口"区分开 —— 这是已决策的取舍, 不是待修缺陷;
+  # 抽取层也会把它们单独计数, 不会被误当成产测条件。
+  reference_table:
+    match:
+      any_of:
+        - {require: [connector_key, vendor]}
+        - {require: [device_key, vendor]}
+        - {require: [input_type, breaker_type]}
+        - {require: [std_no, std_name]}
+    entity: none
+    reference: true
+    columns:
+      输入类型: input_type
+      插座/电源输入电流: input_current
+      支路空开: branch_breaker
+      总空开/熔丝: breaker_type
+      连接器代码: connector_key
+      器件代码: device_key
+      名称: name
+      型号: model
+      品牌或供应商: vendor
+      联系方式: contact
+      标准编号: std_no
+      标准名称: std_name
+      安规标准: safety_std
+      安规标准内容: safety_content
+      指示标识: indicator
+      指示灯颜色: color
+      正常状态: normal_state
+      异常状态: abnormal_state
+      异常原因: abnormal_cause
+      优先级: priority
+      备注: notes
+
+  # 已知无抽取价值的元数据表 (修改记录 / 编写依据标准清单)
+  # meta: true 让 report 把它们标为"已知忽略"而非"缺口", 避免清单噪声
+  meta_table:
+    match:
+      any_of:
+        - {require: [file_no]}
+        - {require: [change_no]}
+        - {require: [safety_std, safety_content]}
+    entity: none
+    meta: true
+    columns:
+      文件编号: file_no
+      版本号: version
+      拟制人: author
+      拟制/修改日期: date
+      变更单号: change_no
+      主要更改内容: summary
+      变更原因分类: reason_class
+      安规标准: safety_std
+      安规标准内容: safety_content
+      指标: metric
+      量值: value
+      条件: condition

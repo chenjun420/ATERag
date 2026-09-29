@@ -498,6 +498,83 @@ async def optimize_process(
     return json.dumps(out, ensure_ascii=False, default=str)
 
 
+@mcp.tool()
+async def extract_test_conditions(
+    model_id: str = "",
+    profile: str = "",
+    section_keyword: str = "",
+    source: str = "blocks",
+    include_excluded: bool = False,
+) -> str:
+    """抽取产测输入/输出条件 (激励->响应对), 按章节关键字过滤并剔除"不要求"条目。
+
+    输入条件 = 产品依赖的外部状态 (供电/环境温度/负载/命令/故障激励);
+    输出条件 = 产品自身信号状态 (电压轨/告警信号/遥测值/保护动作/时序)。
+
+    model_id 省略时取注册表里第一个型号。section_keyword 覆盖档案默认关键字
+    (如 "功能/性能要求")。source=blocks 走离线确定性通道, postgres 读 RAG 落库实体。
+    剔除项默认不返回, include_excluded=True 时附上, 便于人工核对剔了什么、为什么剔。
+    """
+    from aterag.extract import (
+        PatternBook,
+        ProfileBook,
+        load_annotations,
+    )
+    from aterag.extract import (
+        extract_test_conditions as _extract,
+    )
+    from aterag.extract.api import DocProfile
+
+    mid = model_id or (sorted(registry.products)[0] if registry.products else "")
+    if not mid:
+        return json.dumps(
+            {"error": "no_model", "message": "注册表为空, 请先导入规格书"}, ensure_ascii=False
+        )
+    if mid not in registry.products:
+        return json.dumps(
+            {
+                "error": "model_not_registered",
+                "model_id": mid,
+                "registered": sorted(registry.products),
+            },
+            ensure_ascii=False,
+        )
+    try:
+        profiles = ProfileBook.load(settings.doc_profiles_path)
+        if section_keyword:
+            base = profiles.get(profile or None)
+            profiles.profiles[base.name] = DocProfile(
+                name=base.name,
+                section_keywords=(section_keyword,),
+                exclude_words=base.exclude_words,
+                include_prose=base.include_prose,
+                section_priors=base.section_priors,
+                default_role=base.default_role,
+                default_limits_to=base.default_limits_to,
+                description=base.description,
+            )
+        result = _extract(
+            mid,
+            doc_version=registry.products[mid].doc_version,
+            profile_name=profile or None,
+            profiles=profiles,
+            patterns=PatternBook.load(settings.condition_patterns_path),
+            annotations=load_annotations(mid, settings.annotations_dir),
+            source=source,
+            dsn=settings.postgres_dsn,
+        )
+    except Exception as e:  # noqa: BLE001
+        # fail-closed: 归档/章节不匹配等一律显式报错, 不用空结果冒充"该章节无产测条件"
+        return json.dumps(
+            {"error": type(e).__name__, "message": str(e), "model_id": mid},
+            ensure_ascii=False,
+        )
+    out = result.to_dict()
+    if not include_excluded:
+        out["excluded"] = out["excluded"][:0]
+    return json.dumps(out, ensure_ascii=False, default=str)
+
+
 # ---------------- 管理工具 ----------------
 @mcp.tool()
 async def ingest_document(doc_path: str) -> str:

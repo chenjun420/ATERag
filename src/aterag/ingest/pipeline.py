@@ -31,6 +31,7 @@ from aterag.ingest.markdown_parser import (
     parse_markdown,
     write_blocks_jsonl,
 )
+from aterag.ingest.table_schema import load_registry
 from aterag.models import EmbeddingClient, LLMClient
 from aterag.registry import Registry
 
@@ -87,7 +88,21 @@ def ensure_pg_schema(dsn: str) -> None:
 
 
 def save_entities(dsn: str, model_id: str, entities: list) -> int:
+    """实体入库。
+
+    先删该型号同类型的旧实体再全量插入, 而不是逐条 UPSERT: UPSERT 只能覆盖
+    同名行, 抽取规则变更导致 eid 变化时 (如档位后缀 '#'->'@') 旧行会永久残留,
+    造成同一 req_id 同时存在新旧两代记录 —— 实测 PA601 重入库后 PG 380 条
+    而抽取只有 201 条, 差的就是历史遗留。
+    """
     with psycopg.connect(dsn) as conn:
+        etypes = sorted({e.etype for e in entities})
+        conn.execute(
+            "DELETE FROM aterag_entities WHERE model_id = %s AND etype = ANY(%s)",
+            (model_id, etypes),
+        )
+        # psycopg3 的 Connection 无 executemany (那是 DB-API 2.0 的可选扩展),
+        # 统一走 execute 逐条 —— 实测 231 条实体在 2s 内完成, 无需批量化。
         for e in entities:
             conn.execute(
                 """
@@ -365,7 +380,9 @@ async def ingest_spec(
     registry.register_product(model_id, domain, doc_number="", doc_version=doc_version)
 
     blocks = parse_markdown(text)
-    entities = extract_from_blocks(blocks, model_id, doc_version)
+    entities = extract_from_blocks(
+        blocks, model_id, doc_version, registry=load_registry(settings.table_schemas_path)
+    )
     chunks = blocks_to_chunks(blocks, model_id, layer="model")
 
     # blocks.jsonl 侧车文件 (规格方案 §4.2.3)
