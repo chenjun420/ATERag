@@ -5,6 +5,7 @@
   workspace(_domain_X) 产品类型通用知识 (同类型型号共享, 跨域隔离)
   workspace(_common)   最小普适内核
 """
+
 from __future__ import annotations
 
 import re
@@ -45,9 +46,7 @@ class Registry:
             data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
         else:
             data = {}
-        common = (data.get("common") or {}).get(
-            "workspace", settings.common_workspace
-        )
+        common = (data.get("common") or {}).get("workspace", settings.common_workspace)
         reg._common_workspace = common
         for name, d in (data.get("domains") or {}).items():
             reg.domains[name] = DomainEntry(

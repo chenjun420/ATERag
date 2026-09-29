@@ -2,6 +2,7 @@
 
 规则优先 (标题/章节关键词), 远程 LLM 兜底; 识别结果写入 registry。
 """
+
 from __future__ import annotations
 
 import re

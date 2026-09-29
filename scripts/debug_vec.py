@@ -1,4 +1,5 @@
 """Qdrant 4.3.3 过滤命中诊断."""
+
 import asyncio
 import sys
 
@@ -19,10 +20,12 @@ async def main():
     res = client.query_points(
         collection_name="aterag_chunks",
         query=vec,
-        query_filter=Filter(must=[
-            FieldCondition(key="workspace_id", match=MatchValue(value="PA601-D54A")),
-            FieldCondition(key="section_path", match=MatchValue(value="4.3.3")),
-        ]),
+        query_filter=Filter(
+            must=[
+                FieldCondition(key="workspace_id", match=MatchValue(value="PA601-D54A")),
+                FieldCondition(key="section_path", match=MatchValue(value="4.3.3")),
+            ]
+        ),
         limit=10,
         with_payload=True,
     )
@@ -31,7 +34,10 @@ async def main():
         pl = p.payload or {}
         has12 = "12" in (pl.get("content") or "")
         has18 = "18" in (pl.get("content") or "")
-        print(f"  req={pl.get('req_id')} rail={pl.get('rail')} score={p.score:.4f} 12={has12} 18={has18}")
+        print(
+            f"  req={pl.get('req_id')} rail={pl.get('rail')} score={p.score:.4f} 12={has12} 18={has18}"
+        )
     await embed.aclose()
+
 
 asyncio.run(main())

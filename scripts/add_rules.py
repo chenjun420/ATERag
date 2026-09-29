@@ -1,4 +1,5 @@
 """追加 K-FIX-008 (探针间距) 与 K-COV-001 (强制需求覆盖) 到 power 规则."""
+
 from pathlib import Path
 
 import yaml

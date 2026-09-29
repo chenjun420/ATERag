@@ -2,6 +2,7 @@
 
 用法: .venv\\Scripts\\python.exe scripts\\verify_low_line_derating.py
 """
+
 from __future__ import annotations
 
 import os
@@ -32,19 +33,29 @@ eng = InferenceEngine(get_settings(), "power")
 # ---- 2. PA601 实际数据: 110Vac 落 90~176Vac 段, 400W / 54V ----
 r = eng.calculate("derated_output_current", {"p_line_derated": 400, "v_out": 54})
 val = r["value"]
-checks.append(("110Vac 段 400W/54V = 7.407A", abs(val - 400 / 54) < 1e-6, f"{val:.4f} A [{r['rule_id']}]"))
+checks.append(
+    ("110Vac 段 400W/54V = 7.407A", abs(val - 400 / 54) < 1e-6, f"{val:.4f} A [{r['rule_id']}]")
+)
 checks.append(("溯源标注 layer", bool(r.get("domain_layer")), str(r.get("domain_layer"))))
 
 # ---- 3. 高压段 600W/54V = 11.1A (与规格书额定一致) ----
 r2 = eng.calculate("derated_output_current", {"p_line_derated": 600, "v_out": 54})
-checks.append(("高压段 600W/54V = 11.1A (对齐 SR-1203)", abs(r2["value"] - 11.111) < 0.01, f"{r2['value']:.4f} A"))
+checks.append(
+    (
+        "高压段 600W/54V = 11.1A (对齐 SR-1203)",
+        abs(r2["value"] - 11.111) < 0.01,
+        f"{r2['value']:.4f} A",
+    )
+)
 
 # ---- 4. 缺输入必须报错, 不得兜底 ----
 try:
     eng.calculate("derated_output_current", {"v_out": 54})
     checks.append(("缺 p_line_derated 报错(fail-closed)", False, "竟成功返回 — 存在兜底"))
 except (KeyError, ValueError) as e:
-    checks.append(("缺 p_line_derated 报错(fail-closed)", True, f"{type(e).__name__}: {str(e)[:50]}"))
+    checks.append(
+        ("缺 p_line_derated 报错(fail-closed)", True, f"{type(e).__name__}: {str(e)[:50]}")
+    )
 
 # ---- 5. SHACL 约束: 低线判据不得沿用额定值 ----
 viol = """

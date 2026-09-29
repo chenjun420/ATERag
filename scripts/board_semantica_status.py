@@ -2,6 +2,7 @@
 
 用法: .venv\\Scripts\\python.exe scripts\\board_semantica_status.py
 """
+
 from __future__ import annotations
 
 import sys
@@ -33,7 +34,8 @@ def main() -> int:
             "SELECT c.relname FROM pg_class c "
             "JOIN pg_namespace n ON n.oid = c.relnamespace "
             "WHERE n.nspname = %s AND c.relkind = 'r' "
-            "AND c.relname NOT LIKE 'ag_label%%' ORDER BY c.relname", (g,)
+            "AND c.relname NOT LIKE 'ag_label%%' ORDER BY c.relname",
+            (g,),
         )
         print("--- 物理基表 (schema = graph 名) ---")
         for (rel,) in cur.fetchall():

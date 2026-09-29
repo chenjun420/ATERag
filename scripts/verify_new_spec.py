@@ -2,6 +2,7 @@
 
 用法: $env:PYTHONIOENCODING='utf-8'; .venv\\Scripts\\python.exe scripts\\verify_new_spec.py PN2000-24A
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -30,9 +31,14 @@ def main() -> int:
     registry = Registry.load(s)
 
     # ---- 1. 注册表 ----
-    checks.append(("注册表含新型号", MODEL in registry.products,
-                   f"domain={registry.products[MODEL].domain if MODEL in registry.products else '-'}"
-                   f" version={registry.products[MODEL].doc_version if MODEL in registry.products else '-'}"))
+    checks.append(
+        (
+            "注册表含新型号",
+            MODEL in registry.products,
+            f"domain={registry.products[MODEL].domain if MODEL in registry.products else '-'}"
+            f" version={registry.products[MODEL].doc_version if MODEL in registry.products else '-'}",
+        )
+    )
 
     # ---- 2. 落库量 ----
     import psycopg
@@ -43,8 +49,10 @@ def main() -> int:
         cur.execute("SELECT count(*) FROM aterag_chunks WHERE workspace_id=%s", (MODEL,))
         n_chunk = cur.fetchone()[0]
         cur.execute("SELECT sum(count) FROM lightrag_full_entities WHERE workspace=%s", (WS,))
-        n_lrag = (cur.fetchone()[0] or 0)
-        cur.execute("SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='lightrag_vdb_chunks_qwen3_7_text_embedding_1024d'")
+        n_lrag = cur.fetchone()[0] or 0
+        cur.execute(
+            "SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='lightrag_vdb_chunks_qwen3_7_text_embedding_1024d'"
+        )
         checks.append(("PG 实体已入库", n_ent > 0, f"{n_ent} 实体"))
         checks.append(("PG 分块已入库", n_chunk > 0, f"{n_chunk} 分块"))
         checks.append(("LightRAG 图谱已入库", n_lrag > 0, f"{n_lrag} 实体"))
@@ -56,8 +64,12 @@ def main() -> int:
     try:
         from qdrant_client.models import FieldCondition, Filter, MatchValue
 
-        cnt = q.count(collection_name="aterag_chunks",
-                      count_filter=Filter(must=[FieldCondition(key="workspace_id", match=MatchValue(value=MODEL))]))
+        cnt = q.count(
+            collection_name="aterag_chunks",
+            count_filter=Filter(
+                must=[FieldCondition(key="workspace_id", match=MatchValue(value=MODEL))]
+            ),
+        )
         checks.append(("Qdrant 向量已入库", cnt.count > 0, f"{cnt.count} 点"))
     except Exception as e:  # noqa: BLE001
         checks.append(("Qdrant 向量已入库", False, str(e)[:60]))
@@ -80,7 +92,9 @@ def main() -> int:
             other = await rag.search("输出过流保护点是多少", "PA601-D54A", top_k=5)
             ob = " ".join(x["content"] for x in other["results"])
             leak = [kw for kw in ("PN2000", "PN2000-24A") if kw in ob]
-            checks.append(("型号隔离 (PA601 不含本型号)", not leak, f"泄漏={leak}" if leak else "无泄漏"))
+            checks.append(
+                ("型号隔离 (PA601 不含本型号)", not leak, f"泄漏={leak}" if leak else "无泄漏")
+            )
         finally:
             await embed.aclose()
 

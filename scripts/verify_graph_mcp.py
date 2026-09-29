@@ -2,6 +2,7 @@
 
 用法: $env:PYTHONIOENCODING='utf-8'; .venv\\Scripts\\python.exe scripts\\verify_graph_mcp.py
 """
+
 from __future__ import annotations
 
 import json
@@ -45,16 +46,33 @@ def _post(payload: dict) -> dict:
 
 
 def main() -> int:
-    _post({"jsonrpc": "2.0", "id": 1, "method": "initialize",
-           "params": {"protocolVersion": "2025-06-18", "capabilities": {},
-                      "clientInfo": {"name": "aterag-graph", "version": "0.1.0"}}})
+    _post(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-06-18",
+                "capabilities": {},
+                "clientInfo": {"name": "aterag-graph", "version": "0.1.0"},
+            },
+        }
+    )
     _post({"jsonrpc": "2.0", "method": "notifications/initialized"})
 
     global _ID
     _ID += 1
-    r = _post({"jsonrpc": "2.0", "id": _ID, "method": "tools/call",
-               "params": {"name": "search_requirements",
-                          "arguments": {"query": "输出过流保护点是多少", "model_id": "PA601-D54A"}}})
+    r = _post(
+        {
+            "jsonrpc": "2.0",
+            "id": _ID,
+            "method": "tools/call",
+            "params": {
+                "name": "search_requirements",
+                "arguments": {"query": "输出过流保护点是多少", "model_id": "PA601-D54A"},
+            },
+        }
+    )
     d = json.loads(r["result"]["content"][0]["text"])
     keys = list(d.keys())
     print("search_requirements 返回字段:", keys)
@@ -63,7 +81,9 @@ def main() -> int:
     print("向量/BM25 命中:", len(d.get("results", [])), "| 图导航命中:", len(graph))
     for g in graph[:2]:
         c = g.get("content", "")
-        print(f"  graph hit: source={g.get('source')} len={len(c)} kw={[k for k in KEYWORDS if k in c]}")
+        print(
+            f"  graph hit: source={g.get('source')} len={len(c)} kw={[k for k in KEYWORDS if k in c]}"
+        )
 
     # ---- 判定: 服务端必须已跑修复后的解析逻辑 (不再返回整段截断的无信息片段) ----
     checks: list[tuple[str, bool]] = [

@@ -1,4 +1,5 @@
 """实体抽取验证: 用 PA601 规格书跑通并抽查关键实体."""
+
 import sys
 from collections import Counter
 
@@ -13,14 +14,35 @@ print("COUNTS:", dict(Counter(e.etype for e in ents)))
 
 for e in ents:
     if e.etype == "Protection":
-        keys = ("trip_min", "trip_max", "recovery_min", "recovery_max", "hysteresis_min", "priority")
+        keys = (
+            "trip_min",
+            "trip_max",
+            "recovery_min",
+            "recovery_max",
+            "hysteresis_min",
+            "priority",
+        )
         print("PROT", e.eid, {k: v for k in keys if (v := e.props.get(k)) is not None})
 
 for e in ents:
     if e.etype == "Requirement" and e.props.get("req_id", "").endswith(("1210", "1309", "1203")):
         p = e.props
-        print("REQ", e.eid, "|", p.get("title"), "| min=", p.get("min"), "max=", p.get("max"),
-              "rail=", p.get("rail"), "prio=", p.get("priority"), "sec=", p.get("section_path"))
+        print(
+            "REQ",
+            e.eid,
+            "|",
+            p.get("title"),
+            "| min=",
+            p.get("min"),
+            "max=",
+            p.get("max"),
+            "rail=",
+            p.get("rail"),
+            "prio=",
+            p.get("priority"),
+            "sec=",
+            p.get("section_path"),
+        )
 
 for e in ents:
     if e.etype == "Signal" and e.props.get("pin") in ("S1", "P1", "1"):
@@ -34,7 +56,12 @@ for etype in ("Requirement", "Protection", "Product"):
 
 prot = [e for e in ents if e.etype == "Protection"]
 checks.append(("保护点抽出数值", any(e.props.get("trip_min") is not None for e in prot)))
-checks.append(("保护点区分输出轨 (多轨)", len({e.props.get("rail") for e in prot if e.props.get("rail")}) >= 2))
+checks.append(
+    (
+        "保护点区分输出轨 (多轨)",
+        len({e.props.get("rail") for e in prot if e.props.get("rail")}) >= 2,
+    )
+)
 reqs = [e for e in ents if e.etype == "Requirement"]
 checks.append(("需求抽出 min/max", any(e.props.get("min") is not None for e in reqs)))
 checks.append(("需求抽出优先级", any(e.props.get("priority") for e in reqs)))
@@ -71,18 +98,24 @@ for raw, want, label in RANGE_CASES:
     checks.append((f"区间 {label} {raw!r}", got == want, f"got={got} want={want}"))
 
 # 端到端: 第二路额定电压必须真的落库 (而非解析器单测通过即止)
-aux_v = [e for e in reqs if e.props.get("rail") == "3.45V" and e.props.get("title") == "额定输出电压"]
-checks.append((
-    "第二路 (3.45V) 额定电压已落库",
-    bool(aux_v) and aux_v[0].props.get("min") == 3.45,
-    f"min={aux_v[0].props.get('min') if aux_v else '实体缺失'}",
-))
+aux_v = [
+    e for e in reqs if e.props.get("rail") == "3.45V" and e.props.get("title") == "额定输出电压"
+]
+checks.append(
+    (
+        "第二路 (3.45V) 额定电压已落库",
+        bool(aux_v) and aux_v[0].props.get("min") == 3.45,
+        f"min={aux_v[0].props.get('min') if aux_v else '实体缺失'}",
+    )
+)
 aux_i = [e for e in reqs if e.props.get("rail") == "3.45V" and e.props.get("title") == "输出电流"]
-checks.append((
-    "第二路 (3.45V) 额定电流已落库",
-    bool(aux_i) and aux_i[0].props.get("max") == 0.1,
-    f"max={aux_i[0].props.get('max') if aux_i else '实体缺失'}",
-))
+checks.append(
+    (
+        "第二路 (3.45V) 额定电流已落库",
+        bool(aux_i) and aux_i[0].props.get("max") == 0.1,
+        f"max={aux_i[0].props.get('max') if aux_i else '实体缺失'}",
+    )
+)
 
 for item in checks:
     label, ok = item[0], item[1]

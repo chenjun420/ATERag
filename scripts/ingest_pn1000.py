@@ -1,4 +1,5 @@
 """PN1000-48A 迷你规格书摄取 (隔离测试第二型号)."""
+
 import asyncio
 import sys
 

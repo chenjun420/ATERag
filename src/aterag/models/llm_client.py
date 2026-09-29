@@ -3,6 +3,7 @@
 供应商可替换: 只要提供 OpenAI 兼容 /chat/completions 即可。
 模型名全部来自配置, 后期更换模型不改代码。
 """
+
 from __future__ import annotations
 
 import asyncio

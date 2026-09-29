@@ -1,4 +1,5 @@
 """诊断 30A 泄漏: 4.3.3 过滤下哪个组块含 '30'."""
+
 import asyncio
 import sys
 
@@ -15,7 +16,9 @@ from aterag.models import EmbeddingClient
 async def main():
     embed = EmbeddingClient(get_settings())
     qdrant = QdrantClient(url="http://192.168.5.24:6333", timeout=60)
-    hits = await qdrant_search(qdrant, embed, ["PA601-D54A"], "输出过流保护点", 8, section_path="4.3.3")
+    hits = await qdrant_search(
+        qdrant, embed, ["PA601-D54A"], "输出过流保护点", 8, section_path="4.3.3"
+    )
     for h in hits:
         c = h.get("content", "")
         if "30" in c.replace("2026", "").replace("300", ""):
@@ -24,5 +27,6 @@ async def main():
                 if "30" in line:
                     print("  LINE:", line[:110])
     await embed.aclose()
+
 
 asyncio.run(main())

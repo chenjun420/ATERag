@@ -5,6 +5,7 @@
   无过滤                -> Qdrant+BM25 融合 + LightRAG mix (图导航) 补充
 隔离: workspace 三层 [model, _domain_{type}, _common]; 未注册型号 fail-closed。
 """
+
 from __future__ import annotations
 
 import json
@@ -26,14 +27,14 @@ UNREGISTERED_LAYER = "unregistered"
 class SearchResult:
     content: str
     score: float
-    layer: str          # model | domain | common | unregistered
+    layer: str  # model | domain | common | unregistered
     workspace_id: str
     section_path: str
     heading: str
     req_id: str
     priority: str
     rail: str
-    source: str         # vector | bm25 | rrf | graph
+    source: str  # vector | bm25 | rrf | graph
 
     def to_dict(self) -> dict:
         return self.__dict__.copy()
@@ -172,7 +173,13 @@ class RagService:
                 ]
             return self._parse_graph_context(str(result), top_k)
         except Exception as e:  # noqa: BLE001  # 图检索失败不阻塞主检索
-            return [{"content": f"(graph retrieval unavailable: {e})", "source": "graph-mix", "layer": "model"}]
+            return [
+                {
+                    "content": f"(graph retrieval unavailable: {e})",
+                    "source": "graph-mix",
+                    "layer": "model",
+                }
+            ]
 
     @staticmethod
     def _parse_graph_context(context: str, top_k: int) -> list[dict]:
@@ -185,6 +192,7 @@ class RagService:
             Reference Document List:            ```...```
         优先取 Document Chunks (真正的规格书原文), 其次取关系, 最后才退回截断的原文。
         """
+
         def _section(header_keyword: str) -> list[dict]:
             """取 header 关键字之后第一个 ```json 块并解析为 dict 列表。
 
@@ -295,9 +303,11 @@ class RagService:
         out = []
         for etype_, eid, props in rows:
             # 章节过滤: 精确匹配或前缀匹配 (支持 4.3.2 命中 4.3.2.1)
-            if (section_path
-                    and props.get("section_path", "") != section_path
-                    and not str(props.get("section_path", "")).startswith(section_path)):
+            if (
+                section_path
+                and props.get("section_path", "") != section_path
+                and not str(props.get("section_path", "")).startswith(section_path)
+            ):
                 continue
             out.append({"etype": etype_, "eid": eid, **props})
         return out

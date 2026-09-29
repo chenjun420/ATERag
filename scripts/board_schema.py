@@ -1,4 +1,5 @@
 """列出板卡 PG 业务表结构 (部署排障用)."""
+
 from __future__ import annotations
 
 import sys

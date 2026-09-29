@@ -1,4 +1,5 @@
 """检索链早期验证 (BM25 + Qdrant + RRF, 不依赖 LightRAG)."""
+
 import asyncio
 import sys
 
@@ -26,7 +27,9 @@ async def main():
         print("  ", h["section_path"], h["req_id"], h["content"][:60].replace("\n", " "))
 
     # 2) 章节过滤向量检索: 4.3.3 应命中 12~18
-    vec = await qdrant_search(qdrant, embed, ["PA601-D54A"], "输出过流保护点", 6, section_path="4.3.3")
+    vec = await qdrant_search(
+        qdrant, embed, ["PA601-D54A"], "输出过流保护点", 6, section_path="4.3.3"
+    )
     joined = " ".join(h.get("content", "") for h in vec)
     print(f"VEC(4.3.3) hits={len(vec)} has12={('12' in joined)} has18={('18' in joined)}")
     has_111 = any("11.1" in h.get("content", "") for h in vec)
@@ -39,5 +42,6 @@ async def main():
         print("  ", h.get("section_path"), h.get("content", "")[:50].replace("\n", " "))
 
     await embed.aclose()
+
 
 asyncio.run(main())

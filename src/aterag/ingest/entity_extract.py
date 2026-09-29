@@ -3,6 +3,7 @@
 PA601 类规格书的参数表结构高度规整 (编号/项目/单位/最小/典型/最大/备注/等级),
 规则解析即可获得确定性的实体与参数值; LLM 仅用于产品类型分类与语义消歧。
 """
+
 from __future__ import annotations
 
 import re
@@ -163,9 +164,7 @@ _PROTECTION_TITLE_RE = re.compile(
 )
 
 
-def extract_from_blocks(
-    blocks: list[Block], model_id: str, doc_version: str = ""
-) -> list[Entity]:
+def extract_from_blocks(blocks: list[Block], model_id: str, doc_version: str = "") -> list[Entity]:
     """从解析块中抽取本体实体 (确定性规则)。"""
     entities: list[Entity] = []
     seen: set[tuple[str, str]] = set()
@@ -332,5 +331,9 @@ def _group_protections(entities: list[Entity]) -> None:
         if "保护回差" in parts:
             props["hysteresis_min"] = parts["保护回差"].props.get("min")
         entities.append(
-            Entity("Protection", f"{props.get('model_id', '')}:{base_name}{('#' + rail) if rail else ''}", props)
+            Entity(
+                "Protection",
+                f"{props.get('model_id', '')}:{base_name}{('#' + rail) if rail else ''}",
+                props,
+            )
         )

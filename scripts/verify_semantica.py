@@ -2,6 +2,7 @@
 
 用法: $env:PYTHONIOENCODING='utf-8'; .venv\\Scripts\\python.exe scripts\\verify_semantica.py [domain]
 """
+
 from __future__ import annotations
 
 import json
@@ -41,11 +42,15 @@ def main(domain: str) -> int:
 
     cnt = store.execute_query("MATCH (r:Rule)-[:HAS_FORMULA]->(f:Formula) RETURN count(r) AS n")
     f_ok = cnt["records"][0]["n"] > 0
-    print(f"[3] 公式关系可查 (HAS_FORMULA {cnt['records'][0]['n']} 条) -> {'PASS' if f_ok else 'FAIL'}")
+    print(
+        f"[3] 公式关系可查 (HAS_FORMULA {cnt['records'][0]['n']} 条) -> {'PASS' if f_ok else 'FAIL'}"
+    )
 
     cnt = store.execute_query("MATCH (r:Rule)-[:HAS_CONSTRAINT]->(x:Shape) RETURN count(r) AS n")
     c_ok = cnt["records"][0]["n"] > 0
-    print(f"[4] 约束关系可查 (HAS_CONSTRAINT {cnt['records'][0]['n']} 条) -> {'PASS' if c_ok else 'FAIL'}")
+    print(
+        f"[4] 约束关系可查 (HAS_CONSTRAINT {cnt['records'][0]['n']} 条) -> {'PASS' if c_ok else 'FAIL'}"
+    )
 
     cnt = store.execute_query("MATCH (r:Rule)-[:CITES]->(x:Source) RETURN count(r) AS n")
     src_ok = cnt["records"][0]["n"] == len(rules)

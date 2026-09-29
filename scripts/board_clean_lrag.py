@@ -6,6 +6,7 @@
 用法: $env:PYTHONIOENCODING='utf-8'; .venv\\Scripts\\python.exe scripts\\board_clean_lrag.py --dry-run
       .venv\\Scripts\\python.exe scripts\\board_clean_lrag.py --apply
 """
+
 from __future__ import annotations
 
 import argparse
@@ -34,7 +35,8 @@ LRAG_TABLES = [
 ]
 
 VDB_TABLES = [
-    t for t in (
+    t
+    for t in (
         "lightrag_vdb_chunks_qwen3_7_text_embedding_1024d",
         "lightrag_vdb_entity_qwen3_7_text_embedding_1024d",
         "lightrag_vdb_relation_qwen3_7_text_embedding_1024d",
@@ -50,8 +52,11 @@ def counts(cur, table: str, workspace: str) -> int:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true", help="真正执行删除 (缺省仅预览)")
-    ap.add_argument("--drop-duplicates", action="store_true",
-                    help="同时删除 doc_status 中 status=failed 的 dup-* 重复插入记录")
+    ap.add_argument(
+        "--drop-duplicates",
+        action="store_true",
+        help="同时删除 doc_status 中 status=failed 的 dup-* 重复插入记录",
+    )
     args = ap.parse_args()
 
     s = get_settings()
@@ -59,8 +64,10 @@ def main() -> int:
         assert w != lrag_workspace(w), f"{w} 实为已归一化, 不应清理"
 
     with psycopg.connect(s.postgres_dsn, autocommit=True) as conn, conn.cursor() as cur:
-        cur.execute("SELECT tablename FROM pg_tables WHERE schemaname='public' "
-                    "AND tablename LIKE 'lightrag%' ORDER BY 1")
+        cur.execute(
+            "SELECT tablename FROM pg_tables WHERE schemaname='public' "
+            "AND tablename LIKE 'lightrag%' ORDER BY 1"
+        )
         present = {r[0] for r in cur.fetchall()}
         tables = [t for t in LRAG_TABLES + VDB_TABLES if t in present]
 
@@ -84,13 +91,17 @@ def main() -> int:
                 print(f"  AGE graph {graph:43s} 不存在")
 
         if args.drop_duplicates:
-            cur.execute("SELECT workspace, count(*) FROM public.lightrag_doc_status "
-                        "WHERE status <> 'processed' GROUP BY workspace ORDER BY workspace")
+            cur.execute(
+                "SELECT workspace, count(*) FROM public.lightrag_doc_status "
+                "WHERE status <> 'processed' GROUP BY workspace ORDER BY workspace"
+            )
             dups = cur.fetchall()
             for ws, n in dups:
                 print(f"=== 重复插入记录 workspace={ws}: {n} 条 ===")
-                plan.append(f"DELETE FROM public.lightrag_doc_status WHERE workspace = '{ws}' "
-                            f"AND status <> 'processed';  -- {n} 行")
+                plan.append(
+                    f"DELETE FROM public.lightrag_doc_status WHERE workspace = '{ws}' "
+                    f"AND status <> 'processed';  -- {n} 行"
+                )
 
         if not plan:
             print("\n无需清理")

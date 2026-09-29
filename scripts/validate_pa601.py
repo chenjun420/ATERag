@@ -3,6 +3,7 @@
 前置: scripts/ingest_pa601.py 已成功执行。
 覆盖: 章节过滤 / 术语召回 / 公式链 / 违规识别 / 三级隔离 / 自动识别。
 """
+
 import asyncio
 import sys
 
@@ -34,7 +35,9 @@ async def main() -> int:
     rag = RagService(settings, registry, embed)
 
     # ---------- 1. 章节过滤: 过流保护点只命中 4.3.3 ----------
-    r = await rag.search("输出过流保护点", model_id="PA601-D54A", section_path="4.3.3", use_graph=False)
+    r = await rag.search(
+        "输出过流保护点", model_id="PA601-D54A", section_path="4.3.3", use_graph=False
+    )
     contents = " ".join(x["content"] for x in r["results"])
     check(
         "章节过滤-4.3.3命中12~18A",
@@ -131,7 +134,11 @@ ps:x a ps:Protection ; ps:tripValue 12 ; ps:recoveryValue 10 ; ps:hysteresis 3 .
     # ---------- 7. BM25 与 RRF ----------
     bm = bm25_search(settings.postgres_dsn, [ws[0] for ws in layers], "输出过流保护", 10)
     check("BM25-中文检索有结果", len(bm) > 0, f"hits={len(bm)}")
-    fused = rrf_fuse(await qdrant_search(rag._qdrant, embed, [ws[0] for ws in layers], "输出过流保护", 10), bm, top_k=5)
+    fused = rrf_fuse(
+        await qdrant_search(rag._qdrant, embed, [ws[0] for ws in layers], "输出过流保护", 10),
+        bm,
+        top_k=5,
+    )
     check("RRF-融合去重", len(fused) > 0 and all("rrf_score" in x for x in fused))
 
     await embed.aclose()

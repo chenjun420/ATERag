@@ -5,7 +5,13 @@ sys.path.insert(0, "src")
 from aterag.ingest.entity_extract import _PROTECTION_TITLE_RE, extract_from_blocks
 from aterag.ingest.markdown_parser import parse_file
 
-for t in ["输入过压保护点", "输入过压恢复点", "输入过压保护回差", "输入欠压恢复点", "输出静态过压保护"]:
+for t in [
+    "输入过压保护点",
+    "输入过压恢复点",
+    "输入过压保护回差",
+    "输入欠压恢复点",
+    "输出静态过压保护",
+]:
     m = _PROTECTION_TITLE_RE.match(t)
     print(t, "->", m.groups() if m else "NO MATCH")
 

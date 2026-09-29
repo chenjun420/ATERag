@@ -1,4 +1,5 @@
 """推理引擎: 规则驱动计算 (安全表达式) + SHACL 约束验证 + 决策溯源."""
+
 from __future__ import annotations
 
 import math
@@ -14,9 +15,19 @@ from aterag.inference.rules import (
 
 # 表达式环境: 仅暴露安全数学函数
 _SAFE_ENV = {
-    "abs": abs, "min": min, "max": max, "sum": sum, "round": round,
-    "sqrt": math.sqrt, "ceil": math.ceil, "floor": math.floor, "pow": pow,
-    "log": math.log, "exp": math.exp, "pi": math.pi, "e": math.e,
+    "abs": abs,
+    "min": min,
+    "max": max,
+    "sum": sum,
+    "round": round,
+    "sqrt": math.sqrt,
+    "ceil": math.ceil,
+    "floor": math.floor,
+    "pow": pow,
+    "log": math.log,
+    "exp": math.exp,
+    "pi": math.pi,
+    "e": math.e,
 }
 
 _DENY_RE = re.compile(r"__|import|exec|eval|open|compile|globals|getattr|setattr")
@@ -39,7 +50,7 @@ class Derivation:
     output_name: str
     output_value: object
     domain_layer: str
-    confidence: float | None   # None = 规则未标注可信度, 属未知, 不得默认顶格
+    confidence: float | None  # None = 规则未标注可信度, 属未知, 不得默认顶格
     source: dict
 
 
@@ -115,7 +126,11 @@ class InferenceEngine:
             value=repr(value),
             rule_id=rule["id"],
             premises=[
-                {"input": k, "value": given[k], "layer": self.domain if k in self.model_facts else "caller"}
+                {
+                    "input": k,
+                    "value": given[k],
+                    "layer": self.domain if k in self.model_facts else "caller",
+                }
                 for k in var_names
             ],
             confidence=rule.get("confidence"),

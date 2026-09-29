@@ -1,4 +1,5 @@
 """推理引擎验证 (纯本地, 无网络)."""
+
 import os
 import sys
 

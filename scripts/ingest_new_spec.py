@@ -10,6 +10,7 @@
 自动完成: 型号识别 -> 产品类型分类 -> 注册 -> 解析 -> 实体抽取 ->
 PG 实体/分块 + Qdrant 向量 + LightRAG 图谱 (可重复执行, 幂等覆盖)。
 """
+
 from __future__ import annotations
 
 import asyncio

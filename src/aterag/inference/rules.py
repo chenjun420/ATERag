@@ -1,4 +1,5 @@
 """领域规则加载器: domain_rules/{common,domain}/rules.yaml -> 可执行规则."""
+
 from __future__ import annotations
 
 import functools

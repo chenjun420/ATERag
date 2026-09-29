@@ -1,4 +1,5 @@
 """重存型号分块 (幂等清理): PG 去重重建 + Qdrant 确定性 ID 重写."""
+
 import asyncio
 import sys
 
@@ -65,18 +66,24 @@ async def main() -> int:
     ]
     for i in range(0, len(points), 256):
         qdrant.upsert(collection_name=CHUNK_COLLECTION, points=points[i : i + 256])
-    info = qdrant.count(CHUNK_COLLECTION, count_filter=Filter(
-        must=[FieldCondition(key="workspace_id", match=MatchValue(value=MODEL))]
-    ), exact=True)
+    info = qdrant.count(
+        CHUNK_COLLECTION,
+        count_filter=Filter(
+            must=[FieldCondition(key="workspace_id", match=MatchValue(value=MODEL))]
+        ),
+        exact=True,
+    )
     print(f"QDRANT workspace points={info.count}")
 
     # 验证 1309 组块
     hits = qdrant.scroll(
         collection_name=CHUNK_COLLECTION,
-        scroll_filter=Filter(must=[
-            FieldCondition(key="workspace_id", match=MatchValue(value=MODEL)),
-            FieldCondition(key="req_id", match=MatchValue(value="SR-PA601-D54A-1308")),
-        ]),
+        scroll_filter=Filter(
+            must=[
+                FieldCondition(key="workspace_id", match=MatchValue(value=MODEL)),
+                FieldCondition(key="req_id", match=MatchValue(value="SR-PA601-D54A-1308")),
+            ]
+        ),
         limit=3,
         with_payload=True,
     )

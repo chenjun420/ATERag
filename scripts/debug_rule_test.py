@@ -1,4 +1,5 @@
 """调试单条 SHACL 规则的 test 块: python scripts/debug_rule_test.py <rule_id>"""
+
 from __future__ import annotations
 
 import os
@@ -30,7 +31,9 @@ for f in ("domain_rules/common/rules.yaml", "domain_rules/power/rules.yaml"):
             print(r["constraint"]["shape"])
             from pyshacl import validate
 
-            conforms, g, txt = validate(data_graph=ttl, shacl_graph=r["constraint"]["shape"], inference="rdfs")
+            conforms, g, txt = validate(
+                data_graph=ttl, shacl_graph=r["constraint"]["shape"], inference="rdfs"
+            )
             print("conforms:", conforms)
             print(txt[:2000])
             raise SystemExit(0)

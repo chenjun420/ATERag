@@ -1,4 +1,5 @@
 """三层装配检索验证: model + domain + common (不依赖 LightRAG)."""
+
 import asyncio
 import sys
 
@@ -39,5 +40,6 @@ async def main():
     print(f"[common] hits={len(common_hits)}")
 
     await embed.aclose()
+
 
 asyncio.run(main())

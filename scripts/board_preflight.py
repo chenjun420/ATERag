@@ -4,6 +4,7 @@
 
 用法: $env:PYTHONIOENCODING='utf-8'; .venv\\Scripts\\python.exe scripts\\board_preflight.py
 """
+
 from __future__ import annotations
 
 import sys
@@ -37,7 +38,9 @@ def main() -> int:
     try:
         with urllib.request.urlopen(f"{s.qdrant_url}/healthz", timeout=10) as r:
             body = r.read().decode().strip()
-        results.append(check("Qdrant /healthz", r.status == 200, f"{body} ({time.time()-t0:.2f}s)"))
+        results.append(
+            check("Qdrant /healthz", r.status == 200, f"{body} ({time.time() - t0:.2f}s)")
+        )
     except (urllib.error.URLError, OSError) as e:
         results.append(check("Qdrant /healthz", False, str(e)[:80]))
 
@@ -73,14 +76,21 @@ def main() -> int:
         ents = cur.fetchall()
         results.append(check("结构化实体已入库", bool(ents), str(dict(ents))))
 
-        cur.execute("SELECT workspace_id, count(*) FROM aterag_chunks GROUP BY workspace_id ORDER BY workspace_id")
+        cur.execute(
+            "SELECT workspace_id, count(*) FROM aterag_chunks GROUP BY workspace_id ORDER BY workspace_id"
+        )
         chunks = cur.fetchall()
         results.append(check("分块已入库", bool(chunks), str(dict(chunks))))
 
         cur.execute("SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename")
         tables = [r[0] for r in cur.fetchall()]
-        results.append(check("业务表齐备", "aterag_chunks" in tables and "aterag_entities" in tables,
-                             f"{len(tables)} 表"))
+        results.append(
+            check(
+                "业务表齐备",
+                "aterag_chunks" in tables and "aterag_entities" in tables,
+                f"{len(tables)} 表",
+            )
+        )
 
     ok = all(results)
     print("BOARD_PREFLIGHT", "PASS" if ok else "FAIL", f"({sum(results)}/{len(results)})")

@@ -9,6 +9,7 @@
 
 用法: .venv\\Scripts\\python.exe scripts\\verify_110v_full_load.py
 """
+
 from __future__ import annotations
 
 import os
@@ -28,23 +29,29 @@ from aterag.config import get_settings
 from aterag.inference import InferenceEngine
 
 # 规格书事实
-V_OUT = 54.0          # -54V 轨额定输出电压
-I_RATED_HI = 11.1     # SR-1203 额定输出电流 (额定 600W 档)
-P_RATED_HI = 600.0    # SR-1204 176~286Vac 段
-P_RATED_LO = 400.0    # SR-1204 90~176Vac 段  <- 110Vac 落此段
-OCP_FLOOR_LOW_LINE = 8.1   # SR-1309 备注: 输入<176Vac 过流点下限
+V_OUT = 54.0  # -54V 轨额定输出电压
+I_RATED_HI = 11.1  # SR-1203 额定输出电流 (额定 600W 档)
+P_RATED_HI = 600.0  # SR-1204 176~286Vac 段
+P_RATED_LO = 400.0  # SR-1204 90~176Vac 段  <- 110Vac 落此段
+OCP_FLOOR_LOW_LINE = 8.1  # SR-1309 备注: 输入<176Vac 过流点下限
 V_IN_TEST = 110.0
 
-eng = InferenceEngine(get_settings(), "power",
-                      model_facts={"voltage": V_OUT, "input_power": P_RATED_LO})
+eng = InferenceEngine(
+    get_settings(), "power", model_facts={"voltage": V_OUT, "input_power": P_RATED_LO}
+)
 
 checks: list[tuple[str, bool, str]] = []
 
 # --- 1. 规格书自洽性: 600W / 54V 应等于额定 11.1A ---
 r1 = eng.calculate("power", {"output_voltage": V_OUT, "current": I_RATED_HI})
 p_hi = r1["value"]
-checks.append(("额定档 54V x 11.1A = 600W", abs(p_hi - P_RATED_HI) < 1.0,
-               f"{round(p_hi, 2)}W [{r1['rule_id']}]"))
+checks.append(
+    (
+        "额定档 54V x 11.1A = 600W",
+        abs(p_hi - P_RATED_HI) < 1.0,
+        f"{round(p_hi, 2)}W [{r1['rule_id']}]",
+    )
+)
 
 # --- 2. 低线段 400W 反算电流 ---
 # 引擎为正向推导 (K-ELEC-001: P = V x I), 传 output_power 会让它去反解 current
@@ -53,10 +60,14 @@ i_calc = P_RATED_LO / V_OUT
 checks.append(("110Vac 段 400W / 54V 反算电流", abs(i_calc - 7.407) < 0.01, f"{i_calc:.3f} A"))
 
 # --- 3. 合理性交叉校验: 额定输出电流必须低于低压段过流保护下限 ---
-checks.append(("额定电流 < 低压过流下限 8.1A (自洽)", i_calc < OCP_FLOOR_LOW_LINE,
-               f"{i_calc:.3f}A < {OCP_FLOOR_LOW_LINE}A"))
-checks.append(("额定电流 < 高压段过流下限 12A (自洽)", I_RATED_HI < 12.0,
-               f"{I_RATED_HI}A < 12A"))
+checks.append(
+    (
+        "额定电流 < 低压过流下限 8.1A (自洽)",
+        i_calc < OCP_FLOOR_LOW_LINE,
+        f"{i_calc:.3f}A < {OCP_FLOOR_LOW_LINE}A",
+    )
+)
+checks.append(("额定电流 < 高压段过流下限 12A (自洽)", I_RATED_HI < 12.0, f"{I_RATED_HI}A < 12A"))
 
 # --- 4. 降额比例 ---
 derate = 1 - i_calc / I_RATED_HI
@@ -71,5 +82,7 @@ for label, ok, detail in checks:
     print(f"  [{'PASS' if ok else 'FAIL'}] {label:34s} {detail}")
 n = sum(1 for _, ok, _ in checks if ok)
 print(f"VERIFY_110V {'PASS' if n == len(checks) else 'FAIL'} {n}/{len(checks)}")
-print(f"\n答案: 110Vac 输入满载时 -54V 轨输出电流 = {i_calc:.1f} A (规格书未单列, 由 400W 降额上限推导)")
+print(
+    f"\n答案: 110Vac 输入满载时 -54V 轨输出电流 = {i_calc:.1f} A (规格书未单列, 由 400W 降额上限推导)"
+)
 sys.exit(0 if n == len(checks) else 1)

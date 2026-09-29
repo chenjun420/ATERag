@@ -1,4 +1,5 @@
 """列出板卡 PG 的所有表 (部署排障用)."""
+
 from __future__ import annotations
 
 import sys

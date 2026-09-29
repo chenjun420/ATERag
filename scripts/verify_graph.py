@@ -1,4 +1,5 @@
 """LightRAG mix 图检索验收 (PA601 摄取完成后)."""
+
 import asyncio
 import sys
 
@@ -21,9 +22,7 @@ async def main() -> int:
         await embed.probe_dimension()
     rag = RagService(settings, registry, embed)
 
-    r = await rag.search(
-        "输出过流保护点是多少", "PA601-D54A", use_graph=True, top_k=4
-    )
+    r = await rag.search("输出过流保护点是多少", "PA601-D54A", use_graph=True, top_k=4)
     print("vector/bm25 results:", len(r["results"]))
     print("graph results:", len(r.get("graph_results", [])))
     hits = r.get("graph_results", [])

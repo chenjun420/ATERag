@@ -7,6 +7,7 @@
 协议自动识别 (URL 特征), 可用 EMBED_PROTOCOL 显式覆盖。
 维度不假设: 启动时用探针文本实测 (dim_cache), 换供应商/模型零代码改动。
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -43,7 +44,9 @@ class _OpenAIBackend:
 
 class _DashScopeBackend:
     def __init__(self, base: str, model: str, api_key: str):
-        self._url = base if base.endswith("/embeddings") or "/text-embedding" in base else base.rstrip("/")
+        self._url = (
+            base if base.endswith("/embeddings") or "/text-embedding" in base else base.rstrip("/")
+        )
         self._model = model
         self._api_key = api_key
 
@@ -126,7 +129,9 @@ class EmbeddingClient:
             raise ValueError("embedding: missing results")
         return [v for v in results if v is not None]
 
-    async def _embed_batch_with_retry(self, texts: list[str], retries: int = 3) -> list[list[float]]:
+    async def _embed_batch_with_retry(
+        self, texts: list[str], retries: int = 3
+    ) -> list[list[float]]:
         last_err: Exception | None = None
         for attempt in range(retries + 1):
             try:

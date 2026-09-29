@@ -1,4 +1,5 @@
 """列出 ag_catalog 里与 graph 相关的函数签名 (清理脚本选型用)."""
+
 from __future__ import annotations
 
 import sys

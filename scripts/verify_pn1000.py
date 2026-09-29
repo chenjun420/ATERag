@@ -1,4 +1,5 @@
 """PN1000-48A 迷你规格书解析与抽取验证 (隔离测试夹具预检)."""
+
 import sys
 
 sys.path.insert(0, "src")
@@ -35,10 +36,12 @@ checks.append(("抽出需求实体", len(reqs) > 0))
 r1203 = [e for e in reqs if e.props.get("req_id", "").endswith("1203")]
 checks.append(("1203 额定电流抽出", bool(r1203) and r1203[0].props.get("max") is not None))
 # 隔离关键: PN1000 的 -48V 额定电流 (20.8A) 必须不同于 PA601 的 -54V/11.1A
-checks.append((
-    "与 PA601 参数不冲突 (20.8A vs 11.1A)",
-    bool(r1203) and r1203[0].props.get("max") == 20.8,
-))
+checks.append(
+    (
+        "与 PA601 参数不冲突 (20.8A vs 11.1A)",
+        bool(r1203) and r1203[0].props.get("max") == 20.8,
+    )
+)
 for label, ok in checks:
     print(f"  [{'PASS' if ok else 'FAIL'}] {label}")
 npass = sum(1 for _, ok in checks if ok)

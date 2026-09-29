@@ -8,6 +8,7 @@ list_domain_rules / health
 
 所有业务工具的 model_id 可选: 缺省时从 query 文本自动识别型号与产品类型。
 """
+
 from __future__ import annotations
 
 import json
@@ -95,8 +96,8 @@ def _model_facts(model_id: str, required: tuple[str, ...] = ()) -> dict:
 
     ents = get_rag().query_entities(model_id, etype="Requirement")  # 异常直接上抛
 
-    volts: dict[str, float] = {}   # rail -> 额定输出电压
-    currs: dict[str, float] = {}   # rail -> 额定输出电流
+    volts: dict[str, float] = {}  # rail -> 额定输出电压
+    currs: dict[str, float] = {}  # rail -> 额定输出电流
     for e in ents:
         title = e.get("title", "")
         rail = e.get("rail", "") or "main"
@@ -108,16 +109,25 @@ def _model_facts(model_id: str, required: tuple[str, ...] = ()) -> dict:
                 volts.setdefault(rail, abs(float(raw)))
             except (TypeError, ValueError):
                 continue
-            prov[f"voltage_{rail}"] = {"req_id": e.get("req_id"), "section_path": e.get("section_path")}
+            prov[f"voltage_{rail}"] = {
+                "req_id": e.get("req_id"),
+                "section_path": e.get("section_path"),
+            }
         elif "输出电流" in title:
             try:
                 currs[rail] = float(e["max"])
             except (KeyError, TypeError, ValueError):
                 continue
-            prov[f"current_{rail}"] = {"req_id": e.get("req_id"), "section_path": e.get("section_path")}
+            prov[f"current_{rail}"] = {
+                "req_id": e.get("req_id"),
+                "section_path": e.get("section_path"),
+            }
         elif "整机效率" in title and e.get("min") is not None:
             facts["efficiency_min"] = e["min"]
-            prov["efficiency_min"] = {"req_id": e.get("req_id"), "section_path": e.get("section_path")}
+            prov["efficiency_min"] = {
+                "req_id": e.get("req_id"),
+                "section_path": e.get("section_path"),
+            }
 
     for rail, v in volts.items():
         facts[f"voltage_{rail}"] = v
@@ -175,7 +185,8 @@ async def search_requirements(
     )
     # 附加强制需求实体 (PG 直查, 精确)
     ents = get_rag().query_entities(
-        r.model_id, etype="Requirement",
+        r.model_id,
+        etype="Requirement",
         keyword=query[:40] if len(query) <= 40 else None,
         section_path=section_path or None,
     )
@@ -206,7 +217,9 @@ async def query_parameters(
     seen: set[tuple[str, str]] = set()
     for tok in tokens[:6]:
         for e in get_rag().query_entities(
-            r.model_id, etype="Requirement", keyword=tok,
+            r.model_id,
+            etype="Requirement",
+            keyword=tok,
             section_path=section_path or None,
         ):
             key = (e.get("etype", ""), e.get("eid", ""))
@@ -214,7 +227,9 @@ async def query_parameters(
                 seen.add(key)
                 ents.append(e)
         for p in get_rag().query_entities(
-            r.model_id, etype="Protection", keyword=tok,
+            r.model_id,
+            etype="Protection",
+            keyword=tok,
             section_path=section_path or None,
         ):
             key = (p.get("etype", ""), p.get("eid", ""))
@@ -225,13 +240,25 @@ async def query_parameters(
         fallback = await get_rag().search(
             query, model_id=r.model_id, section_path=section_path or None, top_k=6
         )
-        return json.dumps({"model_id": r.model_id, "entities": [], "protections": [],
-                           "semantic_fallback": fallback["results"]},
-                          ensure_ascii=False, default=str)
+        return json.dumps(
+            {
+                "model_id": r.model_id,
+                "entities": [],
+                "protections": [],
+                "semantic_fallback": fallback["results"],
+            },
+            ensure_ascii=False,
+            default=str,
+        )
     return json.dumps(
-        {"model_id": r.model_id, "model_id_source": r.source,
-         "entities": ents[:20], "protections": prots[:10]},
-        ensure_ascii=False, default=str,
+        {
+            "model_id": r.model_id,
+            "model_id_source": r.source,
+            "entities": ents[:20],
+            "protections": prots[:10],
+        },
+        ensure_ascii=False,
+        default=str,
     )
 
 
@@ -294,6 +321,7 @@ async def get_test_cases(requirement_id: str, model_id: str = "") -> str:
 
     def has_min(e: dict) -> bool:
         return e.get("min") is not None or e.get("max") is not None
+
     # 主轨动态判定: 复用 _model_facts 的"额定输出电流最大者"逻辑, 不用硬编码轨名白名单。
     # 原实现写死 ("-54V", "-48V"), 换 -12V/-28V 型号时主轨不匹配会静默降级,
     # 可能把辅助轨 (如 3.45V 0.1A) 当主轨生成判据 —— 与已修的 _model_facts 同类隐患。
@@ -302,15 +330,24 @@ async def get_test_cases(requirement_id: str, model_id: str = "") -> str:
     except FactUnavailable:
         main_rail = ""
     # 优先级: 精确 req_id + 主轨 > 精确 req_id 有数值 > req_id 前缀 > 任意
-    req = _pick(lambda e: str(e.get("req_id", "")) == rid and has_min(e)
-                and bool(main_rail) and str(e.get("rail", "")) == main_rail)
+    req = _pick(
+        lambda e: (
+            str(e.get("req_id", "")) == rid
+            and has_min(e)
+            and bool(main_rail)
+            and str(e.get("rail", "")) == main_rail
+        )
+    )
     req = req or _pick(lambda e: str(e.get("req_id", "")) == rid and has_min(e))
     req = req or _pick(lambda e: str(e.get("req_id", "")).startswith(rid) and has_min(e))
     req = req or _pick(lambda e: rid in str(e.get("req_id", "")) or rid in e.get("eid", ""))
     if not req:
         hits = await get_rag().search(rid, model_id=model_id, top_k=5)
-        return json.dumps({"model_id": model_id, "requirement": None,
-                           "semantic_hits": hits["results"]}, ensure_ascii=False, default=str)
+        return json.dumps(
+            {"model_id": model_id, "requirement": None, "semantic_hits": hits["results"]},
+            ensure_ascii=False,
+            default=str,
+        )
     case = {
         "testCaseId": f"TC:{model_id}:{req.get('req_id', rid)}:01",
         "requirementRef": req.get("req_id", rid),
@@ -319,14 +356,21 @@ async def get_test_cases(requirement_id: str, model_id: str = "") -> str:
         "criterion": _criterion_from(req),
         "priority": req.get("priority", ""),
         "steps": [
-            {"step": 1, "action": f"按 {req.get('section_path', '')} 章节条件建立测试环境", "expected": "环境就绪"},
+            {
+                "step": 1,
+                "action": f"按 {req.get('section_path', '')} 章节条件建立测试环境",
+                "expected": "环境就绪",
+            },
             {"step": 2, "action": f"执行 {req.get('title', rid)} 测量", "expected": "读数有效"},
             {"step": 3, "action": "比对判据", "expected": _criterion_from(req)},
         ],
         "generated_by": "aterag-rag",
     }
-    return json.dumps({"model_id": model_id, "requirement": req, "test_case": case},
-                      ensure_ascii=False, default=str)
+    return json.dumps(
+        {"model_id": model_id, "requirement": req, "test_case": case},
+        ensure_ascii=False,
+        default=str,
+    )
 
 
 def _safe_calc(eng, formula_type: str, inputs: dict) -> dict:
@@ -397,9 +441,14 @@ async def search_cases(query: str, model_id: str = "", top_k: int = 5) -> str:
     shared = [h for h in result["results"] if h.get("layer") in ("domain", "common")]
     model_hits = [h for h in result["results"] if h.get("layer") == "model"]
     return json.dumps(
-        {"model_id": r.model_id, "domain": r.domain,
-         "model_cases": model_hits, "domain_knowledge": shared},
-        ensure_ascii=False, default=str,
+        {
+            "model_id": r.model_id,
+            "domain": r.domain,
+            "model_cases": model_hits,
+            "domain_knowledge": shared,
+        },
+        ensure_ascii=False,
+        default=str,
     )
 
 
@@ -425,12 +474,14 @@ async def optimize_process(
     eng = InferenceEngine(settings, registry.products[model_id].domain, model_facts=facts)
     out: dict = {"model_id": model_id, "facts": facts}
     out["channel_count"] = _safe_calc(
-        eng, "channel_count",
+        eng,
+        "channel_count",
         {"throughput": target_throughput, "test_time": test_time_s, "available_time": 86400},
     )
     if probe_rated_life is not None and probe_used_count is not None:
         out["probe_life"] = _safe_calc(
-            eng, "probe_life",
+            eng,
+            "probe_life",
             {"rated_life": probe_rated_life, "used_count": probe_used_count},
         )
     else:
@@ -500,16 +551,18 @@ async def list_domain_rules(category: str = "") -> str:
     for r in rules:
         if category and r.get("category") != category:
             continue
-        out.append({
-            "id": r.get("id"),
-            "statement": r.get("statement"),
-            "category": r.get("category"),
-            "domain": r.get("_domain"),
-            "has_formula": bool((r.get("derive") or {}).get("expr")),
-            "has_constraint": bool((r.get("constraint") or {}).get("shape")),
-            "confidence": r.get("confidence"),
-            "source": r.get("source"),
-        })
+        out.append(
+            {
+                "id": r.get("id"),
+                "statement": r.get("statement"),
+                "category": r.get("category"),
+                "domain": r.get("_domain"),
+                "has_formula": bool((r.get("derive") or {}).get("expr")),
+                "has_constraint": bool((r.get("constraint") or {}).get("shape")),
+                "confidence": r.get("confidence"),
+                "source": r.get("source"),
+            }
+        )
     return json.dumps({"rules": out, "shacl_shapes": len(shapes)}, ensure_ascii=False)
 
 
@@ -519,8 +572,9 @@ async def health() -> str:
     from aterag.checks import report, run_all_checks
 
     results = await run_all_checks(settings)
-    return json.dumps({"ok": all(r.ok for r in results), "report": report(results)},
-                      ensure_ascii=False)
+    return json.dumps(
+        {"ok": all(r.ok for r in results), "report": report(results)}, ensure_ascii=False
+    )
 
 
 def main() -> None:

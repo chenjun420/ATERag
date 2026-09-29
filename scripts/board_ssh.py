@@ -10,6 +10,7 @@
 凭据: BOARD_SSH_HOST / BOARD_SSH_USER / BOARD_SSH_PASSWORD
 注意: 密码只从环境变量读, 绝不写入仓库。
 """
+
 from __future__ import annotations
 
 import os
@@ -31,7 +32,9 @@ def connect() -> paramiko.SSHClient:
         sys.exit("未设置 BOARD_SSH_PASSWORD")
     cli = paramiko.SSHClient()
     cli.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    cli.connect(HOST, username=USER, password=PWD, timeout=20, look_for_keys=False, allow_agent=False)
+    cli.connect(
+        HOST, username=USER, password=PWD, timeout=20, look_for_keys=False, allow_agent=False
+    )
     return cli
 
 

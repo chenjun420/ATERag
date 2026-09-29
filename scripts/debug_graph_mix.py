@@ -1,4 +1,5 @@
 """诊断 LightRAG mix 图检索返回结构与截断 (部署排障用)."""
+
 from __future__ import annotations
 
 import asyncio
@@ -24,12 +25,19 @@ async def main() -> int:
 
     lrag = rag._get_lightrag("PA601-D54A")
     await lrag.initialize_storages()
-    res = await lrag.aquery("输出过流保护点是多少", param=QueryParam(mode="mix", top_k=4, only_need_context=True))
+    res = await lrag.aquery(
+        "输出过流保护点是多少", param=QueryParam(mode="mix", top_k=4, only_need_context=True)
+    )
     print("type:", type(res).__name__)
     if isinstance(res, dict):
         print("keys:", list(res.keys()))
         ch = res.get("chunks", {})
-        print("chunks type:", type(ch).__name__, "keys:", list(ch.keys()) if isinstance(ch, dict) else "-")
+        print(
+            "chunks type:",
+            type(ch).__name__,
+            "keys:",
+            list(ch.keys()) if isinstance(ch, dict) else "-",
+        )
         if isinstance(ch, dict):
             items = ch.get("chunks", [])
             print("n chunks:", len(items))

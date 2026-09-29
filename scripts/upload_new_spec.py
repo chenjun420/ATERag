@@ -12,6 +12,7 @@
     --dry-run     只做前置校验与上传, 不执行导入
     --local       改为在开发机本地导入 (不经过板卡, 便于快速迭代)
 """
+
 from __future__ import annotations
 
 import argparse
@@ -55,7 +56,9 @@ def precheck(path: str) -> tuple[str, str, list[str]]:
     head = text[:500]
     m = MODEL_ID_RE.search(head)
     if not m:
-        problems.append("前 500 字符内未匹配到型号 ID (需形如 PA601-D54A / PN2000-24A: 2~8 位大写字母+数字+连字符段)")
+        problems.append(
+            "前 500 字符内未匹配到型号 ID (需形如 PA601-D54A / PN2000-24A: 2~8 位大写字母+数字+连字符段)"
+        )
     vm = VERSION_RE.search(text[:800])
     if not vm:
         problems.append("前 800 字符内未匹配到 '版本: X' (可选, 但缺失则 doc_version 为空)")
@@ -64,7 +67,9 @@ def precheck(path: str) -> tuple[str, str, list[str]]:
     return p, (m.group(1) if m else ""), problems
 
 
-def sh(cli: paramiko.SSHClient, cmd: str, sudo: bool = False, timeout: int = 3600) -> tuple[int, str]:
+def sh(
+    cli: paramiko.SSHClient, cmd: str, sudo: bool = False, timeout: int = 3600
+) -> tuple[int, str]:
     full = f"sudo -n sh -c {shlex.quote(cmd)}" if sudo else cmd
     _, out, err = cli.exec_command(full, timeout=timeout)
     so = out.read().decode("utf-8", "replace")
@@ -86,7 +91,9 @@ def main() -> int:
         print(f"  [WARN] {p}")
     if problems and not args.local:
         # 型号识别失败会让 ingest_spec 直接抛错, 没必要传上去
-        hard = [p for p in problems if "未匹配到型号 ID" in p or "文件不存在" in p or "非 UTF-8" in p]
+        hard = [
+            p for p in problems if "未匹配到型号 ID" in p or "文件不存在" in p or "非 UTF-8" in p
+        ]
         if hard:
             print("\nUPLOAD_NEW_SPEC FAIL (前置校验不通过)")
             for p in hard:
@@ -96,7 +103,9 @@ def main() -> int:
     if args.local:
         cmd = [sys.executable, "scripts/ingest_new_spec.py", path]
         print(f"\n>>> 本地导入: {' '.join(cmd[1:])}")
-        proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        proc = subprocess.run(
+            cmd, capture_output=True, text=True, encoding="utf-8", errors="replace"
+        )
         print(proc.stdout[-3000:])
         if proc.returncode != 0:
             print(proc.stderr[-1500:])
@@ -108,7 +117,9 @@ def main() -> int:
 
     cli = paramiko.SSHClient()
     cli.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    cli.connect(HOST, username=USER, password=PWD, timeout=20, look_for_keys=False, allow_agent=False)
+    cli.connect(
+        HOST, username=USER, password=PWD, timeout=20, look_for_keys=False, allow_agent=False
+    )
     try:
         remote = posixpath.join(SPECS_DIR, os.path.basename(path))
         print(f"\n>>> 上传 -> {USER}@{HOST}:{remote}")
@@ -129,7 +140,7 @@ def main() -> int:
         rc, out = sh(cli, f"{PY} {INGEST_CLI} {shlex.quote(remote)}", sudo=True)
         for ln in out.splitlines()[-25:]:
             print("    " + ln[:200])
-        print(f"    rc={rc} ({time.time()-t0:.0f}s)")
+        print(f"    rc={rc} ({time.time() - t0:.0f}s)")
         if rc != 0:
             print("UPLOAD_NEW_SPEC FAIL (导入失败)")
             return 1
@@ -137,7 +148,11 @@ def main() -> int:
         # 注册表是 MCP 服务启动时加载的 (server.py 模块级 Registry.load),
         # 新型号必须重启服务才会出现在 list_models / 查询路由里, 否则"导入成功但查不到"
         print("\n>>> 重启 MCP 服务 (加载新注册表)")
-        restart_rc, out2 = sh(cli, "systemctl restart aterag-mcp && sleep 8 && systemctl is-active aterag-mcp", sudo=True)
+        restart_rc, out2 = sh(
+            cli,
+            "systemctl restart aterag-mcp && sleep 8 && systemctl is-active aterag-mcp",
+            sudo=True,
+        )
         print("    " + out2.replace("\n", " | ")[-120:])
         # 服务未成功 active 即视为失败: 否则后续查询会因旧注册表而"查不到"
         if restart_rc != 0 or "active" not in out2:

@@ -2,6 +2,7 @@
 
 用法: .venv\\Scripts\\python.exe scripts\\verify_rail2_345v.py
 """
+
 from __future__ import annotations
 
 import sys
@@ -31,8 +32,10 @@ with psycopg.connect(s.postgres_dsn) as c, c.cursor() as cur:
     for eid, p in cur.fetchall():
         t = p.get("title", "")
         if any(k in t for k in ("额定输出电压", "输出电流", "输出功率")):
-            print(f"  {eid:34s} rail={p.get('rail','')!r:8s} min={p.get('min')!r:8} "
-                  f"typ={p.get('typ')!r:8} max={p.get('max')!r:8} | {t}")
+            print(
+                f"  {eid:34s} rail={p.get('rail', '')!r:8s} min={p.get('min')!r:8} "
+                f"typ={p.get('typ')!r:8} max={p.get('max')!r:8} | {t}"
+            )
 
     # 3.45V 轨电压/电流实体是否落库
     cur.execute(
@@ -57,11 +60,13 @@ with psycopg.connect(s.postgres_dsn) as c, c.cursor() as cur:
     print()
     for rail, mx, notes in power_rows:
         print(f"  [输出功率] rail={rail!r} max={mx} notes={str(notes)[:60]}")
-    checks.append((
-        "输出功率行未按轨拆分 (数据缺口)",
-        all((r[0] or "") == "" for r in power_rows) if power_rows else True,
-        "无轨道列 -> 400W/600W 只能归属主轨",
-    ))
+    checks.append(
+        (
+            "输出功率行未按轨拆分 (数据缺口)",
+            all((r[0] or "") == "" for r in power_rows) if power_rows else True,
+            "无轨道列 -> 400W/600W 只能归属主轨",
+        )
+    )
 
 print()
 print("=== 降额可推导性 ===\n")
@@ -71,17 +76,28 @@ print(f"  3.45V 轨额定: {V_AUX}V x {I_AUX}A = {p_aux} W  ({p_aux / P_MAIN_HI 
 print(f"  -54V 轨额定: {V_MAIN}V x {I_MAIN}A = {V_MAIN * I_MAIN} W  (≈ 600W)")
 print()
 print("  主轨低线段 400W / 54V = %.3f A   <- 有效 (400W 属主轨)" % (P_MAIN_LO / V_MAIN))
-print("  若把 400W 误套到 3.45V 轨: %.1f A  <- 荒谬, 证明降额功率不可跨轨套用"
-      % (P_MAIN_LO / V_AUX))
+print(
+    "  若把 400W 误套到 3.45V 轨: %.1f A  <- 荒谬, 证明降额功率不可跨轨套用" % (P_MAIN_LO / V_AUX)
+)
 checks.append(("主轨低线降额可算 (K-PWR-122)", abs(P_MAIN_LO / V_MAIN - 7.407) < 0.01, "7.407 A"))
-checks.append(("降额功率跨轨套用会产生荒谬值 (故不可用)", P_MAIN_LO / V_AUX > 100,
-               f"{P_MAIN_LO / V_AUX:.0f} A 明显失真"))
+checks.append(
+    (
+        "降额功率跨轨套用会产生荒谬值 (故不可用)",
+        P_MAIN_LO / V_AUX > 100,
+        f"{P_MAIN_LO / V_AUX:.0f} A 明显失真",
+    )
+)
 
 # 第二路: 规格书未给降额 -> 系统必须拒绝给出降额值
 try:
     r = eng.calculate("derated_output_current", {"p_line_derated": P_MAIN_LO, "v_out": V_AUX})
-    checks.append(("第二路降额: 系统如实返回但需人工确认", True,
-                   f"返回 {r['value']:.1f} A —— 该值无规格书依据, 禁止直接采信"))
+    checks.append(
+        (
+            "第二路降额: 系统如实返回但需人工确认",
+            True,
+            f"返回 {r['value']:.1f} A —— 该值无规格书依据, 禁止直接采信",
+        )
+    )
 except Exception as e:  # noqa: BLE001
     checks.append(("第二路降额: 系统报错", True, str(e)[:50]))
 

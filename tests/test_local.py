@@ -1,4 +1,5 @@
 """纯本地单测: 注册表 / 类型识别 / 章节解析 (不依赖网络与存储)."""
+
 from __future__ import annotations
 
 import os
@@ -126,8 +127,7 @@ def test_pa601_extraction():
     assert by_type.get("Protection", 0) >= 5
     # 输出过流保护 -54V: 12~18A
     oc = next(
-        e for e in ents
-        if e.etype == "Protection" and "过流" in e.eid and e.eid.endswith("-54V")
+        e for e in ents if e.etype == "Protection" and "过流" in e.eid and e.eid.endswith("-54V")
     )
     assert oc.props["trip_min"] == 12.0 and oc.props["trip_max"] == 18.0
     # 整机效率 86%

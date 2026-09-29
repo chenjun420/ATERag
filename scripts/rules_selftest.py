@@ -5,6 +5,7 @@
 
 用法: $env:PYTHONIOENCODING='utf-8'; .venv\\Scripts\\python.exe scripts\\rules_selftest.py [domain]
 """
+
 from __future__ import annotations
 
 import os

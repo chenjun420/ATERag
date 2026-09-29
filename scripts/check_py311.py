@@ -5,6 +5,7 @@
 
 用法: .venv\\Scripts\\python.exe scripts\\check_py311.py
 """
+
 from __future__ import annotations
 
 import ast

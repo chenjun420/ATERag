@@ -10,6 +10,7 @@
 
 用法: $env:PYTHONIOENCODING='utf-8'; .venv\\Scripts\\python.exe scripts\\sync_semantica.py [domain ...]
 """
+
 from __future__ import annotations
 
 import json
@@ -82,12 +83,16 @@ def build_knowledge_graph(domain: str, rules: list[dict]):
         cat = r.get("category", "")
         if cat:
             node(f"cat:{cat}", cat, "Category", {"category": cat})
-            relationships.append({"source": rid, "target": f"cat:{cat}", "type": "BELONGS_TO", "properties": {}})
+            relationships.append(
+                {"source": rid, "target": f"cat:{cat}", "type": "BELONGS_TO", "properties": {}}
+            )
 
         scope = r.get("scope", "")
         if scope:
             node(f"scope:{scope}", scope, "Scope", {"scope": scope})
-            relationships.append({"source": rid, "target": f"scope:{scope}", "type": "IN_SCOPE", "properties": {}})
+            relationships.append(
+                {"source": rid, "target": f"scope:{scope}", "type": "IN_SCOPE", "properties": {}}
+            )
 
         url = (r.get("source") or {}).get("url", "")
         name = (r.get("source") or {}).get("name", "")
@@ -98,17 +103,26 @@ def build_knowledge_graph(domain: str, rules: list[dict]):
 
         if derive.get("expr"):
             fkey = f"formula:{rid}"
-            node(fkey, derive.get("output", "result"), "Formula", {
-                "expr": derive["expr"],
-                "output": derive.get("output", ""),
-                "inputs": derive.get("inputs", []),
-            })
-            relationships.append({"source": rid, "target": fkey, "type": "HAS_FORMULA", "properties": {}})
+            node(
+                fkey,
+                derive.get("output", "result"),
+                "Formula",
+                {
+                    "expr": derive["expr"],
+                    "output": derive.get("output", ""),
+                    "inputs": derive.get("inputs", []),
+                },
+            )
+            relationships.append(
+                {"source": rid, "target": fkey, "type": "HAS_FORMULA", "properties": {}}
+            )
 
         if constraint.get("shape"):
             ckey = f"shape:{rid}"
             node(ckey, f"{rid} SHACL shape", "Shape", {"shape": constraint["shape"]})
-            relationships.append({"source": rid, "target": ckey, "type": "HAS_CONSTRAINT", "properties": {}})
+            relationships.append(
+                {"source": rid, "target": ckey, "type": "HAS_CONSTRAINT", "properties": {}}
+            )
 
     kg = KnowledgeGraph(
         entities=entities,
@@ -184,7 +198,9 @@ def main(domains: list[str]) -> int:
                 continue
             store.create_relationship(s_id, t_id, rel["type"], rel.get("properties") or {})
 
-        print(f"SEMANTICA_SYNC domain={domain} entities={len(kg.entities)} relationships={len(kg.relationships)}")
+        print(
+            f"SEMANTICA_SYNC domain={domain} entities={len(kg.entities)} relationships={len(kg.relationships)}"
+        )
         stats = store.get_stats()
         print("  graph stats:", json.dumps(stats, ensure_ascii=False, default=str))
 

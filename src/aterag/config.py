@@ -1,4 +1,5 @@
 """集中配置 (pydantic-settings, 全部来自 .env / 环境变量)."""
+
 from __future__ import annotations
 
 from functools import lru_cache

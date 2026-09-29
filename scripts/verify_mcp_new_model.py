@@ -2,6 +2,7 @@
 
 用法: $env:BOARD_SSH_PASSWORD='xxx'; .venv\\Scripts\\python.exe scripts\\verify_mcp_new_model.py PN2000-24A
 """
+
 from __future__ import annotations
 
 import json
@@ -30,12 +31,12 @@ def _parse(body: str) -> dict:
 
 def _post(payload: dict) -> dict:
     global SID
-    headers = {"Content-Type": "application/json",
-               "Accept": "application/json, text/event-stream"}
+    headers = {"Content-Type": "application/json", "Accept": "application/json, text/event-stream"}
     if SID:
         headers["mcp-session-id"] = SID
-    req = urllib.request.Request(BASE, method="POST",
-                                 data=json.dumps(payload).encode(), headers=headers)
+    req = urllib.request.Request(
+        BASE, method="POST", data=json.dumps(payload).encode(), headers=headers
+    )
     with urllib.request.urlopen(req, timeout=180) as r:
         body = r.read().decode("utf-8", "replace")
         if "mcp-session-id" in r.headers:
@@ -46,8 +47,14 @@ def _post(payload: dict) -> dict:
 def tool(name: str, args: dict) -> dict:
     global _ID
     _ID += 1
-    r = _post({"jsonrpc": "2.0", "id": _ID, "method": "tools/call",
-               "params": {"name": name, "arguments": args}})
+    r = _post(
+        {
+            "jsonrpc": "2.0",
+            "id": _ID,
+            "method": "tools/call",
+            "params": {"name": name, "arguments": args},
+        }
+    )
     if "error" in r:
         return {"_rpc_error": r["error"]}
     text = r["result"]["content"][0]["text"]
@@ -58,9 +65,18 @@ def tool(name: str, args: dict) -> dict:
 
 
 def main() -> int:
-    _post({"jsonrpc": "2.0", "id": 1, "method": "initialize",
-           "params": {"protocolVersion": "2025-06-18", "capabilities": {},
-                      "clientInfo": {"name": "aterag-newmodel", "version": "0.1.0"}}})
+    _post(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-06-18",
+                "capabilities": {},
+                "clientInfo": {"name": "aterag-newmodel", "version": "0.1.0"},
+            },
+        }
+    )
     _post({"jsonrpc": "2.0", "method": "notifications/initialized"})
 
     checks: list[tuple[str, bool, str]] = []
@@ -79,8 +95,13 @@ def main() -> int:
     # 判据生成: get_test_cases 收的是 requirement_id (非自由文本), 应给出 22.0~30.0 A 区间
     tc = tool("get_test_cases", {"requirement_id": f"SR-{MODEL}-1309", "model_id": MODEL})
     tcb = json.dumps(tc, ensure_ascii=False)
-    checks.append(("判据含保护区间 22~30A", "22.0" in tcb and "30.0" in tcb,
-                   f"22.0={'22.0' in tcb} 30.0={'30.0' in tcb}"))
+    checks.append(
+        (
+            "判据含保护区间 22~30A",
+            "22.0" in tcb and "30.0" in tcb,
+            f"22.0={'22.0' in tcb} 30.0={'30.0' in tcb}",
+        )
+    )
 
     for label, ok, detail in checks:
         print(f"  [{'PASS' if ok else 'FAIL'}] {label:28s} {detail}")

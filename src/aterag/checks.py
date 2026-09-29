@@ -2,6 +2,7 @@
 
 禁止本地降级 —— 任一依赖失败即拒绝启动, 并输出可执行的诊断信息。
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -79,14 +80,18 @@ async def _check_qdrant(settings: Settings) -> list[CheckResult]:
             )
             if resp.status_code == 200:
                 payload = resp.json()["result"]
-                idx = (payload.get("payload_schema") or {})
+                idx = payload.get("payload_schema") or {}
                 has_tenant = "workspace_id" in idx
                 results.append(
                     CheckResult(
                         "qdrant_tenant_index",
                         has_tenant,
                         "workspace_id tenant index "
-                        + ("present" if has_tenant else "missing (run deploy/qdrant/init_tenant.py)"),
+                        + (
+                            "present"
+                            if has_tenant
+                            else "missing (run deploy/qdrant/init_tenant.py)"
+                        ),
                     )
                 )
                 results.append(
@@ -140,8 +145,7 @@ async def _check_embedding(settings: Settings) -> list[CheckResult]:
             CheckResult(
                 "embedding",
                 True,
-                f"protocol={embed.protocol} dim={dim}"
-                + ("" if dim else " (dim unknown!)"),
+                f"protocol={embed.protocol} dim={dim}" + ("" if dim else " (dim unknown!)"),
             )
         )
     except Exception as e:  # noqa: BLE001

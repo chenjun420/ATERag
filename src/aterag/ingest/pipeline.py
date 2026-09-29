@@ -3,6 +3,7 @@
 - ingest-spec: 型号文档 -> {model_id} workspace + Qdrant/PG
 - build-domain: 领域知识 -> _domain_{type} workspace (只读共享)
 """
+
 from __future__ import annotations
 
 import json
@@ -152,9 +153,7 @@ def ensure_qdrant(client: QdrantClient, dim: int) -> None:
 _TABLE_SPLIT = 8  # 每个分块包含的表格行数
 
 
-def blocks_to_chunks(
-    blocks: list[Block], workspace_id: str, layer: str
-) -> list[dict]:
+def blocks_to_chunks(blocks: list[Block], workspace_id: str, layer: str) -> list[dict]:
     """块 -> 行级分块: 表格按行分组携带元数据, 正文按块保留。"""
     chunks: list[dict] = []
     seq = 0
@@ -308,6 +307,7 @@ def _db_from_dsn(dsn: str) -> str:
 
 def entities_to_custom_kg(entities: list, model_id: str) -> dict:
     """本体实体 -> LightRAG custom_kg (确定性图谱注入, 免 LLM 抽取)。"""
+
     def node(e):
         return {
             "id": f"{e.etype}:{e.eid}",
@@ -362,9 +362,7 @@ async def ingest_spec(
         doc_version = vm.group(1)
 
     domain = await classify_product_type(text, registry, llm)
-    registry.register_product(
-        model_id, domain, doc_number="", doc_version=doc_version
-    )
+    registry.register_product(model_id, domain, doc_number="", doc_version=doc_version)
 
     blocks = parse_markdown(text)
     entities = extract_from_blocks(blocks, model_id, doc_version)
@@ -433,7 +431,9 @@ async def build_domain(
     rule_docs: list[str] = []
     if rules_dir.exists():
         for f in sorted(rules_dir.glob("*.yaml")):
-            rule_docs.append(f"# {domain} 领域规则\n\n```yaml\n{f.read_text(encoding='utf-8')}\n```")
+            rule_docs.append(
+                f"# {domain} 领域规则\n\n```yaml\n{f.read_text(encoding='utf-8')}\n```"
+            )
         for f in sorted(rules_dir.glob("*.md")):
             narrative_docs.append(f.read_text(encoding="utf-8"))
     if not rule_docs and not narrative_docs:
@@ -467,7 +467,9 @@ async def build_domain(
             ]
             derive = rule.get("derive") or {}
             if derive.get("expr"):
-                parts.append(f"公式: {derive.get('output')} = {derive.get('expr')} 输入: {derive.get('inputs')}")
+                parts.append(
+                    f"公式: {derive.get('output')} = {derive.get('expr')} 输入: {derive.get('inputs')}"
+                )
             src = rule.get("source") or {}
             if src.get("name"):
                 parts.append(f"来源: {src.get('name')} {src.get('url', '')}")
@@ -554,8 +556,16 @@ def bm25_search(
     with psycopg.connect(dsn) as conn:
         rows = conn.execute(sql, params).fetchall()
     cols = [
-        "id", "workspace_id", "layer", "section_path", "heading",
-        "category", "priority", "rail", "req_id", "content",
+        "id",
+        "workspace_id",
+        "layer",
+        "section_path",
+        "heading",
+        "category",
+        "priority",
+        "rail",
+        "req_id",
+        "content",
     ]
     return [dict(zip(cols, r)) for r in rows]
 
@@ -571,9 +581,7 @@ async def qdrant_search(
     priority: str | None = None,
 ) -> list[dict]:
     """Qdrant 预过滤向量检索 (章节/类别/优先级为 payload 硬过滤)。"""
-    must = [
-        FieldCondition(key="workspace_id", match=MatchValue(value=w)) for w in workspaces
-    ]
+    must = [FieldCondition(key="workspace_id", match=MatchValue(value=w)) for w in workspaces]
     if section_path:
         must.append(FieldCondition(key="section_path", match=MatchValue(value=section_path)))
     if category and category != "all":

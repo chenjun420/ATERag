@@ -4,6 +4,7 @@
   chunk_id / heading / level / parent_headings / section_path / text / tables
 表格行 (GFM) 原样保留并附带结构化信息, 供实体抽取使用。
 """
+
 from __future__ import annotations
 
 import json
@@ -20,8 +21,8 @@ _SECTION_NUM_RE = re.compile(r"^(\d+(?:\.\d+)*)\s")
 @dataclass
 class Block:
     chunk_id: str
-    heading: str          # 最近标题, 如 "4.3.3 保护功能"
-    level: int            # 标题层级 (0=文档头)
+    heading: str  # 最近标题, 如 "4.3.3 保护功能"
+    level: int  # 标题层级 (0=文档头)
     parent_headings: list[str] = field(default_factory=list)
     section_path: str = ""  # 章节编号路径, 如 "4.3.3"
     text: str = ""

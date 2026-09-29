@@ -1,11 +1,28 @@
 """修复领域规则 YAML: 给含 ': ' 的未加引号标量值统一加双引号."""
+
 import re
 from pathlib import Path
 
 KEY_ALLOWLIST = {
-    "rules", "id", "category", "scope", "derive", "output", "expr", "inputs",
-    "variables", "source", "url", "retrieved", "confidence", "test", "given",
-    "expect", "violation", "constraint", "shape",
+    "rules",
+    "id",
+    "category",
+    "scope",
+    "derive",
+    "output",
+    "expr",
+    "inputs",
+    "variables",
+    "source",
+    "url",
+    "retrieved",
+    "confidence",
+    "test",
+    "given",
+    "expect",
+    "violation",
+    "constraint",
+    "shape",
 }
 
 LINE_RE = re.compile(r"^(\s*)([A-Za-z_][A-Za-z0-9_]*): (.+)$")
@@ -26,7 +43,7 @@ def fix(path: Path) -> int:
                 and not key.startswith("ps")
             ):
                 val = val.replace('"', '\\"')
-                line = f"{indent}{key}: \"{val}\""
+                line = f'{indent}{key}: "{val}"'
                 n += 1
         out.append(line)
     path.write_text("\n".join(out) + "\n", encoding="utf-8")

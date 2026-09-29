@@ -1,4 +1,5 @@
 """端点连通性冒烟测试: LLM chat + Embedding (真实 Key, fail-fast)."""
+
 from __future__ import annotations
 
 import asyncio

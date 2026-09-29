@@ -1,4 +1,5 @@
 """构建领域知识库 CLI: python scripts/build_domain.py power [common ...]."""
+
 import asyncio
 import sys
 

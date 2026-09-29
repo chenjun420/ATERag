@@ -2,6 +2,7 @@
 
 用法: $env:PYTHONIOENCODING='utf-8'; .venv\\Scripts\\python.exe scripts\\deploy_board.py
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -38,9 +39,9 @@ def run_step(label: str, script: str, args: list[str] | None = None) -> bool:
         err = [ln for ln in (proc.stderr or "").strip().splitlines() if ln.strip()][-6:]
         for ln in err:
             print("    ERR " + ln[:200])
-        print(f"    -> FAIL rc={proc.returncode} ({time.time()-t0:.1f}s)")
+        print(f"    -> FAIL rc={proc.returncode} ({time.time() - t0:.1f}s)")
         return False
-    print(f"    -> OK ({time.time()-t0:.1f}s)")
+    print(f"    -> OK ({time.time() - t0:.1f}s)")
     return True
 
 
@@ -61,7 +62,7 @@ async def build_domain_layer() -> bool:
     finally:
         await llm.aclose()
         await embed.aclose()
-    print(f"    -> OK ({time.time()-t0:.1f}s)")
+    print(f"    -> OK ({time.time() - t0:.1f}s)")
     return True
 
 

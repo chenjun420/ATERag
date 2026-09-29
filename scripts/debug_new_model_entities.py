@@ -2,6 +2,7 @@
 
 用法: .venv\\Scripts\\python.exe scripts\\debug_new_model_entities.py PN2000-24A
 """
+
 from __future__ import annotations
 
 import json

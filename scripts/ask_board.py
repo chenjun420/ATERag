@@ -5,6 +5,7 @@
     .venv\\Scripts\\python.exe scripts\\ask_board.py --param 输出电流
     .venv\\Scripts\\python.exe scripts\\ask_board.py --calc output_power --given output_voltage=54 --given rated_current=11.1
 """
+
 from __future__ import annotations
 
 import json
@@ -43,8 +44,14 @@ def _post(payload: dict) -> dict:
 def tool(name: str, args: dict) -> dict:
     global _ID
     _ID += 1
-    r = _post({"jsonrpc": "2.0", "id": _ID, "method": "tools/call",
-               "params": {"name": name, "arguments": args}})
+    r = _post(
+        {
+            "jsonrpc": "2.0",
+            "id": _ID,
+            "method": "tools/call",
+            "params": {"name": name, "arguments": args},
+        }
+    )
     if "error" in r:
         return {"_rpc_error": r["error"]}
     text = r["result"]["content"][0]["text"]
@@ -55,14 +62,25 @@ def tool(name: str, args: dict) -> dict:
 
 
 def main() -> int:
-    _post({"jsonrpc": "2.0", "id": 1, "method": "initialize",
-           "params": {"protocolVersion": "2025-06-18", "capabilities": {},
-                      "clientInfo": {"name": "aterag-ask", "version": "0.1.0"}}})
+    _post(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-06-18",
+                "capabilities": {},
+                "clientInfo": {"name": "aterag-ask", "version": "0.1.0"},
+            },
+        }
+    )
     _post({"jsonrpc": "2.0", "method": "notifications/initialized"})
 
     if len(sys.argv) > 1 and sys.argv[1] == "--param":
-        out = tool("query_parameters", {"query": sys.argv[2],
-                                        "model_id": sys.argv[3] if len(sys.argv) > 3 else "PA601-D54A"})
+        out = tool(
+            "query_parameters",
+            {"query": sys.argv[2], "model_id": sys.argv[3] if len(sys.argv) > 3 else "PA601-D54A"},
+        )
         print(json.dumps(out, ensure_ascii=False, indent=2)[:4000])
         return 0
 
@@ -79,8 +97,13 @@ def main() -> int:
 
     q = " ".join(sys.argv[1:]) or "110伏输入满载下输出电流多少A"
     print(f"=== query_parameters: {q} ===")
-    print(json.dumps(tool("query_parameters", {"parameter": q, "model_id": "PA601-D54A"}),
-                     ensure_ascii=False, indent=2)[:3000])
+    print(
+        json.dumps(
+            tool("query_parameters", {"parameter": q, "model_id": "PA601-D54A"}),
+            ensure_ascii=False,
+            indent=2,
+        )[:3000]
+    )
     print(f"\n=== search_requirements: {q} ===")
     d = tool("search_requirements", {"query": q, "model_id": "PA601-D54A", "top_k": 6})
     for r in d.get("results", []):

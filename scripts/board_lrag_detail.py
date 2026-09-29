@@ -1,4 +1,5 @@
 """诊断板卡 LightRAG 各表按 workspace 的落库明细."""
+
 from __future__ import annotations
 
 import sys
@@ -28,7 +29,9 @@ TABLES = [
 def main() -> int:
     s = get_settings()
     with psycopg.connect(s.postgres_dsn) as conn, conn.cursor() as cur:
-        cur.execute("SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename LIKE 'lightrag%'")
+        cur.execute(
+            "SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename LIKE 'lightrag%'"
+        )
         present = {r[0] for r in cur.fetchall()}
         for t in TABLES:
             if t not in present:
@@ -46,7 +49,9 @@ def main() -> int:
             cols = [r[0] for r in cur.fetchall()]
             dist = ""
             for c in cols:
-                cur.execute(f'SELECT "{c}", count(*) FROM public.{t} GROUP BY 1 ORDER BY 2 DESC LIMIT 8')
+                cur.execute(
+                    f'SELECT "{c}", count(*) FROM public.{t} GROUP BY 1 ORDER BY 2 DESC LIMIT 8'
+                )
                 dist += f" | {c}={dict(cur.fetchall())}"
             print(f"{t:52s} {total:6d}{dist}")
     return 0

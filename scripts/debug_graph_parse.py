@@ -1,4 +1,5 @@
 """诊断 _parse_graph_context 段落解析 (部署排障用)."""
+
 from __future__ import annotations
 
 import asyncio
@@ -25,10 +26,18 @@ async def main() -> int:
 
     lrag = rag._get_lightrag("PA601-D54A")
     await lrag.initialize_storages()
-    ctx = str(await lrag.aquery("输出过流保护点是多少",
-                                param=QueryParam(mode="mix", top_k=4, only_need_context=True)))
+    ctx = str(
+        await lrag.aquery(
+            "输出过流保护点是多少", param=QueryParam(mode="mix", top_k=4, only_need_context=True)
+        )
+    )
     print("len:", len(ctx))
-    for kw in ("Knowledge Graph Data (Entity)", "Knowledge Graph Data (Relationship)", "Document Chunks", "Reference Document List"):
+    for kw in (
+        "Knowledge Graph Data (Entity)",
+        "Knowledge Graph Data (Relationship)",
+        "Document Chunks",
+        "Reference Document List",
+    ):
         print(f"  find({kw!r}) = {ctx.find(kw)}")
     i = ctx.find("Document Chunks")
     fence = ctx.find("```json", i)

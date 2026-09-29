@@ -3,6 +3,7 @@
 用法: .venv\\Scripts\\python.exe scripts\\verify_mcp_service.py
 凭据: BOARD_SSH_PASSWORD
 """
+
 from __future__ import annotations
 
 import os
@@ -35,7 +36,9 @@ def main() -> int:
         return 1
     cli = paramiko.SSHClient()
     cli.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    cli.connect(HOST, username=USER, password=PWD, timeout=20, look_for_keys=False, allow_agent=False)
+    cli.connect(
+        HOST, username=USER, password=PWD, timeout=20, look_for_keys=False, allow_agent=False
+    )
     checks: list[tuple[str, bool, str]] = []
     try:
         _, active = sh(cli, f"systemctl is-active {SVC}", sudo=True)
@@ -46,11 +49,22 @@ def main() -> int:
 
         _, restart = sh(cli, f"systemctl show {SVC} -p NRestarts --value", sudo=True)
         # 重启次数过多说明崩溃循环 (Restart=always)
-        checks.append(("无崩溃循环 (NRestarts<=2)", restart.strip().isdigit() and int(restart.strip()) <= 2,
-                       f"NRestarts={restart.strip()}"))
+        checks.append(
+            (
+                "无崩溃循环 (NRestarts<=2)",
+                restart.strip().isdigit() and int(restart.strip()) <= 2,
+                f"NRestarts={restart.strip()}",
+            )
+        )
 
         _, listen = sh(cli, f"ss -ltn | grep ':{PORT}' || true", sudo=True)
-        checks.append((f"端口 {PORT} 监听", f":{PORT}" in listen, listen.split("\n")[0][:60] if listen else "无"))
+        checks.append(
+            (
+                f"端口 {PORT} 监听",
+                f":{PORT}" in listen,
+                listen.split("\n")[0][:60] if listen else "无",
+            )
+        )
 
         _, ver = sh(cli, "/opt/aterag/.venv/bin/python -V", sudo=True)
         checks.append(("venv Python 3.13", "3.13" in ver, ver.strip()))
@@ -59,12 +73,22 @@ def main() -> int:
         checks.append(("以专用账号运行", runas.strip() == "aterag", f"User={runas.strip()}"))
 
         # MCP 端点: streamable-http 对裸 GET 返回 400 属正常, 关键是端口有响应
-        _, http = sh(cli, f"curl -s -o /dev/null -w '%{{http_code}}' --max-time 15 http://127.0.0.1:{PORT}/mcp")
-        checks.append(("MCP 端点有响应", http.strip() in ("200", "400", "406"), f"HTTP={http.strip()}"))
+        _, http = sh(
+            cli,
+            f"curl -s -o /dev/null -w '%{{http_code}}' --max-time 15 http://127.0.0.1:{PORT}/mcp",
+        )
+        checks.append(
+            ("MCP 端点有响应", http.strip() in ("200", "400", "406"), f"HTTP={http.strip()}")
+        )
 
         _, logs = sh(cli, "tail -5 /var/log/aterag/mcp.err || true", sudo=True)
-        checks.append(("无启动异常", "Traceback" not in logs and "Error" not in logs,
-                       "无 Traceback" if "Traceback" not in logs else "有 Traceback"))
+        checks.append(
+            (
+                "无启动异常",
+                "Traceback" not in logs and "Error" not in logs,
+                "无 Traceback" if "Traceback" not in logs else "有 Traceback",
+            )
+        )
     finally:
         cli.close()
 
