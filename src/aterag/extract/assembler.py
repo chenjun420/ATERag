@@ -379,17 +379,14 @@ def assemble(
             )
 
     # 3) 专有列: 告警行为 / 遥测量
+    # 信号名只是标识, 单独成条属噪声 —— 合并进描述, 只产出一条。
     sig_req = _clean_text(row.get("signal_req"))
-    if sig_req:
-        asm.outputs.append(
-            ConditionClause(kind="signal_state", text=sig_req, role="output", source=SRC_SIGNAL_REQ)
-        )
     sig_name = _clean_text(row.get("signal_name"))
-    if sig_name:
+    if sig_req or sig_name:
         asm.outputs.append(
             ConditionClause(
                 kind="signal_state",
-                text=f"{sig_name}: {sig_req}" if sig_req else sig_name,
+                text=f"{sig_name}: {sig_req}" if (sig_name and sig_req) else (sig_req or sig_name),
                 role="output",
                 source=SRC_SIGNAL_REQ,
             )
