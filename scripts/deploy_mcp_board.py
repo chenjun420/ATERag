@@ -39,6 +39,8 @@ FILES = [
     ("pyproject.toml", "pyproject.toml"),
     # 板卡侧新规格书导入 CLI (upload_new_spec.py 远程调用的入口)
     ("scripts/ingest_new_spec.py", "scripts/ingest_new_spec.py"),
+    # 板卡侧验证脚本: 对账/覆盖度需在 APP_ROOT 下运行 (相对 CWD 解析配置与侧车)
+    ("scripts/verify_requirement_coverage.py", "scripts/verify_requirement_coverage.py"),
     # rag_storage/blocks 侧车: 条件抽取的离线确定性通道依赖它
     ("rag_storage", "rag_storage"),
     ("deploy/native/aterag-mcp.service", "native/aterag-mcp.service"),

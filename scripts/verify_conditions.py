@@ -81,7 +81,17 @@ def main() -> int:
     )
     check("章节-前缀为 4.3", sel.section_prefixes == ["4.3"], str(sel.section_prefixes))
     subsecs = {c.section_path for c in r.conditions}
-    expected = {"4.3.1", "4.3.2", "4.3.3", "4.3.4.1", "4.3.4.2", "4.3.4.3", "4.3.5"}
+    # 4.3.4.5 版本管理功能: 正文是"详见4.3.4.4", 引用穿透后产条件 -> 计入子章集合
+    expected = {
+        "4.3.1",
+        "4.3.2",
+        "4.3.3",
+        "4.3.4.1",
+        "4.3.4.2",
+        "4.3.4.3",
+        "4.3.4.5",
+        "4.3.5",
+    }
     check("章节-收编全部子章节", expected == subsecs, str(sorted(subsecs)))
     check("章节-无 4.2 越界 (接口章节不进条件)", not any(s.startswith("4.2") for s in subsecs))
     check("章节-无 4.4 越界 (可靠性章节不进条件)", not any(s.startswith("4.4") for s in subsecs))
@@ -152,6 +162,7 @@ def main() -> int:
     # 单元级: 等级=强制 且限值全空 -> 保留但无子句, 不臆造
     rows, _, _ = rows_from_blocks(blocks, MODEL, "B", sel.section_prefixes)
     out = apply_sieve(rows, prof.exclude_words)
+    out_rows_kept = out.kept
     forced_nolimit = [
         rr
         for rr in out.kept
@@ -280,17 +291,37 @@ def main() -> int:
         not (kept_ids & excl_ids),
         f"交集 {sorted(kept_ids & excl_ids)[:3]}",
     )
+    # 对账口径区分两种来源: 表格行 (走 sieve) + 引用穿透产出的散文需求
+    n_ref = r.stats.get("from_reference", 0)
     check(
-        "三桶-条目数守恒",
+        "三桶-表格行守恒",
         r.stats["kept"] + r.stats["excluded"] == r.stats["rows_total"],
-        f"留{r.stats['kept']}+剔{r.stats['excluded']}=行{r.stats['rows_total']}",
+        f"表格行 {r.stats['kept']}+{r.stats['excluded']}={r.stats['rows_total']}",
+    )
+    check(
+        "三桶-条件总数=表格行保留+引用",
+        r.stats["conditions_total"] == r.stats["kept"] + n_ref
+        and len(r.conditions) == r.stats["conditions_total"],
+        f"条件 {len(r.conditions)} = 表格 {r.stats['kept']} + 引用 {n_ref}",
+    )
+    # 注意: 一个 req_id 可对应多档位行 (SR-1210 三档效率), 故不能按 req_id 计数求和,
+    # 正确判据是"每个 req_id 只出现在一侧" —— 同一需求不可能既保留又被剔除。
+    dup_both = sorted((kept_ids & excl_ids))
+    check(
+        "三桶-剔除集合与保留集合按 SR 号互斥",
+        not dup_both,
+        f"交集 {dup_both[:3]}",
+    )
+    # 剔除侧同号多行合法 (如 SR-1202 三档全不要求), 但必须行数守恒
+    check(
+        "三桶-表格行逐行守恒",
+        len(out_rows_kept) + r.stats["excluded"] == r.stats["rows_total"],
+        f"行 {len(out_rows_kept)}+{r.stats['excluded']}={r.stats['rows_total']}",
     )
     check(
         "三桶-多档位不丢行",
-        len(r.conditions) == r.stats["kept"]
-        and any(c.req_id == "SR-PA601-D54A-1210" for c in r.conditions)
-        and sum(1 for c in r.conditions if c.req_id == "SR-PA601-D54A-1210") == 3,
-        "按档位而非仅 req_id 计数",
+        sum(1 for c in r.conditions if c.req_id == "SR-PA601-D54A-1210") == 3,
+        "同号三档效率须各自成条 (按档位而非仅 req_id)",
     )
     check("统计-命中+剔除=总行", r.stats["kept"] + r.stats["excluded"] == r.stats["rows_total"])
     check("统计-需求评审队列可见", r.stats["needs_review"] > 0, f"{r.stats['needs_review']} 项")
@@ -348,6 +379,46 @@ def main() -> int:
             for i in tier
         ),
     )
+
+    # ---------- 9. 引用穿透 (正文为"详见 X"的需求须取回真实内容) ----------
+    ref_conds = [c for c in r.conditions if "resolved_reference" in c.flags]
+    check(
+        "引用-SR-1701 版本管理功能已穿透",
+        any(c.req_id == "SR-PA601-D54A-1701" for c in ref_conds),
+        "正文仅为'详见4.3.4.4', 不穿透则该需求凭空消失",
+    )
+    c1701 = next((c for c in ref_conds if c.req_id == "SR-PA601-D54A-1701"), None)
+    check(
+        "引用-取回被引用章节的真实内容",
+        bool(c1701) and len(c1701.output_conditions) >= 3,
+        "; ".join(o.text[:30] for o in (c1701.output_conditions if c1701 else [])),
+    )
+    check(
+        "引用-标注目标章节(双重溯源)",
+        bool(c1701) and "reference_target:4.3.4.4" in c1701.flags,
+        str(c1701.flags) if c1701 else "",
+    )
+    check(
+        "引用-需求归属章节仍是自身章节",
+        bool(c1701) and c1701.section_path == "4.3.4.5",
+        c1701.section_path if c1701 else "",
+    )
+    check(
+        "引用-统计已启用",
+        r.stats.get("reference_resolution") == "enabled"
+        and r.stats.get("reference_resolved", 0) >= 1,
+        f"{r.stats.get('reference_resolution')} 命中{r.stats.get('reference_hits')} 解{r.stats.get('reference_resolved')}",
+    )
+    # 引用配置缺失必须 fail-closed, 不许用内置默认措辞兜底
+    from aterag.extract.api import DocProfile as _DP
+    from aterag.extract.resolve import ReferenceConfigMissing, find_references
+
+    bare = _DP(name="x", section_keywords=("x",))
+    try:
+        find_references(blocks, bare.reference_spec())
+        check("引用-配置缺失 fail-closed", False, "未抛异常 (说明用了内置默认措辞)")
+    except ReferenceConfigMissing:
+        check("引用-配置缺失 fail-closed", True)
     # 指纹失配的注记不得被采用
     ann = load_annotations(MODEL)
     stale_entry, fresh = ann.lookup("SR-PA601-D54A-1213", "deadbeefdeadbeef")

@@ -55,6 +55,18 @@ profiles:
         role: other
         limits_to: output
 
+    # 引用识别措辞: 代码不含具体文档词汇, 声明在档案里。
+    # 显式留空即关闭引用穿透 (stats.reference_resolution 会记为 disabled, 不会静默)。
+    reference_markers:
+      - 详见
+      - 参见
+      - 见
+      - 按
+      - 依据
+
+    # 需求编号形态 (标题里抓 SR 号), 正则字符串
+    req_id_pattern: '\b([A-Z]{2,6}[0-9A-Z]*(?:-[A-Z0-9]+)+)\b'
+
     # 未登记先验的章节使用的兜底角色
     default_role: stimulus_response
     default_limits_to: output

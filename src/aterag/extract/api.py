@@ -33,6 +33,7 @@ from aterag.extract.models import (
     SectionKeywordNotFound,
     TestCondition,
 )
+from aterag.extract.resolve import ReferenceSpec
 from aterag.extract.selector import section_matches, select_sections
 from aterag.extract.sieve import apply_sieve
 from aterag.ingest.markdown_parser import Block
@@ -87,6 +88,11 @@ class DocProfile:
     default_role: str = ROLE_STIMULUS_RESPONSE
     default_limits_to: str = "output"
     description: str = ""
+    reference_markers: tuple[str, ...] = ()
+    req_id_pattern: str = ""
+
+    def reference_spec(self) -> ReferenceSpec:
+        return ReferenceSpec(markers=self.reference_markers, req_id_pattern=self.req_id_pattern)
 
     def prior_for(self, section_path: str) -> SectionPrior:
         """最长前缀匹配 (4.3.1 命中 4.3 的先验, 4.3 未配则用兜底)。"""
@@ -132,6 +138,8 @@ class ProfileBook:
                 default_role=str(spec.get("default_role", ROLE_STIMULUS_RESPONSE)),
                 default_limits_to=str(spec.get("default_limits_to", "output")),
                 description=str(spec.get("description", "")),
+                reference_markers=tuple(spec.get("reference_markers") or ()),
+                req_id_pattern=str(spec.get("req_id_pattern", "")),
             )
         if not profiles:
             raise ValueError(f"档案未定义任何 profile: {p}")
@@ -339,15 +347,73 @@ def extract_test_conditions(
                 )
             )
 
+    # 剔除清单独立累积: 表格行剔除 (sieve) 与引用穿透后剔除共用同一份审计记录
+    excluded: list[ExcludedItem] = list(outcome.excluded)
+
     prose_skipped = 0
+    prose_audit: list[ReviewItem] = []
     if not profile.include_prose:
+        # 散文块审计: 区分"跨章节引用"与"真无要求"两类。引用类交给 resolve 穿透 ——
+        # 不可一律当噪声跳过 (4.3.4.5 版本管理功能的正文就是一句"详见4.3.4.4",
+        # 一律跳过等于让一条真实需求凭空消失)。
+        from aterag.extract.resolve import find_references, resolve_references, to_conditions
+        from aterag.ingest.table_schema import load_registry
+
+        ref_spec = profile.reference_spec()
+        if not ref_spec.enabled:
+            # 显式关闭而非静默跳过: 状态进 stats, 上层可见
+            ref_state = "disabled (档案未声明 reference_markers/req_id_pattern)"
+            ref_counts = {"references": 0, "resolved": 0, "unresolved": 0}
+        else:
+            refs = find_references(blocks, ref_spec, section_prefixes=prefixes)
+            if refs:
+                refs = resolve_references(refs, blocks, load_registry(), ref_spec)
+                for h in refs:
+                    if not h.resolved:
+                        prose_audit.append(
+                            ReviewItem(
+                                kind="unresolved_reference",
+                                section_path=h.section_path,
+                                heading=h.heading,
+                                detail=f"{h.req_id} 引用 {h.target}: {h.note}",
+                            )
+                        )
+                        continue
+                    rc = to_conditions([h])[0]
+                    hit_words = [
+                        w
+                        for w in profile.exclude_words
+                        if any(w in o.text for o in rc.output_conditions)
+                    ]
+                    if hit_words:
+                        # 被引用内容自身声明"无要求": 整条不产条件, 但留剔除记录
+                        excluded.append(
+                            ExcludedItem(
+                                req_id=rc.req_id,
+                                title=rc.title,
+                                section_path=rc.section_path,
+                                reason=f"引用穿透后内容命中剔除词 {hit_words}",
+                                matched_word=hit_words[0],
+                                field="reference_target",
+                                notes=rc.notes,
+                            )
+                        )
+                        continue
+                    conditions.append(rc)
+            n_res = sum(1 for h in refs if h.resolved)
+            ref_state = "enabled"
+            ref_counts = {
+                "references": len(refs),
+                "resolved": n_res,
+                "unresolved": len(refs) - n_res,
+            }
         prose_skipped = sum(
             1
             for b in blocks
             if section_matches(b.section_path, prefixes)
             and not b.tables
-            and b.text.strip()
-            and b.text.strip() not in {"-", "—"}
+            and (b.text or "").strip()
+            and (b.text or "").strip() not in {"-", "—"}
         )
 
     result = ExtractionResult(
@@ -358,11 +424,15 @@ def extract_test_conditions(
         selection=selection,
         conditions=conditions,
         excluded=outcome.excluded,
-        needs_review=review,
+        needs_review=review + prose_audit,
         stats={
+            # rows_total/kept/excluded 只统计"表格行"这一来源, 保持 147 = 94 + 53 的恒等;
+            # 引用穿透产出的散文需求单列, 否则对账会凭空多出一条而无法解释。
             "rows_total": len(rows),
-            "kept": len(conditions),
-            "excluded": len(outcome.excluded),
+            "kept": len(outcome.kept),
+            "excluded": len(excluded),
+            "conditions_total": len(conditions),
+            "from_reference": len(conditions) - len(outcome.kept),
             "excluded_by_field": outcome.reasons(),
             "priority_unclassified": outcome.unclassified_priority,
             "no_data_dims": outcome.no_data_histogram(),
@@ -373,6 +443,10 @@ def extract_test_conditions(
             "needs_review": len(review),
             "unresolved_text": unresolved,
             "prose_skipped": prose_skipped,
+            "reference_resolution": ref_state,
+            "reference_hits": ref_counts["references"],
+            "reference_resolved": ref_counts["resolved"],
+            "reference_unresolved": ref_counts["unresolved"],
             "limit_kind_unmapped": sum(1 for c in conditions if "limit_kind_unmapped" in c.flags),
             **unmapped_stats,
         },
