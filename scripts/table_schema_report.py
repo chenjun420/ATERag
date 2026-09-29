@@ -38,6 +38,7 @@ import yaml  # noqa: E402
 from aterag.config import get_settings  # noqa: E402
 from aterag.ingest.markdown_parser import Block, parse_file  # noqa: E402
 from aterag.ingest.table_schema import (  # noqa: E402
+    DEFAULT_SCHEMA_PATH,
     SchemaRegistry,
     load_registry,
     signature_of,
@@ -49,6 +50,19 @@ MAX_SAMPLE_ROWS = 3
 PASS = "✅"
 FAIL = "❌"
 IGNORED = "➖"
+
+
+def schema_path() -> str:
+    """表结构档案路径。
+
+    本工具是纯静态分析, 不该因为缺 PG/Qdrant/LLM 环境变量就跑不起来
+    (CI 与开发者本机的环境变量集合本就不同)。故只在环境变量可用时读 Settings,
+    否则退回默认相对路径。
+    """
+    try:
+        return get_settings().table_schemas_path
+    except Exception:  # noqa: BLE001 缺 POSTGRES_DSN 等必填项时用默认值
+        return DEFAULT_SCHEMA_PATH
 
 
 def collect_tables(
@@ -259,7 +273,7 @@ def main() -> int:
     ap.add_argument("--out", help="提案输出路径 (默认 proposals/table_schemas.proposed.yaml)")
     args = ap.parse_args()
 
-    reg = load_registry(get_settings().table_schemas_path)
+    reg = load_registry(schema_path())
     blocks, source = load_blocks(args)
     agg, _ = report(blocks, reg, args.scope)
     missing = print_report(agg, reg, source, args.scope)
