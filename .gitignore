@@ -15,6 +15,16 @@ build/
 !.env.example
 rag_storage/
 pg_data/
+
+# 客户规格书原件 —— 属客户知识产权, 不入库。
+# 仓库只保留从原件派生的产物 (config/annotations/*.conditions.yaml 等), 那些
+# 是本项目的知识沉淀; 原件本身必须留在本地磁盘, 由 scripts/ingest_*.py 就地读取。
+# 注意: tests/fixtures/ 下的 *规格书*.md 是自造测试样本, 已入库且不受此规则影响
+# (gitignore 对已追踪文件无效), 故此处刻意不写通配的 *规格书*.md —— 那会让人
+# 误以为测试样本也被排除了。
+/PA601-D54A 定制电源技术规格书.md
+/PN2000-24A 定制电源技术规格书.md
+/PN1000-48A 迷你规格书.md
 qdrant_data/
 *.log
 mcp.err
