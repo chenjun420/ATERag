@@ -7,15 +7,36 @@ requires-python = ">=3.11,<3.14"
 dependencies = [
     # RAG 引擎 (>=1.5.6: Smart Heading / MetadataFilter / workspace)
     "lightrag-hku>=1.5.6",
-    # 推理 (Datalog / 决策溯源) - PyPI 实际最新 0.7.0
+    # Apache AGE 图存储适配。只用到两个符号:
+    #   semantica.kg.KnowledgeGraph          —— 规则图的 entities/relationships 容器
+    #   semantica.graph_store.ApacheAgeStore  —— over AGE 的 Cypher 执行器
+    # 代价是 22 个硬依赖(numpy/pandas/scipy/scikit-learn/pillow/grpcio/pyarrow/
+    # rdflib/networkx/protobuf/...)。图是真的: power_rules 有 384 顶点/468 边,
+    # 分产品 chunk-entity 图 138/833/9/30 顶点, 运行时由 checks.py 查询, 所以
+    # 这个依赖是承重的, 不按「22 个包换 2 个符号」的账本直接删—— KnowledgeGraph
+    # 是薄数据结构, ApacheAgeStore 是薄 Cypher 包装, 两者都可以用 psycopg2 直连
+    # AGE 重写, 但那是对知识层动的手术, 该单独立项而不是顺手删依赖。
+    # 保留裸 semantica 而非 semantica[graph-apache-age]: ApacheAgeStore 需要的
+    # psycopg2 由本文件直接声明(见下), 避免把整棵图后端 extra 树拉进来。
     "semantica>=0.7",
-    # SHACL 约束验证
+    # SHACL 约束验证 (inference/engine.py, scripts/rules_selftest.py)
     "pyshacl>=0.30",
     # MCP 服务 (FastMCP, streamable-http)
     "mcp>=1.10",
     # 存储
     "psycopg[binary,pool]>=3.2",
+    # psycopg2 是 semantica.ApacheAgeStore 的硬依赖(它内部 psycopg2.connect),
+    # scripts/sync_semantica.py 也直接 import 它。semantica 的元数据把它挂在
+    # [graph-apache-age] extra 下, 而这里不装那个 extra, 所以必须自己声明。
+    # 之前它只在 venv 里(不在 pyproject 也不在 uv.lock), `uv sync --frozen`
+    # 会直接把它卸掉——而这个脚本是维护那张真实规则图的唯一入口。
+    "psycopg2-binary>=2.9",
+    # asyncpg / pgvector: 本仓库代码从不 import, 但 lightrag 的
+    # kg/postgres_impl.py(= vector_storage="PGVectorStorage" 的实现)在模块级
+    # `import asyncpg` 并调用 `from pgvector.asyncpg import register_vector`。
+    # 审计时按「无 import」判为未使用是错的, 记录在此以免下次再犯。
     "asyncpg>=0.30",
+    "pgvector>=0.5.0",
     "qdrant-client>=1.12",
     # 模型适配 (OpenAI 兼容 / DashScope 原生)
     "httpx>=0.28",
@@ -23,11 +44,18 @@ dependencies = [
     "pydantic>=2.9",
     "pydantic-settings>=2.6",
     "pyyaml>=6.0",
-    # 解析
-    "markdown-it-py>=3.0",
-    # LightRAG hybrid 依赖 (BM25)
-    "bm25s>=0.2",
-    "pgvector>=0.5.0",
+    # workbench/api.py 在模块级 import fastapi 与 uvicorn, 从未声明过。
+    "fastapi>=0.110",
+    "uvicorn>=0.27",
+    # scripts/board_ssh.py 板卡运维脚本用 paramiko
+    "paramiko>=3.4",
+    # ingest/pipeline.py 模块级 import numpy (lightrag/semantica 都会传递带入,
+    # 但直接 import 就该直接声明)
+    "numpy>=1.26",
+    # 已移除: markdown-it-py —— 全仓 0 import、0 引用。
+    # 已移除: bm25s —— BM25 实际由 PostgreSQL 的 pg_textsearch + zhparser 提供
+    #   (pipeline.py: to_bm25query('idx_aterag_chunks_bm25'))。bm25s 是设计文档里
+    #   写过的「降级路径」, 从未实现。设计文档 1446 行的降级说明仍需更正。
 ]
 
 [dependency-groups]

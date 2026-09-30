@@ -49,13 +49,35 @@ chown -R "$SVC_USER:$SVC_USER" "$APP_DIR/.venv"
 "$APP_DIR/.venv/bin/python" -V
 
 echo "===== STEP6.4 安装 Python 依赖 ====="
+# 从 pyproject.toml 安装, 不再在这里硬编码一份包列表。
+#
+# 这份列表曾经和 pyproject 并存, 于是有两处真相: 它漏掉了 psycopg2-binary
+# (semantica.ApacheAgeStore 的硬依赖, 也是 sync_semantica.py 的唯一驱动路径),
+# 也没跟上后来加的 fastapi / uvicorn / paramiko / numpy。板卡上装出来的环境
+# 因此和开发机不同, 而差异不会报错, 只在用到那条路径时才炸。
+#
+# 单点真相是 pyproject.toml。
 sudo -u "$SVC_USER" env UV_PYTHON_INSTALL_DIR="$PY_HOME" \
   "$UV_BIN" --no-config pip install --python "$APP_DIR/.venv/bin/python" \
-  "lightrag-hku>=1.5.6" "semantica>=0.7" "pyshacl>=0.30" "mcp>=1.10" \
-  "psycopg[binary,pool]>=3.2" "asyncpg>=0.30" "qdrant-client>=1.12" \
-  "httpx>=0.28" "pydantic>=2.9" "pydantic-settings>=2.6" "pyyaml>=6.0" \
-  "markdown-it-py>=3.0" "bm25s>=0.2" "pgvector>=0.5.0"
-"$APP_DIR/.venv/bin/python" -c "import lightrag, semantica, pyshacl, mcp, psycopg, qdrant_client; print('依赖导入 OK')"
+  -e "$APP_DIR"
+
+# 装完必须真的能导入, 尤其是那几个「只在运行时按名字加载」的:
+# psycopg2 (semantica 的 AGE store)、pgvector+asyncpg (lightrag PGVectorStorage)、
+# fastapi+uvicorn (workbench)、paramiko (板卡脚本)。
+"$APP_DIR/.venv/bin/python" - <<'PYCHECK'
+import importlib
+mods = ("lightrag", "semantica", "pyshacl", "mcp", "psycopg", "psycopg2",
+        "qdrant_client", "pgvector", "asyncpg", "numpy")
+bad = []
+for m in mods:
+    try:
+        importlib.import_module(m)
+    except Exception as exc:
+        bad.append(f"{m}: {type(exc).__name__}: {exc}")
+if bad:
+    raise SystemExit("依赖导入失败:\n  " + "\n  ".join(bad))
+print("依赖导入 OK:", ", ".join(mods))
+PYCHECK
 
 echo "===== STEP6.5 systemd ====="
 cp "$SCRIPT_DIR/aterag-mcp.service" /etc/systemd/system/aterag-mcp.service
