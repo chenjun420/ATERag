@@ -207,7 +207,12 @@ def cmd_check(model_id: str, ann: AnnotationBook) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="人工注记评审")
-    ap.add_argument("-m", "--model", default="PA601-D54A", help="型号 ID")
+    ap.add_argument(
+        "-m",
+        "--model",
+        default="",
+        help="型号 ID (默认取 registry 里的第一个已注册型号)",
+    )
     ap.add_argument("--list", action="store_true", help="列出全部注记")
     ap.add_argument("--show", metavar="REQ_ID", help="并排显示原文/规则结果/注记草案")
     ap.add_argument("--approve", metavar="REQ_ID", help="签字通过")
@@ -215,7 +220,26 @@ def main() -> int:
     ap.add_argument("--check", action="store_true", help="CI 门禁: 有未评审注记则失败")
     args = ap.parse_args()
 
-    ann_dir = get_settings().annotations_dir
+    settings = get_settings()
+    model = args.model
+    if not model:
+        # Inferred only when unambiguous. Approving annotations against the
+        # wrong model is a silent, permanent error — the signature is recorded
+        # against a model_id that may not be the one the reviewer had in mind.
+        from aterag.registry import Registry
+
+        registered = sorted(Registry.load(settings).products)
+        if len(registered) == 1:
+            model = registered[0]
+        elif not registered:
+            print("[FAIL] registry 里没有任何已注册型号; 先导入规格书, 或用 -m 显式指定")
+            return 1
+        else:
+            print(f"[FAIL] 已注册 {len(registered)} 个型号, -m 必须显式指定: {', '.join(registered)}")
+            return 1
+    args.model = model
+
+    ann_dir = settings.annotations_dir
     ann = AnnotationBook.load(Path(ann_dir) / f"{args.model}.conditions.yaml")
 
     if args.check:

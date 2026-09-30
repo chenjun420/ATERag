@@ -102,7 +102,7 @@ class Workbench:
         self,
         repo_root: Path,
         *,
-        annotations_rel: str = "config/annotations",
+        annotations_rel: str = "data/annotations",
     ) -> None:
         self.repo_root = Path(repo_root).resolve()
         self.annotations_rel = annotations_rel
@@ -137,6 +137,20 @@ class Workbench:
 
     def _annotation_path(self, model_id: str) -> Path:
         return self.repo_root / self.annotations_rel / f"{model_id}.conditions.yaml"
+
+    def _ensure_annotation_dir(self) -> None:
+        """Create the annotations directory on demand.
+
+        A fresh deployment has none — annotations are runtime data, created by
+        the review workflow rather than shipped. Without this, the write
+        whitelist below globs an absent directory, comes back empty, and every
+        approval is refused with "path not in whitelist", which reads as a
+        permissions bug rather than "you have not written any annotations yet".
+        """
+        self._annotation_dir().mkdir(parents=True, exist_ok=True)
+
+    def _annotation_dir(self) -> Path:
+        return self.repo_root / self.annotations_rel
 
     @staticmethod
     def _req_id_of(item: ReviewItem) -> str:
@@ -179,12 +193,13 @@ class Workbench:
             repo_root=self.repo_root,
             allowed_rel=frozenset(
                 p.relative_to(self.repo_root).as_posix()
-                for p in (self.repo_root / self.annotations_rel).glob("*.yaml")
+                for p in self._annotation_dir().glob("*.yaml")
             ),
         )
 
     def approve(self, model_id: str, req_id: str, actor: str, *, reason: str = "") -> WriteReceipt:
         """批准一条注记 (签字)。理由可选但会记入条目, 便于日后追溯。"""
+        self._ensure_annotation_dir()
         rel = self._annotation_path(model_id).relative_to(self.repo_root).as_posix()
         extra: dict[str, Any] = {}
         if reason:

@@ -16,6 +16,14 @@ build/
 rag_storage/
 pg_data/
 
+# 运行时数据 —— 仓库只含系统 (代码 + 认知词表 + 通用规则) 与使用说明。
+# data/annotations  是人工签字的兜底判记, 逐条对应某客户型号的规格书条款;
+# registry.yaml    是导入文档后写出的注册表 (已注册型号 / kb_status);
+# 两者都是业务过程的产物, 随部署环境走, 不进版本库。
+# 生成方式见 docs/使用说明.md。
+data/
+registry.yaml
+
 # 客户规格书原件 —— 属客户知识产权, 不入库。
 # 仓库只保留从原件派生的产物 (config/annotations/*.conditions.yaml 等), 那些
 # 是本项目的知识沉淀; 原件本身必须留在本地磁盘, 由 scripts/ingest_*.py 就地读取。

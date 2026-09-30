@@ -55,7 +55,7 @@ def check(name: str, ok: bool, detail: str = "") -> None:
 def _build():
     prof = ProfileBook.load()
     book = PatternBook.load()
-    ann = load_annotations(f"config/annotations/{MODEL}.conditions.yaml")
+    ann = load_annotations(MODEL)
     r = extract_test_conditions(
         MODEL, doc_version="B", profiles=prof, patterns=book, annotations=ann
     )

@@ -54,7 +54,7 @@ from aterag.ingest.markdown_parser import Block
 
 DEFAULT_PROFILES_PATH = "config/doc_profiles.yaml"
 DEFAULT_PATTERNS_PATH = "config/condition_patterns.yaml"
-DEFAULT_ANNOTATION_DIR = "config/annotations"
+DEFAULT_ANNOTATION_DIR = "data/annotations"
 DEFAULT_BLOCKS_DIR = "rag_storage/blocks"
 
 SRC_BLOCKS = "blocks"
@@ -671,7 +671,23 @@ def _has_annotated(cond: TestCondition) -> bool:
     )
 
 
-def load_annotations(model_id: str, ann_dir: str | Path = DEFAULT_ANNOTATION_DIR) -> AnnotationBook:
+def load_annotations(model_id: str, ann_dir: str | Path | None = None) -> AnnotationBook:
+    """Load the human-signed fallback criteria recorded for one model.
+
+    ``ann_dir`` defaults to ``settings.annotations_dir`` rather than to the
+    module constant, so ``ATERAG_ANNOTATIONS_DIR`` actually takes effect for
+    every caller. It previously did not: three call sites passed the setting
+    and the rest silently used a hardcoded in-repo path, which made the
+    setting decorative for exactly the scripts that needed it.
+
+    A missing file yields an empty book, not an error — annotations are a
+    fallback, and a model whose conditions all come from rules must still
+    extract cleanly.
+    """
+    if ann_dir is None:
+        from aterag.config import get_settings
+
+        ann_dir = get_settings().annotations_dir
     return AnnotationBook.load(Path(ann_dir) / f"{model_id}.conditions.yaml")
 
 

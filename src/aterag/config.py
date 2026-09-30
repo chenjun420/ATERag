@@ -41,7 +41,17 @@ class Settings(BaseSettings):
     # 抽取侧档案: 章节选择/剔除词/角色先验 + 条件规则库 + 人工注记目录
     doc_profiles_path: str = "config/doc_profiles.yaml"
     condition_patterns_path: str = "config/condition_patterns.yaml"
-    annotations_dir: str = "config/annotations"
+    # 人工注记 (兜底判据的签字记录) 属于**运行时数据**, 不属于系统。
+    #
+    # 它逐条对应某个客户型号的规格书条款, 进版本库等于把客户判据连同需求编号
+    # 一起公开; 而仓库应当只含系统 (代码 + 认知词表 + 通用规则) 与使用说明。
+    # 部署后由使用者在自己的环境里用 scripts/review_annotation.py 生成并签字,
+    # 用法见 docs/使用说明.md。
+    #
+    # 路径相对 CWD 解析, 默认落在仓库外的 data/ 下。缺失不报错: 注记是兜底,
+    # 没有它只是那部分需求切不出条件, 不该让整个抽取失败
+    # (AnnotationBook.load 对不存在的路径返回空书)。
+    annotations_dir: str = "data/annotations"
     common_workspace: str = "_common"
     domain_workspace_prefix: str = "_domain_"
 

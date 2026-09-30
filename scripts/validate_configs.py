@@ -9,7 +9,7 @@
   config/table_schemas.yaml        表头 -> 规范字段映射 (白名单 + 策略名校验)
   config/doc_profiles.yaml          档案/剔除词/章节先验
   config/condition_patterns.yaml   条件类型封闭词表 + 规则自洽性
-  config/annotations/*.yaml         人工注记
+  data/annotations/*.yaml           人工注记 (运行时数据, 缺失属正常)
   registry.yaml                     产品注册表
   domain_rules/*/rules.yaml         领域规则
 
@@ -33,7 +33,7 @@ PASS = "✅"
 # PyYAML 本身就会报错, 这里只负责把报错信息翻译成人能定位的行号。
 CONFIG_GLOBS = (
     "config/*.yaml",
-    "config/annotations/*.yaml",
+    "data/annotations/*.yaml",
     "domain_rules/*/rules.yaml",
     "registry.yaml",
 )
