@@ -644,6 +644,297 @@ async def list_domain_rules(category: str = "") -> str:
 
 
 @mcp.tool()
+async def get_condition_detail(
+    model_id: str = "",
+    req_id: str = "",
+    profile: str = "",
+) -> str:
+    """查单条需求抽出的全部输入/输出条件, 附规格书原文与判据来源。
+
+    回答"这条需求到底测什么、判据从哪来"。逐条给出 kind / 原文 / 结构化值 /
+    source / status, 而不是汇总数字 —— 汇总看不出某个判据是规格书写的还是
+    业界方法补的提案。
+
+    反幻觉约定(与本文件其余工具一致): 只回传抽取到的值, 缺失字段给 null,
+    绝不补默认值。任何"看起来合理"的猜测都会变成产线上的假判据。
+    """
+    mid = _require_model(model_id)
+    result = _extract_for(mid, profile=profile)
+    target = _find_requirement(result, req_id)
+    if target is None:
+        siblings = _sibling_rows(result, req_id)
+        return json.dumps(
+            {
+                "error": (
+                    "requirement_ambiguous" if siblings else "requirement_not_found"
+                ),
+                "req_id": req_id,
+                "message": (
+                    "该规格编号下有多行(不同轨/限值形态), 请用带消歧后缀的编号重查"
+                    if siblings
+                    else "未找到该需求"
+                ),
+                "siblings": siblings,
+                "available": sorted({c.req_id for c in result.conditions})[:50],
+            },
+            ensure_ascii=False,
+        )
+    return json.dumps(
+        {
+            "model_id": mid,
+            "req_id": target.req_id,
+            "title": target.title,
+            "section_path": target.section_path,
+            "rail": target.rail,
+            "role": target.role,
+            "notes": target.notes,
+            "limits": target.limits,
+            "flags": target.flags,
+            "assessment": _assessment_of(result, target.req_id),
+            "input_conditions": [_clause_payload(c) for c in target.input_conditions],
+            "output_conditions": [_clause_payload(c) for c in target.output_conditions],
+            "scenarios": [
+                {
+                    "scenario_id": s.scenario_id,
+                    "seq": getattr(s, "seq", 0),
+                    "name": s.name,
+                    "rail": s.rail,
+                    "bindings": s.bindings,
+                    "derived": s.derived,
+                    "basis": s.basis,
+                    "source": getattr(s, "source", ""),
+                }
+                for s in _scenarios_of(result, target.req_id)
+            ],
+        },
+        ensure_ascii=False,
+    )
+
+
+@mcp.tool()
+async def list_pending_review(
+    model_id: str = "",
+    profile: str = "",
+    status: str = "draft",
+) -> str:
+    """列出待人审的条件 (业界补齐提案), 供评审工作台排工。
+
+    这是"红线"的执行面: status=draft 的条件不得作为产测判据, 因此下游规划器
+    会把它们排除在执行序列之外。评审员需要知道被排除的到底有多少、都是什么。
+
+    只读。不提供"自动批准"工具 —— 未签字的条件变成判据, 必须有人签字,
+    这个动作不能由 Agent 代劳。
+    """
+    mid = _require_model(model_id)
+    result = _extract_for(mid, profile=profile)
+    out: list[dict] = []
+    for cond in result.conditions:
+        for clause in list(cond.input_conditions) + list(cond.output_conditions):
+            if clause.status != status:
+                continue
+            out.append(
+                {
+                    "req_id": cond.req_id,
+                    "title": cond.title,
+                    "section_path": cond.section_path,
+                    "role": clause.role,
+                    "kind": clause.kind,
+                    "text": clause.text,
+                    "value": clause.value,
+                    "source": clause.source,
+                    "confidence": clause.confidence,
+                    "status": clause.status,
+                    "method_ref": clause.method_ref,
+                }
+            )
+    by_method: dict[str, int] = {}
+    for c in out:
+        by_method[c["method_ref"] or "(none)"] = by_method.get(c["method_ref"] or "(none)", 0) + 1
+    return json.dumps(
+        {
+            "model_id": mid,
+            "status_filter": status,
+            "count": len(out),
+            "by_method_ref": by_method,
+            "items": out[:200],
+            "truncated": len(out) > 200,
+            "note": (
+                "这些条件未经人审, 已排除在产测执行序列之外。"
+                "评审签字后重新导出 bundle 即可纳入。"
+            ),
+        },
+        ensure_ascii=False,
+    )
+
+
+@mcp.tool()
+async def get_coverage_summary(model_id: str = "", profile: str = "") -> str:
+    """抽取覆盖统计: 需求数 / 条件数 / 充分性分布 / 剔除原因 / 单边限值占比。
+
+    回答"这份规格书被处理成了什么样, 哪些地方还需要人看"。数字全部来自
+    抽取结果的结构化字段, 任何一项为空就报 null 而不是 0 —— "剔除 0 条"和
+    "没统计到"是两回事, 混为一谈会让人以为覆盖完整。
+    """
+    mid = _require_model(model_id)
+    result = _extract_for(mid, profile=profile)
+
+    verdicts: dict[str, int] = {}
+    for a in getattr(result, "assessments", []) or []:
+        v = getattr(a, "verdict", "") or "(none)"
+        verdicts[v] = verdicts.get(v, 0) + 1
+
+    kinds: dict[str, int] = {}
+    sides = {"input": 0, "output": 0}
+    for cond in result.conditions:
+        for clause in cond.input_conditions:
+            kinds[clause.kind] = kinds.get(clause.kind, 0) + 1
+            sides["input"] += 1
+        for clause in cond.output_conditions:
+            kinds[clause.kind] = kinds.get(clause.kind, 0) + 1
+            sides["output"] += 1
+
+    excl_reasons: dict[str, int] = {}
+    for e in result.excluded:
+        r = e.reason or "(none)"
+        excl_reasons[r] = excl_reasons.get(r, 0) + 1
+
+    both = sum(
+        1
+        for c in result.conditions
+        if c.input_conditions and c.output_conditions
+    )
+    one_sided = sum(
+        1
+        for c in result.conditions
+        if bool(c.input_conditions) != bool(c.output_conditions)
+    )
+    return json.dumps(
+        {
+            "model_id": mid,
+            "doc_version": registry.products[mid].doc_version,
+            "requirements": len(result.conditions),
+            "clauses": sides["input"] + sides["output"],
+            "clauses_by_side": sides,
+            "kinds": kinds,
+            "kind_count": len(kinds),
+            "sufficiency": verdicts or None,
+            "both_sides": both,
+            "one_sided": one_sided,
+            "excluded": len(result.excluded),
+            "excluded_by_reason": excl_reasons or None,
+            "needs_review": len(result.needs_review),
+        },
+        ensure_ascii=False,
+    )
+
+
+def _require_model(model_id: str) -> str:
+    """Resolve a model id, refusing to guess.
+
+    The tools below return extracted criteria that end up as production
+    pass/fail bounds. Defaulting to "the first registered model" when the
+    caller named none is how the wrong product's numbers reach a line — the
+    existing tools allow it for exploratory use, but anything a plan is built
+    from must name its model.
+    """
+    if model_id:
+        if model_id not in registry.products:
+            raise ValueError(
+                f"型号未注册: {model_id}; 已注册: {sorted(registry.products)}"
+            )
+        return model_id
+    raise ValueError(
+        "必须显式指定 model_id。这些工具的输出会作为产测判据, "
+        "落到第一个注册型号上等于把别家的数值送上线。"
+    )
+
+
+def _extract_for(model_id: str, *, profile: str = ""):
+    """Run the deterministic extraction for a model (no LLM)."""
+    from aterag.extract import extract_test_conditions as _extract
+
+    return _extract(
+        model_id,
+        doc_version=registry.products[model_id].doc_version,
+        profile_name=profile or None,
+    )
+
+
+def _find_requirement(result, req_id: str):
+    """Resolve a requirement code to exactly one row, or None.
+
+    Returning the first of several matches would be a silent lie. PA601's
+    ``SR-PA601-D54A-1100`` spans four rows (different rails / limit forms), and
+    an agent asking "what does this test?" would get one of them with no hint
+    that the others exist — then quote it as the requirement's criteria. None
+    is the honest answer; the caller re-asks with the bundle's disambiguated
+    code, which is unique.
+    """
+    exact = [c for c in result.conditions if c.req_id == req_id]
+    if len(exact) == 1:
+        return exact[0]
+    if len(exact) > 1:
+        return None
+    # The bundle disambiguates multi-row codes; match on the part before the
+    # disambiguating suffix so callers can use the plain spec number.
+    stem = req_id.split("__")[0]
+    hits = [c for c in result.conditions if c.req_id.split("__")[0] == stem]
+    return hits[0] if len(hits) == 1 else None
+
+
+def _sibling_rows(result, req_id: str) -> list[dict]:
+    """Rows sharing a spec number, so an ambiguous lookup can say what it saw."""
+    stem = req_id.split("__")[0]
+    out = [
+        {
+            "req_id": c.req_id,
+            "title": c.title,
+            "rail": c.rail,
+            "limits": c.limits,
+        }
+        for c in result.conditions
+        if c.req_id.split("__")[0] == stem
+    ]
+    return out if len(out) > 1 else []
+
+
+def _assessment_of(result, req_id: str) -> dict | None:
+    for a in getattr(result, "assessments", []) or []:
+        if getattr(a, "req_id", "") == req_id:
+            return {
+                "verdict": getattr(a, "verdict", ""),
+                "rule_id": getattr(a, "rule_id", ""),
+                "basis": getattr(a, "basis", ""),
+                "detail": getattr(a, "detail", ""),
+            }
+    return None
+
+
+def _scenarios_of(result, req_id: str) -> list:
+    """All scenarios of one requirement, ordered by ``seq``.
+
+    ``seq`` is what the downstream case_code is built from, so a response that
+    omitted it would give the caller no way to tell which case it is looking at.
+    """
+    out = [s for s in getattr(result, "scenarios", []) or [] if getattr(s, "req_id", "") == req_id]
+    out.sort(key=lambda s: getattr(s, "seq", 0))
+    return out
+
+
+def _clause_payload(clause) -> dict:
+    return {
+        "kind": clause.kind,
+        "text": clause.text,
+        "role": clause.role,
+        "value": clause.value,
+        "source": clause.source,
+        "confidence": clause.confidence,
+        "status": clause.status,
+        "method_ref": clause.method_ref,
+    }
+
+
+@mcp.tool()
 async def health() -> str:
     """服务健康检查 (存储/模型全量自检)。"""
     from aterag.checks import report, run_all_checks
