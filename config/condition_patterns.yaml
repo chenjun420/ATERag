@@ -206,13 +206,21 @@ rules:
     role: output
     kind: signal_state
     pattern: '光耦输出[^。\n]{0,80}'
+  # 这两条原先归到 output_voltage / ripple, 都被判为"无数值判据的测量" ——
+  # 因为它们根本不是被测量, 而是**测量方法**:
+  #   "掉电告警送出至…跌落到36V": 36V 是计时的终点, 不是输出电压的合格范围
+  #   "20MHz 带宽限制": 示波器的设置, 不是纹波的限值
+  # 归错的后果不是标签难看, 而是产线会试图对它们做判定:
+  # 找不到上下限 -> 报跳过或(更糟)默认通过。于是"没有判据"变成了
+  # "每台都判合格"。
+  # 正确归属是 measurement_setup —— 它描述怎么测, 不产出数值结论。
   - id: output_bus_voltage_drop
-    role: output
-    kind: output_voltage
+    role: input
+    kind: measurement_setup
     pattern: '掉电告警送出至[^，。\n]{0,40}'
   - id: output_ripple_bw
-    role: output
-    kind: ripple
+    role: input
+    kind: measurement_setup
     pattern: '\d+\s*MHz\s*带宽限制'
     capture: {value: 20, unit: MHz}
   - id: output_telemetry_accuracy

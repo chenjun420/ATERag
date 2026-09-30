@@ -338,6 +338,19 @@ def requirement_to_model(
     )
 
 
+#: 消歧后缀的分隔符。
+#:
+#: 必须是**合法标识符字符**。之前用 "@" 和 "#", 两者在 YAML 里都有特殊含义
+#: ("#" 起注释, "@" 是保留指示符), 于是下游把 requirement_code 拼进 DSL
+#: step id 时必须做 slug 转义, 而 slug 不可逆 —— PA601 实测 698 步里 74 个
+#: id 因此互相冲突, 依赖图出现重名节点, 调度可能跳过其中一个(被跳过的测量
+#: 就是一条悄悄不再被测的需求)。
+#:
+#: "__" 不与规格书编号里的字符冲突(编号只用 "-" 分隔), 也不需要下游转义,
+#: 于是整条链路上这个键是同一串字符, 排障时能直接对回去。
+DISAMBIG_SEP = "__"
+
+
 def _row_code(cond: Any, used: set[str]) -> str:
     """多行同编号的行级唯一键。
 
@@ -347,6 +360,8 @@ def _row_code(cond: Any, used: set[str]) -> str:
     * 用行号: 规格书改版时行序调整会让键整体漂移, 后果同上。
     限值形态(0~11.1 / 0.1)对同一需求的多行天然不同, 且只在规格书真的改了
     限值时才变 —— 那本来就是"判据变了", 下游重置为 draft 是正确行为。
+
+    分隔符见 :data:`DISAMBIG_SEP`。
     """
     rail = (getattr(cond, "rail", "") or "").strip() or "na"
     lim = getattr(cond, "limits", {}) or {}
@@ -356,11 +371,11 @@ def _row_code(cond: Any, used: set[str]) -> str:
         if v is not None:
             tag_parts.append(f"{k[0]}{float(v):g}")
     bound = "".join(tag_parts) or "na"
-    base = f"{cond.req_id}@{rail}"
-    code = f"{base}#{bound}"
+    base = DISAMBIG_SEP.join([cond.req_id, rail])
+    code = DISAMBIG_SEP.join([base, bound])
     n = 2
     while code in used:
-        code = f"{base}#{bound}_{n}"
+        code = f"{code}__{n}"
         n += 1
     return code
 
@@ -415,11 +430,11 @@ def bundle_from_result(
             m.requirement_code = _row_code(c, used_codes)
         else:
             # 单行编号理论上不会撞, 但仍防御: 万一抽取侧改坏也不至于
-            # 把整批导入变成"幂等键冲突"的全量失败。
+            # 把整批导入变成"幂等键冲突"的全量失败。分隔符与 _row_code 同源。
             code = c.req_id
             n = 2
             while code in used_codes:
-                code = f"{c.req_id}~{n}"
+                code = f"{c.req_id}{DISAMBIG_SEP}{n}"
                 n += 1
             m.requirement_code = code
         used_codes.add(m.requirement_code)
