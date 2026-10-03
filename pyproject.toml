@@ -37,6 +37,12 @@ dependencies = [
     # 审计时按「无 import」判为未使用是错的, 记录在此以免下次再犯。
     "asyncpg>=0.30",
     "pgvector>=0.5.0",
+    # 计划移除: qdrant-client —— 违反 ADR-002(全栈统一 PostgreSQL)。
+    # 当前 rag/service.py 仍以 Qdrant 为检索主路径, 直接删会让 import 期就炸;
+    # 按 ADR-014 决策 3 分两步走: 先建 retrieval/hybrid.py 走 pgvector,
+    # 新路径过验收后再删 rag/service.py 与本行。现在删会产出破损中间态。
+    # 目标删除时点: A-W3 完成后。届时一并删 deploy/native/03-qdrant.sh 与
+    # deploy/qdrant/。
     "qdrant-client>=1.12",
     # 模型适配 (OpenAI 兼容 / DashScope 原生)
     "httpx>=0.28",
@@ -52,29 +58,112 @@ dependencies = [
     # ingest/pipeline.py 模块级 import numpy (lightrag/semantica 都会传递带入,
     # 但直接 import 就该直接声明)
     "numpy>=1.26",
+    # ---- W0 存储底座新增 ----
+    # 物理量计算: pint 注册表管单位与量纲(ADR-015), 提供 7 维量纲向量的推导源。
+    # 方案原则二要求「数值/单位/区间/可行性判定全部出 LLM 之外」, 单位判定
+    # 没有 pint 就只能靠 LLM 猜, 等于把门禁交给被门禁的对象。
+    # 冷却启动 100~300ms, 故 solver/symbolic.py 内做惰性单例。
+    "pint>=0.24",
+    # 符号化: expression -> expr_ast (schema_full.sql 的 formula.expr_ast 列,
+    # §18.3.1 要求「等价归一用」)、符号恒等判重、公式求导。
+    # 与 pint 分工: pint 管单位语义, sympy 管符号结构。A-11 的 7 维向量本质
+    # 就是量纲指数向量, 两者互补不可互替 (ADR-015 备选表)。
+    "sympy>=1.13",
+    # 约束求解: A-W4 的仪器选型 CSP (solver/csp.py) 与 RCPSP 调度
+    # (solver/rcpsp.py, CP-SAT)。
+    # 参照: ATEStudio 侧 scheduler/cpsat.py 已经 try/except ImportError 地用了
+    # ortools 但根本没在 pyproject 里声明, 导致 CP-SAT 路径静默降级为 None。
+    # 同一个错不在两个仓库各犯一次。
+    "ortools>=9.11",
+    # 迁移: 方案 §18.1.3 要求 alembic/versions/。现状是全仓 CREATE TABLE IF
+    # NOT EXISTS 散在 deploy/native/*.sh 与 ingest/pipeline.py:42-87, 没有任何
+    # 版本记录, 也没有 down 路径。ALTER 只能靠人手改库。
+    # 组织方式参照 ATEStudio 的 alembic.ini + alembic/env.py + versions/。
+    "alembic>=1.14",
     # 已移除: markdown-it-py —— 全仓 0 import、0 引用。
     # 已移除: bm25s —— BM25 实际由 PostgreSQL 的 pg_textsearch + zhparser 提供
     #   (pipeline.py: to_bm25query('idx_aterag_chunks_bm25'))。bm25s 是设计文档里
     #   写过的「降级路径」, 从未实现。设计文档 1446 行的降级说明仍需更正。
 ]
 
+[project.scripts]
+# 收敛入口。现状是 scripts/ 下 71 个裸脚本、pyproject 零 [project.scripts],
+# 没有任何 `aterag <cmd>` 可用, 部署方只能记文件路径。
+# 这里只登记 W0 已经交付的; 其余随对应 Wave 补齐, 不预先声明不存在的命令。
+aterag-db = "aterag.storage.cli:main"
+
 [dependency-groups]
 dev = [
     "pytest>=8.3",
     "pytest-asyncio>=0.24",
     "ruff>=0.8",
+    # 覆盖率门禁。直接采用 ATEStudio 的标准 (fail_under=80, branch=True,
+    # omit migrations/__init__), 不为 ATERag 另立一套。
+    # 理由见 ADR-017: 测试标准应跨两个仓库统一, 否则同一缺陷在两个仓库的
+    # 严重度评估会给出相反结论。
+    "pytest-cov>=5.0",
+    # 类型门禁。与 ruff 分工: ruff 抓风格与明显错误, mypy 抓跨层契约
+    # (storage 契约的实现必须与 §18.2 的 dataclass 一致 —— 这类不一致
+    # 正是方案 §18.10 注 5 点名的失败模式)。
+    "mypy>=1.11",
+    "types-pyyaml",
+    "types-requests",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+# 八层结构仍在单一发行包 aterag 之下 (ADR-016: 对 §18.1.3 的刻意偏离)。
+# wheel packages 无需改动: src/aterag 仍是唯一被打包的目录, 新增的 8 个层
+# 作为其子包自动纳入。
 [tool.hatch.build.targets.wheel]
 packages = ["src/aterag"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+# 方案 §18.1.3 的四层测试目录。但 testpaths 保留 tests/ 顶层 —— 因为旧的
+# test_extract.py / test_local.py / test_mcp_review_tools.py 还平铺在那里,
+# 它们测的是待退役的 src/aterag/{extract,rag,inference}, 退役后迁入 unit/。
+# 写成 tests/unit 会让那 3 个文件在收集阶段被静默跳过 —— 门禁比它想守的
+# 东西更重要, 所以宁可多写一个 testpaths。
 testpaths = ["tests"]
+# 门禁测试跑真实数据库与真实 seed, 与单元测试的隔离要求不同:
+#   -m "not gate"  单测/CI 默认路径, 不需要 PG
+#   -m "gate"      只跑 tests/gates/, 需要 POSTGRES_DSN
+markers = [
+    "gate: 质量门禁测试, 需要 POSTGRES_DSN 与完整 seed 数据",
+    "integration: 需要外部服务 (PG / 嵌入服务 / LLM)",
+]
+addopts = "-m 'not gate'"
+
+[tool.mypy]
+python_version = "3.11"
+# 只对 W0 起的新八层开 strict。理由: 这八层是按 §18.2 接口契约新建的,
+# 契约一致性必须由类型系统守; 而旧代码 (extract/ ingest/ inference/ rag/
+# mcp_server/ workbench/ models/) 逐个 Wave 退役, 退役一个开一个,
+# 全量打开会一次性引出数百条历史债, 属重构范畴, 不塞进本次提交。
+# 退役进度由本文件的 exclude 列表体现 —— 列表变短就是进度, 反向指标。
+files = ["src/aterag/storage", "src/aterag/solver", "src/aterag/reasoning"]
+strict = true
+# 第三方库无类型标注。semantica / pyshacl / ortools / lightrag 均属此类。
+# 注意: 这会让这些库的调用失去类型检查, 是有意的取舍 —— 补 stubs 的收益
+# 低于把它们隔离到 adapter 层(§18.2 的做法), 后者才是正解。
+[[tool.mypy.overrides]]
+module = [
+    "semantica.*",
+    "pyshacl.*",
+    "ortools.*",
+    "lightrag.*",
+    "pgvector.*",
+    "asyncpg.*",
+    "qdrant_client.*",
+    "mcp.*",
+]
+ignore_missing_imports = true
+# 新八层里明确不 import 这些库的位置会被展开, 避免「全库 ignore」掩盖
+# 真实的未使用依赖(旧教训: pyproject 曾因「本仓库 0 import」误判 asyncpg/pgvector 未使用)。
+warn_unused_ignores = true
 
 [tool.ruff]
 line-length = 100

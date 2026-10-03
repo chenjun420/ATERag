@@ -1,0 +1,52 @@
+# 覆盖率配置。与 ATEStudio 同档 (fail_under=80, branch=True, omit
+# migrations/__init__)。门禁值本身的理由见 ADR-017。
+#
+# omit 里列出的是**待退役的旧代码** (src/aterag/{extract,ingest,inference,rag,
+# mcp_server,workbench,models} + config/checks/registry)。它们不计入分母,
+# 原因是它们的测试现状是 3 个文件 / 867 行, 覆盖率远低于 80; 若计入分母,
+# 门禁会在旧代码退役前一直红, 于是变成一个大家习惯性忽略的红灯 ——
+# 那比没有门禁更糟。
+#
+# 这个列表只应变短。退役一个旧包就从这里删掉一行, 同时删掉对应的
+# tests/test_*.py。列表变长说明有人在往旧结构里加新代码, 应当拒绝。
+# 反向指标: 行数是技术债余额。
+[run]
+source = src/aterag
+branch = True
+omit =
+    */tests/*
+    */__init__.py
+    */alembic/*
+
+    # ---- 待退役的旧八层 ----
+    # extract/   条件抽取 (11 文件, 1163+ 行)
+    src/aterag/extract/*
+    # ingest/    规格书入库 (6 文件)
+    src/aterag/ingest/*
+    # inference/ eval() 规则引擎 (3 文件) —— ADR-015 要求整层退场
+    src/aterag/inference/*
+    # rag/       Qdrant 检索 —— ADR-014 要求整层退场
+    src/aterag/rag/*
+    # mcp_server/ 17 工具, 无鉴权 —— 迁往 jev/mcp.py 后退场
+    src/aterag/mcp_server/*
+    # workbench/ 评审工作台
+    src/aterag/workbench/*
+    # models/    embed/llm 客户端 —— 迁往 retrieval/embed.py 后退场
+    src/aterag/models/*
+    # 顶层旧模块
+    src/aterag/config.py
+    src/aterag/checks.py
+    src/aterag/registry.py
+
+[report]
+fail_under = 80
+show_missing = True
+skip_covered = False
+# 协议/抽象基类的抽象方法体若未实现, 不应计入分母 —— 否则 storage/schema.py
+# 里的 Protocol 会把覆盖率拉到 60% 以下, 掩盖真实缺口。
+exclude_lines =
+    pragma: no cover
+    if TYPE_CHECKING:
+    @(abc\.)?abstractmethod
+    raise NotImplementedError
+    if __name__ == .__main__.:

@@ -45,8 +45,11 @@ validate.log
 # 测试产物
 .mypy_cache/
 .coverage
+.coverage.*
 htmlcov/
+coverage.xml
 .pytest_cache/
+.hypothesis/
 
 # 编辑器
 .vscode/
