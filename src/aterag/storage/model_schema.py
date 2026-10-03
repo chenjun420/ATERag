@@ -63,6 +63,7 @@ from .schema import (
     SchemaError,
     model_schema_name,
 )
+from .tables import MODEL_TABLES  # noqa: F401  (对外转出, 见 __all__)
 
 __all__ = [
     "HYPERTABLES",
@@ -1259,48 +1260,6 @@ def _alter_fk_ddl(s: SchemaIdent) -> str:
     ]
     return "\n".join(stmts) + "\n"
 
-
-#: 型号 schema 内的全部表名。顺序 = 建表顺序 (批内 = :data:`_TABLE_BATCHES` 序)。
-MODEL_TABLES: tuple[str, ...] = tuple(
-    sorted(
-        {
-            # 从各 DDL 闭包的输出里提表名不现实 (含索引/触发器), 故在此显式登记,
-            # 并由 test_model_schema.py 的「DDL 里出现的 CREATE TABLE 必须在此
-            # 登记, 反之亦然」双向断言守住。
-            "clause",
-            "doc",
-            "doc_chunk",
-            "fact",
-            "provenance",
-            "conflict",
-            "trace",
-            "test_requirement",
-            "test_case",
-            "yx_point",
-            "yx_soe",
-            "yc_point",
-            "yc_trend",
-            "yk_command",
-            "yk_audit",
-            "yt_parameter",
-            "yt_change_log",
-            "protection_setting",
-            "protection_setting_log",
-            "protection_coordination",
-            "protection_action",
-            "comm_protocol",
-            "fixture",
-            "test_station",
-            "fixture_channel_map",
-            "fixture_checkpoint",
-            "poka_yoke_event",
-            "instrument_ledger",
-            "fixture_tp_probe",
-            "sched_result",
-            "jev_gate_log",
-        }
-    )
-)
 
 #: §16.2.3 / §16.3.4 / §16.6.6 的 hypertable。§3.5.5 的两个台账表 spec 也标了
 #: create_hypertable, 一并纳入。

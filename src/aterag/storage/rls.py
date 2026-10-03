@@ -28,6 +28,7 @@ import re
 from dataclasses import dataclass
 
 from .schema import SchemaError, model_schema_name, quote_ident, quote_literal
+from .tables import MODEL_TABLES
 
 #: 上下文型号的 session setting 名。§5.8.1 的 current_setting('app.current_model')。
 CTX_MODEL_SETTING = "app.current_model"
@@ -87,29 +88,19 @@ COLUMN_MATCH_TABLES: frozenset[str] = frozenset({"fact"})
 #: column_match 策略使用的型号列名。与 §3.5.3 的 fact DDL 一致。
 TENANT_COLUMN = "tenant_schema"
 
-#: 型号 schema 内必须全部启用 RLS 的表。§5.8.1 只列了三个示例, 这里补全到
-#: §18.5 汇编出来的实际表集。缺一个就在 G 门禁里报出来。
-RLS_TABLES: tuple[str, ...] = (
-    # 知识与事实
-    "fact",
-    "doc_chunk",
-    "test_case",
-    "test_requirement",
-    "provenance",
-    "conflict",
-    # 四遥
-    "yx_point",
-    "yc_point",
-    "yk_command",
-    "yt_parameter",
-    # 保护定值
-    "protection_setting",
-    # 工装与工位
-    "fixture",
-    "test_station",
-    "fixture_channel_map",
-    "fixture_checkpoint",
-)
+#: 型号 schema 内必须全部启用 RLS 的表 —— **等于** :data:`tables.MODEL_TABLES`。
+#:
+#: §5.8.1 只列了三个示例 (fact / doc_chunk / test_case), §5.8.3 纪律 2 则要求
+#: 「无 RLS 的表不允许上线」。纪律 2 是规范, 示例不是全集。
+#:
+#: 这里曾维护一份独立的手写清单 (15 项), 与 model_schema 的 31 项表清单
+#: 各自漂移: 板卡首次建库时 16 张表建出来却没有策略, 门禁 verify 报 FAIL。
+#: 那是好的失败 (门禁抓到了), 但要付一次部署往返才发现。
+#:
+#: 改为直接引用同一份清单后, 漂移在结构上不可能发生 —— 加表只需改一处,
+#: 且新表自动带策略。这正是纪律 2 想要的默认安全: 白名单的风险是新表默认
+#: 不在名单里, 于是静默裸奔, 而新表恰恰最需要保护。
+RLS_TABLES: tuple[str, ...] = MODEL_TABLES
 
 
 class RlsError(RuntimeError):
