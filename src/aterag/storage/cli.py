@@ -1,4 +1,4 @@
-"""``aterag-db`` —— 存储底座的命令行入口。
+﻿"""``aterag-db`` —— 存储底座的命令行入口。
 
 V6.0 §18.1.3 要求 ``storage/`` 提供建库入口, ``pyproject.toml`` 的
 ``[project.scripts]`` 已登记 ``aterag-db = "aterag.storage.cli:main"``。
@@ -40,6 +40,7 @@ from typing import Any, Protocol
 from .model_schema import (
     MODEL_TABLES,
     PUBLIC_TABLES,
+    TIMESCALE_EXTENSION,
     hypertable_available_sql,
     model_ddl,
     model_schema_ddl,
@@ -117,23 +118,32 @@ def _run(cur: Any, sql: str) -> None:
 def cmd_check(conn: _Conn, args: argparse.Namespace) -> int:
     """实测扩展安装状态。
 
-    §18.5 第 0 分区与 ``storage/schema.py`` 的 REQUIRED_EXTENSIONS 对齐。
-    TimescaleDB 是可选的 (板卡与容器可用扩展集不同), 但缺它时 hypertable
-    建不出来 —— 所以这里单独报一行提醒, 不静默。
+    §18.5 第 0 分区与 ``storage/schema.py`` 的 REQUIRED/OPTIONAL_EXTENSIONS
+    对齐。全部扩展由 :func:`check_extensions` 一处枚举并打印 —— 曾经额外
+    单独打一行 timescaledb, 而 timescaledb 已在 OPTIONAL_EXTENSIONS 里, 于是
+    板卡上同一行连打两次。
+
+    缺 timescaledb 时补一句说明, 因为它不是「装了没用上」而是
+    「hypertable 建不出来」, 且装包后还要 shared_preload_libraries + 重启。
     """
     from .schema import check_extensions, missing_required
 
     with conn.cursor() as cur:
         statuses = check_extensions(cur)
-        timescale_installed = False
-        cur.execute(hypertable_available_sql())
-        timescale_installed = cur.fetchone() is not None
 
     for st in statuses:
         mark = "OK " if st.installed else ("MISS" if st.required else "opt ")
         print(f"[{mark}] {st.name:<16} {st.version or '(未安装)'}")
-    print(f"[{'OK ' if timescale_installed else 'opt '}] timescaledb       "
-          f"{'已装' if timescale_installed else '未装 —— hypertable 段将跳过'}")
+
+    ts = next((s for s in statuses if s.name == TIMESCALE_EXTENSION), None)
+    if ts is not None and not ts.installed:
+        print(
+            f"\n注: 缺 {TIMESCALE_EXTENSION} —— hypertable 段将跳过。"
+            f"\n    扩展名是 {TIMESCALE_EXTENSION} (不是 timescale)。"
+            "\n    且它要求 shared_preload_libraries 含该库并重启 PostgreSQL,"
+            f"\n    否则 CREATE EXTENSION 报 'must be preloaded'。"
+            "\n    不需要自动分区的部署用 init --no-hypertable。"
+        )
 
     missing = missing_required(statuses)
     if missing:
@@ -152,16 +162,33 @@ def cmd_upgrade(conn: _Conn, args: argparse.Namespace) -> int:
 
     不自己拼 ``alembic_version`` —— 版本记录归 alembic, 否则两条路径会
     互相看不见对方的迁移。
+
+    DSN 用**原样**的入参, 不从连接对象反查: ``psycopg.Connection.info.dsn``
+    返回的是 libpq 的 keyword/value 形式 (``make_conninfo()`` 的输出, 如
+    ``dbname=power_specs host=127.0.0.1 ...``), 而 SQLAlchemy 的
+    ``make_url`` 只认 URL 形式。板卡上就是这一步报的
+    ``ArgumentError: Could not parse SQLAlchemy URL`` —— 与迁移内容无关,
+    纯粹是 DSN 形态不匹配。
     """
     from alembic import command
     from alembic.config import Config
 
     ini = _alembic_ini()
     cfg = Config(str(ini))
-    cfg.set_main_option("sqlalchemy.url", _dsn_of(conn))
+    dsn = args.dsn if args.dsn else _settings_dsn()
+    # set_main_option 走 ConfigParser 插值: DSN 里若含裸 % (密码里很常见)
+    # 会被当成插值语法。转义成 %%。
+    cfg.set_main_option("sqlalchemy.url", dsn.replace("%", "%%"))
     command.upgrade(cfg, "head")
     print("L0 迁移已升级到 head。")
     return 0
+
+
+def _settings_dsn() -> str:
+    """从应用配置取 DSN。惰性导入 —— 见 alembic/env.py 同名函数的说明。"""
+    from ..config import Settings
+
+    return Settings().postgres_dsn  # type: ignore[call-arg]
 
 
 def cmd_init(conn: _Conn, args: argparse.Namespace) -> int:
@@ -318,11 +345,27 @@ def _alembic_ini() -> Any:
 
 
 def _dsn_of(conn: _Conn) -> str:
-    """从已建立的连接取 DSN (alembic 需要字符串)。"""
+    """从已建立的连接反查 DSN。
+
+    **不要用。** psycopg 的 ``Connection.info.dsn`` 返回 libpq 的
+    keyword/value 形式 (``dbname=power_specs host=127.0.0.1 ...``, 由
+    ``make_conninfo()`` 生成), 不是 URL; SQLAlchemy 的 ``make_url`` 只认
+    URL 形式, 板卡上 ``aterag-db upgrade`` 就因此报
+    ``ArgumentError: Could not parse SQLAlchemy URL``。
+    cmd_upgrade 改用 :func:`_resolved_dsn`。本函数保留是为了让这个坑有据
+    可查, 不作为调用路径。
+    """
     info = getattr(conn, "info", None)
     dsn = getattr(info, "dsn", None)
     if isinstance(dsn, str) and dsn:
         return dsn
+    return _resolved_dsn(None)
+
+
+def _resolved_dsn(args: argparse.Namespace | None) -> str:
+    """取 DSN: ``--dsn`` 优先, 否则读应用配置。惰性导入 Settings。"""
+    if args is not None and args.dsn:
+        return str(args.dsn)
     from ..config import Settings
 
     return Settings().postgres_dsn  # type: ignore[call-arg]
