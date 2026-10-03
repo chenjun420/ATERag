@@ -1391,11 +1391,17 @@ SELECT create_hypertable(format('%I.%I', :'model_key', 'fixture_tp_probe'), 'ts'
 
 CREATE OR REPLACE FUNCTION "public"."ctx_model"() RETURNS TEXT AS $$ SELECT current_setting('app.current_model', true); $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
-ALTER TABLE :"model_key"."fact" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE :"model_key"."clause" ENABLE ROW LEVEL SECURITY;
 
-ALTER TABLE :"model_key"."fact" FORCE ROW LEVEL SECURITY;
+ALTER TABLE :"model_key"."clause" FORCE ROW LEVEL SECURITY;
 
-CREATE POLICY "fact_model_isolation" ON :"model_key"."fact" FOR ALL USING ("tenant_schema" = ctx_model()) WITH CHECK ("tenant_schema" = ctx_model());
+CREATE POLICY "clause_model_isolation" ON :"model_key"."clause" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
+
+ALTER TABLE :"model_key"."doc" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE :"model_key"."doc" FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "doc_model_isolation" ON :"model_key"."doc" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
 
 ALTER TABLE :"model_key"."doc_chunk" ENABLE ROW LEVEL SECURITY;
 
@@ -1403,17 +1409,11 @@ ALTER TABLE :"model_key"."doc_chunk" FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY "doc_chunk_model_isolation" ON :"model_key"."doc_chunk" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
 
-ALTER TABLE :"model_key"."test_case" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE :"model_key"."fact" ENABLE ROW LEVEL SECURITY;
 
-ALTER TABLE :"model_key"."test_case" FORCE ROW LEVEL SECURITY;
+ALTER TABLE :"model_key"."fact" FORCE ROW LEVEL SECURITY;
 
-CREATE POLICY "test_case_model_isolation" ON :"model_key"."test_case" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
-
-ALTER TABLE :"model_key"."test_requirement" ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE :"model_key"."test_requirement" FORCE ROW LEVEL SECURITY;
-
-CREATE POLICY "test_requirement_model_isolation" ON :"model_key"."test_requirement" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
+CREATE POLICY "fact_model_isolation" ON :"model_key"."fact" FOR ALL USING ("tenant_schema" = ctx_model()) WITH CHECK ("tenant_schema" = ctx_model());
 
 ALTER TABLE :"model_key"."provenance" ENABLE ROW LEVEL SECURITY;
 
@@ -1427,11 +1427,35 @@ ALTER TABLE :"model_key"."conflict" FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY "conflict_model_isolation" ON :"model_key"."conflict" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
 
+ALTER TABLE :"model_key"."trace" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE :"model_key"."trace" FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "trace_model_isolation" ON :"model_key"."trace" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
+
+ALTER TABLE :"model_key"."test_requirement" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE :"model_key"."test_requirement" FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "test_requirement_model_isolation" ON :"model_key"."test_requirement" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
+
+ALTER TABLE :"model_key"."test_case" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE :"model_key"."test_case" FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "test_case_model_isolation" ON :"model_key"."test_case" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
+
 ALTER TABLE :"model_key"."yx_point" ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE :"model_key"."yx_point" FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY "yx_point_model_isolation" ON :"model_key"."yx_point" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
+
+ALTER TABLE :"model_key"."yx_soe" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE :"model_key"."yx_soe" FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "yx_soe_model_isolation" ON :"model_key"."yx_soe" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
 
 ALTER TABLE :"model_key"."yc_point" ENABLE ROW LEVEL SECURITY;
 
@@ -1439,11 +1463,23 @@ ALTER TABLE :"model_key"."yc_point" FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY "yc_point_model_isolation" ON :"model_key"."yc_point" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
 
+ALTER TABLE :"model_key"."yc_trend" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE :"model_key"."yc_trend" FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "yc_trend_model_isolation" ON :"model_key"."yc_trend" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
+
 ALTER TABLE :"model_key"."yk_command" ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE :"model_key"."yk_command" FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY "yk_command_model_isolation" ON :"model_key"."yk_command" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
+
+ALTER TABLE :"model_key"."yk_audit" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE :"model_key"."yk_audit" FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "yk_audit_model_isolation" ON :"model_key"."yk_audit" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
 
 ALTER TABLE :"model_key"."yt_parameter" ENABLE ROW LEVEL SECURITY;
 
@@ -1451,11 +1487,41 @@ ALTER TABLE :"model_key"."yt_parameter" FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY "yt_parameter_model_isolation" ON :"model_key"."yt_parameter" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
 
+ALTER TABLE :"model_key"."yt_change_log" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE :"model_key"."yt_change_log" FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "yt_change_log_model_isolation" ON :"model_key"."yt_change_log" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
+
 ALTER TABLE :"model_key"."protection_setting" ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE :"model_key"."protection_setting" FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY "protection_setting_model_isolation" ON :"model_key"."protection_setting" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
+
+ALTER TABLE :"model_key"."protection_setting_log" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE :"model_key"."protection_setting_log" FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "protection_setting_log_model_isolation" ON :"model_key"."protection_setting_log" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
+
+ALTER TABLE :"model_key"."protection_coordination" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE :"model_key"."protection_coordination" FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "protection_coordination_model_isolation" ON :"model_key"."protection_coordination" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
+
+ALTER TABLE :"model_key"."protection_action" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE :"model_key"."protection_action" FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "protection_action_model_isolation" ON :"model_key"."protection_action" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
+
+ALTER TABLE :"model_key"."comm_protocol" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE :"model_key"."comm_protocol" FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "comm_protocol_model_isolation" ON :"model_key"."comm_protocol" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
 
 ALTER TABLE :"model_key"."fixture" ENABLE ROW LEVEL SECURITY;
 
@@ -1480,6 +1546,36 @@ ALTER TABLE :"model_key"."fixture_checkpoint" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE :"model_key"."fixture_checkpoint" FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY "fixture_checkpoint_model_isolation" ON :"model_key"."fixture_checkpoint" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
+
+ALTER TABLE :"model_key"."poka_yoke_event" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE :"model_key"."poka_yoke_event" FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "poka_yoke_event_model_isolation" ON :"model_key"."poka_yoke_event" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
+
+ALTER TABLE :"model_key"."instrument_ledger" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE :"model_key"."instrument_ledger" FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "instrument_ledger_model_isolation" ON :"model_key"."instrument_ledger" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
+
+ALTER TABLE :"model_key"."fixture_tp_probe" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE :"model_key"."fixture_tp_probe" FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "fixture_tp_probe_model_isolation" ON :"model_key"."fixture_tp_probe" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
+
+ALTER TABLE :"model_key"."sched_result" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE :"model_key"."sched_result" FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "sched_result_model_isolation" ON :"model_key"."sched_result" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
+
+ALTER TABLE :"model_key"."jev_gate_log" ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE :"model_key"."jev_gate_log" FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "jev_gate_log_model_isolation" ON :"model_key"."jev_gate_log" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
 
 -- ============================================================
 -- 5. 触发器与函数 (第九章; 随第 2 分区输出)
