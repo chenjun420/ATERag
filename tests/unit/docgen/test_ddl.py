@@ -1,0 +1,264 @@
+"""``docgen.ddl`` 的单元测试 (§18.5 全量 DDL 汇编)。
+
+不需要数据库 —— 本模块只生成 SQL 文本。第 1 分区走 alembic 的**离线**
+模式 (``--sql``), 同样不连库。
+
+「生成物能不能真被 psql 跑」不在这里验: 那需要真库, 由
+``tests/contract/test_schema_full_exec.py`` (marker=integration) 覆盖。
+本文件的职责是**汇编器自身**的正确性: 分区齐全、顺序对、不重复、
+参数化正确。
+"""
+
+from __future__ import annotations
+
+import pytest
+
+from aterag.docgen.ddl import (
+    DDL_SECTIONS,
+    MIN_POSTGRES_MAJOR,
+    PSQL_VAR,
+    _extension_names,
+    assemble,
+    extensions_block,
+    l0_block,
+    model_blocks,
+    render,
+)
+from aterag.storage.model_schema import MODEL_TABLES
+from aterag.storage.rls import RLS_TABLES
+
+DEFAULT_MODEL = "pw_sr5400"
+
+
+@pytest.fixture(scope="module")
+def result() -> object:
+    return assemble()
+
+
+@pytest.fixture(scope="module")
+def text(result: object) -> str:
+    return render(result, default_model_schema=DEFAULT_MODEL)
+
+
+class TestSectionOrder:
+    def test_all_five_sections_present(self, result: object) -> None:
+        """§18.5 的五个分区一个都不能少, 名字也不能拼错。
+
+        少一区是静默的: 文件照样能 psql 跑通, 只是少装了东西。
+        """
+        assert set(result.sections) == set(DDL_SECTIONS)
+
+    def test_lines_follow_section_order(self, result: object) -> None:
+        """sections() 按 DDL_SECTIONS 的顺序展开 —— 顺序决定文件里的执行顺序。
+
+        判据用「区间不交叠」而不是「各自的首次出现位置」: 空分区 (第 5 分区)
+        没有语句, 拿它去查位置会直接抛错, 而它恰恰是最需要被显式放行的那一区。
+        """
+        lines = result.lines()
+        spans: list[tuple[str, int, int]] = []
+        for name in DDL_SECTIONS:
+            sts = result.sections.get(name, ())
+            if not sts:
+                continue
+            idxs = [lines.index(s) for s in sts]
+            spans.append((name, min(idxs), max(idxs)))
+        for (na, _, a_end), (nb, b_start, _) in zip(spans, spans[1:], strict=False):
+            assert a_end < b_start, f"分区 {na} 与 {nb} 交叠: {na} 到 {a_end}, {nb} 从 {b_start} 起"
+
+    def test_l0_precedes_model(self, result: object) -> None:
+        """§18.5 ②: 按「L0 共享 → 型号 schema」顺序输出。
+
+        型号表的 concept_id 外键指向 l0_term.concept, 顺序反了建不出来。
+
+        用分区下标而不是「含 CREATE TABLE 且不含 l0_term 的第一条」:
+        alembic 会在 L0 段里建 ``alembic_version`` 表, 它既不含 l0_term
+        也不属于型号 schema, 会被那个启发式误当成型号表。
+        """
+        lines = result.lines()
+        l0_first = min(lines.index(s) for s in result.sections["l0"])
+        model_first = min(lines.index(s) for s in result.sections["model"])
+        assert l0_first < model_first
+
+
+class TestL0FromMigrations:
+    def test_l0_block_is_not_empty(self) -> None:
+        """回归: 曾因 Config(stdout=buf) 而拿到空缓冲, 生成器「成功」但文件无 L0 段。
+
+        alembic 的离线 SQL 走 output_buffer; 缺省会落到 null_print_buffer,
+        也就是写到真 stdout。返回空列表不报错, 所以必须由测试兜住。
+        """
+        l0 = l0_block()
+        assert l0, "L0 段为空 —— 检查 Config(output_buffer=...) 是否传了"
+        assert any("l0_term.concept" in s for s in l0)
+
+    def test_l0_contains_rule_tables(self) -> None:
+        """0002 的 6 张表必须在 L0 段里 (ADR-018)。"""
+        l0 = l0_block()
+        for table in (
+            "l0_term.rule",
+            "l0_term.rule_parameter",
+            "l0_term.rule_version",
+            "l0_term.borrow_rule",
+            "l0_term.jev_threshold",
+            "l0_term.disambiguation_log",
+        ):
+            assert any(f"CREATE TABLE {table} (" in s for s in l0), table
+
+    def test_transaction_is_balanced(self) -> None:
+        """BEGIN; 与 COMMIT; 必须成对。
+
+        曾实现里过滤掉 BEGIN; 而留着 COMMIT;, 文件里就留下悬空 COMMIT ——
+        psql 会报「there is no transaction in progress」。
+        """
+        l0 = l0_block()
+        begins = sum(1 for s in l0 if s.strip().upper() == "BEGIN;")
+        commits = sum(1 for s in l0 if s.strip().upper() == "COMMIT;")
+        assert begins == commits, f"BEGIN {begins} 次但 COMMIT {commits} 次"
+
+    def test_formula_dimension_gate_travels_with_l0(self) -> None:
+        """ADR-015 的触发器必须随 L0 段进文件, 否则 G1 在部署环境失效。"""
+        l0 = l0_block()
+        assert any("assert_formula_dimension_ok" in s for s in l0)
+
+
+class TestExtensionDedup:
+    def test_section_zero_only_adds_what_l0_lacks(self, result: object) -> None:
+        """第 0 分区不得重复输出 L0 段已建的扩展。
+
+        回归: 曾按语句文本去重, 但 alembic 把 "-- Running upgrade -> ..."
+        注释挂在首条语句前, 于是 vector 漏网出现两次。
+        """
+        ext0 = _extension_names(result.sections["extensions"])
+        ext_l0 = _extension_names(result.sections["l0"])
+        assert not ext0 & ext_l0, f"第 0 分区重复建扩展: {sorted(ext0 & ext_l0)}"
+
+    def test_timescale_survives_dedup(self, result: object) -> None:
+        """回归: 去重条件写反 (``names - already == set()``) 会把 timescale 丢掉,
+        而第 3 分区的 hypertable 随即建不出来 —— 文件仍能跑过前两分区,
+        才在第 3 分区炸。
+        """
+        assert "timescale" in _extension_names(result.sections["extensions"])
+
+    def test_every_required_extension_appears_exactly_once(self, result: object) -> None:
+        """七个必需扩展在文件里各出现一次。"""
+        all_ext = _extension_names(result.sections["extensions"]) | _extension_names(
+            result.sections["l0"]
+        )
+        assert all_ext == {
+            "vector",
+            "age",
+            "pg_textsearch",
+            "zhparser",
+            "pg_trgm",
+            "pgcrypto",
+            "timescale",
+        }
+
+    def test_no_timescale_flag_drops_it(self) -> None:
+        assert "timescale" not in _extension_names(extensions_block(with_timescale=False))
+
+    def test_name_extraction_ignores_comment_lines(self) -> None:
+        """注释里出现 extension 字样不得被当成建扩展。"""
+        stmts = [
+            "-- Running upgrade -> 0001_l0_base\n\nCREATE EXTENSION IF NOT EXISTS vector;",
+            "-- 这里建 extension\nCREATE TABLE t (a int);",
+        ]
+        assert _extension_names(stmts) == {"vector"}
+
+
+class TestPsqlVariable:
+    def test_guard_uses_existence_test(self, text: str) -> None:
+        r""":{?var} 才是 psql 的「变量是否已定义」测试。
+
+        写成 :{var} (少个 ?) 会变成插值: 未定义时报错而不是走 \else 分支,
+        守卫整体失效。
+        """
+        assert rf"\if :{{?{PSQL_VAR}}}" in text
+        assert rf"\if :{{{PSQL_VAR}}}" not in text
+
+    def test_guard_precedes_every_statement(self, text: str) -> None:
+        """守卫必须在任何 DDL 之前 —— 之后才设变量就晚了。"""
+        guard = text.index(rf"\if :{{?{PSQL_VAR}}}")
+        first_ddl = text.index("CREATE EXTENSION")
+        assert guard < first_ddl
+
+    def test_default_model_schema_appears(self, text: str) -> None:
+        assert f"\\set {PSQL_VAR} '{DEFAULT_MODEL}'" in text
+
+    def test_usable_schema_name_arg(self) -> None:
+        """直接给 schema 名时应出可直连执行的 DDL, 不含 psql 变量语法。
+
+        断言找的是 ``:"model_key"`` 这个 psql 语法标记, 不能断言字符串
+        ``model_key`` 不出现 —— ``doc`` / ``fixture`` / ``document_object``
+        本来就有一个**同名列** ``model_key``, 那是业务字段不是变量插值。
+        """
+        blocks = model_blocks(schema="pw_pa601_d54a")
+        joined = "\n".join(blocks["model"])
+        assert '"pw_pa601_d54a".fact' in joined
+        assert ':"model_key"' not in joined
+        assert ":'model_key'" not in joined
+
+
+class TestModelSection:
+    def test_public_tables_precede_model_tables(self, result: object) -> None:
+        """public 附件表必须先建 —— doc.object_id 是指向它的外键。
+
+        匹配 ``.doc (`` 而不是 ``".doc"``: 默认是 psql 变量形式, 建表语句
+        写作 ``:"model_key".doc (`` , 表名前没有紧贴的引号。
+        """
+        model = result.sections["model"]
+        obj_at = next(i for i, s in enumerate(model) if "document_object" in s)
+        doc_at = next(i for i, s in enumerate(model) if ".doc (" in s)
+        assert obj_at < doc_at
+
+    def test_every_model_table_created(self, result: object) -> None:
+        text = "\n".join(result.sections["model"])
+        for table in MODEL_TABLES:
+            assert f'"{PSQL_VAR}"."' in text or f".{table} (" in text, table
+
+    def test_rls_section_covers_all_rls_tables(self, result: object) -> None:
+        """§5.8.3 纪律 2: 型号 schema 内每张业务表都要有策略。"""
+        joined = "\n".join(result.sections["rls"])
+        for table in RLS_TABLES:
+            assert f"{table}_model_isolation" in joined, table
+
+    def test_rls_uses_force(self, result: object) -> None:
+        """ENABLE 不足 —— 表所有者会绕过策略。"""
+        joined = "\n".join(result.sections["rls"])
+        assert "FORCE ROW LEVEL SECURITY" in joined
+
+    def test_hypertable_section_precedes_rls(self, result: object) -> None:
+        """TimescaleDB 拆 chunk 后 FORCE RLS 要作用在父表, 故 hypertable 在前。"""
+        lines = result.lines()
+        hyper = next(i for i, s in enumerate(lines) if "create_hypertable" in s)
+        policy = next(i for i, s in enumerate(lines) if s.startswith("CREATE POLICY"))
+        assert hyper < policy
+
+
+class TestRender:
+    def test_header_records_required_provenance(self, text: str) -> None:
+        """§18.5 ④: 头部注释要有生成方式、来源章节、PG 版本要求。"""
+        assert "§18.5" in text
+        assert f"PostgreSQL 要求: >= {MIN_POSTGRES_MAJOR}" in text
+        assert "docgen.ddl" in text
+
+    def test_every_statement_terminated(self, result: object) -> None:
+        """分号缺失会在 psql 里被并进下一条 —— 静默错误。"""
+        for name, stmts in result.sections.items():
+            for sql in stmts:
+                if sql.strip().upper() in ("BEGIN;", "COMMIT;"):
+                    continue
+                assert sql.rstrip().endswith(";"), f"{name} 段有未终止语句: {sql[:80]}"
+
+    def test_triggers_section_is_explicit(self, result: object, text: str) -> None:
+        """第 5 分区为空也要在文件里留一句话 —— 让人知道它不是漏了。"""
+        assert result.sections["triggers"] == []
+        assert "(无)" in text
+
+    def test_update_tsv_trigger_present(self, result: object) -> None:
+        """第 5 分区的触发器随第 2 分区输出 (分散在各表定义里), 不能真的没有。"""
+        assert "trg_doc_chunk_tsv" in "\n".join(result.sections["model"])
+
+    def test_fact_as_of_view_present(self, result: object) -> None:
+        """§5.8.2 双时态视图 + §5.8.3 纪律 3「溯源导出必须走它」。"""
+        assert "fact_as_of" in "\n".join(result.sections["model"])

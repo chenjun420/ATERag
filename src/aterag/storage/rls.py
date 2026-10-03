@@ -24,6 +24,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from .schema import SchemaError, model_schema_name, quote_ident, quote_literal
@@ -33,6 +34,10 @@ CTX_MODEL_SETTING = "app.current_model"
 
 #: ctx_model() 的函数名。同一名, 建在哪个 schema 由 :func:`create_ctx_model_sql` 决定。
 CTX_MODEL_FN = "ctx_model"
+
+#: psql 变量名白名单。它会进 :func:`quote_literal` 再进 SQL 标识符位置,
+#: 与 schema 名同样不能靠参数化, 故白名单而非黑名单。
+_PSQL_VAR_RE = re.compile(r"^[a-z_][a-z0-9_]{0,30}$")
 
 
 @dataclass(frozen=True)
@@ -77,10 +82,8 @@ RLS_TABLES: tuple[str, ...] = (
     # 知识与事实
     "fact",
     "doc_chunk",
-    "doc_clause",
     "test_case",
     "test_requirement",
-    "test_condition",
     "provenance",
     "conflict",
     # 四遥
@@ -131,8 +134,112 @@ def set_current_model_sql(model_key: str) -> str:
     return f"SET LOCAL {CTX_MODEL_SETTING} = {quote_literal(normalized)}"
 
 
+class SchemaIdent(str):
+    """标识符位置的 schema token, 附带同名的字面量位置形式。
+
+    是 ``str`` 子类而非普通包装, 是为了让 29 个 DDL 闭包里已有的
+    ``{s}.table`` 插值**一行都不用改** —— 那个写法本来就对 (标识符位置)。
+    要改的只有极少数字面量位置 (当前只有 ``fact.tenant_schema`` 的
+    DEFAULT), 那些地方改读 ``s.literal``。
+
+    刻意不用 dataclass: dataclass 不能继承 ``str``。
+    """
+
+    __slots__ = ("literal",)
+
+    literal: str
+
+    def __new__(cls, ident: str, literal: str) -> SchemaIdent:
+        obj = super().__new__(cls, ident)
+        obj.literal = literal
+        return obj
+
+
+@dataclass(frozen=True)
+class SchemaRef:
+    """schema 名在 DDL 里的两种渲染形式。
+
+    标识符位置与字符串字面量位置不能用同一种引号写法, 所以显式带两栏。
+    只有一个渲染函数时, 两处形式必然有一处是错的 —— 而错的一种在
+    PostgreSQL 上通常**不报错**: ``DEFAULT "pw_x"`` 被当成列引用,
+    ``ctx_model() = "pw_x"`` 被当成标识符比较, 结果是 RLS 静默失效。
+
+    psql 变量形式 (docgen 汇出 ``seed/schema_full.sql`` 时用, §18.5 ③)
+    同样两栏都要。派生类的方法负责处理「表名作为字符串字面量传参」的调用
+    点 (``create_hypertable``) —— psql 变量不会在字符串字面量**内部**
+    插值, 那里必须改用 ``format('%I.%I', ...)``。
+    """
+
+    #: 标识符位置: ``"pw_x"`` 或 ``:"model_key"``
+    ident: str
+    #: 字符串字面量位置: ``'pw_x'`` 或 ``:'model_key'``
+    literal: str
+    #: 是否是 psql 变量形式 (决定要不要走 ``format()`` 绕开字面量嵌套)
+    is_psql: bool = False
+
+    def qual(self, table: str) -> str:
+        """限定表名, 标识符位置。"""
+        return f"{self.ident}.{quote_ident(table)}"
+
+    def as_ident(self) -> SchemaIdent:
+        """返回可直接 f-string 插值的标识符 token。
+
+        做成 ``str`` 子类而不是改全部 29 个 DDL 闭包的签名: 闭包们已经
+        一律用 ``{s}.table`` 的形式插值标识符位置, 那个形式是对的, 要改的
+        只有极少数**字面量**位置 (当前只有 ``fact.tenant_schema`` 的
+        DEFAULT)。子类让前者一行不用动, 后者取 ``.literal`` 即可。
+        """
+        return SchemaIdent(self.ident, self.literal)
+
+    def hypertable_target(self, table: str) -> str:
+        """``create_hypertable`` 的第一个参数 (整串是字符串字面量)。
+
+        普通形式给 ``'pw_x.table'``; psql 变量形式给
+        ``format('%I.%I', :'model_key', 'table')`` —— psql 变量在字符串
+        字面量内部不插值, 直接写 ``':"model_key".table'`` 会被当成
+        字面量内容而非变量引用。
+        """
+        if not self.is_psql:
+            return quote_literal(f"{self.ident.strip(chr(34))}.{table}")
+        return f"format('%I.%I', {self.literal}, {quote_literal(table)})"
+
+
+def schema_ref(schema: str) -> SchemaRef:
+    """由真实 schema 名构造 (走白名单校验)。"""
+    return SchemaRef(ident=quote_ident(schema), literal=quote_literal(schema))
+
+
+def psql_schema_ref(var: str) -> SchemaRef:
+    """由 psql 变量名构造 (供 ``schema_full.sql`` 使用)。
+
+    两种位置的写法不同, 不能共用一个 ``quote_*``:
+
+    - 标识符位置 ``:"model_key"`` —— psql 把它插值成 ``"pw_sr5400"``
+    - 字面量位置 ``:'model_key'`` —— 插值成 ``'pw_sr5400'``
+
+    写反的后果不报错而是静默失效: ``ctx_model() = :"model_key"`` 在 SQL 里
+    是「标识符比较」, 恒为 false, 于是 RLS 变成「谁都读不到任何行」——
+    看起来隔离很严, 实际是整张表报废。
+    """
+    if not _PSQL_VAR_RE.match(var):
+        raise SchemaError(f"psql 变量名不合法: {var!r}")
+    return SchemaRef(
+        ident=f":{quote_ident(var)}",
+        literal=f":{quote_literal(var)}",
+        is_psql=True,
+    )
+
+
 def enable_rls_sql(schema: str, table: str) -> str:
-    return f"ALTER TABLE {quote_ident(schema)}.{quote_ident(table)} ENABLE ROW LEVEL SECURITY"
+    return enable_rls_sql_ref(schema_ref(schema), table)
+
+
+def enable_rls_sql_ref(ref: SchemaRef, table: str) -> str:
+    return f"ALTER TABLE {ref.qual(table)} ENABLE ROW LEVEL SECURITY"
+
+
+def force_rls_sql_ref(ref: SchemaRef, table: str) -> str:
+    return f"ALTER TABLE {ref.qual(table)} FORCE ROW LEVEL SECURITY"
 
 
 def force_rls_sql(schema: str, table: str) -> str:
@@ -154,15 +261,25 @@ def create_policy_sql(spec: PolicySpec, schema: str) -> str:
     两者都要: USING 管读 (以及 UPDATE/DELETE 的目标行选择),
     WITH CHECK 管写。只写 USING 会让越权写入成功 —— 这是最容易被漏的一半。
     """
+    return create_policy_sql_ref(spec, schema_ref(schema))
+
+
+def create_policy_sql_ref(spec: PolicySpec, ref: SchemaRef) -> str:
+    """:func:`create_policy_sql` 的 SchemaRef 版。
+
+    拆出来是因为 ``schema_match`` 的判定式里 schema 名落在**字符串字面量**
+    位置 (``ctx_model() = 'pw_x'``), 与表名的标识符位置引号形式不同。
+    两种形式都由 :class:`SchemaRef` 同时给出, 这里不必再判一次。
+    """
     if spec.kind == "schema_match":
-        predicate = f"{CTX_MODEL_FN}() = {quote_literal(schema)}"
+        predicate = f"{CTX_MODEL_FN}() = {ref.literal}"
     else:
         assert spec.column is not None  # __post_init__ 已保证
         predicate = f"{quote_ident(spec.column)} = {CTX_MODEL_FN}()"
 
     return (
         f"CREATE POLICY {quote_ident(spec.policy_name)} "
-        f"ON {quote_ident(schema)}.{quote_ident(spec.table)} "
+        f"ON {ref.ident}.{quote_ident(spec.table)} "
         f"FOR ALL USING ({predicate}) WITH CHECK ({predicate})"
     )
 
@@ -201,12 +318,22 @@ def rls_ddl(model_key: str) -> list[str]:
     能让「建策略时报错」明确指向「表还没启用 RLS」, 而不是反过来让人怀疑
     策略写错了。
     """
-    schema = model_schema_name(model_key)
+    return rls_ddl_for_ref(schema_ref(model_schema_name(model_key)))
+
+
+def rls_ddl_for_ref(ref: SchemaRef) -> list[str]:
+    """:func:`rls_ddl` 的 SchemaRef 版。``docgen`` 汇出 schema_full.sql 走这条。
+
+    末尾分号在此统一补上 (与 :func:`model_schema.model_ddl_for_ref` 同一约定):
+    单条生成器返回的是纯语句文本, 而本函数返回的每一条都必须能直接交给
+    psycopg 或原样写进 ``schema_full.sql``。补在这里而不是补在三个单条
+    生成器里, 是为了让它们保持「文本」语义 —— 它们的测试逐字比对输出。
+    """
     out: list[str] = []
-    for spec in default_specs(model_key):
-        out.append(enable_rls_sql(schema, spec.table))
-        out.append(force_rls_sql(schema, spec.table))
-        out.append(create_policy_sql(spec, schema))
+    for spec in default_specs(""):
+        out.append(enable_rls_sql_ref(ref, spec.table) + ";")
+        out.append(force_rls_sql_ref(ref, spec.table) + ";")
+        out.append(create_policy_sql_ref(spec, ref) + ";")
     return out
 
 

@@ -136,8 +136,15 @@ class TestRlsDdl:
     def test_enable_force_policy_per_table(self) -> None:
         ddl = rls_ddl(MODEL)
         assert len(ddl) == len(RLS_TABLES) * 3
-        assert ddl[0] == enable_rls_sql(SCHEMA, RLS_TABLES[0])
-        assert ddl[1] == force_rls_sql(SCHEMA, RLS_TABLES[0])
+        # 分号由 rls_ddl_for_ref 统一补: 单条生成器返回纯语句文本, 列表
+        # 里的每一条都要能直接交给 psycopg / 写进 schema_full.sql。
+        assert ddl[0] == enable_rls_sql(SCHEMA, RLS_TABLES[0]) + ";"
+        assert ddl[1] == force_rls_sql(SCHEMA, RLS_TABLES[0]) + ";"
+
+    def test_every_stmt_is_terminated(self) -> None:
+        """漏一个分号就会在 psql 里被并进下一条 —— 且往往不报错。"""
+        for stmt in rls_ddl(MODEL):
+            assert stmt.rstrip().endswith(";"), stmt[:80]
 
     def test_emits_both_enable_and_force(self) -> None:
         """每张表一条 ENABLE + 一条 FORCE。

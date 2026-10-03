@@ -17,6 +17,8 @@
 | ADR-015 | 量纲齐次性作为公式入库的硬门禁 | Accepted | V6.0 原则二 / R1 |
 | ADR-016 | 八层结构置于单一发行包 `aterag` 之下 | Accepted | 对 §18.1.3 的刻意偏离 |
 | ADR-017 | 测试标准跨仓库统一，继承 ATEStudio 档位 | Accepted | 本次 W0 裁决 |
+| ADR-018 | `rule` 表列集由三处交叉推导，三处主键追加版本维 | Accepted | V6.0 §18.6 Step 6（方案未给 DDL） |
+| ADR-019 | 型号 schema 三张推导表（`doc`/`clause`/`trace`）与「时间列不得脱离版本轴」 | Accepted | V6.0 §18.5 第 2 分区（方案未给 DDL） |
 
 ## 命名
 
