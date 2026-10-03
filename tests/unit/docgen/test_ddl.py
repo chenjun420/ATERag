@@ -11,6 +11,8 @@
 
 from __future__ import annotations
 
+import re
+
 import pytest
 
 from aterag.docgen.ddl import (
@@ -78,6 +80,54 @@ class TestSectionOrder:
         l0_first = min(lines.index(s) for s in result.sections["l0"])
         model_first = min(lines.index(s) for s in result.sections["model"])
         assert l0_first < model_first
+
+
+class TestVectorColumnTypes:
+    """索引 opclass 必须与列类型一致。
+
+    回归: ``formula_embedding.embedding`` 曾声明为 ``vector(1024)`` 而 HNSW
+    索引用 ``halfvec_cosine_ops``, 板卡上直接报
+    ``操作符表 "halfvec_cosine_ops" 不能处理数据类型 vector``。
+    ``alembic upgrade head --sql`` 抓不到 —— 它不连库, 只产出文本。
+    """
+
+    def test_hnsw_opclass_matches_declared_column_type(self) -> None:
+        l0 = l0_block()
+        col_types: dict[tuple[str, str], str] = {}
+        for stmt in l0:
+            m = re.search(r"CREATE TABLE \S+\.(\w+) \((.*?)\n\s*\);", stmt, re.S)
+            if not m:
+                continue
+            table, body = m.group(1), m.group(2)
+            for line in body.splitlines():
+                cm = re.match(r"\s*(\w+)\s+(halfvec|vector)\b", line)
+                if cm:
+                    col_types[(table, cm.group(1))] = cm.group(2)
+
+        assert col_types, "未解析出任何向量列 —— 本测试会静默通过, 先查解析逻辑"
+
+        checked = 0
+        for stmt in l0:
+            im = re.search(
+                r"CREATE INDEX \S+ ON \S+\.(\w+) USING hnsw \((\w+) (\w+_ops)\)", stmt
+            )
+            if not im:
+                continue
+            table, col, opclass = im.groups()
+            declared = col_types.get((table, col))
+            assert declared is not None, f"{table}.{col} 建了 hnsw 索引但不是向量列"
+            assert opclass.startswith(declared), (
+                f"{table}.{col} 声明为 {declared}, 索引却用 {opclass} —— "
+                "PostgreSQL 会报 DatatypeMismatch"
+            )
+            checked += 1
+        assert checked, "没找到任何 hnsw 索引 —— 索引若被删本测试会空转"
+
+    def test_formula_embedding_is_halfvec(self) -> None:
+        """ADR-013: 部署维度统一 1024 halfvec, 不是 §18.3.1 字面的 vector(4096)。"""
+        joined = "\n".join(l0_block())
+        assert "embedding  halfvec(1024)" in joined
+        assert "vector(4096)" not in joined
 
 
 class TestL0FromMigrations:

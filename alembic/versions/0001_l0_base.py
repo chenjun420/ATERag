@@ -198,7 +198,7 @@ def _create_formula_tables() -> None:
             formula_id TEXT PRIMARY KEY
                 REFERENCES {L0_SCHEMA}.formula(formula_id) ON DELETE CASCADE,
             content    TEXT NOT NULL,
-            embedding  vector({EMBED_DIM})
+            embedding  halfvec({EMBED_DIM})
         )
         """
     )
