@@ -25,7 +25,12 @@ from aterag.storage.model_schema import (
     public_ddl,
     table_batches,
 )
-from aterag.storage.rls import RLS_TABLES
+from aterag.storage.rls import (
+    COLUMN_MATCH_TABLES,
+    RLS_TABLES,
+    TENANT_COLUMN,
+    rls_ddl,
+)
 from aterag.storage.schema import L0_SCHEMA, SchemaError
 
 MODEL = "PA601-D54A"
@@ -181,6 +186,47 @@ class TestForeignKeys:
         """
         text = "\n".join(stmts)
         assert f"DEFAULT '{SCHEMA}'" in text
+
+
+class TestColumnMatchTables:
+    """column_match 的表必须真的有型号列。
+
+    回归: ``COLUMN_MATCH_TABLES`` 曾含 ``provenance`` / ``conflict``, 理由是
+    「溯源链跨型号」「冲突跨型号」。那是把「行可以引用别的型号的对象」误当成
+    「同一张表里存着多个型号的行」—— 两者不是一回事。那两张表的 DDL
+    (§3.5.3) 里没有 ``tenant_schema`` 列, 板卡上 CREATE POLICY 直接报
+    「字段 "tenant_schema" 不存在」。
+
+    策略生成与 DDL 生成是两条独立路径, 靠常量耦合; 本测试就是那条耦合的
+    对账, 少一个 column_match 表多一列都会被抓到。
+    """
+
+    def test_column_match_tables_declare_the_column(self, stmts: list[str]) -> None:
+        text = "\n".join(stmts)
+        for table in COLUMN_MATCH_TABLES:
+            body = re.search(rf'CREATE TABLE "{re.escape(SCHEMA)}"\.{table} \(.*?\n\);', text, re.S)
+            assert body, f"{table} 被 RLS 声明要保护, 但 DDL 里没有这张表"
+            assert TENANT_COLUMN in body.group(0), (
+                f"{table} 走 column_match 但 DDL 里没有 {TENANT_COLUMN} 列 —— "
+                "CREATE POLICY 会报 UndefinedColumn"
+            )
+
+    def test_only_fact_uses_column_match(self) -> None:
+        """§5.8.1 的示例策略只涉及 fact; §3.5.3 里也只有 fact 有该列。"""
+        assert COLUMN_MATCH_TABLES == frozenset({"fact"})
+
+    def test_spec_column_matches_spec_ddl(self) -> None:
+        """列名与 §3.5.3 fact DDL 逐字一致 —— 改了要连 DDL 一起改。"""
+        assert TENANT_COLUMN == "tenant_schema"
+
+    def test_policy_uses_the_constant(self) -> None:
+        """策略里不能硬写列名, 否则改常量时策略静默失配。
+
+        列名是**带引号**的标识符 (``quote_ident``), 所以断言要带引号 ——
+        写不带引号的匹配会「看起来在断言常量」, 实际永远匹配不上。
+        """
+        joined = "\n".join(rls_ddl(MODEL))
+        assert f'"{TENANT_COLUMN}" = ctx_model()' in joined
 
 
 class TestSchemaIsolation:

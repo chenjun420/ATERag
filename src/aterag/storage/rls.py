@@ -65,16 +65,27 @@ class PolicySpec:
             raise SchemaError(f"column_match 策略必须给出 column, 表 {self.table}")
 
 
-#: 必须走 column_match 的表 —— 它们存了跨型号的数据。
+#: 必须走 column_match 的表 —— 表内有型号列, 策略按列比对。
 #:
-#: 哪些表需要? 判据不是「表大」, 而是「同一张表里可能出现多个型号的行」。
-#: 绝大多数型号 schema 内的表天然单型号 (schema 已经隔离了), 只有下面这些
-#: 是刻意做成表内多行的:
-#:   fact          —— §5.8.1 的示例策略正是它, 因为 fact 可能存共享事实
-#:   provenance    —— 溯源链可能指向 L0 或别的型号的条目
-#:   conflict      —— 冲突本身是跨型号的 (同一术语在两个型号有不同定义)
-#: doc_chunk / test_case 用 schema_match, 与 §5.8.1 给出的示例一致。
-COLUMN_MATCH_TABLES: frozenset[str] = frozenset({"fact", "provenance", "conflict"})
+#: 只有 ``fact``。§5.8.1 的示例策略正是
+#: ``USING (tenant_schema = ctx_model())``, 而 §3.5.3 的 ``fact`` DDL 里
+#: 确实有这一列 (``tenant_schema TEXT NOT NULL DEFAULT 'pw_<model_key>'``)。
+#:
+#: 曾把 ``provenance`` / ``conflict`` 也列进来, 理由是「溯源链跨型号」与
+#: 「冲突本身跨型号」。那是把「行可以**引用**别的型号的对象」误当成
+#: 「同一张表里**存着**多个型号的行」—— 两者不是一回事。它们的 DDL
+#: (§3.5.3) 里根本没有 ``tenant_schema`` 列, 于是板卡上
+#: ``CREATE POLICY`` 直接报「字段 "tenant_schema" 不存在」。
+#:
+#: 它们的行确实归属单一型号 (schema 已经隔离), 引用可以跨 schema 而行不行,
+#: 所以 ``schema_match`` 才是对的。
+#: 判据: 该表 DDL 里真有 ``tenant_schema`` 列 —— 由
+#: ``tests/unit/storage/test_model_schema.py`` 的
+#: ``test_column_match_tables_declare_the_column`` 对账。
+COLUMN_MATCH_TABLES: frozenset[str] = frozenset({"fact"})
+
+#: column_match 策略使用的型号列名。与 §3.5.3 的 fact DDL 一致。
+TENANT_COLUMN = "tenant_schema"
 
 #: 型号 schema 内必须全部启用 RLS 的表。§5.8.1 只列了三个示例, 这里补全到
 #: §18.5 汇编出来的实际表集。缺一个就在 G 门禁里报出来。
@@ -297,7 +308,7 @@ def default_specs(model_key: str) -> list[PolicySpec]:
                     table=table,
                     policy_name=f"{table}_model_isolation",
                     kind="column_match",
-                    column="tenant_schema",
+                    column=TENANT_COLUMN,
                 )
             )
         else:
