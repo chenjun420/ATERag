@@ -28,7 +28,7 @@
 -- 0. 扩展
 -- ============================================================
 
-CREATE EXTENSION IF NOT EXISTS timescale;
+CREATE EXTENSION IF NOT EXISTS timescaledb;
 
 -- ============================================================
 -- 1. L0 共享 (l0_term, 第六章 / §18.3.1)

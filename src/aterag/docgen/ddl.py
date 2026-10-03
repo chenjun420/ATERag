@@ -112,7 +112,10 @@ def extensions_block(*, with_timescale: bool = True) -> list[str]:
     """
     names = ["vector", "age", "pg_textsearch", "zhparser", "pg_trgm", "pgcrypto"]
     if with_timescale:
-        names.append("timescale")
+        # 扩展名是 timescaledb, 不是 timescale。见 storage/schema.py
+        # OPTIONAL_EXTENSIONS 处的说明 —— `CREATE EXTENSION timescale`
+        # 会报 "extension timescale is not available"。
+        names.append("timescaledb")
     return [f"CREATE EXTENSION IF NOT EXISTS {name};" for name in names]
 
 

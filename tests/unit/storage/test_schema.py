@@ -165,7 +165,7 @@ class TestCheckExtensions:
             [("vector", "0.8.0"), ("age", "1.7.0"), ("pg_textsearch", "1.4.0"), ("zhparser", "1.0")]
         )
         statuses = check_extensions(cur)
-        ts = next(s for s in statuses if s.name == "timescale")
+        ts = next(s for s in statuses if s.name == "timescaledb")
         assert ts.installed is False
         assert ts.required is False
         assert missing_required(statuses) == []
@@ -183,7 +183,7 @@ class TestMissingRequired:
         statuses = [
             ExtensionStatus(name="vector", installed=True, version="1", required=True),
             ExtensionStatus(name="age", installed=False, version=None, required=True),
-            ExtensionStatus(name="timescale", installed=False, version=None, required=False),
+            ExtensionStatus(name="timescaledb", installed=False, version=None, required=False),
         ]
         assert missing_required(statuses) == ["age"]
 
@@ -197,7 +197,7 @@ class TestAssertExtensionsInstalled:
         statuses = assert_extensions_installed(cur)
         installed = {s.name: s.installed for s in statuses}
         assert installed["vector"] is True
-        assert installed["timescale"] is False  # 可选, 不抛
+        assert installed["timescaledb"] is False  # 可选, 不抛
 
     def test_raises_on_missing(self) -> None:
         cur = FakeCursor([("vector", "0.8.0")])

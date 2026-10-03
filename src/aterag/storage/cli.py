@@ -124,7 +124,7 @@ def cmd_check(conn: _Conn, args: argparse.Namespace) -> int:
     for st in statuses:
         mark = "OK " if st.installed else ("MISS" if st.required else "opt ")
         print(f"[{mark}] {st.name:<16} {st.version or '(未安装)'}")
-    print(f"[{'OK ' if timescale_installed else 'opt '}] timescale          "
+    print(f"[{'OK ' if timescale_installed else 'opt '}] timescaledb       "
           f"{'已装' if timescale_installed else '未装 —— hypertable 段将跳过'}")
 
     missing = missing_required(statuses)

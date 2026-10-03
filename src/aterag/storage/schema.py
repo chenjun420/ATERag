@@ -47,7 +47,14 @@ REQUIRED_EXTENSIONS: tuple[str, ...] = ("vector", "age", "pg_textsearch", "zhpar
 #: 可选扩展。缺失只记录不失败 —— TimescaleDB 装在 timescaledb 镜像里,
 #: 而板卡部署 (deploy/native/) 与容器部署 (deploy/postgres/Dockerfile)
 #: 的可用扩展集不同, 硬要求会把容器路径也拖死。
-OPTIONAL_EXTENSIONS: tuple[str, ...] = ("timescale",)
+#:
+#: 注意扩展名是 ``timescaledb``, **不是** ``timescale``。后者是产品名与
+#: schema 名, 不是扩展名 —— `CREATE EXTENSION timescale` 报
+#: "extension timescale is not available"。板卡 192.168.5.25 实测:
+#: `SELECT name FROM pg_available_extensions WHERE name LIKE 'timescale%'`
+#: 只返回 `timescaledb`。与 deploy/native/04-init-postgres.sh:45 当年把
+#: `vector` 写成 `pgvector` 是同一类错误 (名字对了, 扩展没那个名字)。
+OPTIONAL_EXTENSIONS: tuple[str, ...] = ("timescaledb",)
 
 
 class SchemaError(RuntimeError):

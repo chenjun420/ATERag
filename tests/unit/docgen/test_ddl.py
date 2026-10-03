@@ -132,12 +132,17 @@ class TestExtensionDedup:
         ext_l0 = _extension_names(result.sections["l0"])
         assert not ext0 & ext_l0, f"第 0 分区重复建扩展: {sorted(ext0 & ext_l0)}"
 
-    def test_timescale_survives_dedup(self, result: object) -> None:
-        """回归: 去重条件写反 (``names - already == set()``) 会把 timescale 丢掉,
+    def test_timescaledb_survives_dedup(self, result: object) -> None:
+        """回归: 去重条件写反 (``names - already == set()``) 会把 timescaledb 丢掉,
         而第 3 分区的 hypertable 随即建不出来 —— 文件仍能跑过前两分区,
         才在第 3 分区炸。
+
+        扩展名是 ``timescaledb`` 不是 ``timescale``: 后者是产品名与 schema 名,
+        没有这个扩展。板卡 192.168.5.25 实测
+        ``pg_available_extensions WHERE name LIKE 'timescale%'`` 只返回
+        ``timescaledb``。
         """
-        assert "timescale" in _extension_names(result.sections["extensions"])
+        assert "timescaledb" in _extension_names(result.sections["extensions"])
 
     def test_every_required_extension_appears_exactly_once(self, result: object) -> None:
         """七个必需扩展在文件里各出现一次。"""
@@ -151,11 +156,27 @@ class TestExtensionDedup:
             "zhparser",
             "pg_trgm",
             "pgcrypto",
-            "timescale",
+            "timescaledb",
         }
 
     def test_no_timescale_flag_drops_it(self) -> None:
-        assert "timescale" not in _extension_names(extensions_block(with_timescale=False))
+        assert "timescaledb" not in _extension_names(extensions_block(with_timescale=False))
+
+    def test_timescale_is_not_an_extension_name(self) -> None:
+        """防回归: ``timescale`` 是产品名与 schema 名, **不是**扩展名。
+
+        这条测试存在的理由: 本项目曾把可选扩展写成 ``timescale``, 单元测试
+        也照抄了同一个错字, 于是测试全绿而 ``CREATE EXTENSION IF NOT EXISTS
+        timescale`` 在板卡上报 "extension timescale is not available"。
+        断言里若再抄一次代码的假设, 同样的错还会再犯 —— 所以这里断言的是
+        「板卡实测的扩展名」, 并把实测命令写进注释。
+        """
+        names = _extension_names(extensions_block(with_timescale=True))
+        assert "timescale" not in names, "不存在名为 timescale 的扩展"
+        # 实测: SELECT name FROM pg_available_extensions WHERE name LIKE 'timescale%';
+        #   板卡 192.168.5.25 (PG 17.11 + postgresql-17-timescaledb 2.30.2)
+        #   -> 只有 timescaledb
+        assert "timescaledb" in names
 
     def test_name_extraction_ignores_comment_lines(self) -> None:
         """注释里出现 extension 字样不得被当成建扩展。"""

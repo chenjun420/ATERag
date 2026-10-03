@@ -81,7 +81,10 @@ __all__ = [
 ]
 
 #: TimescaleDB 扩展名。§18.5 第 3 分区需要它。
-TIMESCALE_EXTENSION = "timescale"
+#: 注意是 ``timescaledb`` 而非 ``timescale`` —— 后者是产品名与 schema 名。
+#: 板卡实测 `pg_available_extensions WHERE name LIKE 'timescale%'` 只返回
+#: `timescaledb`。同 OPTIONAL_EXTENSIONS 处的说明。
+TIMESCALE_EXTENSION = "timescaledb"
 
 #: §3.5.2 文档向量的维度。与 ADR-013 一致 (统一 halfvec(1024))。
 EMBED_DIM = 1024
@@ -1449,8 +1452,13 @@ def model_schema_ddl(model_key: str) -> list[str]:
 
 
 def hypertable_available_sql() -> str:
-    """查询 TimescaleDB 是否已装。"""
-    return "SELECT 1 FROM pg_extension WHERE extname = 'timescale'"
+    """查询 TimescaleDB 是否已装。
+
+    查 ``pg_extension`` (装没装) 而不是 ``pg_available_extensions`` (装得了吗)
+    —— 与 :func:`storage.schema.check_extensions` 同一纪律。§5.9 的教训正是
+    只看后者会得到「向量库可用」的假结论。
+    """
+    return f"SELECT 1 FROM pg_extension WHERE extname = '{TIMESCALE_EXTENSION}'"
 
 
 def hypertable_ddl_for_ref(ref: SchemaRef) -> list[str]:
