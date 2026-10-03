@@ -1389,6 +1389,8 @@ SELECT create_hypertable(format('%I.%I', :'model_key', 'fixture_tp_probe'), 'ts'
 -- 4. RLS 策略 (§5.8)
 -- ============================================================
 
+CREATE OR REPLACE FUNCTION "public"."ctx_model"() RETURNS TEXT AS $$ SELECT current_setting('app.current_model', true); $$ LANGUAGE sql STABLE SECURITY DEFINER;
+
 ALTER TABLE :"model_key"."fact" ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE :"model_key"."fact" FORCE ROW LEVEL SECURITY;
@@ -1417,13 +1419,13 @@ ALTER TABLE :"model_key"."provenance" ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE :"model_key"."provenance" FORCE ROW LEVEL SECURITY;
 
-CREATE POLICY "provenance_model_isolation" ON :"model_key"."provenance" FOR ALL USING ("tenant_schema" = ctx_model()) WITH CHECK ("tenant_schema" = ctx_model());
+CREATE POLICY "provenance_model_isolation" ON :"model_key"."provenance" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
 
 ALTER TABLE :"model_key"."conflict" ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE :"model_key"."conflict" FORCE ROW LEVEL SECURITY;
 
-CREATE POLICY "conflict_model_isolation" ON :"model_key"."conflict" FOR ALL USING ("tenant_schema" = ctx_model()) WITH CHECK ("tenant_schema" = ctx_model());
+CREATE POLICY "conflict_model_isolation" ON :"model_key"."conflict" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
 
 ALTER TABLE :"model_key"."yx_point" ENABLE ROW LEVEL SECURITY;
 
