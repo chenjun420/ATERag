@@ -149,7 +149,7 @@ CREATE TABLE l0_term.formula_embedding (
             formula_id TEXT PRIMARY KEY
                 REFERENCES l0_term.formula(formula_id) ON DELETE CASCADE,
             content    TEXT NOT NULL,
-            embedding  vector(1024)
+            embedding  halfvec(1024)
         );
 
 CREATE INDEX idx_formula_emb ON l0_term.formula_embedding USING hnsw (embedding halfvec_cosine_ops);
