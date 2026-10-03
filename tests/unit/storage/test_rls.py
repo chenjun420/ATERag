@@ -135,13 +135,32 @@ class TestDefaultSpecs:
 
 
 class TestRlsDdl:
+    def test_ctx_model_is_defined_first(self) -> None:
+        """策略引用 ctx_model(), 所以定义必须排在所有 CREATE POLICY 之前。
+
+        回归: 板卡上 ``aterag-db init`` 建到第一条策略就报
+        「函数 ctx_model() 不存在」—— ``create_ctx_model_sql`` 一直存在,
+        却没有任何调用方。纯字符串生成器的测试当时全绿: 生成器只管产出
+        文本, 不管文本能否执行。
+        """
+        ddl = rls_ddl(MODEL)
+        assert "CREATE OR REPLACE FUNCTION" in ddl[0]
+        assert "ctx_model" in ddl[0]
+        first_policy = next(i for i, s in enumerate(ddl) if s.startswith("CREATE POLICY"))
+        assert first_policy > 0
+
+    def test_ctx_model_lives_in_public(self) -> None:
+        """它跨型号共用, 且 search_path 不参与型号隔离 (纪律 1), 故不建在型号 schema。"""
+        assert "public" in rls_ddl(MODEL)[0]
+
     def test_enable_force_policy_per_table(self) -> None:
         ddl = rls_ddl(MODEL)
-        assert len(ddl) == len(RLS_TABLES) * 3
+        # 第 0 条是 ctx_model() 定义, 之后才是每表三条。
+        assert len(ddl) == len(RLS_TABLES) * 3 + 1
         # 分号由 rls_ddl_for_ref 统一补: 单条生成器返回纯语句文本, 列表
         # 里的每一条都要能直接交给 psycopg / 写进 schema_full.sql。
-        assert ddl[0] == enable_rls_sql(SCHEMA, RLS_TABLES[0]) + ";"
-        assert ddl[1] == force_rls_sql(SCHEMA, RLS_TABLES[0]) + ";"
+        assert ddl[1] == enable_rls_sql(SCHEMA, RLS_TABLES[0]) + ";"
+        assert ddl[2] == force_rls_sql(SCHEMA, RLS_TABLES[0]) + ";"
 
     def test_every_stmt_is_terminated(self) -> None:
         """漏一个分号就会在 psql 里被并进下一条 —— 且往往不报错。"""
@@ -164,7 +183,11 @@ class TestRlsDdl:
             assert "ENABLE" not in stmt
 
     def test_uses_model_schema(self) -> None:
-        for stmt in rls_ddl(MODEL):
+        """除首条 ctx_model() 定义外, 每条都应带型号 schema 名。
+
+        首条建在 public (跨型号共用), 不该也不该出现型号 schema 名。
+        """
+        for stmt in rls_ddl(MODEL)[1:]:
             assert SCHEMA in stmt
 
 

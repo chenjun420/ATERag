@@ -328,8 +328,19 @@ def rls_ddl_for_ref(ref: SchemaRef) -> list[str]:
     单条生成器返回的是纯语句文本, 而本函数返回的每一条都必须能直接交给
     psycopg 或原样写进 ``schema_full.sql``。补在这里而不是补在三个单条
     生成器里, 是为了让它们保持「文本」语义 —— 它们的测试逐字比对输出。
+
+    **第一条是 ctx_model() 的定义。** 策略表达式里写的是
+    ``ctx_model() = 'pw_x'``, 而 PostgreSQL 在 ``CREATE POLICY`` 时就要求
+    该函数已存在。此前没人调用 :func:`create_ctx_model_sql`, 于是板卡上
+    ``aterag-db init`` 建到第一条策略就报
+    「函数 ctx_model() 不存在 (HINT: 没有匹配指定名称和参数类型的函数)」。
+    纯字符串生成器的测试全绿 —— 生成器只管产出文本, 不管文本能否执行。
+
+    定义建在 ``public``: 它是**跨型号共用**的 (每个型号的策略都调它),
+    且 ``search_path`` 不参与型号隔离 (§5.8 纪律 1), 故不能放型号 schema。
+    ``CREATE OR REPLACE`` 使重复执行安全 —— 第二个型号 init 时重建一次。
     """
-    out: list[str] = []
+    out: list[str] = [create_ctx_model_sql() + ";"]
     for spec in default_specs(""):
         out.append(enable_rls_sql_ref(ref, spec.table) + ";")
         out.append(force_rls_sql_ref(ref, spec.table) + ";")
