@@ -358,6 +358,50 @@ def tables_without_rls_sql(schema: str) -> str:
     )
 
 
+def schema_tables_sql(schema: str) -> str:
+    """列出目标 schema 下的全部普通表名。
+
+    与 :func:`tables_without_rls_sql` 成对使用, 用途是**区分「全部合」与
+    「一张表都没有」**。见 :func:`assert_schema_built`。
+    """
+    return (
+        "SELECT c.relname "
+        "FROM pg_class c "
+        "JOIN pg_namespace n ON n.oid = c.relnamespace "
+        "WHERE n.nspname = "
+        f"{quote_literal(schema)} "
+        "  AND c.relkind = 'r' "
+        "ORDER BY c.relname"
+    )
+
+
+def assert_schema_built(cursor: object, schema: str, *, expected: int) -> None:
+    """目标 schema 必须已建成 —— 表数为 0 时报错。
+
+    这条不能省。板卡首次部署时 ``init`` 因缺 ``l0_term`` 整体回滚, 两个
+    ``pw_*`` schema 随即只剩空壳; 而 ``assert_no_unprotected_tables`` 对空
+    schema **恒真** —— 没有表就没有未保护的表, 于是门禁打印
+    ``[OK] 全部业务表已 ENABLE + FORCE ROW LEVEL SECURITY``。
+
+    这是最坏的失败形态: 门禁在「什么都没建」时报告通过。§18.10 注 5 点名的
+    「有生成器但无门禁」反过来也成立 —— 有门禁但判据为空集时同样无效。
+    """
+    cursor.execute(schema_tables_sql(schema))  # type: ignore[attr-defined]
+    rows = cursor.fetchall()  # type: ignore[attr-defined]
+    if not rows:
+        raise RlsError(
+            f"schema {schema!r} 下没有任何表, 视为未建成。"
+            " 空 schema 会让 RLS 检查恒真 (没有表就没有未保护的表), "
+            "从而把「建库失败」报成「检查通过」。请先跑 `aterag-db init`。"
+        )
+    if len(rows) < expected:
+        raise RlsError(
+            f"schema {schema!r} 只有 {len(rows)} 张表, 预期至少 {expected} 张。"
+            f" 前几张: {', '.join(r[0] for r in rows[:5])}。"
+            " 建库很可能在中途失败并回滚 —— 先看 `aterag-db check` 的扩展状态。"
+        )
+
+
 def assert_no_unprotected_tables(cursor: object, schema: str) -> None:
     """CI 门禁: 目标 schema 下不允许存在未受 RLS 保护的表。
 
@@ -367,6 +411,9 @@ def assert_no_unprotected_tables(cursor: object, schema: str) -> None:
     不排除的表: 全部。判据是「凡业务表必带 RLS」, 而不是列一张白名单。
     列白名单的问题是新加的表默认不在名单里, 于是新表静默裸奔 ——
     而新表恰恰是最需要保护的。
+
+    **本函数对空 schema 恒真**, 所以调用方必须先跑
+    :func:`assert_schema_built` —— 见那里的失败形态说明。
     """
     cursor.execute(tables_without_rls_sql(schema))  # type: ignore[attr-defined]
     rows = cursor.fetchall()  # type: ignore[attr-defined]

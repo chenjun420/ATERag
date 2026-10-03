@@ -150,6 +150,17 @@ def create_l0_schema_sql() -> str:
     return create_schema_sql(L0_SCHEMA)
 
 
+def l0_schema_exists_sql() -> str:
+    """查询 L0 共享 schema 是否已建成。
+
+    供 ``aterag-db init`` 前置检查用。型号表的 ``concept_id`` 外键全部指向
+    ``l0_term.concept``, L0 没建时 init 必然失败; 而失败发生在建到一半时,
+    错误信息是底层的 ``schema "l0_term" does not exist``, 不指向「先跑
+    upgrade」这个真正的原因。前置检查把错误提前到可执行的一句话。
+    """
+    return f"SELECT 1 FROM pg_namespace WHERE nspname = {quote_literal(L0_SCHEMA)}"
+
+
 class CursorLike(Protocol):
     """本层需要的 cursor 能力子集。
 

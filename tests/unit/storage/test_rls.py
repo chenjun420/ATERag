@@ -16,12 +16,14 @@ from aterag.storage.rls import (
     PolicySpec,
     RlsError,
     assert_no_unprotected_tables,
+    assert_schema_built,
     create_ctx_model_sql,
     create_policy_sql,
     default_specs,
     enable_rls_sql,
     force_rls_sql,
     rls_ddl,
+    schema_tables_sql,
     set_current_model_sql,
     tables_without_rls_sql,
 )
@@ -198,6 +200,42 @@ class TestNoUnprotectedTablesGate:
         cur = FakeCursor([("t1",)])
         with pytest.raises(RlsError, match="无 RLS 的表不允许上线"):
             assert_no_unprotected_tables(cur, SCHEMA)
+
+
+class TestSchemaBuiltGate:
+    """``assert_schema_built`` —— 防「空 schema 报通过」。
+
+    这不是假想: 板卡首次部署时 ``init`` 因缺 l0_term 整体回滚, 留下两个
+    空 ``pw_*`` schema, 而 ``assert_no_unprotected_tables`` 对空 schema
+    恒真 (没有表就没有未保护的表), 门禁打印 [OK]。判据为空集时门禁无效。
+    """
+
+    def test_query_lists_tables(self) -> None:
+        sql = schema_tables_sql(SCHEMA)
+        assert "pg_class" in sql
+        assert "relkind = 'r'" in sql
+        assert SCHEMA in sql
+
+    def test_empty_schema_raises(self) -> None:
+        cur = FakeCursor([])
+        with pytest.raises(RlsError, match="没有任何表"):
+            assert_schema_built(cur, SCHEMA, expected=29)
+
+    def test_empty_schema_message_names_the_trap(self) -> None:
+        """错误信息必须点出「空 schema 会让 RLS 检查恒真」。"""
+        cur = FakeCursor([])
+        with pytest.raises(RlsError, match="恒真"):
+            assert_schema_built(cur, SCHEMA, expected=29)
+
+    def test_too_few_tables_raises(self) -> None:
+        """建到一半失败并回滚时可能留下部分表 —— 数量不足也要报错。"""
+        cur = FakeCursor([("doc",), ("clause",)])
+        with pytest.raises(RlsError, match="预期至少 29 张"):
+            assert_schema_built(cur, SCHEMA, expected=29)
+
+    def test_passes_when_table_count_reached(self) -> None:
+        rows = [(f"t{i}",) for i in range(29)]
+        assert_schema_built(FakeCursor(rows), SCHEMA, expected=29)
 
 
 def test_ctx_setting_name_is_single_sourced() -> None:

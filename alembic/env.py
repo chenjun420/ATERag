@@ -28,12 +28,15 @@ from pathlib import Path
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-# 让 `import aterag` 在未安装包的源码检出下也能工作
+# 让 `import aterag` 在未安装包的源码检出下也能工作。
+#
+# 注意这里**不** import Settings: 它惰性加载 (见 _settings_dsn)。模块级
+# 导入会让纯 DDL 迁移依赖应用运行时依赖 (pydantic_settings), 而板卡部署
+# 只装了 psycopg + alembic —— 板卡首次部署就撞上
+# ``ModuleNotFoundError: No module named 'pydantic_settings'``。
 _SRC = Path(__file__).resolve().parents[1] / "src"
 if _SRC.is_dir() and str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
-
-from aterag.config import Settings  # noqa: E402  (必须在 sys.path 调整之后)
 
 config = context.config
 
@@ -53,20 +56,40 @@ partial unique index、RLS 策略、CHECK 约束与触发器, 这些 autogenerat
 """
 
 
+def _settings_dsn() -> str:
+    """从应用配置取 DSN。**惰性导入**: 只在真的没有注入 DSN 时才需要。
+
+    惰性的理由: ``pydantic_settings`` 是应用的运行时依赖, 而 alembic 干的是
+    纯 DDL 活。板卡部署时 ``aterag-db upgrade`` 只装了 psycopg + alembic,
+    结果 ``from aterag.config import Settings`` 在模块级就抛
+    ``ModuleNotFoundError: No module named 'pydantic_settings'`` —— 一个
+    跟 DSN 毫无关系的缺失依赖把建库挡住了。
+    """
+    from aterag.config import Settings
+
+    return Settings().postgres_dsn
+
+
 def _url() -> str:
-    """取连接串。"""
+    """取连接串。
+
+    优先级: ``-x dsn=`` > ``sqlalchemy.url`` > Settings。
+    前两级都可以由调用方注入 —— ``aterag-db upgrade`` 已经握着一个连好的
+    游标, 把它的 DSN 再经 Settings 绕一圈既多余, 又会让纯 DDL 操作依赖
+    应用配置 (包括 LLM/embedding 的必填项)。
+    """
+    x_args = context.get_x_argument(as_dictionary=True)
+    injected = x_args.get("dsn") or config.get_main_option("sqlalchemy.url", "")
+
     if context.is_offline_mode():
-        offline_url = config.get_main_option("sqlalchemy.url", "")
-        x_args = context.get_x_argument(as_dictionary=True)
-        dsn = x_args.get("dsn") or offline_url
-        if not dsn:
+        if not injected:
             raise SystemExit(
                 "离线模式必须给 DSN: alembic upgrade head --sql -x dsn=postgresql://...\n"
-                " 离线模式不读 Settings, 因为命令行的意图是产出可审计的 SQL 文本, "
-                "而 Settings 可能指向开发库。"
+                "  离线模式不读 Settings, 因为命令行的意图是产出可审计的 SQL 文本,"
+                " 而 Settings 可能指向开发库。"
             )
-        return dsn
-    return Settings().postgres_dsn
+        return injected
+    return injected or _settings_dsn()
 
 
 def run_migrations_offline() -> None:

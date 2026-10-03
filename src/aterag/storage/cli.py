@@ -38,14 +38,22 @@ from contextlib import contextmanager
 from typing import Any, Protocol
 
 from .model_schema import (
+    MODEL_TABLES,
     PUBLIC_TABLES,
     hypertable_available_sql,
     model_ddl,
     model_schema_ddl,
     public_ddl,
 )
-from .rls import assert_no_unprotected_tables
+from .rls import (
+    assert_no_unprotected_tables,
+    assert_schema_built,
+    rls_ddl,
+    schema_tables_sql,
+)
 from .schema import (
+    assert_extensions_installed,
+    l0_schema_exists_sql,
     model_schema_name,
 )
 
@@ -170,11 +178,53 @@ def cmd_init(conn: _Conn, args: argparse.Namespace) -> int:
 
     ``--no-hypertable`` 供无 TimescaleDB 的部署跳过第 3 分区 (此时
     5 张时序表退化为普通表, 仍可用, 只是失去自动分区)。
+
+    三项前置检查 (板卡首次部署时全部踩到, 且报错都指向错误的层):
+        1. 必需扩展 —— 缺 ``vector`` 时建表到一半才炸, 且错误是
+           ``type "vector" does not exist`` 而非「扩展没装」。
+        2. L0 schema —— 型号表的 concept_id 外键全指向 l0_term.concept,
+           L0 未建时错误是 ``schema "l0_term" does not exist``, 不指向
+           「先跑 upgrade」。
+        3. TimescaleDB —— 未装时报 ``extension "timescaledb" must be
+           preloaded``, 而真因是 shared_preload_libraries 里没有它。
+
+    前置检查的价值在于把「部署顺序错了」与「代码有 bug」区分开: 三者都
+    曾表现为建到一半的底层错误, 读起来像 DDL 写错了。
     """
     models: list[str] = list(args.models)
     created: list[str] = []
 
     with conn.cursor() as cur:
+        try:
+            assert_extensions_installed(cur)
+        except Exception as exc:  # noqa: BLE001 - SchemaError 在此转成退出码
+            print(f"[FAIL] 前置检查: {exc}", file=sys.stderr)
+            return 1
+
+        cur.execute(l0_schema_exists_sql())
+        if cur.fetchone() is None:
+            print(
+                "[FAIL] 前置检查: L0 共享 schema 尚未建好。\n"
+                "       型号表的 concept_id 外键全部指向 l0_term.concept。\n"
+                "       请先跑: aterag-db upgrade",
+                file=sys.stderr,
+            )
+            return 1
+
+        if not args.no_hypertable:
+            cur.execute(hypertable_available_sql())
+            if cur.fetchone() is None:
+                print(
+                    "[FAIL] 前置检查: 未装 timescaledb 扩展, 而本次要建 hypertable。\n"
+                    "       扩展名是 timescaledb (不是 timescale —— 后者是产品名)。\n"
+                    "       另外它要求 shared_preload_libraries 含 timescaledb\n"
+                    "       并重启 PostgreSQL, 光 CREATE EXTENSION 会报\n"
+                    "       'extension \"timescaledb\" must be preloaded'。\n"
+                    "       若该部署不需要自动分区, 加 --no-hypertable。",
+                    file=sys.stderr,
+                )
+                return 1
+
         for sql in public_ddl():
             _run(cur, sql)
     print(f"已建 public 附件表: {', '.join(PUBLIC_TABLES)}")
@@ -182,8 +232,6 @@ def cmd_init(conn: _Conn, args: argparse.Namespace) -> int:
     for model_key in models:
         schema = model_schema_name(model_key)
         if args.no_hypertable:
-            from .rls import rls_ddl
-
             stmts = model_ddl(model_key) + rls_ddl(model_key)
         else:
             stmts = model_schema_ddl(model_key)
@@ -198,21 +246,32 @@ def cmd_init(conn: _Conn, args: argparse.Namespace) -> int:
 
 
 def cmd_verify(conn: _Conn, args: argparse.Namespace) -> int:
-    """门禁断言: 目标 schema 下无未受 RLS 保护的表。
+    """门禁断言: 目标 schema 已建成, 且无未受 RLS 保护的表。
 
-    §5.8.3 纪律 2 + §5.10.5 断言 5。
+    §5.8.3 纪律 2 + §5.10.5 断言 5 + §18.4.2 W0 验收判据①。
+
+    **先查表数再查 RLS。** ``assert_no_unprotected_tables`` 对空 schema 恒真
+    (没有表就没有未保护的表), 所以「什么都没建」会被报成「检查通过」。
+    板卡首次部署时正是如此: ``init`` 因缺 l0_term 整体回滚, 留下两个空
+    schema, 门禁却打印 [OK] —— 判据为空集时门禁无效, 同 §18.10 注 5 的
+    「有生成器但无门禁」是同一类问题。
     """
     rc = 0
     for model_key in args.models:
         schema = model_schema_name(model_key)
         with conn.cursor() as cur:
             try:
+                assert_schema_built(cur, schema, expected=len(MODEL_TABLES))
                 assert_no_unprotected_tables(cur, schema)
+                cur.execute(schema_tables_sql(schema))
+                n_tables = len(cur.fetchall())
             except Exception as exc:  # noqa: BLE001 - RlsError 在此转成退出码
                 print(f"[FAIL] {schema}\n       {exc}", file=sys.stderr)
                 rc = 1
                 continue
-        print(f"[OK  ] {schema}: 全部业务表已 ENABLE + FORCE ROW LEVEL SECURITY")
+        print(
+            f"[OK  ] {schema}: {n_tables} 张表全部已 ENABLE + FORCE ROW LEVEL SECURITY"
+        )
     return rc
 
 
