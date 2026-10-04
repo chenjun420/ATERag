@@ -1,0 +1,15 @@
+{
+  "rdf_triples_estimate": 1001,
+  "shapes_count": 9,
+  "entity_type_to_class": {
+    "PowerConcept": 118,
+    "Symbol": 147,
+    "Formula": 570,
+    "Standard": 118,
+    "Erratum": 7,
+    "Axiom": 14,
+    "Theorem": 14,
+    "LoadCondition": 8,
+    "LoadRatio": 3
+  }
+}

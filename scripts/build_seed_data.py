@@ -130,6 +130,9 @@ LOAD_RULES: tuple[dict[str, Any], ...] = (
     },
 )
 
+#: 从 authority_ref 里抽标准号。GB/T、GB/Z、GB、IEC、YY/T 等形式。
+_STD_ID_RE = re.compile(r"(?:GB/I|GB/T|GB/Z|GB|YY/T|IEC/IEC|IEC|YD/T|JB/T)\s*\d+(?:\.\d+)*(?:-\d{4})?")
+
 _BOOTSTRAP = "V6.0 开发指导方案"
 
 
@@ -596,7 +599,11 @@ def extract_standards(lines: list[str]) -> list[dict[str, Any]]:
         title = _clean(cells[2]) if len(cells) > 2 else None
         scope = _clean(cells[3]) if len(cells) > 3 else None
         bindings = _clean(cells[4]) if len(cells) > 4 else None
-        full = f"{sid}-{version}" if version else sid
+        # **拼接必须幂等**: 实测 sid 本身就可能已含年份(``GB/T 17626.11-2018``)
+        # 而版本格又重复一遍(``2018-2018``)。去重把版本修成 ``2018`` 之后, 若
+        # 无条件拼接就得到 ``GB/T 17626.11-2018-2018`` —— 一个查不到、却看起来
+        # 完全合法的标准号。
+        full = sid if not version else (sid if sid.endswith(version) else f"{sid}-{version}")
         out.append(
             {
                 "id": f"std::{full}",
@@ -795,6 +802,27 @@ def build_relationships(entities: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """
     ids = {e["id"] for e in entities}
     rels: list[dict[str, Any]] = []
+    # 术语 -> 标准。**这是让图谱连起来的��一钩子**: 只连同源实体的话, 999 个实体里
+    # 964 个是孤立的, 图谱退化成一堆点。术语的**权威出处**就是把它连到标准上的
+    # 那条边 —— 边本身携带语义, 不只是连线。
+    for e in entities:
+        aref = (e.get("properties") or {}).get("authority_ref")
+        akind = (e.get("properties") or {}).get("authority_kind")
+        if akind != "standard" or not aref:
+            continue
+        # ``authority_ref`` 是**带条号的引用**(如「GB/Z 14429-2005 2.1.3」), 直接
+        # split 取第一段只会得到「GB/Z」—— 匹配不到任何标准实体, 边就静默不生成。
+        # 必须先把标准号本身抽出来。
+        m = _STD_ID_RE.search(aref) if isinstance(aref, str) else None
+        # **归一化必须两边一致**: 实体 id 形如 ``std::GB/T 17626.5-2019``, ``GB/T``
+        # 与 ``17626`` 之间**有空格**。早先一版在这里 ``.replace(" ", "")``, 只压掉了
+        # 引用侧, 于是永远匹配不上, 边一条都生成不出来, 且不报错。
+        head = re.sub(r"\s+", " ", m.group(0)).strip() if m else None
+        if head and f"std::{head}" in ids:
+            rels.append(
+                {"source": e["id"], "target": f"std::{head}", "type": "defined_by",
+                 "properties": {"clause": aref}}
+            )
 
     def add(src: str, dst: str, rtype: str) -> None:
         if src in ids and dst in ids:
@@ -1074,6 +1102,14 @@ def to_seed_records(
             "text": e.get("text") or e["name"],
             # 引导数据未查证: 显式 None, 不让它落到缺省 1.0
             "confidence": props.get("confidence"),
+            # **冲突检测与追溯审计读的是顶层键**, 不是嵌套 provenance:
+            # ``ConflictDetector.detect_value_conflicts`` 从 ``entity["source"]`` /
+            # ``["section"]`` / ``["page"]`` / ``["confidence"]`` / ``["metadata"]``
+            # 取出处, 缺 ``source`` 时 document 记成 ``"unknown"`` —— 于是它给出的
+            # 「采用更权威的来源」这条建议**没有任何依据可循**。
+            "source": props.get("authority_ref"),
+            "section": None,
+            "metadata": {"authority_kind": props.get("authority_kind")},
         }
         for key, value in props.items():
             if key in ("confidence",):
@@ -1133,7 +1169,6 @@ def main() -> int:
     entities += axiom_entities
     entities += extract_load_conditions()
 
-    rels = build_relationships(entities) + axiom_rels
 
     deduped: dict[str, dict[str, Any]] = {}
     for e in entities:
@@ -1141,6 +1176,7 @@ def main() -> int:
 
     entities = list(deduped.values())
     entities, corrections_applied = apply_corrections(entities, corrections)
+    rels = build_relationships(entities) + axiom_rels
     payload = {
         "schema_version": 1,
         "provenance": {
