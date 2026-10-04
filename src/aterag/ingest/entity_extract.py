@@ -264,7 +264,9 @@ def _group_protections(entities: list[Entity], reg: SchemaRegistry) -> None:
     if rule is None:
         return
     reqs = [e for e in entities if e.etype == "Requirement"]
-    groups: dict[tuple[str, str], dict[str, Entity]] = {}
+    # group 值装 {"direction": ..., "parts": {...}}: direction 必须**跟着 group 走**。
+    # 之前它是循环里的局部变量, 到第二个循环只剩最后一次迭代的值。
+    groups: dict[tuple[str, str], dict[str, Any]] = {}
     for e in reqs:
         m = rule.title_pattern.match(e.props.get("title", ""))
         if not m:
@@ -278,9 +280,10 @@ def _group_protections(entities: list[Entity], reg: SchemaRegistry) -> None:
             suffix, "保护"
         )
         rail = e.props.get("rail", "")
-        groups.setdefault((base_name, rail), {})[kind] = e
+        groups.setdefault((base_name, rail), {"direction": direction, "parts": {}})["parts"][kind] = e
 
-    for (base_name, rail), parts in groups.items():
+    for (base_name, rail), group in groups.items():
+        parts = group["parts"]
         src = parts.get("保护点") or parts.get("保护")
         if not src:
             continue
@@ -289,7 +292,7 @@ def _group_protections(entities: list[Entity], reg: SchemaRegistry) -> None:
             "trip_min": src.props.get("min"),
             "trip_max": src.props.get("max"),
             "req_id": src.props.get("req_id"),
-            "direction": direction,
+            "direction": group["direction"],
             "rail": rail,
             "section_path": src.props.get("section_path", ""),
             "heading": src.props.get("heading", ""),
