@@ -151,11 +151,19 @@ def test_junction_temperature_must_respect_limit() -> None:
     ) >= 1
 
 
-def test_cv_mode_needs_cc_threshold_above_cv_ceiling() -> None:
-    """恒压上限 < 恒流门限 => 恒压恒流交叠区为空, 恒压保护形同虚设。"""
-    assert _violations(
-        [("m6", "ModelSpec", [("vout_max", 10), ("current_limit_threshold", 12)])]
-    ) >= 1
+def test_cc_threshold_must_reach_rated_output_current() -> None:
+    """恒流门限电流 < 额定输出电流 => 还没到额定负载就被限流, 拿不到额定输出。
+
+    **同量纲比较**。这条曾写成拿 vout_max(V) 比 current_limit_threshold(A) ——
+    量纲不同, 结论无意义; 而旧反例恰好喂了 vout_max+current_limit_threshold,
+    注入的违规数据在错误约束下「碰巧」也能触发, 所以反向验证没抓到它。
+    """
+    assert (
+        _violations(
+            [("m6", "ModelSpec", [("iout_max", 12), ("current_limit_threshold", 10)])]
+        )
+        >= 1
+    )
 
 
 # ---------------------------------------------------------------------------

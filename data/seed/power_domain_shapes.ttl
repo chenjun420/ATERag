@@ -141,18 +141,28 @@ ex:ThermalShape a sh:NodeShape ;
         FILTER(?tj > ?tlimit)
       } """ ] .
 
-# 恒压/恒流交叠: 规格书若同时给了输出电压上限与恒流门限, 两者必须可共存 ——
-# 交叠区为空说明「无论怎么调都拿不到额定输出」, 是设计缺陷, 不是测试问题。
-# 术语依据《电子电源术语及定义 2 直流输出稳定电源术语》门限电压/门限电流。
+# 恒压/恒流交接: **恒流门限电流必须 >= 额定输出电流**。
+#
+# 物理含义: 电源在 CV 段随负载增加电压下降, 到恒流门限转入 CC 段。门限若低于
+# 额定输出电流, 还没到额定负载就已被限流, 拿不到额定输出 —— 设计缺陷, 不是
+# 测试问题。
+#
+# **这里曾把 vout_max(V) 与 current_limit_threshold(A) 直接相比, 量纲不同,
+# 结论无意义**; 其余 8 条约束量纲均自洽(P=V*I、eta=Pout/Pin、Tj=Ta+Ploss*Rth)。
+# 「恒压上限」需该电流下的负载线才能判, 单靠额定参数判不了, 故不写。
+#
+# 术语依据《电子电源术语及定义 2 直流输出稳定电源术语》限流门限电流。
+#
+# PA601 实测可验证: SR-1309 恒流门限 12A >= SR-1203 额定输出 11.1A。
 ex:CVCCOverlapShape a sh:NodeShape ;
   sh:targetClass ex:ModelSpec ;
   sh:sparql [
     a sh:SPARQLConstraint ;
-    sh:message "恒压上限必须 >= 恒流门限, 否则恒压恒流交叠区为空" ;
+    sh:message "恒流门限电流必须 >= 额定输出电流, 否则额定负载达不到即被限流" ;
     sh:severity sh:Violation ;
     sh:select """
       PREFIX ex: <http://aterag.local/power#>
       SELECT $this WHERE {
-        $this ex:vout_max ?vmax ; ex:current_limit_threshold ?ilim .
-        FILTER(?vmax < ?ilim)
+        $this ex:current_limit_threshold ?ilim ; ex:iout_max ?icont .
+        FILTER(?ilim < ?icont)
       } """ ] .
