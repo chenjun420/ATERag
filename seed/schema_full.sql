@@ -11,16 +11,16 @@
 -- 型号 schema 真相源: src/aterag/storage/model_schema.py
 --
 -- 用法:
---   psql -v ON_ERROR_STOP=1 -v model_key=pw_sr5400 \
+--   psql -v ON_ERROR_STOP=1 -v model_key=pw_example \
 --        -f seed/schema_full.sql -d <db>
 --
 -- 不传 -model_key= 时用下面的默认值 (仅供演练, 正式部署必须显式传):
---   \set model_key 'pw_sr5400'
+--   \set model_key 'pw_example'
 -- ============================================================
 
 \if :{?model_key}
 \else
-\set model_key 'pw_sr5400'
+\set model_key 'pw_example'
 \endif
 
 
@@ -36,10 +36,9 @@ CREATE EXTENSION IF NOT EXISTS timescaledb;
 
 BEGIN;
 
-CREATE TABLE alembic_version (
-    version_num VARCHAR(32) NOT NULL, 
-    CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num)
-);
+-- [docgen] 已移除下列 alembic 版本簿记语句: 版本簿记不归 schema_full.sql 管(重跑必炸且无业务含义),需要版本追踪请另行 `alembic stamp head`;
+
+--   CREATE TABLE alembic_version ( version_num VARCHAR(32) NOT NULL, CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num) );
 
 -- Running upgrade  -> 0001_l0_base
 
@@ -218,7 +217,9 @@ CREATE INDEX idx_standards_tags ON l0_term.standards_registry USING GIN (domain_
 
 CREATE INDEX idx_standards_current ON l0_term.standards_registry (std_code) WHERE superseded_by IS NULL;
 
-INSERT INTO alembic_version (version_num) VALUES ('0001_l0_base') RETURNING alembic_version.version_num;
+-- [docgen] 已移除下列 alembic 版本簿记语句: 版本簿记不归 schema_full.sql 管(重跑必炸且无业务含义),需要版本追踪请另行 `alembic stamp head`;
+
+--   INSERT INTO alembic_version (version_num) VALUES ('0001_l0_base') RETURNING alembic_version.version_num;
 
 -- Running upgrade 0001_l0_base -> 0002_l0_rules
 
@@ -374,7 +375,9 @@ CREATE TABLE l0_term.disambiguation_log (
 
 CREATE INDEX idx_disambig_needs_review ON l0_term.disambiguation_log (created_at) WHERE needs_review;
 
-UPDATE alembic_version SET version_num='0002_l0_rules' WHERE alembic_version.version_num = '0001_l0_base';
+-- [docgen] 已移除下列 alembic 版本簿记语句: 版本簿记不归 schema_full.sql 管(重跑必炸且无业务含义),需要版本追踪请另行 `alembic stamp head`;
+
+--   UPDATE alembic_version SET version_num='0002_l0_rules' WHERE alembic_version.version_num = '0001_l0_base';
 
 COMMIT;
 

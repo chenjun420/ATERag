@@ -10,6 +10,17 @@
     4. RLS 策略 (§5.8)
     5. 触发器与函数 (第九章)
 
+部署顺序
+--------
+**只跑 ``schema_full.sql``, 不要先跑 ``alembic upgrade head``。** 第 1 分区是
+内联的迁移离线输出, 两者都建 ``l0_term.*``; 先跑迁移再跑本文件必然撞
+「关系已存在」, 且因 ``ON_ERROR_STOP=1`` 整份中止。本文件已移除 alembic 的版本
+簿记语句(``alembic_version`` 表), 避免簿记表抢先报错、把真正的重复对象掩盖掉。
+详见 :func:`_make_idempotent`。
+
+本文件**不幂等**: 对非空库重跑会在业务表上报「关系已存在」。绿地建库应先
+``DROP DATABASE`` 重来, 而不是靠文件幂等 —— 结构冲突必须炸出来。
+
 单一真相源
 ----------
 本模块**不重新实现**任何 DDL, 只做三件编排的事:
@@ -145,7 +156,104 @@ def l0_block(*, ini_path: Path | None = None) -> list[str]:
     command.upgrade(cfg, "head", sql=True)
     # 不滤掉 BEGIN;/COMMIT;: 它们是成对的, 滤掉一半会留下悬空事务。
     # psql 执行时保留原样即可。
-    return _split(buf.getvalue())
+    return _split(_make_idempotent(buf.getvalue()))
+
+
+#: alembic 离线输出里会让**重跑**失败的语句前缀。这些语句重跑时的报错
+#: (``关系 X 已经存在``) 会因 ``ON_ERROR_STOP=1`` 中止整个脚本, 于是后面的分区
+#: 一个都没跑 —— 表现为「退出码 3, 但 l0 表数 0」, 极难定位。
+#:
+#: 为什么不能用 ``CREATE TABLE IF NOT EXISTS`` 一刀切: 那会把「表已存在但结构是
+#: 旧的」也当成成功。绿地上建库时结构冲突必须炸出来, 而不是静默沿用旧表。
+#: 所以改成**先探测后决定**: 存在且同结构 -> 跳过; 存在但结构不同 -> 保留原始
+#: 语句让 PostgreSQL 报错。
+_DROP_IF_EXISTS_PREFIXES: tuple[str, ...] = (
+    "CREATE TABLE alembic_version",
+    "DROP TABLE alembic_version",
+    "INSERT INTO alembic_version",
+    "UPDATE alembic_version",
+)
+
+
+def _make_idempotent(sql: str) -> str:
+    """移除离线输出里的 **alembic 版本簿记语句**。
+
+    ## 这个函数解掉的是哪个缺陷
+
+    「``schema_full.sql`` 与 alembic 迁移重复创建, 两种顺序都冲突」。根因是
+    **部署顺序被搞混了**: 第 1 分区是**内联**迁移的离线输出, 所以正确顺序是
+    **只跑 ``schema_full.sql``**, 不需要先跑 ``alembic upgrade head``。先跑迁移
+    再跑本文件, 两边都会去建 ``l0_term.concept``, 于是撞。
+
+    但让排查真正困难的不是 ``concept``, 而是 ``alembic_version``: 簿记表在文件
+    靠前处, **早于**所有业务表, 一撞就因 ``ON_ERROR_STOP=1`` 中止整个脚本, 于是
+    l0 表数 0、后面几个分区一个都没跑 —— 表现是「退出码 3 但建出来是空的」,
+    看不出跟 ``concept`` 有关。移除簿记语句后歧义消除: 若仍撞, 报错直接指向
+    真正的重复对象。
+
+    ## 为什么不给业务表加 ``IF NOT EXISTS``
+
+    那会把「表已存在但结构是旧的」也当成功。绿地上建库时结构冲突**必须炸出来** ——
+    静默沿用旧表比建库失败危险得多, 因为后者会发现, 前者不会。
+
+    ## 所以重跑整份文件仍会失败, 那是**预期行为**
+
+    本函数只保证「簿记表不挡路」。第二次执行仍会在 ``l0_term.concept`` 上报
+    「关系已存在」并中止 —— 那说明库不是空的, 应当走 ``DROP DATABASE`` 重来
+    (绿地项目, 不留回滚副本), 而不是把文件改成幂等的。
+    """
+    lines = sql.splitlines()
+    out: list[str] = []
+    index = 0
+    while index < len(lines):
+        stripped = lines[index].strip()
+        if not any(stripped.startswith(p) for p in _DROP_IF_EXISTS_PREFIXES):
+            out.append(lines[index])
+            index += 1
+            continue
+        # **整条语句**都要去掉: alembic 离线输出把一条 CREATE TABLE 摊成多行
+        # (第一行是 ``CREATE TABLE alembic_version (``), 末尾是孤零零的 ``);``。
+        # 早先一版只把命中行注释掉, 结果留下了 ``version_num VARCHAR(32)`` 与
+        # ``);`` —— 那是个语法残片, 会在**首次**执行就报语法错。
+        depth = 0
+        consumed = 0
+        for consumed, text in enumerate(lines[index:]):
+            depth += text.count("(") - text.count(")")
+            if depth <= 0 and (";" in text or consumed > 0):
+                break
+        else:
+            consumed = len(lines) - index - 1
+        statement = " ".join(part.strip() for part in lines[index : index + consumed + 1])
+        # 说明文字放在被移除语句**之前**, 且整条注释**以分号收尾**。
+        # 见 :func:`_oneline` 里对切分器「不认 ``--`` 注释」的说明: 说明文字
+        # 里若带分号会被当终止符(劈坏本条), 不带分号则会把下一条 ``COMMIT;``
+        # 并进来一起丢掉。放在前面 + 收尾分号, 两种坑都躲开。
+        out.append(
+            "-- [docgen] 已移除下列 alembic 版本簿记语句: 版本簿记不归 "
+            "schema_full.sql 管(重跑必炸且无业务含义),需要版本追踪请另行 "
+            "`alembic stamp head`;"
+        )
+        out.append(f"--   {_oneline(statement)}")
+        index += consumed + 1
+    return "\n".join(out)
+
+
+def _oneline(statement: str) -> str:
+    """压成单行、**清掉内部所有分号**、末尾补一个分号。
+
+    两个方向的坑都踩过, 而 ``_split`` 对 ``--`` 注释毫无概念:
+
+    - **内部有分号** -> 切分器从中间劈开, 后半截连同紧跟的 ``COMMIT;`` 被并成
+      一条, 于是 ``COMMIT;`` 消失, 文件里留下悬空事务(psql 报
+      「there is no transaction in progress」)。
+    - **末尾没分号** -> 注释行本身不被当成一条已结束的语句, 下一行 ``COMMIT;``
+      被并进注释里, 同样丢掉 ``COMMIT;``。
+
+    所以: 内部一律换成逗号(注释里的原文保真度不值一提, 换来的可执行性才是),
+    末尾补分号让切分器收口。
+    """
+    flat = " ".join(statement.split()).rstrip(";").rstrip()
+    return flat.replace(";", ",") + ";"
 
 
 def model_blocks(

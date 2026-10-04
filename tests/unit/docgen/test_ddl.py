@@ -170,6 +170,48 @@ class TestL0FromMigrations:
         l0 = l0_block()
         assert any("assert_formula_dimension_ok" in s for s in l0)
 
+    def test_alembic_version_bookkeeping_is_stripped(self) -> None:
+        """``alembic_version`` 是版本簿记, **不归** ``schema_full.sql`` 建。
+
+        alembic 离线模式无条件发出 ``CREATE TABLE alembic_version``,
+        重跑必炸(「关系 alembic_version 已经存在」), 而 ``ON_ERROR_STOP=1``
+        会因此中止整个脚本 —— 后面 4 个分区一个都没跑, 表现为「退出码 3 但
+        l0 表数 0」, 极难定位。簿记表无业务含义, 由 ``alembic stamp`` 负责。
+        """
+        l0 = l0_block()
+        leftovers = [
+            s for s in l0 if "alembic_version" in s and not s.strip().startswith("--")
+        ]
+        assert not leftovers, f"仍有未移除的簿记语句: {leftovers[:2]}"
+
+    def test_removal_note_never_swallows_following_statement(self) -> None:
+        """移除说明必须**以分号收尾**, 否则会吞掉紧随其后的语句。
+
+        ``_split`` 按 ``;`` 切分, 而它对 ``--`` 注释毫无概念: 不带分号的注释行
+        不算「已结束」, 下一条语句会被并进注释而丢失。实测后果是 ``COMMIT;``
+        被吞 -> 文件里留下悬空事务 -> psql 报
+        「there is no transaction in progress」。
+        """
+        l0 = l0_block()
+        for index, statement in enumerate(l0):
+            if not statement.lstrip().startswith("--"):
+                continue
+            # 纯注释行不算语句; 但若它单独成为一条(说明被切分器认可), 那它
+            # 必须自带分号, 否则它吃掉了本该独立的后续语句。
+            assert statement.rstrip().endswith(";"), (
+                f"第 {index} 条注释没有以分号收尾: {statement[:60]!r}"
+            )
+
+    def test_business_tables_are_never_made_idempotent(self) -> None:
+        """**只**动簿记表。业务表的 ``CREATE TABLE`` 必须原样保留。
+
+        一刀切加 ``IF NOT EXISTS`` 会把「表已存在但结构是旧的」也当成功 ——
+        绿地上建库时结构冲突必须炸出来, 而不是静默沿用旧表。
+        """
+        l0 = "\n".join(l0_block())
+        for table in ("l0_term.formula", "l0_term.concept", "l0_term.rule"):
+            assert f"CREATE TABLE {table} (" in l0, f"{table} 的建表语句被误改"
+
 
 class TestExtensionDedup:
     def test_section_zero_only_adds_what_l0_lacks(self, result: object) -> None:
