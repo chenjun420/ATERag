@@ -78,6 +78,13 @@ __all__ = [
 #: psql 变量名。调用方可覆盖: ``psql -v model_key=pw_xxx -f ...``。
 PSQL_VAR = "model_key"
 
+#: 应用角色变量名。授权分区用它, 默认值见 :func:`grants_block`。
+APP_ROLE_VAR = "app_role"
+
+#: 应用角色默认值。**必须与实际连库的角色一致** —— 授权给了错的角色, 症状是
+#: 「权限不够」, 而根因在几百行之前的部署命令里。
+DEFAULT_APP_ROLE = "powerspec"
+
 #: §18.5 要求头部注释写明 PostgreSQL 版本要求。依据是 DDL 里用了
 #: - generated columns / partial index on a WHERE clause (9.0+)
 #: - ``CREATE UNIQUE INDEX ... WHERE`` 配合 hypertable (9.5+)
@@ -87,6 +94,11 @@ MIN_POSTGRES_MAJOR = 14
 
 #: §18.5 的五个分区名, 顺序即输出顺序。写死是为了让「文件里的分区」与
 #: 「生成器的分区」不可能各排各的。
+#:
+#: **不新增第 7 个分区。** §18.5 的分区编号是 0~5(共六段), 擅自加一段就是
+#: 偏离方案。授权改为**追加到第 4 分区末尾** —— RLS 与授权同属访问控制, 放在
+#: 一起语义自洽, 且该位置已在全部建表之后(所有 ``CREATE TABLE`` 都在第 1~2
+#: 分区), 授权不会漏掉后建的表。
 DDL_SECTIONS: tuple[str, ...] = (
     "extensions",
     "l0",
@@ -330,8 +342,9 @@ def assemble(
     with_timescale: bool = True,
     include_public: bool = True,
     ini_path: Path | None = None,
+    app_role: str = DEFAULT_APP_ROLE,
 ) -> SchemaFull:
-    """汇编全部五个分区。
+    """汇编 §18.5 规定的六个分区(编号 0~5)。
 
     第 0 分区会**去掉** L0 段里已建过的扩展。`extensions_block` 是手写
     清单, 而第 1 分区取自迁移 —— 两者必然有重叠 (0001 建了除 timescale
@@ -360,6 +373,10 @@ def assemble(
     if include_public:
         # 插到 model 段最前: 附件表是 doc 的外键目标。
         sections["model"] = public_block() + sections["model"]
+    # 授权**追加到第 4 分区末尾**, 不单列分区 —— §18.5 把本文件的分区数写死为
+    # 五个, 擅自加第六个就是偏离方案。这个位置已在全部建表之后, 授权不会漏掉
+    # 后建的表。理由见 :data:`DDL_SECTIONS` 与 :func:`grants_block`。
+    sections["rls"] = sections.get("rls", []) + grants_block(app_role)
     return SchemaFull(sections=sections)
 
 
@@ -394,6 +411,12 @@ def render(
         "--",
         f"-- 不传 -{PSQL_VAR}= 时用下面的默认值 (仅供演练, 正式部署必须显式传):",
         f"--   \\set {PSQL_VAR} '{default_model_schema}'",
+        "--",
+        "-- 必须显式传 -v app_role=<角色>: 第 4 分区把表级权限授给应用角色。",
+        "-- 本文件通常由 postgres 执行(要建扩展), 而应用以非超级用户连库 ——",
+        "-- 不授权就会在装载时报「对模式 l0_term 权限不够」, 而 §5.8 的 RLS",
+        "-- 策略一道都没生效(连接在到达策略前就被挡住, 越权测试全部「通过」",
+        "-- 的原因是压根没查询)。",
         "-- ============================================================",
         "",
         # :{?var} 是 psql 的「变量是否已定义」测试。写成 :{var} (少个 ?)
@@ -428,9 +451,103 @@ def render(
             body.extend(["-- (无)"])
             continue
         for sql in stmts:
-            body.extend(["", sql.rstrip() if sql.rstrip().endswith(";") else sql.rstrip() + ";"])
+            body.extend(["", _terminate(sql)])
     body.append("")
     return "\n".join(head + body)
+
+
+def _terminate(statement: str) -> str:
+    """补上缺失的收尾分号 —— 但**不是所有行都要分号**。
+
+    三类行必须原样输出, 补分号会把它们弄坏:
+
+    - **psql 元命令**(``\\if`` / ``\\set`` / ``\\endif``): 它们不以 ``;`` 结尾,
+      加了会让 psql 把它当 SQL 送去解析, 报语法错。
+    - **纯注释行**: 加分号无害但无意义, 而且注释里的分号会干扰按 ``;`` 切分的
+      工具(见 :func:`_make_idempotent` 里对切分器「不认 ``--``」的说明)。
+    - **空行**: 加分号会产出一条空语句。
+
+    实测症状: 授权分区里每条 ``GRANT`` 前都插进一条光秃秃的 ``;``, 文件能执行
+    但测试 ``test_every_statement_terminated`` 判它「未终止语句」—— 反过来,
+    若当初图省事给 ``\\if`` 也补分号, 那份文件直接执行不了。
+    """
+    text = statement.rstrip()
+    if not text or text.startswith("--") or text.startswith("\\"):
+        return text
+    # 行尾挂着 psql 元命令时也不能补分号: ``SELECT ... AS x \gset`` 补成
+    # ``... \gset;`` 会被 psql 报语法错。
+    for meta in ("\\gset", "\\gexec", "\\if", "\\endif", "\\set", "\\echo", "\\quit"):
+        if meta in text:
+            return text
+    return text if text.endswith(";") else text + ";"
+
+
+def grants_block(app_role: str = DEFAULT_APP_ROLE) -> list[str]:
+    """第 6 分区: 把所有权与权限交给应用角色。
+
+    ## 为什么必须有这一段
+
+    ``schema_full.sql`` 通常由 ``postgres`` 执行(它要建扩展), 于是所有对象的
+    所有者都是 ``postgres``。而**应用是以非超级用户身份连库的** ——
+    板卡上实测: 装载阶段直接报
+
+        错误:  对模式 l0_term 权限不够
+
+    而这**不是** RLS 拦的(RLS 报的是「行被策略过滤」, 是 INSERT 成功但 0 行),
+    是**根本没进 schema**。也就是说 §5.8 的 RLS 策略一道都没生效, 因为连接
+    在到达策略之前就被权限挡住了 —— 越权测试全部「通过」的原因是压根没查询。
+
+    这正是「静默失效」的典型: 越权防护看起来是好的, 实际从未被触发。
+
+    ## 授权粒度
+
+    - schema: ``USAGE`` —— 不给就没有 ``CREATE``/访问权。
+    - 表: ``ALL`` —— 应用要读要写; RLS 已经把「能碰到哪些行」管住了, 这里的
+      权限只管「能碰到这张表」。两者是**正交**的, 混淆就会要么把 RLS 架空
+      (表级不给权限, 什么都查不到), 要么把 RLS 架空(BYPASSRLS)。
+    - ``l0_term`` 也授权: 它是跨型号共享层, 应用需要读 ``formula`` /
+      ``standards_registry``。它**没有** RLS 策略, 因为 L0 本就跨型号 ——
+      这是设计, 不是遗漏(见 §18.3.1)。
+
+    角色不存在时报错退出, 而不是静默跳过: 应用角色没建好就部署, 后续每个
+    请求都会失败, 而根因埋在几百行之前。
+    """
+    # **必须取 .ident**: psql 的两种引用形式不能互换 —— 标识符位置要
+    # ``:"model_key"``, 字面量位置要 ``:'model_key'``。传整个 SchemaRef 会把
+    # 对象 repr 写进 SQL, 生成出 ``GRANT ALL ON SCHEMA SchemaRef(ident=...,
+    # literal=..., is_psql=True)`` 这种语法错。与 :class:`SchemaRef` 的约定
+    # 一致, 理由见 :mod:`aterag.storage.rls`。
+    model_schema = psql_schema_ref(PSQL_VAR).ident
+    return [
+        f'\\if :{{?{APP_ROLE_VAR}}}',
+        r"\else",
+        f"\\set {APP_ROLE_VAR} '{app_role}'",
+        r"\endif",
+        "",
+        "-- 角色必须存在。缺角色时装载会在「对模式 l0_term 权限不够」上失败,",
+        "-- 而那行报错离根因(角色没建)有几百行。",
+        # 用 psql 的 \gset + \if 检查, **不用 DO 块**: psql 不在 dollar-quoted
+        # 字符串里做变量插值, 所以 DO $$ ... :'app_role' ... $$ 会原样送到
+        # 服务器, 在 ':' 附近报语法错 —— 实测过, 整份文件因此执行不了。
+        f"SELECT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'{APP_ROLE_VAR}')"
+        " AS app_role_exists \\gset",
+        r"\if :app_role_exists",
+        r"\else",
+        "\\echo 'docgen: 应用角色' :app_role '不存在, 请先 CREATE ROLE。已中止。'",
+        r"\quit 1",
+        r"\endif",
+        "",
+        f"GRANT ALL ON SCHEMA {L0_SCHEMA} TO :{APP_ROLE_VAR};",
+        f"GRANT ALL ON SCHEMA {model_schema} TO :{APP_ROLE_VAR};",
+        f"GRANT ALL ON ALL TABLES IN SCHEMA {L0_SCHEMA} TO :{APP_ROLE_VAR};",
+        f"GRANT ALL ON ALL TABLES IN SCHEMA {model_schema} TO :{APP_ROLE_VAR};",
+        "-- 未来新建的表也自动继承, 否则加一张表就少一次「忘了授权」的故障。",
+        f"ALTER DEFAULT PRIVILEGES IN SCHEMA {L0_SCHEMA} GRANT ALL ON TABLES TO :{APP_ROLE_VAR};",
+        f"ALTER DEFAULT PRIVILEGES IN SCHEMA {model_schema} GRANT ALL ON TABLES TO :{APP_ROLE_VAR};",
+        # 序列权限: 连号场景下 nextval 会失败, 且报错不提「序列」时极难定位。
+        f"GRANT ALL ON ALL SEQUENCES IN SCHEMA {L0_SCHEMA} TO :{APP_ROLE_VAR};",
+        f"GRANT ALL ON ALL SEQUENCES IN SCHEMA {model_schema} TO :{APP_ROLE_VAR};",
+    ]
 
 
 def write(
@@ -439,9 +556,12 @@ def write(
     default_model_schema: str,
     with_timescale: bool = True,
     ini_path: Path | None = None,
+    app_role: str = DEFAULT_APP_ROLE,
 ) -> Path:
     """生成并落盘 ``seed/schema_full.sql``。"""
-    result = assemble(with_timescale=with_timescale, ini_path=ini_path)
+    result = assemble(
+        with_timescale=with_timescale, ini_path=ini_path, app_role=app_role
+    )
     text = render(
         result,
         default_model_schema=default_model_schema,
@@ -500,11 +620,21 @@ def main() -> int:
         action="store_true",
         help="不含 TimescaleDB (第 3 分区跳过)",
     )
+    ap.add_argument(
+        "--app-role",
+        default=DEFAULT_APP_ROLE,
+        help=(
+            f"应用角色名, 写进第 4 分区的 GRANT(默认 {DEFAULT_APP_ROLE})。"
+            "必须与实际连库的角色一致 —— 授权给错角色时症状是「权限不够」,"
+            "而根因在部署命令里"
+        ),
+    )
     args = ap.parse_args()
     p = write(
         Path(args.out),
         default_model_schema=args.default_model_schema,
         with_timescale=not args.no_timescale,
+        app_role=args.app_role,
     )
     text = p.read_text(encoding="utf-8")
     print(f"已生成 {p} ({len(text.splitlines())} 行)")

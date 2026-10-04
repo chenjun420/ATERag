@@ -16,6 +16,12 @@
 --
 -- 不传 -model_key= 时用下面的默认值 (仅供演练, 正式部署必须显式传):
 --   \set model_key 'pw_example'
+--
+-- 必须显式传 -v app_role=<角色>: 第 4 分区把表级权限授给应用角色。
+-- 本文件通常由 postgres 执行(要建扩展), 而应用以非超级用户连库 ——
+-- 不授权就会在装载时报「对模式 l0_term 权限不够」, 而 §5.8 的 RLS
+-- 策略一道都没生效(连接在到达策略前就被挡住, 越权测试全部「通过」
+-- 的原因是压根没查询)。
 -- ============================================================
 
 \if :{?model_key}
@@ -1579,6 +1585,52 @@ ALTER TABLE :"model_key"."jev_gate_log" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE :"model_key"."jev_gate_log" FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY "jev_gate_log_model_isolation" ON :"model_key"."jev_gate_log" FOR ALL USING (ctx_model() = :'model_key') WITH CHECK (ctx_model() = :'model_key');
+
+\if :{?app_role}
+
+\else
+
+\set app_role 'powerspec'
+
+\endif
+
+
+
+-- 角色必须存在。缺角色时装载会在「对模式 l0_term 权限不够」上失败,
+
+-- 而那行报错离根因(角色没建)有几百行。
+
+SELECT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'app_role') AS app_role_exists \gset
+
+\if :app_role_exists
+
+\else
+
+\echo 'docgen: 应用角色' :app_role '不存在, 请先 CREATE ROLE。已中止。'
+
+\quit 1
+
+\endif
+
+
+
+GRANT ALL ON SCHEMA l0_term TO :app_role;
+
+GRANT ALL ON SCHEMA :"model_key" TO :app_role;
+
+GRANT ALL ON ALL TABLES IN SCHEMA l0_term TO :app_role;
+
+GRANT ALL ON ALL TABLES IN SCHEMA :"model_key" TO :app_role;
+
+-- 未来新建的表也自动继承, 否则加一张表就少一次「忘了授权」的故障。
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA l0_term GRANT ALL ON TABLES TO :app_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA :"model_key" GRANT ALL ON TABLES TO :app_role;
+
+GRANT ALL ON ALL SEQUENCES IN SCHEMA l0_term TO :app_role;
+
+GRANT ALL ON ALL SEQUENCES IN SCHEMA :"model_key" TO :app_role;
 
 -- ============================================================
 -- 5. 触发器与函数 (第九章; 随第 2 分区输出)

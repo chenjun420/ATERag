@@ -356,12 +356,85 @@ class TestRender:
         assert "docgen.ddl" in text
 
     def test_every_statement_terminated(self, result: object) -> None:
-        """分号缺失会在 psql 里被并进下一条 —— 静默错误。"""
+        """分号缺失会在 psql 里被并进下一条 —— 静默错误。
+
+        三类行豁免, 且理由写在这里以免被当成「测试放水」:
+        - ``BEGIN;`` / ``COMMIT;`` 本身已终止。
+        - **psql 元命令**(``\\if`` / ``\\set`` / ``\\endif``)本就不带分号, 补上
+          反而会让 psql 把它当 SQL 解析。
+        - 纯注释行与空行不需要终止符。
+        """
         for name, stmts in result.sections.items():
             for sql in stmts:
-                if sql.strip().upper() in ("BEGIN;", "COMMIT;"):
+                text = sql.rstrip()
+                if not text or text.startswith("--") or text.startswith("\\"):
                     continue
-                assert sql.rstrip().endswith(";"), f"{name} 段有未终止语句: {sql[:80]}"
+                # 行尾挂 psql 元命令的也不能有分号(``SELECT ... \gset;`` 会
+                # 被 psql 报语法错), 判据与 docgen.ddl._terminate 一致。
+                if any(m in text for m in ("\\gset", "\\gexec")):
+                    assert not text.endswith(";"), f"{name} 段元命令被补了分号: {sql[:60]!r}"
+                    continue
+                assert text.endswith(";"), f"{name} 段有未终止语句: {sql[:80]}"
+
+    def test_psql_meta_commands_carry_no_semicolon(self, result: object) -> None:
+        """``\\if`` / ``\\set`` / ``\\endif`` 绝不能被补上分号。
+
+        分号会让 psql 把元命令送去 SQL 解析, 文件直接执行不了 —— 而这份文件
+        正是 §18.5 的交付物, 交付物执行不了是最高级别的失败。
+        """
+        for name, stmts in result.sections.items():
+            for sql in stmts:
+                if sql.lstrip().startswith("\\"):
+                    assert not sql.rstrip().endswith(";"), (
+                        f"{name} 段的 psql 元命令被补了分号: {sql[:60]!r}"
+                    )
+
+    def test_app_role_is_granted_on_l0_and_model_schema(self, result: object) -> None:
+        """第 4 分区必须给应用角色授权, 否则 §5.8 的 RLS 一道都不生效。
+
+        本文件通常由 ``postgres`` 执行(要建扩展), 而应用以非超级用户连库。
+        不授权时连接在到达 RLS 策略**之前**就被挡住, 越权测试全部「通过」的
+        原因是压根没查询 —— 这正是要防的静默失效。
+        """
+        rls = "\n".join(result.sections["rls"])
+        assert "GRANT ALL ON SCHEMA l0_term" in rls
+        assert "GRANT ALL ON ALL TABLES IN SCHEMA l0_term" in rls
+        assert "ALTER DEFAULT PRIVILEGES" in rls, "新表会漏授权"
+        assert "GRANT ALL ON ALL SEQUENCES" in rls, "nextval 会失败且报错不提序列"
+
+    def test_missing_app_role_fails_loudly(self, result: object) -> None:
+        """角色不存在时必须**中止**, 不能静默跳过授权。
+
+        静默跳过的后果: 建库「成功」, 应用角色毫无权限, 每个请求都失败, 而
+        根因埋在几百行之前的部署命令里。
+
+        用 psql 的 ``\\gset`` + ``\\if`` + ``\\quit 1``, **不用 DO 块**: psql
+        不在 dollar-quoted 字符串里插值, ``DO $$ ... :'app_role' ... $$`` 会
+        原样送到服务器并在 ':' 附近报语法错 —— 实测整份文件因此执行不了。
+        """
+        rls = "\n".join(result.sections["rls"])
+        assert "pg_roles" in rls, "必须查 pg_roles 确认角色存在"
+        assert "\\gset" in rls
+        assert "\\quit 1" in rls, "角色缺失时必须非零退出"
+        assert "DO $$" not in rls, "psql 不在 dollar-quoted 字符串里插值, DO 块不可用"
+
+    def test_grants_are_inside_section_four_not_a_seventh(self) -> None:
+        """授权**不单列分区** —— §18.5 的分区编号 0~5 是固定的六段。
+
+        擅自加第七个分区就是偏离方案。授权追加到第 4 分区(RLS)末尾: 语义同属
+        访问控制, 且该位置已在全部建表之后, 不会漏掉后建的表。
+        """
+        # 分区名与顺序必须与 §18.5 的「执行顺序」逐字一致(方案 14893~14934 行):
+        # 编号 0~5, 共 **六** 个分区。
+        assert DDL_SECTIONS == (
+            "extensions",
+            "l0",
+            "model",
+            "hypertable",
+            "rls",
+            "triggers",
+        )
+        assert "grants" not in DDL_SECTIONS
 
     def test_triggers_section_is_explicit(self, result: object, text: str) -> None:
         """第 5 分区为空也要在文件里留一句话 —— 让人知道它不是漏了。"""

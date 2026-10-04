@@ -48,10 +48,16 @@ from __future__ import annotations
 
 import csv
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
-__all__ = ["ARRAY_SEPARATOR", "LoadResult", "load_formula_csv", "render_load_sql"]
+__all__ = [
+    "ARRAY_SEPARATOR",
+    "LoadResult",
+    "count_rows",
+    "load_formula_csv",
+    "render_load_sql",
+]
 
 #: 数组列在 CSV 里的分隔符。见模块文档「三种编码的区分」。
 ARRAY_SEPARATOR = "|"
@@ -109,11 +115,30 @@ _CASTS: dict[str, str] = {
 
 @dataclass(frozen=True)
 class LoadResult:
-    """一次装载的结果。"""
+    """一次装载的结果。
+
+    ``rows`` 是**回读**的行数, 不是「预计会插入多少」—— 两者不一致时
+    :meth:`mismatched` 会给出对照, 避免「SQL 没报错就当成功」。
+    """
 
     rows: int
     ddl_ok: bool
     error: str | None = None
+    expected: int = 0
+    _table: str = ""
+    _dsn: str = ""
+    _env: dict[str, str] | None = None
+
+    def mismatched(self) -> bool:
+        """回读行数与 CSV 行数是否不符。**不符就是失败**, 不因无报错而放过。"""
+        return self.ddl_ok and self.rows != self.expected
+
+    def verify(self) -> LoadResult:
+        """回读行数并补进结果。查不到行数时置 ``rows=-1``, 不伪装成 0。"""
+        if not self.ddl_ok:
+            return self
+        count = count_rows(self._dsn, self._table)
+        return replace(self, rows=-1 if count is None else count)
 
 
 def _sql_text(value: str) -> str:
@@ -154,12 +179,19 @@ def _sql_array(col: str, sep: str, cast: str) -> str:
 def render_load_sql(
     csv_path: Path,
     table: str = "l0_term.formula",
+    *,
+    csv_location: str | None = None,
 ) -> str:
     """生成装载 SQL: staging(全 25 列) -> 目标表(22 列)。
 
     为什么不直接 ``\\\\copy`` 进目标表: CSV 25 列而目标表只吃 22 列, 而
     ``COPY`` 的列清单必须与文件列数**完全一致**, 不能跳过 —— 必须先落
     staging 再投影。
+
+    ``csv_location``: ``\\\\copy`` 里写的路径是**由 PostgreSQL 服务器进程读取的**,
+    不是客户端。部署到别的机器时(板卡 192.168.5.25), 必须给服务器侧能读到的
+    路径, 否则报「权限不够」—— 而这个错看起来像权限问题, 实际是路径指到了
+    **客户端**的相对路径。表头校验始终读本地 ``csv_path``, 两者可以不同。
     """
     with csv_path.open(encoding="utf-8", newline="") as fh:
         header = next(csv.reader(fh))
@@ -218,7 +250,8 @@ def render_load_sql(
             "  " + ",\n  ".join(stg_cols),
             ");",
             # \copy 是 psql 元命令, 不能放进 dollar-quoted 块。
-            f"\\copy stg FROM '{csv_path.as_posix()}' WITH (FORMAT csv, HEADER true)",
+            f"\\copy stg FROM {_sql_text(csv_location or csv_path.as_posix())}"
+            " WITH (FORMAT csv, HEADER true)",
             "",
             f"INSERT INTO {table} ({table_cols})",
             "SELECT",
@@ -248,30 +281,57 @@ def load_formula_csv(
     dsn: str,
     table: str = "l0_term.formula",
     model_key: str = "pw_sr5400",
+    *,
+    csv_location: str | None = None,
 ) -> LoadResult:
     """把 CSV 装进 ``table``, 返回结果。
 
-    需要本机可执行 ``psql``。RLS 依赖 ``app.current_model`` GUC, 故经
-    ``PGOPTIONS`` 传入 —— 板卡实测时若漏了它, 会表现为「插入 0 行」而不是报错,
-    是个容易误判成成功的失败。
+    需要本机可执行 ``psql``。两个部署环境相关的坑:
+
+    1. RLS 依赖 ``app.current_model`` GUC, 经 ``PGOPTIONS`` 传入。漏了它不会
+       报错, 而是**静默插入 0 行** —— 看着像成功, 实际什么都没进。
+    2. ``\\\\copy`` 的路径由**服务器进程**读取。库在别的机器上时必须给
+       ``csv_location``, 否则报「权限不够」(看着像权限问题, 其实是路径指到了
+       客户端)。
+
+    装载后会**回读行数并与 CSV 行数比对**, 不一致即视为失败 —— 见
+    :meth:`LoadResult.mismatched`。
     """
-    sql = render_load_sql(csv_path, table)
+    sql = render_load_sql(csv_path, table, csv_location=csv_location)
+    env = {"PGOPTIONS": f"-c app.current_model={model_key}", "PATH": "/usr/bin:/bin"}
     proc = subprocess.run(
-        [
-            "psql",
-            dsn,
-            "-v",
-            "ON_ERROR_STOP=1",
-            "-q",
-            "-f",
-            "-",
-        ],
+        ["psql", dsn, "-v", "ON_ERROR_STOP=1", "-q", "-f", "-"],
         input=sql,
+        capture_output=True,
+        text=True,
+        env=env,
+        check=False,
+    )
+    if proc.returncode != 0:
+        return LoadResult(rows=0, ddl_ok=False, error=proc.stderr.strip()[:2000])
+    return LoadResult(rows=0, ddl_ok=True, _table=table, _dsn=dsn, _env=env)
+
+
+def count_rows(
+    dsn: str,
+    table: str = "l0_term.formula",
+    model_key: str = "pw_sr5400",
+) -> int | None:
+    """回读 ``table`` 的行数。**必须带 GUC**, 否则 RLS 下返回 0。
+
+    返回 ``None`` 表示查询失败 —— 调用方**不得**把 ``None`` 当 0: 「查不到」
+    与「确实是 0 行」是两件事, 混起来就会把装载失败报成「装载了 0 条」。
+    """
+    proc = subprocess.run(
+        ["psql", dsn, "-tAc", f"SELECT count(*) FROM {table}"],
         capture_output=True,
         text=True,
         env={"PGOPTIONS": f"-c app.current_model={model_key}", "PATH": "/usr/bin:/bin"},
         check=False,
     )
     if proc.returncode != 0:
-        return LoadResult(rows=0, ddl_ok=False, error=proc.stderr.strip()[:2000])
-    return LoadResult(rows=0, ddl_ok=True)
+        return None
+    try:
+        return int(proc.stdout.strip())
+    except ValueError:
+        return None
