@@ -27,6 +27,9 @@ pg_data/
 # 工作区, 换机/换人就没了, 而 git 里查不到它曾经存在过。
 data/*
 !data/seed/
+# schema 也必须入库 —— 它是交付物的校验契约。没有它, 换台机器 clone 下来
+# 只能看到初始数据本身, 却没有任何东西能判定这批数据是否合规。
+!data/schema/
 
 # 客户规格书原件 —— 属客户知识产权, 不入库。
 # 仓库只保留从原件派生的产物 (config/annotations/*.conditions.yaml 等), 那些

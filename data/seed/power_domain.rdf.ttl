@@ -1519,12 +1519,6 @@ ns1:F_M.3_COMM_TIMEOUT a ns1:Formula ;
     ns1:name "F_M.3_COMM_TIMEOUT" ;
     ns1:section "M.3" .
 
-ns1:F_M.3_CRC8_PEC a ns1:Formula ;
-    ns1:authority_kind "unverified" ;
-    ns1:domain "M" ;
-    ns1:name "F_M.3_CRC8_PEC" ;
-    ns1:section "M.3" .
-
 ns1:F_M.3_WATCHDOG a ns1:Formula ;
     ns1:authority_kind "unverified" ;
     ns1:domain "M" ;
@@ -1844,12 +1838,6 @@ ns1:F_O.4.2_DIFF_EQ a ns1:Formula ;
     ns1:name "F_O.4.2_DIFF_EQ" ;
     ns1:section "O.4.2" .
 
-ns1:F_O.4.3_DIGITAL_COMPENSATOR a ns1:Formula ;
-    ns1:authority_kind "unverified" ;
-    ns1:domain "O" ;
-    ns1:name "F_O.4.3_DIGITAL_COMPENSATOR" ;
-    ns1:section "O.4.3" .
-
 ns1:F_O.4.3_JURY_2ND_ORDER a ns1:Formula ;
     ns1:authority_kind "unverified" ;
     ns1:domain "O" ;
@@ -1926,13 +1914,6 @@ ns1:F_O.9.2_DISCRETE_PM_GM a ns1:Formula ;
     ns1:expr "离散域 PM/GM（定义同 F_K.3）" ;
     ns1:name "F_O.9.2_DISCRETE_PM_GM" ;
     ns1:section "O.9.2" .
-
-ns1:F_O.9.3_FIXED_POINT_MARGIN a ns1:Formula ;
-    ns1:authority_kind "unverified" ;
-    ns1:domain "O" ;
-    ns1:expr "≤ 0.95（留 5% 裕度）" ;
-    ns1:name "F_O.9.3_FIXED_POINT_MARGIN" ;
-    ns1:section "O.9.3" .
 
 ns1:F_P.1.1_RINGING_FREQ a ns1:Formula ;
     ns1:authority_kind "unverified" ;
@@ -2391,13 +2372,6 @@ ns1:F_T.6.2_MODEL_TABLE a ns1:Formula ;
     ns1:name "F_T.6.2_MODEL_TABLE" ;
     ns1:section "T.6.2" .
 
-ns1:F_W.1 a ns1:Formula ;
-    ns1:authority_kind "unverified" ;
-    ns1:domain "W" ;
-    ns1:expr "网络定理（KCL/KVL/叠加/戴维南/诺顿/米勒/替代/互易/最大功率传输/对偶/Tellegen/节点法/回路法/星-三角）" ;
-    ns1:name "F_W.1" ;
-    ns1:section "W.1" .
-
 ns1:F_W.1.10_NORTON a ns1:Formula ;
     ns1:authority_kind "unverified" ;
     ns1:domain "W" ;
@@ -2604,13 +2578,6 @@ ns1:F_W.1.9_THEVENIN a ns1:Formula ;
     ns1:name "F_W.1.9_THEVENIN" ;
     ns1:section "W.1.9" .
 
-ns1:F_W.10 a ns1:Formula ;
-    ns1:authority_kind "unverified" ;
-    ns1:domain "W" ;
-    ns1:expr "EMC 基础（ESD HBM/CDM、共模差模、辐射、屏蔽、接地、ESR）" ;
-    ns1:name "F_W.10" ;
-    ns1:section "W.10" .
-
 ns1:F_W.10.10_ESD_CDM_LEVELS a ns1:Formula ;
     ns1:authority_kind "unverified" ;
     ns1:domain "W" ;
@@ -2708,12 +2675,6 @@ ns1:F_W.10.9_ESD_CDM a ns1:Formula ;
     ns1:expr "C ≈ 1 pF，τ < 1 ns" ;
     ns1:name "F_W.10.9_ESD_CDM" ;
     ns1:section "W.10.9" .
-
-ns1:F_W.11 a ns1:Formula ;
-    ns1:authority_kind "unverified" ;
-    ns1:domain "W" ;
-    ns1:name "F_W.11" ;
-    ns1:section "W.11" .
 
 ns1:F_W.11.10_DMM_INPUT_R a ns1:Formula ;
     ns1:authority_kind "unverified" ;
@@ -2839,12 +2800,6 @@ ns1:F_W.11.9_KELVIN a ns1:Formula ;
     ns1:name "F_W.11.9_KELVIN" ;
     ns1:section "W.11.9" .
 
-ns1:F_W.12 a ns1:Formula ;
-    ns1:authority_kind "unverified" ;
-    ns1:domain "W" ;
-    ns1:name "F_W.12" ;
-    ns1:section "W.12" .
-
 ns1:F_W.12.10_TEMP_DOUBLE a ns1:Formula ;
     ns1:authority_kind "unverified" ;
     ns1:domain "W" ;
@@ -2959,13 +2914,6 @@ ns1:F_W.12.9_ARRHENIUS_CAFFIN a ns1:Formula ;
     ns1:expr "AF = (θ_use/θ_stress)^{1/θD}，θD = Arrhenius 形状参数" ;
     ns1:name "F_W.12.9_ARRHENIUS_CAFFIN" ;
     ns1:section "W.12.9" .
-
-ns1:F_W.2 a ns1:Formula ;
-    ns1:authority_kind "unverified" ;
-    ns1:domain "W" ;
-    ns1:expr "动态响应（RC/RL/RLC、τ、超调、ζ、Q、共振、带宽、tr/td/ts）" ;
-    ns1:name "F_W.2" ;
-    ns1:section "W.2" .
 
 ns1:F_W.2.10_TAU_N_POINTS a ns1:Formula ;
     ns1:authority_kind "unverified" ;
@@ -3142,13 +3090,6 @@ ns1:F_W.2.9_TAU_SETTLE a ns1:Formula ;
     ns1:expr "t_s(2%) ≈ 4.74·τ，t_s(5%) ≈ 3.15·τ" ;
     ns1:name "F_W.2.9_TAU_SETTLE" ;
     ns1:section "W.2.9" .
-
-ns1:F_W.3 a ns1:Formula ;
-    ns1:authority_kind "unverified" ;
-    ns1:domain "W" ;
-    ns1:expr "频域变换（傅里叶级数/傅里叶变换/拉普拉斯/Z变换/卷积/帕塞瓦尔/采样/泄漏/栅栏/窗函数/初终值）" ;
-    ns1:name "F_W.3" ;
-    ns1:section "W.3" .
 
 ns1:F_W.3.10_CONVOLUTION a ns1:Formula ;
     ns1:authority_kind "unverified" ;
@@ -3383,13 +3324,6 @@ ns1:F_W.3.9_TIME_SCALE a ns1:Formula ;
     ns1:name "F_W.3.9_TIME_SCALE" ;
     ns1:section "W.3.9" .
 
-ns1:F_W.4 a ns1:Formula ;
-    ns1:authority_kind "unverified" ;
-    ns1:domain "W" ;
-    ns1:expr "二端口与传输线（z/y/h/g 参数、Z₀、Γ、VSWR、λ/4、Stub、Smith）" ;
-    ns1:name "F_W.4" ;
-    ns1:section "W.4" .
-
 ns1:F_W.4.10_CHARACTERISTIC_IMPEDANCE a ns1:Formula ;
     ns1:authority_kind "unverified" ;
     ns1:domain "W" ;
@@ -3531,12 +3465,6 @@ ns1:F_W.4.9_Z_FROM_ABCD a ns1:Formula ;
     ns1:expr "z₁₁ = A/C，z₁₂ = Δ_T/C，z₂₁ = B/C，z₂₂ = D/C" ;
     ns1:name "F_W.4.9_Z_FROM_ABCD" ;
     ns1:section "W.4.9" .
-
-ns1:F_W.5 a ns1:Formula ;
-    ns1:authority_kind "unverified" ;
-    ns1:domain "W" ;
-    ns1:name "F_W.5" ;
-    ns1:section "W.5" .
 
 ns1:F_W.5.10_OFFSET_VOLTAGE a ns1:Formula ;
     ns1:authority_kind "unverified" ;
@@ -3692,13 +3620,6 @@ ns1:F_W.5.9_NOISE_GAIN a ns1:Formula ;
     ns1:name "F_W.5.9_NOISE_GAIN" ;
     ns1:section "W.5.9" .
 
-ns1:F_W.6 a ns1:Formula ;
-    ns1:authority_kind "unverified" ;
-    ns1:domain "W" ;
-    ns1:expr "数字与时序（电平、扇出、传播延时、tsu/th、亚稳态、冒险竞争、器件 MTBF）" ;
-    ns1:name "F_W.6" ;
-    ns1:section "W.6" .
-
 ns1:F_W.6.10_TIMING_CLOSURE a ns1:Formula ;
     ns1:authority_kind "unverified" ;
     ns1:domain "W" ;
@@ -3830,13 +3751,6 @@ ns1:F_W.6.9_CLOCK_SKEW a ns1:Formula ;
     ns1:expr "t_skew = t_(late max) − t_(early min)" ;
     ns1:name "F_W.6.9_CLOCK_SKEW" ;
     ns1:section "W.6.9" .
-
-ns1:F_W.7 a ns1:Formula ;
-    ns1:authority_kind "unverified" ;
-    ns1:domain "W" ;
-    ns1:expr "功率器件（二极管 I-V、MOSFET 雪崩/体二极管/密勒、Qg、BJT/IGBT、开关损耗、SOA、栅驱动、死区）" ;
-    ns1:name "F_W.7" ;
-    ns1:section "W.7" .
 
 ns1:F_W.7.10_RDS_ON_TEMP a ns1:Formula ;
     ns1:authority_kind "unverified" ;
@@ -4007,12 +3921,6 @@ ns1:F_W.7.9_MOSFET_THRESHOLD a ns1:Formula ;
     ns1:name "F_W.7.9_MOSFET_THRESHOLD" ;
     ns1:section "W.7.9" .
 
-ns1:F_W.8 a ns1:Formula ;
-    ns1:authority_kind "unverified" ;
-    ns1:domain "W" ;
-    ns1:name "F_W.8" ;
-    ns1:section "W.8" .
-
 ns1:F_W.8.10_MMF a ns1:Formula ;
     ns1:authority_kind "unverified" ;
     ns1:domain "W" ;
@@ -4159,13 +4067,6 @@ ns1:F_W.8.9_MAGNETIC_OHMS a ns1:Formula ;
     ns1:expr "Φ = MMF/ℜ，ℜ = l_core/(μ·A_core)" ;
     ns1:name "F_W.8.9_MAGNETIC_OHMS" ;
     ns1:section "W.8.9" .
-
-ns1:F_W.9 a ns1:Formula ;
-    ns1:authority_kind "unverified" ;
-    ns1:domain "W" ;
-    ns1:expr "噪声与失真（THD/THD+N、SNR=6.02N+1.76、ENOB、INL/DNL、量化噪声、EMI 源）" ;
-    ns1:name "F_W.9" ;
-    ns1:section "W.9" .
 
 ns1:F_W.9.10_EFFECTIVE_BITS_ISO a ns1:Formula ;
     ns1:authority_kind "unverified" ;

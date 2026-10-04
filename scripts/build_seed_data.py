@@ -274,24 +274,6 @@ def _props(
     return out
 
 
-def build_section_index(lines: list[str]) -> dict[int, str]:
-    """行号 -> 最近的章节号(``12.3.4`` 形态)。"""
-    index: dict[int, str] = {}
-    pattern = re.compile(r"^#{2,4}\s*(\d+(?:\.\d+)*)\s+\S")
-    for i, line in enumerate(lines, 1):
-        m = pattern.match(line)
-        if m:
-            index[i] = m.group(1)
-    return index
-
-
-def _section_of(line_no: int, index: dict[int, str]) -> str | None:
-    for probe in range(line_no, 0, -1):
-        if probe in index:
-            return index[probe]
-    return None
-
-
 # ---------------------------------------------------------------------------
 # 各类知识
 # ---------------------------------------------------------------------------
@@ -311,7 +293,7 @@ _CONCEPT_HEADER = re.compile(
 )
 
 
-def extract_concepts(lines: list[str], sections: dict[int, str]) -> list[dict[str, Any]]:
+def extract_concepts(lines: list[str]) -> list[dict[str, Any]]:
     """概念字典(§6.3.1) -> ``power_concept``。
 
     概念字典在方案里**出现两次**(第 3160 与第 15140 行起)。按 ID 去重并留
@@ -341,7 +323,6 @@ def extract_concepts(lines: list[str], sections: dict[int, str]) -> list[dict[st
         qudt = None
         if len(cells) > 4 and cells[4].startswith("qudt:"):
             qudt = cells[4].split(":", 1)[1].strip()
-        sec = _section_of(i, sections)
         out[cid] = {
             "id": cid,
             "name": zh or en or cid,
@@ -463,8 +444,16 @@ def extract_symbols(lines: list[str]) -> list[dict[str, Any]]:
 #: 「某规则的公式列写着 F_J.2」这类引用行也当成公式, 实测那样只抽到 11 条。
 _FORMULA_ROW = re.compile(r"^\|\s*`(?P<fid>F_[A-Z]\.[\d.]+(?:_[A-Z0-9_]+)?)`\s*\|")
 
+#: 表格里表示「本格没有内容」的占位符
+_PLACEHOLDER = frozenset({"\u2014", "\u2013", "-", "/", "N/A", "n/a", "TBD", "\u5f85\u5b9a"})
 
-def extract_formulas(lines: list[str], sections: dict[int, str]) -> list[dict[str, Any]]:
+#: 规则 / 测试 / 公理的编号 (``P3`` / ``G.28`` / ``T24`` / ``A-1.5``)。
+#: 单独成格时它是**引用**而非内容 —— 必须在字母后紧跟数字, 否则中文说明
+#: 里的「A 类」这类字样会被误判。
+_REF_ONLY = re.compile(r"[AFGRPETUW]-?[\d.]+\w*")
+
+
+def extract_formulas(lines: list[str]) -> list[dict[str, Any]]:
     """公式表 -> ``formula``。
 
     ``| `F_J.2.1_BUCK` | `V_out = D × V_in` | `[V]` | A-2, A-4, T3 |``
@@ -487,21 +476,47 @@ def extract_formulas(lines: list[str], sections: dict[int, str]) -> list[dict[st
         cells = _cells(stripped)
         if len(cells) < 2:
             continue
+        first = _clean(cells[1])
+        # 下面两类行**首格是公式 ID, 但整行不是公式定义**。收进来会得到一条
+        # text 等于自身 id 的空壳: 既检索不到东西, 又虚增公式总数。
+        #
+        # 1. 交叉引用行 (公式 ↔ 规则 ↔ 测试 ↔ 公理 映射表):
+        #    | `F_K.5.2_LYAPUNOV_LTI` | P3 | G.28 | T24 |
+        #    第二节是**编号**, 不是内容 —— 这行在说「谁引用了这条公式」。
+        # 2. 分区目录行 (附录 U.2.7 按小节汇总):
+        #    | `F_W.5` | 模拟前端（虚短虚断、…） | 18 | T21, T24 |
+        #    第三节是**条目计数**(裸整数), 既不是量纲也不是上游 —— 首格那个
+        #    是小节名, 不是公式。
+        #
+        # 早先只靠「有没有解析出表达式」兜底, 结果这 53 条全部退化成 text=id:
+        # 表达式列缺失时无处可退, 只能把 id 本身当内容写进去。
+        if first is None or first in _PLACEHOLDER or _REF_ONLY.fullmatch(first):
+            continue
+        if len(cells) >= 3 and (_clean(cells[2]) or "").isdigit():
+            continue
         # 第一个含等号或运算符的格是表达式; 再往后是量纲与公理列
-        expr = dim = upstream = None
+        expr = dim = upstream = desc = None
         for c in cells[1:]:
             text = _clean(c)
             if text is None:
                 continue
-            if expr is None and re.search(r"[=≈≤≥<>·×/]", text):
+            if expr is None and re.search(r"[=\u2248\u2264\u2265<>\u00b7\u00d7/]", text):
                 expr = text
                 continue
             if dim is None and (text.startswith("[") or "无量纲" in text):
                 dim = text
                 continue
-            if upstream is None and re.fullmatch(r"[AFGRPETUW][\w.]*(\s*[,，]\s*[AFGRPETUW][\w.]*)*", text):
-                upstream = [t for t in re.split(r"[,，]", text)]
+            if upstream is None and re.fullmatch(
+                r"[AFGRPETUW][\w.]*(\s*[,\uff0c]\s*[AFGRPETUW][\w.]*)*", text
+            ):
+                upstream = [t for t in re.split(r"[,\uff0c]", text)]
                 continue
+            # 既不是表达式也不是量纲/上游, 但仍是实打实的内容(中文说明、
+            # 引文式判据)。留着它 —— 好过让 text 退化成 id。
+            if desc is None:
+                desc = text
+        if expr is None and desc is None:
+            continue
         if fid in seen:
             continue
         seen.add(fid)
@@ -515,7 +530,7 @@ def extract_formulas(lines: list[str], sections: dict[int, str]) -> list[dict[st
                 "id": fid,
                 "name": fid,
                 "type": "formula",
-                "text": f"{fid}: {expr}" if expr else fid,
+                "text": f"{fid}: {expr or desc}",
                 "properties": _props(
                     {
                         "section": sec,
@@ -1157,13 +1172,12 @@ def main() -> int:
         print(f"  [警告] 修正表不存在: {args.corrections} —— 引导结果将**未经查证修正**直接入库")
 
     lines = args.spec.read_text(encoding="utf-8").splitlines()
-    sections = build_section_index(lines)
 
     axiom_entities, axiom_rels = extract_axioms(lines)
     entities: list[dict[str, Any]] = []
-    entities += extract_concepts(lines, sections)
+    entities += extract_concepts(lines)
     entities += extract_symbols(lines)
-    entities += extract_formulas(lines, sections)
+    entities += extract_formulas(lines)
     entities += extract_standards(lines)
     entities += extract_errata(lines)
     entities += axiom_entities

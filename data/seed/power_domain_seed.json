@@ -24196,7 +24196,7 @@
       "id": "F_H.16.1_INSTRUMENT_MATCH",
       "name": "F_H.16.1_INSTRUMENT_MATCH",
       "entity_type": "formula",
-      "text": "F_H.16.1_INSTRUMENT_MATCH",
+      "text": "F_H.16.1_INSTRUMENT_MATCH: ∀c ∈ req(test): ∃inst. capability(inst,c) ⊇ req(test,c)",
       "confidence": null,
       "source": null,
       "section": "H.16.1",
@@ -24242,7 +24242,7 @@
       "id": "F_H.16.2_GAP_REPORT",
       "name": "F_H.16.2_GAP_REPORT",
       "entity_type": "formula",
-      "text": "F_H.16.2_GAP_REPORT",
+      "text": "F_H.16.2_GAP_REPORT: 未满足的 capability 集合 → INSTRUMENT_GAP",
       "confidence": null,
       "source": null,
       "section": "H.16.2",
@@ -26936,7 +26936,7 @@
       "id": "F_J.10.3_IEC61000_3_2_LIMIT",
       "name": "F_J.10.3_IEC61000_3_2_LIMIT",
       "entity_type": "formula",
-      "text": "F_J.10.3_IEC61000_3_2_LIMIT",
+      "text": "F_J.10.3_IEC61000_3_2_LIMIT: 谐波限值表",
       "confidence": null,
       "source": null,
       "section": "J.10.3",
@@ -28534,7 +28534,7 @@
       "id": "F_K.5.2_LYAPUNOV_LTI",
       "name": "F_K.5.2_LYAPUNOV_LTI",
       "entity_type": "formula",
-      "text": "F_K.5.2_LYAPUNOV_LTI",
+      "text": "F_K.5.2_LYAPUNOV_LTI: AᵀP + PA ≺ 0，P ≻ 0",
       "confidence": null,
       "source": null,
       "section": "K.5.2",
@@ -31028,7 +31028,7 @@
       "id": "F_L.5.7_DIAGNOSTIC_MEASURES",
       "name": "F_L.5.7_DIAGNOSTIC_MEASURES",
       "entity_type": "formula",
-      "text": "F_L.5.7_DIAGNOSTIC_MEASURES",
+      "text": "F_L.5.7_DIAGNOSTIC_MEASURES: 保护环节 ↔ 失效模式 ↔ 诊断措施映射表",
       "confidence": null,
       "source": null,
       "section": "L.5.7",
@@ -32818,7 +32818,7 @@
       "id": "F_M.1.20_MEASUREMENT_BANDWIDTH",
       "name": "F_M.1.20_MEASUREMENT_BANDWIDTH",
       "entity_type": "formula",
-      "text": "F_M.1.20_MEASUREMENT_BANDWIDTH",
+      "text": "F_M.1.20_MEASUREMENT_BANDWIDTH: 点表必须声明 band_width_hz",
       "confidence": null,
       "source": null,
       "section": "M.1.20",
@@ -33586,7 +33586,7 @@
       "id": "F_M.2.6_SYNC_PRECISION_TABLE",
       "name": "F_M.2.6_SYNC_PRECISION_TABLE",
       "entity_type": "formula",
-      "text": "F_M.2.6_SYNC_PRECISION_TABLE",
+      "text": "F_M.2.6_SYNC_PRECISION_TABLE: 同步方式精度谱（见上表）",
       "confidence": null,
       "source": null,
       "section": "M.2.6",
@@ -33714,7 +33714,7 @@
       "id": "F_M.2.8_LINE_SUPERVISION",
       "name": "F_M.2.8_LINE_SUPERVISION",
       "entity_type": "formula",
-      "text": "F_M.2.8_LINE_SUPERVISION",
+      "text": "F_M.2.8_LINE_SUPERVISION: I_normal 在规定窗口内；否则判 line_fault",
       "confidence": null,
       "source": null,
       "section": "M.2.8",
@@ -33946,7 +33946,7 @@
       "id": "F_M.3.1_RETRY_POLICY",
       "name": "F_M.3.1_RETRY_POLICY",
       "entity_type": "formula",
-      "text": "F_M.3.1_RETRY_POLICY",
+      "text": "F_M.3.1_RETRY_POLICY: 重发 retry_count 次后退避；禁止无限重发",
       "confidence": null,
       "source": null,
       "section": "M.3.1",
@@ -34178,7 +34178,7 @@
       "id": "F_M.3.4_CRC8_PEC",
       "name": "F_M.3.4_CRC8_PEC",
       "entity_type": "formula",
-      "text": "F_M.3.4_CRC8_PEC",
+      "text": "F_M.3.4_CRC8_PEC: CRC-8，多项式 0x07，覆盖地址+命令+数据",
       "confidence": null,
       "source": null,
       "section": "M.3.4",
@@ -36278,7 +36278,7 @@
       "id": "F_N.4.10_REDUNDANCY_NO_MTBF_GAIN",
       "name": "F_N.4.10_REDUNDANCY_NO_MTBF_GAIN",
       "entity_type": "formula",
-      "text": "F_N.4.10_REDUNDANCY_NO_MTBF_GAIN",
+      "text": "F_N.4.10_REDUNDANCY_NO_MTBF_GAIN: 冗余对 MTBF 与 PFH 的影响不同（见 F_L.5）",
       "confidence": null,
       "source": null,
       "section": "N.4.10",
@@ -36510,7 +36510,7 @@
       "id": "F_N.6.1_BATHTUB_CURVE",
       "name": "F_N.6.1_BATHTUB_CURVE",
       "entity_type": "formula",
-      "text": "F_N.6.1_BATHTUB_CURVE",
+      "text": "F_N.6.1_BATHTUB_CURVE: 三阶段机制与对策",
       "confidence": null,
       "source": null,
       "section": "N.6.1",
@@ -36638,7 +36638,7 @@
       "id": "F_N.7.1_FMEDA_PROCESS",
       "name": "F_N.7.1_FMEDA_PROCESS",
       "entity_type": "formula",
-      "text": "F_N.7.1_FMEDA_PROCESS",
+      "text": "F_N.7.1_FMEDA_PROCESS: 5 步流程",
       "confidence": null,
       "source": null,
       "section": "N.7.1",
@@ -36684,7 +36684,7 @@
       "id": "F_N.7.2_SIL_MTBF_DISTINCT",
       "name": "F_N.7.2_SIL_MTBF_DISTINCT",
       "entity_type": "formula",
-      "text": "F_N.7.2_SIL_MTBF_DISTINCT",
+      "text": "F_N.7.2_SIL_MTBF_DISTINCT: 安全性 PFH 与可用性 MTBF 是两个独立目标",
       "confidence": null,
       "source": null,
       "section": "N.7.2",
@@ -38065,72 +38065,6 @@
       }
     },
     {
-      "id": "F_O.4.3_DIGITAL_COMPENSATOR",
-      "name": "F_O.4.3_DIGITAL_COMPENSATOR",
-      "entity_type": "formula",
-      "text": "F_O.4.3_DIGITAL_COMPENSATOR",
-      "confidence": null,
-      "source": null,
-      "section": "O.4.3",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "upstream": [
-        "P3"
-      ],
-      "domain": "O",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "O.4.3",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "upstream": {
-          "property_name": "upstream",
-          "value": [
-            "P3"
-          ],
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "O",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
       "id": "F_O.9.1_Z_TO_S_MAP",
       "name": "F_O.9.1_Z_TO_S_MAP",
       "entity_type": "formula",
@@ -38264,88 +38198,6 @@
           "property_name": "upstream",
           "value": [
             "T21"
-          ],
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "O",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_O.9.3_FIXED_POINT_MARGIN",
-      "name": "F_O.9.3_FIXED_POINT_MARGIN",
-      "entity_type": "formula",
-      "text": "F_O.9.3_FIXED_POINT_MARGIN: ≤ 0.95（留 5% 裕度）",
-      "confidence": null,
-      "source": null,
-      "section": "O.9.3",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "≤ 0.95（留 5% 裕度）",
-      "upstream": [
-        "F_O.4.3_JURY_2ND_ORDER"
-      ],
-      "domain": "O",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "O.9.3",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "≤ 0.95（留 5% 裕度）",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "upstream": {
-          "property_name": "upstream",
-          "value": [
-            "F_O.4.3_JURY_2ND_ORDER"
           ],
           "sources": [
             {
@@ -38738,7 +38590,7 @@
       "id": "F_P.2.3_MIDDLEBROOK",
       "name": "F_P.2.3_MIDDLEBROOK",
       "entity_type": "formula",
-      "text": "F_P.2.3_MIDDLEBROOK",
+      "text": "F_P.2.3_MIDDLEBROOK: 见 F_K.6_FILTER_CRITERION",
       "confidence": null,
       "source": null,
       "section": "P.2.3",
@@ -39256,7 +39108,7 @@
       "id": "F_P.5.2_DIP_RECOVERY",
       "name": "F_P.5.2_DIP_RECOVERY",
       "entity_type": "formula",
-      "text": "F_P.5.2_DIP_RECOVERY",
+      "text": "F_P.5.2_DIP_RECOVERY: 掉电后恢复时间与 t_hold 协同（F_J.15）",
       "confidence": null,
       "source": null,
       "section": "P.5.2",
@@ -40432,7 +40284,7 @@
       "id": "F_Q.6.1_FAULT_TREE_ISOLATION",
       "name": "F_Q.6.1_FAULT_TREE_ISOLATION",
       "entity_type": "formula",
-      "text": "F_Q.6.1_FAULT_TREE_ISOLATION",
+      "text": "F_Q.6.1_FAULT_TREE_ISOLATION: 隔离需求表（见上）",
       "confidence": null,
       "source": null,
       "section": "Q.6.1",
@@ -40992,7 +40844,7 @@
       "id": "F_R.4.1_SEQUENCING",
       "name": "F_R.4.1_SEQUENCING",
       "entity_type": "formula",
-      "text": "F_R.4.1_SEQUENCING",
+      "text": "F_R.4.1_SEQUENCING: 上下电顺序与延时参数",
       "confidence": null,
       "source": null,
       "section": "R.4.1",
@@ -42154,7 +42006,7 @@
       "id": "F_S.5.1_LOSS_BUDGET_TABLE",
       "name": "F_S.5.1_LOSS_BUDGET_TABLE",
       "entity_type": "formula",
-      "text": "F_S.5.1_LOSS_BUDGET_TABLE",
+      "text": "F_S.5.1_LOSS_BUDGET_TABLE: 损耗预算表",
       "confidence": null,
       "source": null,
       "section": "S.5.1",
@@ -42586,7 +42438,7 @@
       "id": "F_T.4.3_INPUT_IMPEDANCE",
       "name": "F_T.4.3_INPUT_IMPEDANCE",
       "entity_type": "formula",
-      "text": "F_T.4.3_INPUT_IMPEDANCE",
+      "text": "F_T.4.3_INPUT_IMPEDANCE: Z_in(s)（Boost 呈负阻特性，用于附录K.6）",
       "confidence": null,
       "source": null,
       "section": "T.4.3",
@@ -42858,7 +42710,7 @@
       "id": "F_T.6.2_MODEL_TABLE",
       "name": "F_T.6.2_MODEL_TABLE",
       "entity_type": "formula",
-      "text": "F_T.6.2_MODEL_TABLE",
+      "text": "F_T.6.2_MODEL_TABLE: converter_model + converter_operating_point 数据结构",
       "confidence": null,
       "source": null,
       "section": "T.6.2",
@@ -45164,7 +45016,7 @@
       "id": "F_J.3.4_INDUCTOR_SIZING",
       "name": "F_J.3.4_INDUCTOR_SIZING",
       "entity_type": "formula",
-      "text": "F_J.3.4_INDUCTOR_SIZING",
+      "text": "F_J.3.4_INDUCTOR_SIZING: 电感量选取",
       "confidence": null,
       "source": null,
       "section": "J.3.4",
@@ -45230,7 +45082,7 @@
       "id": "F_J.3.5_PEAK_CURRENT",
       "name": "F_J.3.5_PEAK_CURRENT",
       "entity_type": "formula",
-      "text": "F_J.3.5_PEAK_CURRENT",
+      "text": "F_J.3.5_PEAK_CURRENT: 峰值电流校验",
       "confidence": null,
       "source": null,
       "section": "J.3.5",
@@ -45296,7 +45148,7 @@
       "id": "F_M.2.7_DOUBLE_POINT",
       "name": "F_M.2.7_DOUBLE_POINT",
       "entity_type": "formula",
-      "text": "F_M.2.7_DOUBLE_POINT",
+      "text": "F_M.2.7_DOUBLE_POINT: 双点遥信三态",
       "confidence": null,
       "source": null,
       "section": "M.2.7",
@@ -45329,802 +45181,6 @@
           "value": [
             "P11"
           ],
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "M",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_W.1",
-      "name": "F_W.1",
-      "entity_type": "formula",
-      "text": "F_W.1: 网络定理（KCL/KVL/叠加/戴维南/诺顿/米勒/替代/互易/最大功率传输/对偶/Tellegen/节点法/回路法/星-三角）",
-      "confidence": null,
-      "source": null,
-      "section": "W.1",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "网络定理（KCL/KVL/叠加/戴维南/诺顿/米勒/替代/互易/最大功率传输/对偶/Tellegen/节点法/回路法/星-三角）",
-      "domain": "W",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "W.1",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "网络定理（KCL/KVL/叠加/戴维南/诺顿/米勒/替代/互易/最大功率传输/对偶/Tellegen/节点法/回路法/星-三角）",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "W",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_W.2",
-      "name": "F_W.2",
-      "entity_type": "formula",
-      "text": "F_W.2: 动态响应（RC/RL/RLC、τ、超调、ζ、Q、共振、带宽、tr/td/ts）",
-      "confidence": null,
-      "source": null,
-      "section": "W.2",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "动态响应（RC/RL/RLC、τ、超调、ζ、Q、共振、带宽、tr/td/ts）",
-      "upstream": [
-        "T14",
-        " T23",
-        " T15"
-      ],
-      "domain": "W",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "W.2",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "动态响应（RC/RL/RLC、τ、超调、ζ、Q、共振、带宽、tr/td/ts）",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "upstream": {
-          "property_name": "upstream",
-          "value": [
-            "T14",
-            " T23",
-            " T15"
-          ],
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "W",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_W.3",
-      "name": "F_W.3",
-      "entity_type": "formula",
-      "text": "F_W.3: 频域变换（傅里叶级数/傅里叶变换/拉普拉斯/Z变换/卷积/帕塞瓦尔/采样/泄漏/栅栏/窗函数/初终值）",
-      "confidence": null,
-      "source": null,
-      "section": "W.3",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "频域变换（傅里叶级数/傅里叶变换/拉普拉斯/Z变换/卷积/帕塞瓦尔/采样/泄漏/栅栏/窗函数/初终值）",
-      "domain": "W",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "W.3",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "频域变换（傅里叶级数/傅里叶变换/拉普拉斯/Z变换/卷积/帕塞瓦尔/采样/泄漏/栅栏/窗函数/初终值）",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "W",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_W.4",
-      "name": "F_W.4",
-      "entity_type": "formula",
-      "text": "F_W.4: 二端口与传输线（z/y/h/g 参数、Z₀、Γ、VSWR、λ/4、Stub、Smith）",
-      "confidence": null,
-      "source": null,
-      "section": "W.4",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "二端口与传输线（z/y/h/g 参数、Z₀、Γ、VSWR、λ/4、Stub、Smith）",
-      "domain": "W",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "W.4",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "二端口与传输线（z/y/h/g 参数、Z₀、Γ、VSWR、λ/4、Stub、Smith）",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "W",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_W.5",
-      "name": "F_W.5",
-      "entity_type": "formula",
-      "text": "F_W.5",
-      "confidence": null,
-      "source": null,
-      "section": "W.5",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "upstream": [
-        "T21",
-        " T24"
-      ],
-      "domain": "W",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "W.5",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "upstream": {
-          "property_name": "upstream",
-          "value": [
-            "T21",
-            " T24"
-          ],
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "W",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_W.6",
-      "name": "F_W.6",
-      "entity_type": "formula",
-      "text": "F_W.6: 数字与时序（电平、扇出、传播延时、tsu/th、亚稳态、冒险竞争、器件 MTBF）",
-      "confidence": null,
-      "source": null,
-      "section": "W.6",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "数字与时序（电平、扇出、传播延时、tsu/th、亚稳态、冒险竞争、器件 MTBF）",
-      "domain": "W",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "W.6",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "数字与时序（电平、扇出、传播延时、tsu/th、亚稳态、冒险竞争、器件 MTBF）",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "W",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_W.7",
-      "name": "F_W.7",
-      "entity_type": "formula",
-      "text": "F_W.7: 功率器件（二极管 I-V、MOSFET 雪崩/体二极管/密勒、Qg、BJT/IGBT、开关损耗、SOA、栅驱动、死区）",
-      "confidence": null,
-      "source": null,
-      "section": "W.7",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "功率器件（二极管 I-V、MOSFET 雪崩/体二极管/密勒、Qg、BJT/IGBT、开关损耗、SOA、栅驱动、死区）",
-      "domain": "W",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "W.7",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "功率器件（二极管 I-V、MOSFET 雪崩/体二极管/密勒、Qg、BJT/IGBT、开关损耗、SOA、栅驱动、死区）",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "W",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_W.8",
-      "name": "F_W.8",
-      "entity_type": "formula",
-      "text": "F_W.8",
-      "confidence": null,
-      "source": null,
-      "section": "W.8",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "domain": "W",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "W.8",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "W",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_W.9",
-      "name": "F_W.9",
-      "entity_type": "formula",
-      "text": "F_W.9: 噪声与失真（THD/THD+N、SNR=6.02N+1.76、ENOB、INL/DNL、量化噪声、EMI 源）",
-      "confidence": null,
-      "source": null,
-      "section": "W.9",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "噪声与失真（THD/THD+N、SNR=6.02N+1.76、ENOB、INL/DNL、量化噪声、EMI 源）",
-      "domain": "W",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "W.9",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "噪声与失真（THD/THD+N、SNR=6.02N+1.76、ENOB、INL/DNL、量化噪声、EMI 源）",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "W",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_W.10",
-      "name": "F_W.10",
-      "entity_type": "formula",
-      "text": "F_W.10: EMC 基础（ESD HBM/CDM、共模差模、辐射、屏蔽、接地、ESR）",
-      "confidence": null,
-      "source": null,
-      "section": "W.10",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "EMC 基础（ESD HBM/CDM、共模差模、辐射、屏蔽、接地、ESR）",
-      "domain": "W",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "W.10",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "EMC 基础（ESD HBM/CDM、共模差模、辐射、屏蔽、接地、ESR）",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "W",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_W.11",
-      "name": "F_W.11",
-      "entity_type": "formula",
-      "text": "F_W.11",
-      "confidence": null,
-      "source": null,
-      "section": "W.11",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "domain": "W",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "W.11",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "W",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_W.12",
-      "name": "F_W.12",
-      "entity_type": "formula",
-      "text": "F_W.12",
-      "confidence": null,
-      "source": null,
-      "section": "W.12",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "upstream": [
-        "T38",
-        " T39",
-        " T40"
-      ],
-      "domain": "W",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "W.12",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "upstream": {
-          "property_name": "upstream",
-          "value": [
-            "T38",
-            " T39",
-            " T40"
-          ],
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "W",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_M.3_CRC8_PEC",
-      "name": "F_M.3_CRC8_PEC",
-      "entity_type": "formula",
-      "text": "F_M.3_CRC8_PEC",
-      "confidence": null,
-      "source": null,
-      "section": "M.3",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "domain": "M",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "M.3",
           "sources": [
             {
               "document": "",
@@ -46798,7 +45854,7 @@
       "id": "F_W.1.11_SUBSTITUTION",
       "name": "F_W.1.11_SUBSTITUTION",
       "entity_type": "formula",
-      "text": "F_W.1.11_SUBSTITUTION",
+      "text": "F_W.1.11_SUBSTITUTION: 替代定理",
       "confidence": null,
       "source": null,
       "section": "W.1.11",
@@ -47028,7 +46084,7 @@
       "id": "F_W.1.14_RECIPROCITY",
       "name": "F_W.1.14_RECIPROCITY",
       "entity_type": "formula",
-      "text": "F_W.1.14_RECIPROCITY",
+      "text": "F_W.1.14_RECIPROCITY: 互易定理",
       "confidence": null,
       "source": null,
       "section": "W.1.14",
@@ -47156,7 +46212,7 @@
       "id": "F_W.1.16_DUALITY",
       "name": "F_W.1.16_DUALITY",
       "entity_type": "formula",
-      "text": "F_W.1.16_DUALITY",
+      "text": "F_W.1.16_DUALITY: 对偶原理",
       "confidence": null,
       "source": null,
       "section": "W.1.16",
@@ -47512,7 +46568,7 @@
       "id": "F_W.1.22_SOURCE_SUPERPOSITION",
       "name": "F_W.1.22_SOURCE_SUPERPOSITION",
       "entity_type": "formula",
-      "text": "F_W.1.22_SOURCE_SUPERPOSITION",
+      "text": "F_W.1.22_SOURCE_SUPERPOSITION: 戴维南-诺顿互推",
       "confidence": null,
       "source": null,
       "section": "W.1.22",
@@ -50444,7 +49500,7 @@
       "id": "F_W.3.8_TRANSLATION",
       "name": "F_W.3.8_TRANSLATION",
       "entity_type": "formula",
-      "text": "F_W.3.8_TRANSLATION",
+      "text": "F_W.3.8_TRANSLATION: 时移性质",
       "confidence": null,
       "source": null,
       "section": "W.3.8",
@@ -50696,7 +49752,7 @@
       "id": "F_W.3.12_SPECTRAL_LEAKAGE",
       "name": "F_W.3.12_SPECTRAL_LEAKAGE",
       "entity_type": "formula",
-      "text": "F_W.3.12_SPECTRAL_LEAKAGE",
+      "text": "F_W.3.12_SPECTRAL_LEAKAGE: 频谱泄漏",
       "confidence": null,
       "source": null,
       "section": "W.3.12",
@@ -51216,7 +50272,7 @@
       "id": "F_W.3.20_LAPLACE_SHIFT",
       "name": "F_W.3.20_LAPLACE_SHIFT",
       "entity_type": "formula",
-      "text": "F_W.3.20_LAPLACE_SHIFT",
+      "text": "F_W.3.20_LAPLACE_SHIFT: 频移性质",
       "confidence": null,
       "source": null,
       "section": "W.3.20",
@@ -51262,7 +50318,7 @@
       "id": "F_W.3.21_ROUTH_HURWITZ",
       "name": "F_W.3.21_ROUTH_HURWITZ",
       "entity_type": "formula",
-      "text": "F_W.3.21_ROUTH_HURWITZ",
+      "text": "F_W.3.21_ROUTH_HURWITZ: 劳斯-赫维茨判据",
       "confidence": null,
       "source": null,
       "section": "W.3.21",
@@ -51534,7 +50590,7 @@
       "id": "F_W.3.25_Z_DELAY",
       "name": "F_W.3.25_Z_DELAY",
       "entity_type": "formula",
-      "text": "F_W.3.25_Z_DELAY",
+      "text": "F_W.3.25_Z_DELAY: 时移",
       "confidence": null,
       "source": null,
       "section": "W.3.25",
@@ -55762,7 +54818,7 @@
       "id": "F_W.6.15_SETUP_HOLD_VIOLATION",
       "name": "F_W.6.15_SETUP_HOLD_VIOLATION",
       "entity_type": "formula",
-      "text": "F_W.6.15_SETUP_HOLD_VIOLATION",
+      "text": "F_W.6.15_SETUP_HOLD_VIOLATION: 时序违例处理",
       "confidence": null,
       "source": null,
       "section": "W.6.15",
@@ -56262,7 +55318,7 @@
       "id": "F_W.7.4_REVERSE_RECOVERY",
       "name": "F_W.7.4_REVERSE_RECOVERY",
       "entity_type": "formula",
-      "text": "F_W.7.4_REVERSE_RECOVERY",
+      "text": "F_W.7.4_REVERSE_RECOVERY: 反向恢复时间",
       "confidence": null,
       "source": null,
       "section": "W.7.4",
@@ -56556,7 +55612,7 @@
       "id": "F_W.7.9_MOSFET_THRESHOLD",
       "name": "F_W.7.9_MOSFET_THRESHOLD",
       "entity_type": "formula",
-      "text": "F_W.7.9_MOSFET_THRESHOLD",
+      "text": "F_W.7.9_MOSFET_THRESHOLD: 阈值电压",
       "confidence": null,
       "source": null,
       "section": "W.7.9",
@@ -57036,7 +56092,7 @@
       "id": "F_W.7.17_MILLER_CLAMP",
       "name": "F_W.7.17_MILLER_CLAMP",
       "entity_type": "formula",
-      "text": "F_W.7.17_MILLER_CLAMP",
+      "text": "F_W.7.17_MILLER_CLAMP: 米勒钳位",
       "confidence": null,
       "source": null,
       "section": "W.7.17",
@@ -57144,7 +56200,7 @@
       "id": "F_W.7.19_SOA",
       "name": "F_W.7.19_SOA",
       "entity_type": "formula",
-      "text": "F_W.7.19_SOA",
+      "text": "F_W.7.19_SOA: 安全工作区",
       "confidence": null,
       "source": null,
       "section": "W.7.19",
@@ -57438,7 +56494,7 @@
       "id": "F_W.7.24_IGBT_TAIL",
       "name": "F_W.7.24_IGBT_TAIL",
       "entity_type": "formula",
-      "text": "F_W.7.24_IGBT_TAIL",
+      "text": "F_W.7.24_IGBT_TAIL: IGBT 拖尾电流",
       "confidence": null,
       "source": null,
       "section": "W.7.24",
@@ -57484,7 +56540,7 @@
       "id": "F_W.7.25_SIC_BJT_RDS",
       "name": "F_W.7.25_SIC_BJT_RDS",
       "entity_type": "formula",
-      "text": "F_W.7.25_SIC_BJT_RDS",
+      "text": "F_W.7.25_SIC_BJT_RDS: SiC MOSFET 低 R_ds",
       "confidence": null,
       "source": null,
       "section": "W.7.25",
@@ -59450,7 +58506,7 @@
       "id": "F_W.9.10_EFFECTIVE_BITS_ISO",
       "name": "F_W.9.10_EFFECTIVE_BITS_ISO",
       "entity_type": "formula",
-      "text": "F_W.9.10_EFFECTIVE_BITS_ISO",
+      "text": "F_W.9.10_EFFECTIVE_BITS_ISO: 等效位数（IEEE）",
       "confidence": null,
       "source": null,
       "section": "W.9.10",
@@ -61066,7 +60122,7 @@
       "id": "F_W.11.4_TRUE_RMS_VS_AVG",
       "name": "F_W.11.4_TRUE_RMS_VS_AVG",
       "entity_type": "formula",
-      "text": "F_W.11.4_TRUE_RMS_VS_AVG",
+      "text": "F_W.11.4_TRUE_RMS_VS_AVG: 真 RMS vs 平均响应",
       "confidence": null,
       "source": null,
       "section": "W.11.4",
@@ -61876,7 +60932,7 @@
       "id": "F_W.11.17_HALL_SENSOR",
       "name": "F_W.11.17_HALL_SENSOR",
       "entity_type": "formula",
-      "text": "F_W.11.17_HALL_SENSOR",
+      "text": "F_W.11.17_HALL_SENSOR: 霍尔传感器",
       "confidence": null,
       "source": null,
       "section": "W.11.17",
@@ -62230,7 +61286,7 @@
       "id": "F_W.12.4_LOGNORMAL",
       "name": "F_W.12.4_LOGNORMAL",
       "entity_type": "formula",
-      "text": "F_W.12.4_LOGNORMAL",
+      "text": "F_W.12.4_LOGNORMAL: 对数正态",
       "confidence": null,
       "source": null,
       "section": "W.12.4",
@@ -62296,7 +61352,7 @@
       "id": "F_W.12.5_BATHTUB",
       "name": "F_W.12.5_BATHTUB",
       "entity_type": "formula",
-      "text": "F_W.12.5_BATHTUB",
+      "text": "F_W.12.5_BATHTUB: 浴盆曲线",
       "confidence": null,
       "source": null,
       "section": "W.12.5",
@@ -62856,7 +61912,7 @@
       "id": "F_W.12.13_SERIES_PARALLEL",
       "name": "F_W.12.13_SERIES_PARALLEL",
       "entity_type": "formula",
-      "text": "F_W.12.13_SERIES_PARALLEL",
+      "text": "F_W.12.13_SERIES_PARALLEL: 串并联混合",
       "confidence": null,
       "source": null,
       "section": "W.12.13",
@@ -62964,7 +62020,7 @@
       "id": "F_W.12.15_FMEDA",
       "name": "F_W.12.15_FMEDA",
       "entity_type": "formula",
-      "text": "F_W.12.15_FMEDA",
+      "text": "F_W.12.15_FMEDA: 失效模式、影响与诊断分析",
       "confidence": null,
       "source": null,
       "section": "W.12.15",

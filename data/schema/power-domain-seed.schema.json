@@ -1,0 +1,382 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aterag.local/schemas/power-domain-seed-1.json",
+  "title": "电源产品通用知识初始数据",
+  "description": "交付物。供 Semantica 做 foundation graph / Datalog 推理 / SHACL 校验 / 追溯审计, 供 LightRAG 抽实体与关系。不由流水线生成, 直接编辑本文件与 corrections.yaml。",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "provenance",
+    "records"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "provenance": {
+      "type": "object",
+      "description": "整份数据的来源。审计入口 —— 先看这里, 再看单条记录。",
+      "required": [
+        "bootstrap_source",
+        "note"
+      ],
+      "properties": {
+        "bootstrap_source": {
+          "type": "string",
+          "description": "引导源文件名。方案 md 交付后不再依赖, 此处仅供追溯。"
+        },
+        "corrections_source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "corrections_applied": {
+          "type": "array",
+          "description": "已查证修正的完整记录(before/after/source/checked)。漂移可查 —— 没有它就看不出数据与方案原文差在哪。",
+          "items": {
+            "type": "object",
+            "required": [
+              "kind",
+              "id",
+              "source",
+              "checked"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "matched": {
+                "type": "string"
+              },
+              "before": {
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "after": {
+                "type": "object"
+              },
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "checked": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              "confidence": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 1
+              },
+              "authority_kind": {
+                "$ref": "#/$defs/source_kind"
+              },
+              "authority_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "records": {
+      "type": "array",
+      "description": "实体与关系混排的扁平数组 —— Semantica 的 SeedDataManager 读的就是它。靠键区分: 有 id 是实体, 有 source_id+target_id 是关系。",
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/entity"
+          },
+          {
+            "$ref": "#/$defs/relationship"
+          }
+        ]
+      }
+    },
+    "rules": {
+      "type": "array",
+      "description": "Datalog Horn 子句。查表只能回答「半载是几倍」, 规则才能回答「某型号 30% 载时输出功率是多少」。",
+      "items": {
+        "type": "object",
+        "required": [
+          "rule_id",
+          "head_predicate",
+          "head_args",
+          "body"
+        ],
+        "properties": {
+          "rule_id": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "head_predicate": {
+            "type": "string"
+          },
+          "head_args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "body": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "predicate",
+                "args"
+              ],
+              "properties": {
+                "predicate": {
+                  "type": "string"
+                },
+                "args": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "source_kind": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "book",
+        "industry",
+        "project_defined",
+        "unverified"
+      ],
+      "title": "authority_kind",
+      "description": "**权威依据**, 不是「这份数据从哪读到的」。方案 md 是设计思路与参考数据, **不构成依据**, 且在 .gitignore 里 —— 任何指向它的引用别人都解析不了。standard=标准号(可作认证依据); book=具名出版物(专著/手册/教材, 需书名+版次+出版社); industry=业界依据但非出版物(行业术语表/主流厂商规格书/通行叫法); project_defined=**已确认无外部对应术语**, 本项目自行定义; unverified=**尚未查证**, 这是待办不是结论。unverified 与 project_defined 必须可区分。"
+    },
+    "term_status": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "book",
+        "industry",
+        "project_defined",
+        "unverified"
+      ],
+      "title": "authority_kind",
+      "description": "**权威依据**, 不是「这份数据从哪读到的」。方案 md 是设计思路与参考数据, **不构成依据**, 且在 .gitignore 里 —— 任何指向它的引用别人都解析不了。standard=标准号(可作认证依据); book=具名出版物(专著/手册/教材, 需书名+版次+出版社); industry=业界依据但非出版物(行业术语表/主流厂商规格书/通行叫法); project_defined=**已确认无外部对应术语**, 本项目自行定义; unverified=**尚未查证**, 这是待办不是结论。unverified 与 project_defined 必须可区分。"
+    },
+    "sourceReference": {
+      "type": "object",
+      "description": "对齐 semantica.provenance.schemas.SourceReference。document 存**权威出处**(标准号/书名/业界来源), 不是引导源文件名 —— provenance.bootstrap_source 里记一次即可。",
+      "properties": {
+        "document": {
+          "type": "string"
+        },
+        "section": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "line": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "confidence": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "null 表示**未查证**。「来自方案」不是「已验证」, 给 1.0 会让未验证内容在审计里与已验证等价。"
+        },
+        "metadata": {
+          "type": "object"
+        }
+      }
+    },
+    "entity": {
+      "type": "object",
+      "required": [
+        "id",
+        "entity_type",
+        "text",
+        "authority_kind"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "entity_type": {
+          "type": "string",
+          "enum": [
+            "power_concept",
+            "symbol",
+            "formula",
+            "standard",
+            "axiom",
+            "theorem",
+            "erratum",
+            "load_condition",
+            "load_ratio"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "description": "自然语言陈述。LightRAG 靠它抽实体/关系 —— 必须是完整陈述而不是符号串, 否则抽出来一堆碎片。"
+        },
+        "confidence": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "standard_term": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "标准里的**正名**。GB/Z 14429 的条目正名是「远程信号」而「遥信」是其明文同义词; 两者都要能被检索命中, 所以 zh 用通称、正名存这里。"
+        },
+        "synonyms": {
+          "type": "array",
+          "description": "同义词表, 检索时应一并匹配。只记一种叫法会让另一种叫法搜不到 —— 而检索照样返回结果, 少召回是隐形的。",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "telemetry_family": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "YX=遥信 / YC=遥测 / YK=遥控。方案自身的命名前缀体系, 与 GB/Z 14429 的三分法一致。"
+        },
+        "qudt_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "QUDT 外部本体概念名"
+        },
+        "dimension": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "zh": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "zh_declared": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "方案原文名。换用标准命名时保留 —— 标准名更权威, 但方案原文是审计依据。"
+        },
+        "en": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "expr": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "provenance": {
+          "type": "object",
+          "description": "逐属性权威出处。**实体级挂一个不够** —— 同一实体的不同字段可能依据不同。只给有值的属性挂; 给空值挂一条出处是在声称「这个空值也有来源」。",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "property_name": {
+                "type": "string"
+              },
+              "value": {},
+              "sources": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/sourceReference"
+                }
+              }
+            }
+          }
+        },
+        "authority_kind": {
+          "$ref": "#/$defs/source_kind"
+        },
+        "authority_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "权威出处本体: 标准号+条号 / 书名+版次 / 业界来源。null 表示**没有**权威出处, 而不是「出处未知」—— 后者危险得多。"
+        }
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "required": [
+        "source_id",
+        "target_id",
+        "relationship_type"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string"
+        },
+        "target_id": {
+          "type": "string"
+        },
+        "relationship_type": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "external": {
+          "type": "boolean",
+          "description": "true 表示指向外部本体(如 QUDT)。这类边**不该**在本地补节点 —— 补了就丢失「这是外部引用」的信息。"
+        },
+        "ontology": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
