@@ -42,7 +42,7 @@ class TestCorpus:
         # 合并不碰表达式。
         assert len(corpus.first) == 573
         assert len(corpus.parseable) == 369
-        assert len(corpus.closed) == 129
+        assert len(corpus.closed) == 130
 
     def test_derivable_excludes_deliberately_unruled(self, corpus: Corpus) -> None:
         """「可推导」不该把被**方案歧义**挡住的公式算进来。
@@ -61,14 +61,21 @@ class TestGateHonesty:
     """门禁不能给出误导性结论。"""
 
     def test_g1_is_not_a_vacuous_pass(self, corpus: Corpus) -> None:
-        """G1 **不得**报 PASS。
+        """G1 跑**真的**齐次性检查, 且有候选不齐次时必须 FAIL。
 
-        若分母取已入库集(只含闭合公式), 比值恒为 100%。那不是「量纲已校验」,
-        而是没有数据可校验。所以本阶段必须是 NOT_APPLICABLE。
+        早先两版都不可接受:
+
+        - v1 取「已入库集」当分母, 比值恒 100% —— 空转的 PASS;
+        - v2 报 ``NOT_APPLICABLE`` 说「表还没生成」—— 回避。
+
+        现在接上 :func:`solver.symbolic.check_expression`, 实测 130 条候选里
+        只有 113 条齐次, 所以 G1 **必须**红。把它改成 PASS 才是在骗人。
         """
         (g1,) = [r for r in run_gates(["G1"], SPEC) if r.gate_id == "G1"]
-        assert g1.status is Status.NOT_APPLICABLE
-        assert not g1.blocks_merge
+        assert g1.status is Status.FAIL
+        assert g1.blocks_merge
+        assert "不齐次" in g1.detail
+        assert "100.0%" not in g1.detail, "比率不可能是 100%"
 
     def test_g1_reports_all_three_denominators(self, corpus: Corpus) -> None:
         """覆盖率必须并列给出三个分母, 不能只挑一个好看的。"""
@@ -164,11 +171,15 @@ class TestGateResults:
 
 
 class TestCli:
-    def test_exit_code_zero_when_no_merge_block_fails(self) -> None:
-        """全绿时退出码 0。"""
+    def test_exit_code_reflects_real_corpus_state(self) -> None:
+        """真实语料下 ``--all`` 退出码非 0 —— 因为 G1 真红(7 条不齐次)。
+
+        早先这里断言 0, 那时 G1 是空转 PASS。把断言对齐真实状态, 是为了让
+        「红灯不会被悄悄改成绿灯」这件事在测试里留痕。
+        """
         if not SPEC.is_file():
             pytest.skip(f"方案文件不在预期位置: {SPEC}")
-        assert main(["--all", "--spec", str(SPEC)]) == 0
+        assert main(["--all", "--spec", str(SPEC)]) == 1
 
     def test_exit_code_nonzero_on_merge_block(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """有合并阻断项失败时退出码非 0。

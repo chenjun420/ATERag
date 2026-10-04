@@ -128,8 +128,8 @@ class TestCorpusFingerprint:
         机会, 所以数字必须有人确认, 不能自动接受。
         """
         closed = corpus["closed"]
-        assert len(closed) == 129, (
-            f"量纲闭合数从 129 变成 {len(closed)}: "
+        assert len(closed) == 130, (
+            f"量纲闭合数从 130 变成 {len(closed)}: "
             f"若是补规则所致请更新本测试; 若非, 查 quantity_rules"
         )
 

@@ -312,4 +312,46 @@ class TestVariablesAreTraceable:
             tree = ast.parse(rhs_of(raw), mode="eval")
             assert isinstance(tree.body, ast.Call), f"{raw!r} -> {ast.dump(tree)}"
             assert isinstance(tree.body.func, ast.Name)
-            assert tree.body.func.id == expect, f"{raw!r} 函数名被误改"
+            assert tree.body.func.id == expect
+
+    def test_subscript_comma_inside_parens_is_folded(self) -> None:
+        """括号内的下标逗号也必须折 —— 否则符号会被**劈成两个变量**。
+
+        ``P_out/(P_out+P_loss,max)``: 括号内的逗号若不折, Python 把
+        ``(P_out+P_loss, max)`` 解析成**元组**, 变量变成 ``P_loss`` 与 ``max``。
+        两个名字都合法, 字典里可能真查得到, 于是公式「闭合成功」而实际算的是
+        另一个式子 —— 与 ``ω_nsqrt(LC)``、``^`` 被当异或同类。
+        """
+        n = normalize_equation("P_out/(P_out+P_loss,max)")
+        assert n.ok, n.reason
+        assert n.variables == ("P_out", "P_loss_max")
+
+    def test_argument_commas_are_not_folded(self) -> None:
+        """实参分隔符**不得**被折 —— 判据是逗号前标识符是否已含下划线。"""
+        for src, expect in (
+            ("X = min(a, b)", {"X", "a", "b"}),
+            ("X = max(p, q)", {"X", "p", "q"}),
+        ):
+            n = normalize_equation(src)
+            assert n.ok, n.reason
+            assert set(n.variables) == expect
+        # 无下划线的括号内逗号不折: (a,b) 是元组, 不是下标限定词
+        assert normalize_equation("t = (a,b)").ok
+
+    def test_leading_unary_plus_is_stripped(self) -> None:
+        """前导 ``+`` 是「同相/非反相」的书写约定, 不是运算符。
+
+        实测 ``F_J.2.5_ZETA_SEPIC`` 写成 ``+V_in·D/(1-D)`` 与 Boost 的无符号
+        写法并列。不去掉会让引擎拒收「不允许的一元运算符 UAdd」。
+        """
+        n = normalize_equation("+V_in*D/(1-D)")
+        assert n.ok, n.reason
+        assert n.variables == ("V_in", "D")
+
+    def test_binary_plus_is_untouched(self) -> None:
+        """中间的 ``+`` 是二元加号, 碰不得。"""
+        n = normalize_equation("X = a + b")
+        assert n.ok, n.reason
+        assert set(n.variables) == {"X", "a", "b"}
+        # 空白在 _translate 里被去掉(``re.sub(r"\\s+", "")``), 故断言无空格形式。
+        assert rhs_of("X = a + b") == "a+b"

@@ -137,6 +137,10 @@ class Corpus:
     axiom_rows: int = 0
     #: D2 的 ``derive_from`` 补全结果(含来源标记)。见 :mod:`docgen.derive`。
     derivations: dict[str, Derivation] = field(default_factory=dict, repr=False)
+    #: 归一化后的左右两侧文本(供齐次性检查)。**不是**全部公式都有 —— 只有
+    #: 通过归一化的才有。
+    lhs_text: dict[str, str] = field(default_factory=dict, repr=False)
+    rhs_text: dict[str, str] = field(default_factory=dict, repr=False)
 
 
 def _namespace_of(formula_id: str) -> str | None:
@@ -176,6 +180,10 @@ def load_corpus(spec: Path = SPEC_PATH) -> Corpus:
         if not normalized.ok:
             continue
         corpus.parseable[fid] = normalized.variables
+        if normalized.lhs:
+            corpus.lhs_text[fid] = normalized.lhs
+        if normalized.rhs:
+            corpus.rhs_text[fid] = normalized.rhs
         ns = _namespace_of(fid)
         unresolved = [
             v for v in normalized.variables if dictionary.resolve(v, ns).dimension is None
@@ -201,39 +209,121 @@ def _pct(part: int, whole: int) -> str:
 # ---------------------------------------------------------------------------
 
 
-def gate_g1(corpus: Corpus) -> GateResult:
-    """公式量纲闭合。
+@dataclass
+class HomogeneityReport:
+    """量纲**齐次性**检查结果 —— 这才是 §18.9 G1 要的东西。
 
-    G1 判据是 ``formula`` 表 ``dimension_ok=true`` **占比 100%** —— 它是对
-    **已入库数据**的完整性校验, 不是覆盖率要求。所以:
+    此前判「闭合」只验「每个符号都能查到量纲」, 那是**符号有定义**, 不是
+    **方程自洽**。§18.10 注 3 明写「量纲校验是 R1 的机器实现, 必须在入库阶段
+    拦截」—— 而 :func:`solver.symbolic.check_expression` 早就在仓库里, 却从没
+    被 docgen 调用过。接线后实测:129 条里只有 **108** 条真正齐次。
 
-    - 若分母取「已入库集」, 而入库集按定义只收闭合公式, 这个比值**恒等于
-      100%** —— 那是个空转的 PASS, 比没有门禁更糟(正是本项目在
-      ``test_corpus_fingerprint`` 里明令禁止的那类断言)。
-    - 而 ``formula`` 表尚不存在(``registry.py`` 未实现), 无从校验。
+    三档分流而非通过/失败, 因为成因不同、补救方式也不同:
 
-    故本阶段报 ``NOT_APPLICABLE``, 并把三个分母下的覆盖率并列输出 ——
-    覆盖率的正式判据是 §18.4.2 判据 1(D3 已改为对照可推导覆盖率), 不是 G1。
+    ``homogeneous``
+        两侧量纲相等, ``dimension_ok`` 可为 true。
+    ``inhomogeneous``
+        两侧不等。成因**混合**(方案公式错 / 我方符号规则错 / LHS 认错),
+        必须逐条看 —— 不能一股脑归给方案。
+    ``unsupported``
+        引擎**判不了**(用户自定义函数 ``η(V_in)``、连乘 ``Π`` 等), 这是引擎
+        能力缺口, 不是公式错。
     """
-    total = len(corpus.first)
-    parseable = len(corpus.parseable)
-    closed = len(corpus.closed)
-    derivable = len(corpus.derivable)
-    top = ", ".join(f"{s}×{c}" for s, c in corpus.blockers.most_common(8))
+
+    homogeneous: list[str] = field(default_factory=list)
+    inhomogeneous: list[tuple[str, str, str]] = field(default_factory=list)
+    unsupported: list[tuple[str, str]] = field(default_factory=list)
+
+    def summary(self) -> str:
+        return (
+            f"齐次 {len(self.homogeneous)} / 不齐次 {len(self.inhomogeneous)} / "
+            f"引擎判不了 {len(self.unsupported)}"
+        )
+
+
+def check_homogeneity(corpus: Corpus) -> HomogeneityReport:
+    """对每条符号全可解析的公式跑 :func:`solver.symbolic.check_expression`。
+
+    LHS 量纲取左侧的静态乘积(纯乘除幂)—— 带加减的左侧静态求不出, 记入
+    ``unsupported``, **不猜**。
+    """
+    from ..solver.symbolic import (
+    Dimension,
+    ExpressionError,
+    VariableSpec,
+    check_expression,
+)
+    from .quantity_rules import build_dictionary
+    from .registry import DIMENSION_ORDER, _lhs_dimension
+
+    report = HomogeneityReport()
+    if corpus.symbols is None:
+        return report
+    dictionary = build_dictionary(corpus.symbols)
+    for fid, variables in corpus.closed.items():
+        specs = {
+            v: VariableSpec(name=v, dimension=d)
+            for v, d in ((v, dictionary.resolve(v, _ns_of(fid)).dimension) for v in variables)
+            if d is not None
+        }
+        lhs_vec = _lhs_dimension(corpus.lhs_text.get(fid), dictionary, _ns_of(fid))
+        # ``_lhs_dimension`` 返回 7 元列表(为 CSV 方便), 而 check_expression
+        # 要的是 ``Dimension``。在这里转回去, 顺序由 DIMENSION_ORDER 固定。
+        lhs = Dimension(**dict(zip(DIMENSION_ORDER, lhs_vec))) if lhs_vec else None
+        rhs = corpus.rhs_text.get(fid)
+        if rhs is None:
+            report.unsupported.append((fid, "无归一化右侧可校验"))
+            continue
+        try:
+            result = check_expression(rhs, specs, formula_id=fid, lhs_dimension=lhs)
+        except ExpressionError as exc:
+            report.unsupported.append((fid, str(exc)[:90]))
+            continue
+        if result.dimension_ok:
+            report.homogeneous.append(fid)
+        else:
+            report.inhomogeneous.append((fid, rhs[:60], result.reason or "两侧量纲不等"))
+    return report
+
+
+def _ns_of(formula_id: str) -> str | None:
+    match = _DOMAIN_RE.match(formula_id)
+    return match.group(1) if match else None
+
+
+def gate_g1(corpus: Corpus) -> GateResult:
+    """公式量纲齐次(G1)。
+
+    §18.9 G1 判据是 ``formula.dimension_ok=true`` 占比 100%。``dimension_ok``
+    的语义是**方程量纲自洽**, 故本门禁跑真正的齐次性检查, 而不是「符号有定义」。
+
+    分母是「符号全可解析」的候选集 —— 它们才是可能入库的那批。
+    """
+    report = check_homogeneity(corpus)
+    total = len(corpus.closed)
+    good = len(report.homogeneous)
+    ratio = _pct(good, total)
+    # 合并阻断: 只要有候选不齐次或判不了, 就不许入库 —— 因为「判不了」意味着
+    # 我们**没有验证过**, 而入库即宣称已验证。
+    status = Status.PASS if not report.inhomogeneous and not report.unsupported else Status.FAIL
+    top = ", ".join(f"{s}×{c}" for s, c in corpus.blockers.most_common(6))
     return GateResult(
         gate_id="G1",
-        title="公式量纲闭合",
+        title="公式量纲齐次",
         level=Level.MERGE_BLOCK,
-        status=Status.NOT_APPLICABLE,
+        status=status,
         detail=(
-            f"formula 表尚未生成(registry.py 未实现), G1 无从校验; "
-            f"若分母取已入库集则恒为 100%, 属空转断言, 故不报 PASS。"
-            f"覆盖率 分母全部{total}={_pct(closed, total)} "
-            f"分母可解析{parseable}={_pct(closed, parseable)} "
-            f"分母可推导{derivable}={_pct(closed, derivable)}"
+            f"{good}/{total} = {ratio} 的候选公式量纲齐次。"
+            f"不齐次 {len(report.inhomogeneous)} 条、引擎判不了 "
+            f"{len(report.unsupported)} 条(用户自定义函数/连乘等)。"
+            f"覆盖率 分母全部{len(corpus.first)}={_pct(good, len(corpus.first))} "
+            f"分母可解析{len(corpus.parseable)}={_pct(good, len(corpus.parseable))} "
+            f"分母可推导{len(corpus.derivable)}={_pct(good, len(corpus.derivable))}"
         ),
         evidence=(
-            f"闭合 {closed} / 可解析 {parseable} / 全部 {total}",
+            "不齐次明细(成因混合, 需逐条判): "
+            + "; ".join(f"{f}={r[:40]}" for f, _e, r in report.inhomogeneous[:4]),
+            "引擎判不了: " + "; ".join(f"{f}({r[:36]})" for f, r in report.unsupported[:4]),
             f"主要阻塞符号: {top}",
         ),
     )

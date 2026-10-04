@@ -479,8 +479,26 @@ def _fold_subscript_comma(s: str) -> str:
     方案用 ``t_relay,op`` 表示「继电器动作时间」(下标里的第二个限定词), 但
     Python 标识符不能含逗号。
 
-    **只在括号外做。** 括号里的逗号是实参分隔符 (``min(a, b)``), 一并改掉会
-    把两个参数粘成一个 —— 那是个合法但语义完全不同的表达式, 比原样失败糟得多。
+    ## 括号内**也可能**是下标逗号
+
+    早先一版只在 depth 0 折叠,理由是「括号里的逗号是实参分隔符」。但括号里
+    出现下标逗号是方案的真实写法, 且漏掉它的后果极重:
+
+        ``P_out/(P_out+P_loss,max)``   括号内逗号未折 -> ``(P_out+P_loss, max)``
+                                      被 Python 解析成**元组**, 变量被劈成
+                                      ``P_loss`` 与 ``max`` 两个
+
+    劈开的变量名**都合法**, 字典里可能还真有``max``(极大值函数相关的量),
+    于是公式「闭合成功」而实际算的是另一个式子 —— 与此前修掉的
+    ``ω_nsqrt(LC)``、``^`` 被当异或同属一类。
+
+    ## 区分下标逗号与实参分隔符
+
+    判据: **逗号紧跟的那个标识符已含下划线**。
+
+    - ``P_loss,max`` -> 逗号前是 ``P_loss``, 含 ``_`` -> 下标限定词, 折
+    - ``min(a, b)`` -> 逗号前是 ``a``, 无 ``_`` -> 实参分隔符, 不折
+    - ``t_relay,op`` -> 含 ``_`` -> 折(方案原例)
     """
     out: list[str] = []
     depth = 0
@@ -489,18 +507,40 @@ def _fold_subscript_comma(s: str) -> str:
             depth += 1
         elif ch in ")]":
             depth -= 1
-        if (
-            ch == ","
-            and depth == 0
-            and i > 0
-            and i + 1 < len(s)
-            and _IDENT_START_RE.match(s[i + 1])
-            and (s[i - 1].isalnum() or s[i - 1] == "_")
-        ):
-            out.append("_")
-            continue
+        if ch == "," and i > 0 and i + 1 < len(s) and _IDENT_START_RE.match(s[i + 1]):
+            if depth == 0:
+                out.append("_")
+                continue
+            # 括号内: 只有当逗号紧跟的标识符**含下划线**才折。
+            j = i - 1
+            start = j
+            while start >= 0 and (s[start].isalnum() or s[start] == "_"):
+                start -= 1
+            token = s[start + 1 : j + 1]
+            if "_" in token:
+                out.append("_")
+                continue
         out.append(ch)
     return "".join(out)
+
+
+def _strip_leading_unary_plus(s: str) -> str:
+    """去掉**前导**的一元 ``+``: ``+V_in·D/(1-D)`` -> ``V_in·D/(1-D)``。
+
+    方案用前导 ``+`` 表示「同相/非反相」以示区分(实测
+    ``F_J.2.5_ZETA_SEPIC`` 写成 ``+V_in·D/(1-D)``, 与 Boost 的无符号写法并列)。
+    它不是运算符的一部分, 只是书写约定。
+
+    只处理**前导**那一个, 且后面必须紧跟值 —— ``a + b`` 里的 ``+`` 是二元
+    加号, 碰不得(去掉就变成 ``a b``, 那是个合法但语义完全不同的表达式)。
+    """
+    stripped = s.lstrip()
+    if not stripped.startswith("+"):
+        return s
+    rest = stripped[1:]
+    if rest and _IDENT_START_RE.match(rest[0]):
+        return rest
+    return s
 
 
 def _fold_caret(s: str) -> str:
@@ -564,6 +604,7 @@ def _translate(s: str) -> str:
     t = _expand_exp(t)
     t = _fold_caret(t)
     t = _fold_state_qualifier(t)
+    t = _strip_leading_unary_plus(t)
     t = _insert_implicit_multiplication(t)
     t = _fold_subscript_comma(t)
     t = re.sub(r"\s+", "", t)

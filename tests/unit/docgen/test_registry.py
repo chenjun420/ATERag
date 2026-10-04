@@ -37,12 +37,12 @@ class TestRejectsRatherThanFabricates:
     def test_量纲闭合的候选集非空(self, built: tuple[tuple[object, ...], object]) -> None:
         """先确认过滤器**确实有活干** —— 否则「0 条可入库」可能只是没读进语料。"""
         _records, report = built
-        assert report.considered == 129, f"候选 {report.considered} 条, 预期 129"
+        assert report.considered == 130, f"候选 {report.considered} 条, 预期 130"
 
     def test_不编造name_zh(self, built: tuple[tuple[object, ...], object]) -> None:
         """缺中文名的公式一律拒收, 不拿 ID 短名冒充中文名。"""
         _records, report = built
-        assert len(report.missing_name_zh) == 42
+        assert len(report.missing_name_zh) == 43
         assert all(fid.startswith("F_") for fid in report.missing_name_zh)
 
     def test_不编造source_ref(self, built: tuple[tuple[object, ...], object]) -> None:
