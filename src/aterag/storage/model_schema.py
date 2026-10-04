@@ -1346,7 +1346,7 @@ def table_batches_for_ref(ref: SchemaRef) -> tuple[tuple[str, list[str]], ...]:
 
     批间顺序不可换 —— ``alter_fk`` 批依赖前四批已建的表。
 
-    供 ``docgen.ddl`` 汇出 ``seed/schema_full.sql`` 时按批分组输出, 使文件
+    供汇出 时按批分组输出, 使文件
     里的分区顺序与实际执行顺序肉眼可对照 (§18.5 ②「按『L0 共享 → 型号
     schema』顺序输出」)。
     """
@@ -1427,7 +1427,7 @@ def hypertable_ddl_for_ref(ref: SchemaRef) -> list[str]:
     需要条件执行时用 :func:`hypertable_available_sql` 先查。
     """
     # 末尾分号与 model_ddl_for_ref 的约定一致: 本模块返回的每条语句都必须
-    # 是可直接交给 psycopg / 原样写进 schema_full.sql 的完整语句。
+    # 是可直接交给 psycopg / 原样写进 psql DDL 的完整语句。
     return [
         f"SELECT create_hypertable({ref.hypertable_target(tbl)}, '{tscol}', "
         f"chunk_time_interval => INTERVAL '{interval}');"

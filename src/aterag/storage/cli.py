@@ -340,7 +340,7 @@ def _alembic_ini() -> Any:
     raise SystemExit(
         "找不到 alembic.ini (向上未找到同时含 alembic.ini 与 pyproject.toml 的目录)。\n"
         "  alembic 迁移只随源码检出分发, 不随 wheel 分发。若在已安装的包上执行,\n"
-        "  请改为直接执行 seed/schema_full.sql。"
+        "  请改为直接执行 psql DDL。"
     )
 
 

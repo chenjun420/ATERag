@@ -166,7 +166,7 @@ class SchemaRef:
     PostgreSQL 上通常**不报错**: ``DEFAULT "pw_x"`` 被当成列引用,
     ``ctx_model() = "pw_x"`` 被当成标识符比较, 结果是 RLS 静默失效。
 
-    psql 变量形式 (docgen 汇出 ``seed/schema_full.sql`` 时用, §18.5 ③)
+    psql 变量形式 (汇出时用, §18.5 ③)
     同样两栏都要。派生类的方法负责处理「表名作为字符串字面量传参」的调用
     点 (``create_hypertable``) —— psql 变量不会在字符串字面量**内部**
     插值, 那里必须改用 ``format('%I.%I', ...)``。
@@ -212,7 +212,7 @@ def schema_ref(schema: str) -> SchemaRef:
 
 
 def psql_schema_ref(var: str) -> SchemaRef:
-    """由 psql 变量名构造 (供 ``schema_full.sql`` 使用)。
+    """由 psql 变量名构造 (供 ``psql DDL`` 使用)。
 
     两种位置的写法不同, 不能共用一个 ``quote_*``:
 
@@ -324,11 +324,11 @@ def rls_ddl(model_key: str) -> list[str]:
 
 
 def rls_ddl_for_ref(ref: SchemaRef) -> list[str]:
-    """:func:`rls_ddl` 的 SchemaRef 版。``docgen`` 汇出 schema_full.sql 走这条。
+    """:func:`rls_ddl` 的 SchemaRef 版。汇出 psql DDL 走这条。
 
     末尾分号在此统一补上 (与 :func:`model_schema.model_ddl_for_ref` 同一约定):
     单条生成器返回的是纯语句文本, 而本函数返回的每一条都必须能直接交给
-    psycopg 或原样写进 ``schema_full.sql``。补在这里而不是补在三个单条
+    psycopg 或原样写进 ``psql DDL``。补在这里而不是补在三个单条
     生成器里, 是为了让它们保持「文本」语义 —— 它们的测试逐字比对输出。
 
     **第一条是 ctx_model() 的定义。** 策略表达式里写的是

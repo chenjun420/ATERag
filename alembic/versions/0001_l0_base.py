@@ -14,7 +14,7 @@ Create Date: 2026-10-04
 理由见 alembic/env.py 的「型号 schema 的处理」。
 
 全部用 ``op.execute`` 发原始 DDL 而非 SQLAlchemy 的 Table/Catalog 对象。
-原因是 §18.5 要求 ``seed/schema_full.sql`` 可直接 psql 执行, 而用 sa
+原因是 §18.5 要求 psql 可执行 DDL可直接 psql 执行, 而用 sa
 对象拼出来的 DDL 顺序与格式不可控 (外键顺序、CHECK 的位置由 SQLAlchemy
 内部决定), 审计者读到的东西与实际执行的结构会不一致。原始 DDL 让
 「文件里写的就是执行的」。
@@ -64,7 +64,7 @@ def upgrade() -> None:
     # 刻意不装 timescaledb: 它是可选扩展 (storage/schema.py 的
     # OPTIONAL_EXTENSIONS), 板卡部署与容器部署的可用扩展集不同,
     # 在迁移里硬要求会把容器路径拖死。hypertable 的创建由
-    # docgen.ddl 在确认扩展存在后进行。
+    # DDL 汇编在确认扩展存在后进行本迁移
     op.execute("CREATE EXTENSION IF NOT EXISTS vector")
     op.execute("CREATE EXTENSION IF NOT EXISTS age")
     op.execute("CREATE EXTENSION IF NOT EXISTS pg_textsearch")

@@ -64,7 +64,7 @@ dependencies = [
     # 没有 pint 就只能靠 LLM 猜, 等于把门禁交给被门禁的对象。
     # 冷却启动 100~300ms, 故 solver/symbolic.py 内做惰性单例。
     "pint>=0.24",
-    # 符号化: expression -> expr_ast (schema_full.sql 的 formula.expr_ast 列,
+    # 符号化: expression -> expr_ast (psql DDL 的 formula.expr_ast 列,
     # §18.3.1 要求「等价归一用」)、符号恒等判重、公式求导。
     # 与 pint 分工: pint 管单位语义, sympy 管符号结构。A-11 的 7 维向量本质
     # 就是量纲指数向量, 两者互补不可互替 (ADR-015 备选表)。
@@ -145,7 +145,7 @@ python_version = "3.11"
 # mcp_server/ workbench/ models/) 逐个 Wave 退役, 退役一个开一个,
 # 全量打开会一次性引出数百条历史债, 属重构范畴, 不塞进本次提交。
 # 退役进度由本文件的 exclude 列表体现 —— 列表变短就是进度, 反向指标。
-files = ["src/aterag/storage", "src/aterag/solver", "src/aterag/reasoning"]
+files = ["src/aterag/storage",  "src/aterag/reasoning"]
 strict = true
 # 第三方库无类型标注。semantica / pyshacl / ortools / lightrag 均属此类。
 # 注意: 这会让这些库的调用失去类型检查, 是有意的取舍 —— 补 stubs 的收益

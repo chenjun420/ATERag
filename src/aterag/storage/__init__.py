@@ -10,7 +10,7 @@
 
 设计约束:
     本层只认识「schema 名」与「表名」, 不认识任何具体业务表。
-    业务表的 DDL 由 seed/schema_full.sql 与 alembic 提供, 本层负责
+    业务表的 DDL 由 seed/psql DDL 与 alembic 提供, 本层负责
     幂等地把它们建出来并挂上隔离策略。
 """
 
