@@ -529,9 +529,14 @@ def _fold_caret(s: str) -> str:
     return s.replace("^", "**")
 
 
-#: ``R_ds(on)`` -> ``R_ds_on``。只认恰好 ``on``/``off``, 故不会误伤
-#: ``exp(t/τ)``/``min(a, b)`` 这类实参。
-_STATE_QUALIFIER_RE = re.compile(r"\b([A-Za-z_]\w*)\((on|off)\)")
+#: ``R_ds(on)`` -> ``R_ds_on``, ``R_DS(on,T)`` -> ``R_DS_on``。
+#:
+#: 第二个及以后的实参是**限定条件**而非变量: ``R_DS(on,25)`` 是「25 °C 下的
+#: 导通电阻」、``R_DS(on,T)`` 是「温度 T 下的导通电阻」。温度依赖由右侧的
+#: ``α(T-25)`` 承载, 所以丢掉限定条件不损失量纲信息。
+#:
+#: 只认**第一个**实参是 ``on``/``off``, 故 ``exp(t/τ)``/``min(a, b)`` 不受影响。
+_STATE_QUALIFIER_RE = re.compile(r"\b([A-Za-z_]\w*)\(\s*(on|off)\s*(?:,[^()]*)?\)")
 
 
 def _fold_state_qualifier(s: str) -> str:
