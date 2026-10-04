@@ -125,16 +125,42 @@ def _clean(text: str | None) -> str | None:
     return out or None
 
 
+#: ``source_kind`` 的取值。**必须区分「文档里读的」与「推出来的」** ——
+#: 把两者混成一种, 审计就分不清哪条能当依据、哪条只是线索。
+#:
+#: - ``bootstrap_section``  从方案 md 实读到, 行号可回溯
+#: - ``derived_from_id``    由实体 ID 编码反推(公式的 ``F_J.2.1`` -> ``J.2.1``)。
+#:                         **不是文档引用** —— ID 编码可能与实际章节不一致
+#: - ``correction``         来自 corrections.yaml, 带外部出处与查证日期
+#: - ``convention``         本项目的约定定义(工况词口径)。方案里**没有**这个
+#:                         概念的出处, 硬指一个章节号就是编造条款号
+#: - ``standard``           真标准号(可作认证依据)
+SOURCE_KINDS = (
+    "bootstrap_section",
+    "derived_from_id",
+    "correction",
+    "convention",
+    "standard",
+)
+
+
 def source_ref(
     ref: str | None, *, kind: str, line_no: int | None = None, confidence: float | None = None
 ) -> dict[str, Any]:
     """构造 ``semantica.provenance.schemas.SourceReference`` 形态的出处。
 
-    ``kind`` 取 ``section`` / ``standard``, 是**受约束字段**: 它决定下游能不能
-    把这个出处当认证依据。
+    ``kind`` 取 :data:`SOURCE_KINDS` 之一, 是**受约束字段**: 它决定下游能不能
+    把这个出处当认证依据。区分「读到的」与「推出来的」不是为了好看 —— 把
+    ``derived_from_id`` 混进 ``bootstrap_section``, 审计就会拿一条推出来的章节号
+    去核对原文, 核不到, 然后怀疑整份数据。
+
+    ``ref`` 为 ``None`` 且 ``kind`` 非 ``standard`` 时是允许的: 表示「**没有**
+    文档出处」, 而不是「出处未知」。后者危险得多 —— 前者是事实, 后者是没查。
     """
+    if kind not in SOURCE_KINDS:
+        raise ValueError(f"source_kind 必须是 {SOURCE_KINDS} 之一, 得到 {kind!r}")
     return {
-        "document": _BOOTSTRAP if kind == "section" else (ref or ""),
+        "document": _BOOTSTRAP if kind.startswith("bootstrap") or kind.startswith("derived") else (ref or ""),
         "section": ref,
         "line": line_no,
         "confidence": confidence,
@@ -143,16 +169,32 @@ def source_ref(
 
 
 def _props(
-    values: dict[str, Any], ref: str | None, kind: str, line_no: int | None
+    values: dict[str, Any],
+    ref: str | None,
+    kind: str,
+    line_no: int | None,
+    *,
+    term_status: str = "unverified",
 ) -> dict[str, Any]:
     """组装 properties + 逐属性 provenance。
 
     只给**有值**的属性挂 provenance —— 给空值挂一条出处是在声称「这个空值也有
     来源」, 那会让冲突检测把「未提供」误判成「两处来源不一致」。
+
+    ``term_status`` 标的是**这个领域名词有没有标准背书**, 与「这条数据从哪来」
+    是两件事:
+
+    - ``standard_backed``  有标准术语, ``standard_ref`` 给出处
+    - ``project_defined``  项目自定的合成词, 标准里没有对应术语(如 ORING、混插策略)
+    - ``unverified``       还没核过标准 —— **必须能区分于「确认没有」**
+
+    最后那个区分是要紧的: 「未核」和「确认无对应术语」的处置完全不同, 混起来
+    就等于把待办事项显示成已完成结论。
     """
     out = {k: v for k, v in values.items() if v is not None}
     out["source_ref"] = ref
     out["source_kind"] = kind
+    out["term_status"] = term_status
     out["provenance"] = {
         k: {
             "property_name": k,
@@ -160,7 +202,7 @@ def _props(
             "sources": [source_ref(ref, kind=kind, line_no=line_no)],
         }
         for k, v in out.items()
-        if k not in ("source_ref", "source_kind", "provenance")
+        if k not in ("source_ref", "source_kind", "provenance", "term_status")
     }
     return out
 
@@ -241,7 +283,7 @@ def extract_concepts(lines: list[str], sections: dict[int, str]) -> list[dict[st
             "properties": _props(
                 {"zh": zh, "en": en, "aliases": alias, "qudt_ref": qudt},
                 f"V6.0§{sec}" if sec else None,
-                "section",
+                "bootstrap_section",
                 i,
             ),
         }
@@ -298,7 +340,7 @@ def extract_symbols(lines: list[str]) -> list[dict[str, Any]]:
                             "dimension_declared": bool(dim_text and dim_text not in ("见各条",)),
                         },
                         "V6.0§U.5",
-                        "section",
+                        "bootstrap_section",
                         i,
                     ),
                 }
@@ -374,7 +416,7 @@ def extract_formulas(lines: list[str], sections: dict[int, str]) -> list[dict[st
                         "domain": fid[2],
                     },
                     f"V6.0§{sec}" if sec else None,
-                    "section",
+                    "bootstrap_section",
                     i,
                 ),
             }
@@ -500,7 +542,7 @@ def extract_errata(lines: list[str]) -> list[dict[str, Any]]:
                 "name": tag,
                 "type": "erratum",
                 "text": text,
-                "properties": _props({"statement": text}, "V6.0§勘误", "section", i),
+                "properties": _props({"statement": text}, "V6.0§A", "bootstrap_section", i),
             }
         )
     return out
@@ -557,8 +599,8 @@ def extract_axioms(lines: list[str]) -> tuple[list[dict[str, Any]], list[dict[st
                 "text": label,
                 "properties": _props(
                     {"label": label, "theorems": [], "rules": [], "tests": [], "formula_refs": []},
-                    "V6.0§附录U",
-                    "section",
+                    "V6.0§I.4",
+                    "bootstrap_section",
                     i,
                 ),
             },
@@ -580,7 +622,7 @@ def extract_axioms(lines: list[str]) -> tuple[list[dict[str, Any]], list[dict[st
                 "name": tname,
                 "type": "theorem",
                 "text": tname,
-                "properties": _props({"theorem_id": tid}, "V6.0§附录U", "section", i),
+                "properties": _props({"theorem_id": tid}, "V6.0§I.4", "bootstrap_section", i),
             },
         )
         rels.append({"source": aid, "target": f"thm::{tid}", "type": "has_theorem", "properties": {}})
@@ -589,6 +631,11 @@ def extract_axioms(lines: list[str]) -> tuple[list[dict[str, Any]], list[dict[st
 
 def extract_load_conditions() -> list[dict[str, Any]]:
     """工况限定词 -> ``load_condition``。比例见 :data:`LOAD_CONDITIONS`。
+
+    ``source_ref`` 刻意为 ``None``: 方案里没有「工况词比例」这个概念的出处。
+    早先一版硬编码 ``V6.0§J.5``, 而 J.5 实际是「隔离型变换器基本公式」——
+    一个指向无关章节的出处比没有出处更坏, 它看起来像有据可查。
+    这些比例是**项目约定**, 出处是 corrections.yaml 本身。
 
     额外产出 ``load_ratio(X, R)`` **事实**, 供 :data:`LOAD_RULES` 的 Datalog 规则
     消费 —— 规则要的是「事实 + 规则」, 只有词表推不出任何东西。
@@ -611,7 +658,7 @@ def extract_load_conditions() -> list[dict[str, Any]]:
                         "note": item["note"],
                     },
                     "V6.0§J.5",
-                    "section",
+                    "convention",
                     None,
                 ),
             }
@@ -628,7 +675,7 @@ def extract_load_conditions() -> list[dict[str, Any]]:
                     "properties": _props(
                         {"load": item["en"], "ratio": item["ratio"]},
                         "V6.0§J.5",
-                        "section",
+                        "convention",
                         None,
                     ),
                 }
@@ -778,7 +825,14 @@ def apply_corrections(
                     }
                 )
     for entry in corrections.get("concepts") or ():
-        _do("power_concept", entry, entry["id"], {k: v for k, v in entry.items() if k not in ("id", "source", "checked", "note")})
+        # ``standard_ref`` 有值 => 该领域名词**有标准背书**; 没值 => 还没查到
+        # 标准对应术语。后者是「未核」, 不是「确认没有」—— 两者处置不同。
+        _updates = {
+            k: v for k, v in entry.items() if k not in ("id", "source", "checked", "note")
+        }
+        if entry.get("standard_ref"):
+            _updates["term_status"] = "standard_backed"
+        _do("power_concept", entry, entry["id"], _updates)
     for entry in corrections.get("load_conditions") or ():
         _do("load_condition", entry, f"load::{entry['id']}", {k: v for k, v in entry.items() if k not in ("id", "source", "checked", "note")})
 
