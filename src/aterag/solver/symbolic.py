@@ -484,7 +484,15 @@ _UNARYOPS: frozenset[str] = frozenset({"USub"})
 #: 若哪天确需带量纲参数, 正确做法不是放宽白名单, 而是先在变量声明里
 #: 造一个无量纲组合变量 —— 让无量纲化在声明处显式发生, 而不是藏在
 #: 函数调用里。
-_FUNCS: frozenset[str] = frozenset({"sqrt", "abs", "min", "max"})
+_FUNCS: frozenset[str] = frozenset(
+    {"sqrt", "abs", "min", "max", "exp", "log", "ln", "log10", "integral"}
+)
+
+#: **实参必须无量纲**的函数。``exp``/``log`` 的定义域是无量纲数, 这是数学事实而
+#: 不是建模选择: ``exp(带量纲量)`` 没有意义 (``ln(1 Ω)`` 更没有)。因此
+#: ``exp(-Ea/(k·T))`` 这种写法在物理上要求 Ea 与 k·T 同量纲 —— 引擎据此给出
+#: 一个**约束**, 而不只是算出结果无量纲。
+_DIMENSIONLESS_ARG_FUNCS: frozenset[str] = frozenset({"exp", "log", "ln", "log10"})
 
 
 def _parse(expression: str) -> Any:
@@ -577,8 +585,35 @@ def _check_ast(node: Any, variables: Mapping[str, VariableSpec], expr: str) -> N
     if isinstance(node, _FuncCall):
         for arg in node.args:
             _check_ast(arg, variables, expr)
-        if node.name in ("sqrt", "abs", "min", "max"):
+        if node.name == "integral":
+            # ∫ f dx: 两个实参。被积函数与积分变量都要检查 (上面已查声明)。
+            if len(node.args) != 2:
+                raise ExpressionError(
+                    f"integral() 需要 2 个实参 (被积函数, 积分变量), 表达式 "
+                    f"{expr!r} 中收到 {len(node.args)} 个"
+                )
             return
+        if node.name in _DIMENSIONLESS_ARG_FUNCS:
+            # 个数检查放这里而不是只放在求值器里: ``check_expression`` 不求值,
+            # 只在 _eval_ast 里查的话 ``exp(x, y)`` 能过校验, 直到某次求值才炸
+            # —— 而那时它已经在库里了。报错也要指向真实原因 (个数), 不是
+            # 「实参必须无量纲」那种把人引向别处的说法。
+            if len(node.args) != 1:
+                raise ExpressionError(
+                    f"{node.name}() 需要 1 个实参, 表达式 {expr!r} 中收到 "
+                    f"{len(node.args)} 个"
+                )
+            for arg in node.args:
+                d = _dimension_of(arg, variables)
+                if not d.is_dimensionless:
+                    raise ExpressionError(
+                        f"{node.name}() 的实参必须无量纲, 表达式 {expr!r} 中收到 "
+                        f"{d.describe()}。exp/log 的定义域是无量纲数 —— 这不是建模"
+                        f"选择而是数学事实, 所以这里报错, 而不是给一个「看起来对」"
+                        f"的答案。"
+                    )
+            return
+        return
 
     raise ExpressionError(f"表达式结构无法检查: {expr!r}")
 
@@ -633,6 +668,16 @@ def _dimension_of(node: Any, variables: Mapping[str, VariableSpec]) -> Dimension
             # 被判成不是电阻 —— 而它就是。
             base = _dimension_of(node.args[0], variables)
             return base * 0.5
+        if node.name in _DIMENSIONLESS_ARG_FUNCS:
+            # 实参的无量纲性已由 _check_ast 校验过, 这里只管返回值
+            return DIMENSIONLESS
+        if node.name == "integral":
+            # ∫ f dx 的量纲是 dim f · dim x, 即两个实参量纲**相加**。
+            #
+            # 这一条让 I²t = ∫ i² dt (焦耳)、磁通 (Wb·s) 这类跨附录公式可以
+            # 参与齐次性判定。引擎**不求值**积分 (见 _eval_ast), 但量纲可算 ——
+            # W1 只需要闭合, 不需要算出来。
+            return _dimension_of(node.args[0], variables) + _dimension_of(node.args[1], variables)
         # abs/min/max 恒等映射: 它们不改变量纲
         return _dimension_of(node.args[0], variables)
 
@@ -758,8 +803,35 @@ def _eval_ast(
         if node.name == "min":
             _require_arity(node, 2)
             return min(args)
-        _require_arity(node, 2)
-        return max(args)
+        if node.name == "max":
+            _require_arity(node, 2)
+            return max(args)
+        if node.name in _DIMENSIONLESS_ARG_FUNCS:
+            if len(args) != 1:
+                raise ExpressionError(f"{node.name} 需要 1 个参数, 收到 {len(args)} 个")
+            if node.name == "exp":
+                try:
+                    return math.exp(args[0])
+                except OverflowError as exc:
+                    raise ExpressionError(f"exp({args[0]}) 溢出: {exc}") from exc
+            if node.name in ("log", "ln"):
+                if args[0] <= 0:
+                    raise ExpressionError(
+                        f"{node.name}({args[0]}) 无实数值 —— 定义域是正数。"
+                        " 返回 NaN 会被下游当成合法结果传下去。"
+                    )
+                return math.log(args[0])
+            return math.log10(args[0])
+        if node.name == "integral":
+            # **量纲可算, 但数值不可算。** W1 的门禁只要求齐次性闭合, 所以
+            # 上面 _dimension_of 已经给出了 ∫ f dx 的量纲。这里必须显式拒绝求值
+            # —— 悄悄返回 0 或抛一个含糊的异常, 都会让「算不出来」看起来像
+            # 「算出来是 0」。
+            raise ExpressionError(
+                "积分不做数值求值: 引擎能校验 ∫ f dx 的量纲 (dim f · dim x), "
+                "但不解析积分上下限, 因此无法给出数值。需要数值时走符号求解层。"
+            )
+        raise ExpressionError(f"未实现的函数: {node.name}")
 
     raise ExpressionError(f"无法求值: {type(node).__name__}")
 

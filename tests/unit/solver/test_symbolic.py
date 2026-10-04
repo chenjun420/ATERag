@@ -478,17 +478,30 @@ class TestExpressionSafety:
         with pytest.raises(ExpressionError, match="不允许的语法"):
             check_expression("(1, 2)", {})
 
-    def test_rejects_exp(self) -> None:
-        """exp 不在白名单。
+    def test_rejects_exp_of_a_dimensional_argument(self) -> None:
+        """``exp`` 现在**允许**了, 但实参必须无量纲 —— 约束没放松, 反而更紧。
 
-        exp(1 V) 无意义。电源公式里的 exp 几乎总是 exp(-t/tau),
-        正确写法是让比值无量纲 —— 白名单逼作者把无量纲化写出来。
+        早先一版是把 ``exp`` 整条挡在白名单外, 那连 ``exp(-t/tau)`` 这种
+        正确的写法一起挡掉了。现在放行并**改为校验实参**: ``exp(1 V)`` 无意义,
+        而 ``exp(-Ea/(k_B*T))`` 里 Ea 与 k_B·T 同量纲这件事, 引擎现在能
+        主动查出来。
         """
-        with pytest.raises(ExpressionError, match="不允许的函数"):
-            check_expression("exp(-t/T)", specs(t="s", T="s"))
+        with pytest.raises(ExpressionError, match="实参必须无量纲"):
+            check_expression("exp(-Ea/T)", specs(Ea="eV", T="K"))
 
-    def test_rejects_log(self) -> None:
-        with pytest.raises(ExpressionError, match="不允许的函数"):
+    def test_exp_of_a_dimensionless_ratio_is_accepted(self) -> None:
+        """``exp(-t/tau)`` 是电源公式里最常见的指数项, 必须能校验。"""
+        result = check_expression("exp(-t/tau)", specs(t="s", tau="s"))
+        assert result.dimension_ok, result.reason
+        assert result.dimension.is_dimensionless
+
+    def test_exp_arity_is_checked(self) -> None:
+        with pytest.raises(ExpressionError, match="需要 1 个实参"):
+            check_expression("exp(t, tau)", specs(t="s", tau="s"))
+
+    def test_rejects_log_of_a_dimensional_argument(self) -> None:
+        """``ln(1 Ω)`` 没有实数值, 更没有量纲意义。"""
+        with pytest.raises(ExpressionError, match="实参必须无量纲"):
             check_expression("log(U)", specs(U="V"))
 
     def test_rejects_keyword_arguments(self) -> None:
@@ -601,4 +614,65 @@ class TestResultShape:
         """
         r = check_expression("U*I*R", specs(U="V", I="A", R="ohm"))
         assert r.dimension_ok
-        assert r.lhs_dimension is None
+
+class TestIntegralIsDimensionOnly:
+    """``∫ f dx`` 的量纲可算, 但数值不可算 —— 这两件事必须分开表达。
+
+    引擎不含积分上下限的概念, 所以它**永远给不出数值**; 但
+    ``dim(∫ f dx) = dim f · dim x`` 是确定的, 而 W1 的门禁只要求齐次性闭合。
+    不把这两件事分开表达, 就会出现「悄悄返回 0」—— 那会让「算不出来」看起来
+    像「算出来是 0」。
+    """
+
+    def test_dimension_is_integrand_times_differential(self) -> None:
+        r = check_expression("integral(i*i, t)", specs(i="A", t="s"))
+        # dim i^2 * dim t = A^2*s -- **NOT** joule. I^2t is a heat proxy;
+        # reading it as joule is a common wrong intuition.
+        assert r.dimension == Dimension(time=1.0, current=2.0)
+
+    def test_closes_against_a_matching_lhs(self) -> None:
+        sp = specs(i="A", t="s")
+        r = check_expression(
+            "integral(i*i, t)", sp, lhs_dimension=Dimension(time=1.0, current=2.0)
+        )
+        assert r.dimension_ok, r.reason
+
+    def test_rejects_a_wrong_lhs(self) -> None:
+        """把 ∫ i² dt 判成与 A 同量纲必须是错的。"""
+        r = check_expression("integral(i*i, t)", specs(i="A", t="s"), lhs_dimension=unit_dimension("A"))
+        assert not r.dimension_ok
+
+    def test_numeric_evaluation_is_refused_loudly(self) -> None:
+        with pytest.raises(ExpressionError, match="不做数值求值"):
+            evaluate("integral(i*i, t)", {"i": 2.0, "t": 3.0})
+
+    def test_arity_is_enforced(self) -> None:
+        with pytest.raises(ExpressionError, match="需要 2 个实参"):
+            check_expression("integral(i)", specs(i="A"))
+
+
+class TestExpAndLogEvaluation:
+    def test_exp_evaluates(self) -> None:
+        sp = specs(x="dimensionless")
+        r = check_expression("exp(x)", sp)
+        assert r.dimension_ok, r.reason
+        assert r.dimension.is_dimensionless
+        assert evaluate("exp(x)", {"x": 0.0}) == pytest.approx(1.0)
+        assert evaluate("exp(x)", {"x": 1.0}) == pytest.approx(2.718281828459045)
+
+    def test_log10_evaluates(self) -> None:
+        assert evaluate("log10(x)", {"x": 100.0}) == pytest.approx(2.0)
+
+    def test_log_of_non_positive_is_refused(self) -> None:
+        """返回 NaN 会被下游当成合法结果一路传下去。"""
+        with pytest.raises(ExpressionError, match="定义域"):
+            evaluate("log(x)", {"x": -1.0})
+
+    def test_exp_overflow_is_refused(self) -> None:
+        with pytest.raises(ExpressionError, match="溢出"):
+            evaluate("exp(x)", {"x": 1e6})
+
+    def test_exp_arity_is_checked(self) -> None:
+        """实参个数错要报「个数」而不是「无量纲」—— 报错要指向真实原因。"""
+        with pytest.raises(ExpressionError, match="需要 1 个实参"):
+            check_expression("exp(x, y)", specs(x="dimensionless", y="dimensionless"))

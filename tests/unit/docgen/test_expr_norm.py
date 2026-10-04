@@ -146,7 +146,7 @@ class TestRejections:
             ("未满足的 capability 集合 → INSTRUMENT_GAP", "中文"),
             ("P_loss = ∑ P_i", "求和"),
             ("I²t = ∫ i² dt", "积分"),
-            ("t_50 = ln(2)·MTTF", "超越函数"),
+            ("t_50 = tan(2)·MTTF", "超越函数"),
             ("R_ds(on) ∝ T^1.5", "正比"),
             ("ΔI_grade ≤ 10% ~ I_set", "区间"),
             ("t_resolution ≤ 1~10 ms", "区间"),
