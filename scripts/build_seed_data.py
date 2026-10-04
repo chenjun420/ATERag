@@ -1070,6 +1070,140 @@ def apply_corrections(
             if k not in ("id", "source", "checked", "note", "standard_ref", "authority_ref", "authority_kind")
         }
         _do("power_concept", entry, entry["id"], _updates)
+
+    # ---- 新增实体: 方案 md 里根本没有的概念/标准 ----------------------------
+    #
+    # 为什么要单独两段: 上面的 ``concepts`` 只能**改**已有实体(``_do`` 走
+    # ``by_id.get``, 找不到就 skip), 只能改不能增; 而 ``standards`` 的
+    # ``current`` 分支语义是「被替代版指向现行版」, 不能拿来凭空加一个
+    # 全新标准。YD/T 4523《通信电源术语和定义》里的「休眠」「负载下电」
+    # 「软启动」「N+X 冗余」方案 md 压根没提 —— 没有这两段就永远进不来,
+    # 而「方案中术语可能不全」正是这个洞。
+    #
+    # 纪律与 ``_do`` 一致: 缺 ``source`` 或 ``checked`` 一律跳过并计数。
+    # 无出处的「新增」比不新增更危险 —— 它看起来可信, 却无法复核。
+    #
+    # 段名用 ``*_add`` 而不是复用 ``concepts``: 增与改的审计含义不同,
+    # ``corrections_applied`` 里分开才能一眼看出哪些知识是新增的。
+    _META_KEYS = ("id", "source", "checked", "note", "clause")
+
+    for entry in corrections.get("concepts_add") or ():
+        cid = entry.get("id")
+        if not entry.get("source") or not entry.get("checked"):
+            skipped.append(f"concepts_add:{cid}(缺source或checked)")
+            continue
+        if not cid:
+            skipped.append("concepts_add:<无id>")
+            continue
+        if cid in by_id:
+            # 已存在就**不重复建**: 改名/换词请走 concepts 段, 那里会留
+            # zh_declared 与 before/after 审计痕迹。这里重复建等于凭空多一个
+            # 实体, 而两个实体的区别在检索时无法解释。
+            skipped.append(f"concepts_add:{cid}(已存在, 改用concepts段)")
+            continue
+        akind, aref = _authority_of(entry)
+        if akind not in AUTHORITY_KINDS:
+            skipped.append(f"concepts_add:{cid}(authority_kind非法:{akind})")
+            continue
+        if akind in ("standard", "book") and not aref:
+            # 声称来自标准/书籍却写不出是哪一份 —— 正是要防的那种无出处数据
+            skipped.append(f"concepts_add:{cid}(声称{akind}但无standard_ref)")
+            continue
+        src = authority_ref(aref, kind=akind, confidence=entry.get("confidence"))
+        src["metadata"]["checked"] = entry["checked"]
+        src["metadata"]["correction_source"] = entry["source"]
+        _new_props = {
+            k: v
+            for k, v in entry.items()
+            if k not in _META_KEYS + ("standard_ref", "authority_ref", "authority_kind")
+        }
+        _new_props["authority_kind"] = akind
+        if aref:
+            _new_props["authority_ref"] = aref
+        if entry.get("clause"):
+            _new_props["clause"] = entry["clause"]
+        # provenance: 逐属性挂出处, 审计要能回答「这个 zh 是谁说的」
+        _new_props["provenance"] = {
+            k: {"property_name": k, "value": v, "sources": [src]}
+            for k, v in _new_props.items()
+            if k not in ("authority_kind", "authority_ref")
+        }
+        _zh = _new_props.get("zh") or cid
+        _en = _new_props.get("en") or ""
+        ent = {
+            "id": cid,
+            "name": _zh,
+            "type": "power_concept",
+            "text": f"{_zh} {_en}".strip(),
+            "properties": _new_props,
+        }
+        by_id[cid] = ent
+        entities.append(ent)
+        applied.append(
+            {
+                "kind": "power_concept",
+                "id": cid,
+                "action": "created",
+                "matched": cid,
+                "before": None,
+                "after": {k: v for k, v in _new_props.items() if k != "provenance"},
+                "authority_kind": akind,
+                "authority_ref": aref,
+                "source": entry["source"],
+                "checked": entry["checked"],
+                "confidence": entry.get("confidence"),
+            }
+        )
+
+    for entry in corrections.get("standards_add") or ():
+        sid = entry.get("id")
+        if not entry.get("source") or not entry.get("checked"):
+            skipped.append(f"standards_add:{sid}(缺source或checked)")
+            continue
+        if not sid:
+            skipped.append("standards_add:<无id>")
+            continue
+        cid = f"std::{sid}"
+        if cid in by_id:
+            skipped.append(f"standards_add:{sid}(已存在, 改用standards段)")
+            continue
+        src = authority_ref(sid, kind="standard", confidence=entry.get("confidence"))
+        src["metadata"]["checked"] = entry["checked"]
+        src["metadata"]["correction_source"] = entry["source"]
+        _new_props = {
+            k: v for k, v in entry.items() if k not in _META_KEYS + ("id",)
+        }
+        _new_props["authority_kind"] = "standard"
+        _new_props["authority_ref"] = sid
+        _new_props["provenance"] = {
+            k: {"property_name": k, "value": v, "sources": [src]}
+            for k, v in _new_props.items()
+            if k not in ("authority_kind", "authority_ref")
+        }
+        ent = {
+            "id": cid,
+            "name": entry.get("title") or sid,
+            "type": "standard",
+            "text": f"{sid} {entry.get('title', '')}".strip(),
+            "properties": _new_props,
+        }
+        by_id[cid] = ent
+        entities.append(ent)
+        applied.append(
+            {
+                "kind": "standard",
+                "id": cid,
+                "action": "created",
+                "matched": cid,
+                "before": None,
+                "after": {k: v for k, v in _new_props.items() if k != "provenance"},
+                "authority_kind": "standard",
+                "authority_ref": sid,
+                "source": entry["source"],
+                "checked": entry["checked"],
+                "confidence": entry.get("confidence"),
+            }
+        )
     for fam in corrections.get("telemetry_families") or ():
         # 遥信/遥测/遥控用**行业通称**作 ``zh``, 标准正名另存 ``standard_term``。
         #
