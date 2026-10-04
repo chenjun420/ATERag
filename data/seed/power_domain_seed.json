@@ -489,6 +489,456 @@
         "confidence": 0.85
       },
       {
+        "kind": "symbol",
+        "id": "R_E",
+        "matched": "sym::R_E",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.74-2008"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "R_dc",
+        "matched": "sym::R_dc",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.74-2008"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "R_ac",
+        "matched": "sym::R_ac",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.74-2008"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "R_in",
+        "matched": "sym::R_in",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.74-2008"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "R_out",
+        "matched": "sym::R_out",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.74-2008"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "R_ESR",
+        "matched": "sym::R_ESR",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.74-2008"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "R_ESL",
+        "matched": "sym::R_ESL",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.74-2008"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "L_s",
+        "matched": "sym::L_s",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.74-2008"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "L_CM",
+        "matched": "sym::L_CM",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.74-2008"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "L_DM",
+        "matched": "sym::L_DM",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.74-2008"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "C_out",
+        "matched": "sym::C_out",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.74-2008"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "C_in",
+        "matched": "sym::C_in",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.74-2008"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "C_par",
+        "matched": "sym::C_par",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.74-2008"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "Z_in",
+        "matched": "sym::Z_in",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.74-2008"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "Z_out",
+        "matched": "sym::Z_out",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.74-2008"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "R_θ",
+        "matched": "sym::R_θ",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.32-1994"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.32-1994《电工术语 电力半导体器件》",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "R_θjc",
+        "matched": "sym::R_θjc",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.32-1994"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.32-1994《电工术语 电力半导体器件》",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "R_θcs",
+        "matched": "sym::R_θcs",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.32-1994"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.32-1994《电工术语 电力半导体器件》",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "R_θsa",
+        "matched": "sym::R_θsa",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.32-1994"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.32-1994《电工术语 电力半导体器件》",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "T_j,max",
+        "matched": "sym::T_j,max",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.32-1994"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.32-1994《电工术语 电力半导体器件》",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "T_case",
+        "matched": "sym::T_case",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.32-1994"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.32-1994《电工术语 电力半导体器件》",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "symbol",
+        "id": "t_sw",
+        "matched": "sym::t_sw",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.93-2015"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)",
+        "checked": "2026-10-04",
+        "confidence": 0.85
+      },
+      {
+        "kind": "symbol",
+        "id": "t_on",
+        "matched": "sym::t_on",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.93-2015"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)",
+        "checked": "2026-10-04",
+        "confidence": 0.85
+      },
+      {
+        "kind": "symbol",
+        "id": "t_off",
+        "matched": "sym::t_off",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.93-2015"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)",
+        "checked": "2026-10-04",
+        "confidence": 0.85
+      },
+      {
+        "kind": "symbol",
+        "id": "t_dead",
+        "matched": "sym::t_dead",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.93-2015"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)",
+        "checked": "2026-10-04",
+        "confidence": 0.85
+      },
+      {
+        "kind": "symbol",
+        "id": "τ_th",
+        "matched": "sym::τ_th",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.93-2015"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)",
+        "checked": "2026-10-04",
+        "confidence": 0.85
+      },
+      {
+        "kind": "symbol",
+        "id": "τ_noise",
+        "matched": "sym::τ_noise",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.93-2015"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)",
+        "checked": "2026-10-04",
+        "confidence": 0.85
+      },
+      {
+        "kind": "symbol",
+        "id": "f_sw",
+        "matched": "sym::f_sw",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.93-2015"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)",
+        "checked": "2026-10-04",
+        "confidence": 0.8
+      },
+      {
+        "kind": "symbol",
+        "id": "f_c",
+        "matched": "sym::f_c",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.93-2015"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)",
+        "checked": "2026-10-04",
+        "confidence": 0.8
+      },
+      {
+        "kind": "symbol",
+        "id": "f_RHPZ",
+        "matched": "sym::f_RHPZ",
+        "before": {
+          "term_status": "standard_backed"
+        },
+        "after": {
+          "term_status": "standard_backed",
+          "standard_ref": "GB/T 2900.93-2015"
+        },
+        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)",
+        "checked": "2026-10-04",
+        "confidence": 0.8
+      },
+      {
         "kind": "load_condition",
         "id": "半载",
         "matched": "load::半载",
@@ -9496,7 +9946,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -9559,8 +10009,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.74-2008",
+              "section": "GB/T 2900.74-2008",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.74-2008"
     },
     {
       "id": "sym::R_dc",
@@ -9576,7 +10042,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -9639,8 +10105,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.74-2008",
+              "section": "GB/T 2900.74-2008",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.74-2008"
     },
     {
       "id": "sym::R_ac",
@@ -9656,7 +10138,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -9719,8 +10201,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.74-2008",
+              "section": "GB/T 2900.74-2008",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.74-2008"
     },
     {
       "id": "sym::R_ESR",
@@ -9736,7 +10234,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -9799,8 +10297,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.74-2008",
+              "section": "GB/T 2900.74-2008",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.74-2008"
     },
     {
       "id": "sym::R_ESL",
@@ -9816,7 +10330,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -9879,8 +10393,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.74-2008",
+              "section": "GB/T 2900.74-2008",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.74-2008"
     },
     {
       "id": "sym::R_θjc",
@@ -9895,7 +10425,7 @@
       "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -9943,8 +10473,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.32-1994",
+              "section": "GB/T 2900.32-1994",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.32-1994"
     },
     {
       "id": "sym::R_θcs",
@@ -9959,7 +10505,7 @@
       "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -10007,8 +10553,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.32-1994",
+              "section": "GB/T 2900.32-1994",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.32-1994"
     },
     {
       "id": "sym::R_θsa",
@@ -10023,7 +10585,7 @@
       "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -10071,8 +10633,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.32-1994",
+              "section": "GB/T 2900.32-1994",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.32-1994"
     },
     {
       "id": "sym::R_θ",
@@ -10087,7 +10665,7 @@
       "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -10135,8 +10713,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.32-1994",
+              "section": "GB/T 2900.32-1994",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.32-1994"
     },
     {
       "id": "sym::R_m",
@@ -10232,7 +10826,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -10295,8 +10889,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.74-2008",
+              "section": "GB/T 2900.74-2008",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.74-2008"
     },
     {
       "id": "sym::R_out",
@@ -10312,7 +10922,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -10375,8 +10985,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.74-2008",
+              "section": "GB/T 2900.74-2008",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.74-2008"
     },
     {
       "id": "sym::Z_in",
@@ -10392,7 +11018,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -10455,8 +11081,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.74-2008",
+              "section": "GB/T 2900.74-2008",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.74-2008"
     },
     {
       "id": "sym::Z_out",
@@ -10472,7 +11114,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -10535,8 +11177,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.74-2008",
+              "section": "GB/T 2900.74-2008",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.74-2008"
     },
     {
       "id": "sym::L_s",
@@ -10552,7 +11210,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -10615,8 +11273,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.74-2008",
+              "section": "GB/T 2900.74-2008",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.74-2008"
     },
     {
       "id": "sym::C_out",
@@ -10632,7 +11306,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -10695,8 +11369,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.74-2008",
+              "section": "GB/T 2900.74-2008",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.74-2008"
     },
     {
       "id": "sym::C_in",
@@ -10712,7 +11402,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -10775,8 +11465,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.74-2008",
+              "section": "GB/T 2900.74-2008",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.74-2008"
     },
     {
       "id": "sym::C_par",
@@ -10792,7 +11498,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -10855,8 +11561,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.74-2008",
+              "section": "GB/T 2900.74-2008",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.74-2008"
     },
     {
       "id": "sym::L_CM",
@@ -10872,7 +11594,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -10935,8 +11657,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.74-2008",
+              "section": "GB/T 2900.74-2008",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.74-2008"
     },
     {
       "id": "sym::L_DM",
@@ -10952,7 +11690,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -11015,8 +11753,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.74-2008",
+              "section": "GB/T 2900.74-2008",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.74-2008"
     },
     {
       "id": "sym::T_j",
@@ -11192,7 +11946,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -11255,8 +12009,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.32-1994",
+              "section": "GB/T 2900.32-1994",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.32-1994"
     },
     {
       "id": "sym::T_j,max",
@@ -11272,7 +12042,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -11335,8 +12105,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.32-1994",
+              "section": "GB/T 2900.32-1994",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.32-1994"
     },
     {
       "id": "sym::τ_th",
@@ -11352,7 +12138,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -11415,8 +12201,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.93-2015",
+              "section": "GB/T 2900.93-2015",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.93-2015"
     },
     {
       "id": "sym::τ_noise",
@@ -11432,7 +12234,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -11495,8 +12297,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.93-2015",
+              "section": "GB/T 2900.93-2015",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.93-2015"
     },
     {
       "id": "sym::t_sw",
@@ -11512,7 +12330,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -11575,8 +12393,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.93-2015",
+              "section": "GB/T 2900.93-2015",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.93-2015"
     },
     {
       "id": "sym::t_on",
@@ -11592,7 +12426,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -11655,8 +12489,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.93-2015",
+              "section": "GB/T 2900.93-2015",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.93-2015"
     },
     {
       "id": "sym::t_off",
@@ -11672,7 +12522,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -11735,8 +12585,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.93-2015",
+              "section": "GB/T 2900.93-2015",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.93-2015"
     },
     {
       "id": "sym::t_dead",
@@ -11752,7 +12618,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -11815,8 +12681,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.93-2015",
+              "section": "GB/T 2900.93-2015",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.93-2015"
     },
     {
       "id": "sym::f_sw",
@@ -11832,7 +12714,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -11895,8 +12777,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.93-2015",
+              "section": "GB/T 2900.93-2015",
+              "line": null,
+              "confidence": 0.8,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.93-2015"
     },
     {
       "id": "sym::f_c",
@@ -11912,7 +12810,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -11975,8 +12873,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.93-2015",
+              "section": "GB/T 2900.93-2015",
+              "line": null,
+              "confidence": 0.8,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.93-2015"
     },
     {
       "id": "sym::f_RHPZ",
@@ -11992,7 +12906,7 @@
       "dimension_declared": true,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -12055,8 +12969,24 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "GB/T 2900.93-2015",
+              "section": "GB/T 2900.93-2015",
+              "line": null,
+              "confidence": 0.8,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "standard_ref": "GB/T 2900.93-2015"
     },
     {
       "id": "sym::f_esr",

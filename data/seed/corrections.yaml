@@ -216,3 +216,71 @@ load_conditions:
   checked: '2026-10-04'
   confidence: 1.0
   note: 模式 `^(\d+(?:\.\d+)?)\s*%\s*载$`, 整串锚定以免误吃 P_load 的 load。
+symbols:
+- standard_ref: GB/T 2900.74-2008
+  symbols:
+  - R_E
+  - R_dc
+  - R_ac
+  - R_in
+  - R_out
+  - R_ESR
+  - R_ESL
+  source: 全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)
+  checked: '2026-10-04'
+  confidence: 0.9
+  note: 电阻 resistance —— 两端电压与电流之商。R_ 前缀在热学语境是 [K/W], 与电阻同字母不同量纲。
+- standard_ref: GB/T 2900.74-2008
+  symbols:
+  - L_s
+  - L_CM
+  - L_DM
+  - C_out
+  - C_in
+  - C_par
+  source: 全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)
+  checked: '2026-10-04'
+  confidence: 0.9
+  note: 电感 inductance / 电容 capacitance。
+- standard_ref: GB/T 2900.74-2008
+  symbols:
+  - Z_in
+  - Z_out
+  source: 全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)
+  checked: '2026-10-04'
+  confidence: 0.9
+  note: 阻抗 impedance(正弦条件下两端电压相量与电流相量之商)。
+- standard_ref: GB/T 2900.32-1994
+  symbols:
+  - R_θ
+  - R_θjc
+  - R_θcs
+  - R_θsa
+  - T_j,max
+  - T_case
+  source: 全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.32-1994《电工术语 电力半导体器件》
+  checked: '2026-10-04'
+  confidence: 0.9
+  note: 热阻 = 温升/功耗; 管壳温度 case temperature。方案把虚拟结温写作「最高结温」。
+- standard_ref: GB/T 2900.93-2015
+  symbols:
+  - t_sw
+  - t_on
+  - t_off
+  - t_dead
+  - τ_th
+  - τ_noise
+  source: 全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)
+  checked: '2026-10-04'
+  confidence: 0.85
+  note: 时间 time(113-01-03)。时间常数 τ 无独立词条, 由 R·C 组合。
+- standard_ref: GB/T 2900.93-2015
+  symbols:
+  - f_sw
+  - f_c
+  - f_RHPZ
+  - f_g
+  source: 全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)
+  checked: '2026-10-04'
+  confidence: 0.8
+  note: 频率属导出量; 标准给的是频率定义而非符号约定, 故 confidence 略低。

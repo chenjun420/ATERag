@@ -877,6 +877,38 @@ def apply_corrections(
         if entry.get("standard_ref"):
             _updates["term_status"] = "standard_backed"
         _do("power_concept", entry, entry["id"], _updates)
+    for group in corrections.get("symbols") or ():
+        # 符号的术语出处是**组**的(一组符号共用一个标准的同一批词条), 不是逐条的。
+        # 逐条写会把 30 多个符号抄 30 遍, 而标准不会为每个记号单列词条。
+        source = source_ref(
+            group.get("standard_ref"), kind="standard", confidence=group.get("confidence")
+        )
+        for name in group.get("symbols") or ():
+            target = by_id.get(f"sym::{name}")
+            if target is None:
+                skipped.append(f"symbol:{name}(目标不存在)")
+                continue
+            target["properties"]["term_status"] = "standard_backed"
+            target["properties"]["standard_ref"] = group.get("standard_ref")
+            target["properties"]["provenance"]["term_status"] = {
+                "property_name": "term_status",
+                "value": "standard_backed",
+                "sources": [source],
+            }
+            applied.append(
+                {
+                    "kind": "symbol",
+                    "id": name,
+                    "matched": f"sym::{name}",
+                    "before": {"term_status": target["properties"].get("term_status")},
+                    "after": {"term_status": "standard_backed",
+                              "standard_ref": group.get("standard_ref")},
+                    "source": group["source"],
+                    "checked": group["checked"],
+                    "confidence": group.get("confidence"),
+                }
+            )
+
     for entry in corrections.get("load_conditions") or ():
         _do("load_condition", entry, f"load::{entry['id']}", {k: v for k, v in entry.items() if k not in ("id", "source", "checked", "note")})
 
