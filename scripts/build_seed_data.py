@@ -66,6 +66,42 @@ LOAD_CONDITIONS: tuple[dict[str, Any], ...] = (
      "note": "常规取整的代表值, 无保证含义。不给比例。"},
     {"zh": "最大额定", "en": "absolute maximum rating", "ratio": None, "kind": "rating",
      "note": "超过即可能损坏的绝对上限, 与「额定工作值」不是一回事。"},
+    {"zh": "xx%载", "en": "fraction load", "ratio": None, "kind": "load",
+     "pattern": r"^(\d+(?:\.\d+)?)\s*%\s*载$",
+     "note": "**按模式求值, 不是固定值**: xx%载 = 满载 × xx%。例 30%载 -> 0.30。"
+             "ratio 刻意为 null —— 它是待求量, 不是常量; 给出 1.0 之类的值会让推理"
+             "把任意百分比都当成满载。整串锚定以免把 P_load 的 load 误认成工况词。"},
+)
+
+#: 半载 / xx%载 的推导规则, 编码成 Datalog(Horn 子句)。
+#:
+#: Semantica 的推理引擎(``semantica.reasoning.DatalogReasoner``)吃的是
+#: ``DatalogRule``(head_predicate + head_args + body), 所以这条**必须**是规则而
+#: 不是查表: 查表只能回答「半载是几倍」, 规则才能回答
+#: 「某型号在 30% 载时的输出功率是多少」—— 而后者才是产测推理要的。
+#:
+#: 变量一律以 ``?`` 开头, 与 Datalog 惯例一致, 也让 Semantica 认出这是变量而非常量。
+#: ``?ratio * ?base`` 写成算术项, 因为 ``value_at_load`` 的第三个参数是数值。
+LOAD_RULES: tuple[dict[str, Any], ...] = (
+    {
+        "rule_id": "load-scaling",
+        "comment": "任意 xx%载 的量值 = 满载量值 × 该载比例。依据用户给定定义: "
+                   "半载 = 50%载 = 满载 × 50%; xx%载 = 满载 × xx%。",
+        "head_predicate": "value_at_load",
+        "head_args": ("?quantity", "?load", "?ratio * ?base"),
+        "body": [
+            {"predicate": "load_ratio", "args": ("?load", "?ratio")},
+            {"predicate": "load_ratio", "args": ("full_load", "?base")},
+            {"predicate": "value_at_load", "args": ("?quantity", "full_load", "?base")},
+        ],
+    },
+    {
+        "rule_id": "load-alias-50",
+        "comment": "半载 与 50%载 是同一个工况 —— 两个词都要能被规则匹配到。",
+        "head_predicate": "load_ratio",
+        "head_args": ("half_load", "0.5"),
+        "body": [{"predicate": "load_ratio", "args": ("full_load", "?base")},],
+    },
 )
 
 _BOOTSTRAP = "V6.0 开发指导方案"
@@ -152,34 +188,50 @@ def _section_of(line_no: int, index: dict[int, str]) -> str | None:
 # ---------------------------------------------------------------------------
 
 
+#: 概念字典表头(§6.3.1): | concept_id | pref_label_zh | pref_label_en | aliases | qudt_ref |
+#:
+#: **必须按表头定位表格。** 早先一版用「行首是大写 ID」全文匹配, 结果把方案里
+#: 其它表格的术语全抓进来 —— 实测产出 232 条「电源概念」, 其中含
+#: ``Apache Graph Extension`` / ``Row-Level Security`` /
+#: ``Hierarchical Navigable Small World`` / ``Shapes Constraint Language``。
+#: 那是**本项目的实现细节**, 不是电源产品知识; 混进领域知识后, Semantica 会
+#: 拿「HNSW 是一个可测量」去推理, 而且不报错。真正的概念字典是**带 qudt_ref
+#: 的那 23 条**(输出纹波 / 额定输出电压 / 整机效率 / 功率因数 / 过温保护 …)。
+_CONCEPT_HEADER = re.compile(
+    r"^\|\s*concept_id\s*\|\s*pref_label_zh\s*\|\s*pref_label_en\s*\|\s*aliases\s*\|"
+)
+
+
 def extract_concepts(lines: list[str], sections: dict[int, str]) -> list[dict[str, Any]]:
-    """概念字典 -> ``power_concept``。
+    """概念字典(§6.3.1) -> ``power_concept``。
 
-    ``| CONCEPT_ID | 中文 | english | 别名 | qudt:X |``
-
-    概念字典在方案里**出现两次**(实测第 3163 与第 15140 行起)。按 ID 去重并留
+    概念字典在方案里**出现两次**(第 3160 与第 15140 行起)。按 ID 去重并留
     **第一次**出现的位置 —— 留后一份会让 ``source_ref`` 指向复制处。
     """
     out: dict[str, dict[str, Any]] = {}
-    pattern = re.compile(r"^\|\s*(?P<id>[A-Z][A-Z0-9_]{2,})\s*\|")
+    in_table = False
     for i, line in enumerate(lines, 1):
-        m = pattern.match(line.strip())
-        if m is None:
+        stripped = line.strip()
+        if _CONCEPT_HEADER.match(stripped):
+            in_table = True
             continue
-        cells = _cells(line)
-        if len(cells) < 3:
+        if not in_table:
             continue
-        cid = m.group("id")
-        if cid in out:
+        if not stripped.startswith("|"):
+            if stripped.startswith("#"):
+                in_table = False
+            continue
+        cells = _cells(stripped)
+        if len(cells) < 3 or set(cells[0]) <= {"-", ":"}:
+            continue
+        cid = _clean(cells[0])
+        if not cid or cid in out:
             continue
         zh, en = _clean(cells[1]), _clean(cells[2])
+        alias = _clean(cells[3]) if len(cells) > 3 else None
         qudt = None
-        alias = None
-        for cell in cells[3:]:
-            if cell.startswith("qudt:"):
-                qudt = cell.split(":", 1)[1].strip()
-            elif _clean(cell) and not cell.startswith("qudt"):
-                alias = _clean(cell)
+        if len(cells) > 4 and cells[4].startswith("qudt:"):
+            qudt = cells[4].split(":", 1)[1].strip()
         sec = _section_of(i, sections)
         out[cid] = {
             "id": cid,
@@ -341,7 +393,6 @@ def extract_standards(lines: list[str]) -> list[dict[str, Any]]:
     seen: set[str] = set()
     header = re.compile(r"^\|\s*标准号\s*\|")
     in_table = False
-    num_re = re.compile(r"^[A-Z]{1,5}(?:/T)?\s?\d")
     for i, line in enumerate(lines, 1):
         stripped = line.strip()
         if header.match(stripped):
@@ -357,7 +408,25 @@ def extract_standards(lines: list[str]) -> list[dict[str, Any]]:
         if len(cells) < 2 or set(cells[0]) <= {"-", ":"}:
             continue
         sid = _clean(cells[0])
-        if not sid or sid in seen or not num_re.match(sid):
+        # 判据是「标识里**有没有数字**」, 不是某个前缀形态。实测早先一版用
+        # ``^[A-Z]{1,5}(?:/T)?\s?\d`` 只认 ``IEC 60664`` / ``GB 4943``, 把
+        # 70 条真标准全拒了: ``IEEE C37.238`` / ``JEDEC JESD22-A104`` /
+        # ``MIL-HDBK-217F`` / ``AEC-Q101`` / ``IPC-2221`` 都不匹配那个形态。
+        # 「有没有编号」与「是不是标准」是两件事, 必须能区分 —— ``PMBus`` 这类
+        # 以名称标识的规范确实没有编号, 但仍是真标准。
+        if not sid or sid in seen or not re.search(r"\d", sid):
+            continue
+        # 「有数字」不足以判定是标准。实测混进三类**不是标准**的东西:
+        #   - ``READ_TEMPERATURE_1`` / ``READ_FAN_SPEED_1`` / ``MFR_SPECIFIC_00..45``
+        #     —— 寄存器名与占位标记, 会被当编号收下;
+        #   - ``HALT（见附录F.10）`` —— 试验方法名;
+        #   - ``GB/T 2423（系列）`` —— 系列标准, 没有单一编号可引。
+        # 判据: 数字前必须有**标准族前缀**(字母/斜杠/连字符), 且不含中文与省略号。
+        if (
+            not re.fullmatch(r"[A-Za-z][A-Za-z0-9]*(?:[/ -][A-Za-z0-9.+]+)*", sid)
+            or ".." in sid
+            or re.search(r"[一-鿿]", sid)
+        ):
             continue
         seen.add(sid)
         # 列序是「标准号 | 版本 | 名称 | 适用范围 | 关联规则/公式」。
@@ -365,6 +434,18 @@ def extract_standards(lines: list[str]) -> list[dict[str, Any]]:
         version = _clean(cells[1]) if len(cells) > 1 else None
         if version in ("无", "年", "-", "—"):
             version = None
+        # 版本格有时把年份重复一遍(实测 ``GB/T 17626.2`` 的版本格是 ``2018-2018``),
+        # 直接拼会得到 ``GB/T 17626.2-2018-2018`` —— 一个查不到的标准号, 而
+        # 它看起来完全合法。年份**跟在标识后面**时视为重复, 去掉。
+        if version and sid.endswith(version) and version.count("-") == 1:
+            version = None
+        # 版本格写成 ``2018-2018``(同一年重复两遍, 实测 GB/T 17626.2 等 7 条都是)
+        # 时取第一段。**不能**对所有含 ``-`` 的版本做这件事: ``2005+A1:2012``
+        # 是合法的修订版标识(实测 IEC 60601-1), 截断会丢掉 A1 修订。
+        if version:
+            dup = re.fullmatch(r"(\d{4})-(\d{4})", version)
+            if dup and dup.group(1) == dup.group(2):
+                version = dup.group(1)
         title = _clean(cells[2]) if len(cells) > 2 else None
         scope = _clean(cells[3]) if len(cells) > 3 else None
         bindings = _clean(cells[4]) if len(cells) > 4 else None
@@ -507,27 +588,52 @@ def extract_axioms(lines: list[str]) -> tuple[list[dict[str, Any]], list[dict[st
 
 
 def extract_load_conditions() -> list[dict[str, Any]]:
-    """工况限定词 -> ``load_condition``。比例见 :data:`LOAD_CONDITIONS`。"""
-    return [
-        {
-            "id": f"load::{item['zh']}",
-            "name": item["zh"],
-            "type": "load_condition",
-            "text": f"{item['zh']} {item['en']}: ratio={item['ratio']}",
-            "properties": _props(
+    """工况限定词 -> ``load_condition``。比例见 :data:`LOAD_CONDITIONS`。
+
+    额外产出 ``load_ratio(X, R)`` **事实**, 供 :data:`LOAD_RULES` 的 Datalog 规则
+    消费 —— 规则要的是「事实 + 规则」, 只有词表推不出任何东西。
+    ``xx%载`` 的 ratio 保持 ``None``: 它是待求量, 由模式在推理时算出。
+    """
+    out: list[dict[str, Any]] = []
+    for item in LOAD_CONDITIONS:
+        out.append(
+            {
+                "id": f"load::{item['zh']}",
+                "name": item["zh"],
+                "type": "load_condition",
+                "text": f"{item['zh']} {item['en']}: ratio={item['ratio']}",
+                "properties": _props(
+                    {
+                        "en": item["en"],
+                        "ratio": item["ratio"],
+                        "kind": item["kind"],
+                        "pattern": item.get("pattern"),
+                        "note": item["note"],
+                    },
+                    "V6.0§J.5",
+                    "section",
+                    None,
+                ),
+            }
+        )
+        if item["ratio"] is not None:
+            out.append(
                 {
-                    "en": item["en"],
-                    "ratio": item["ratio"],
-                    "kind": item["kind"],
-                    "note": item["note"],
-                },
-                "V6.0§J.5",
-                "section",
-                None,
-            ),
-        }
-        for item in LOAD_CONDITIONS
-    ]
+                    "id": f"loadratio::{item['en'].replace(' ', '_')}",
+                    "name": f"load_ratio({item['en'].replace(' ', '_')}, {item['ratio']})",
+                    "type": "load_ratio",
+                    "text": f"{item['zh']} 是满载的 {item['ratio']:.0%}"
+                            if item["ratio"] in (0.0, 0.5, 1.0)
+                            else f"{item['zh']} 是满载的 {item['ratio']}",
+                    "properties": _props(
+                        {"load": item["en"], "ratio": item["ratio"]},
+                        "V6.0§J.5",
+                        "section",
+                        None,
+                    ),
+                }
+            )
+    return out
 
 
 def build_relationships(entities: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -561,6 +667,79 @@ def build_relationships(entities: list[dict[str, Any]]) -> list[dict[str, Any]]:
         for aid in props.get("axiom_refs") or ():
             add(eid, aid, "derived_from_axiom")
     return rels
+
+
+def apply_corrections(
+    entities: list[dict[str, Any]], corrections: dict[str, Any] | None
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """应用 :mod:`data/seed/corrections.yaml` 里的已查证修正。
+
+    返回 ``(修正后的实体, 修正记录)``。修正记录会写进输出, 这样**审计能回答
+    「这条知识和方案原文有什么不同、依据是什么」** —— 这正是 §18.10 注 9 要防的
+    文档↔数据漂移, 而漂移在有记录时才查得出来。
+
+    ## 纪律: 无 ``source`` 的修正不采用
+
+    无出处的「修正」比不修正更危险: 它看起来可信, 但无法被复核, 且会随标准改版
+    悄悄失效。所以缺 ``source`` 或 ``checked`` 的条目**跳过并计数**, 不静默吞掉。
+    """
+    if not corrections:
+        return entities, []
+    by_id = {e["id"]: e for e in entities}
+    applied: list[dict[str, Any]] = []
+    skipped: list[str] = []
+
+    def _do(kind: str, entry: dict[str, Any], match: str, updates: dict[str, Any]) -> None:
+        if not entry.get("source") or not entry.get("checked"):
+            skipped.append(f"{kind}:{entry.get('id')}")
+            return
+        target = by_id.get(match)
+        if target is None:
+            skipped.append(f"{kind}:{entry.get('id')}(目标不存在)")
+            return
+        before = {k: target["properties"].get(k) for k in updates}
+        target["properties"].update(updates)
+        for key, value in updates.items():
+            target["properties"].setdefault("provenance", {})[key] = {
+                "property_name": key,
+                "value": value,
+                "sources": [
+                    {
+                        "document": entry["source"],
+                        "section": entry.get("note", "")[:80] or None,
+                        "line": None,
+                        "confidence": entry.get("confidence"),
+                        "metadata": {
+                            "source_kind": "correction",
+                            "checked": entry["checked"],
+                        },
+                    }
+                ],
+            }
+        applied.append(
+            {
+                "kind": kind,
+                "id": entry.get("id"),
+                "matched": match,
+                "before": before,
+                "after": updates,
+                "source": entry["source"],
+                "checked": entry["checked"],
+                "confidence": entry.get("confidence"),
+            }
+        )
+
+    for entry in corrections.get("standards") or ():
+        # 标准 id 形如 ``std::GB 4943.1-2011``; 修正表按不带前缀的编号写
+        _do("standard", entry, f"std::{entry['id']}", {k: v for k, v in entry.items() if k not in ("id", "source", "checked", "note")})
+    for entry in corrections.get("concepts") or ():
+        _do("power_concept", entry, entry["id"], {k: v for k, v in entry.items() if k not in ("id", "source", "checked", "note")})
+    for entry in corrections.get("load_conditions") or ():
+        _do("load_condition", entry, f"load::{entry['id']}", {k: v for k, v in entry.items() if k not in ("id", "source", "checked", "note")})
+
+    if skipped:
+        print(f"  [警告] {len(skipped)} 条修正缺 source/checked 或目标不存在, 已跳过: {skipped[:4]}")
+    return entities, applied
 
 
 def to_seed_records(
@@ -621,10 +800,24 @@ def main() -> int:
         default=Path(__file__).resolve().parent.parent / "定制电源产品转产工装研发系统_开发指导方案_V6.0.md",
     )
     ap.add_argument("--out", type=Path, default=Path(__file__).resolve().parent.parent / "data" / "seed")
+    ap.add_argument(
+        "--corrections",
+        type=Path,
+        default=Path(__file__).resolve().parent.parent / "data" / "seed" / "corrections.yaml",
+        help="已查证修正表。每条须带 source 与 checked, 否则不采用。",
+    )
     args = ap.parse_args()
     if not args.spec.is_file():
         print(f"方案文件不在: {args.spec}", file=sys.stderr)
         return 2
+
+    corrections: dict[str, Any] | None = None
+    if args.corrections.is_file():
+        import yaml
+
+        corrections = yaml.safe_load(args.corrections.read_text(encoding="utf-8"))
+    else:
+        print(f"  [警告] 修正表不存在: {args.corrections} —— 引导结果将**未经查证修正**直接入库")
 
     lines = args.spec.read_text(encoding="utf-8").splitlines()
     sections = build_section_index(lines)
@@ -646,13 +839,17 @@ def main() -> int:
         deduped.setdefault(e["id"], e)
 
     entities = list(deduped.values())
+    entities, corrections_applied = apply_corrections(entities, corrections)
     payload = {
         "schema_version": 1,
         "provenance": {
             "bootstrap_source": args.spec.name,
             "note": "方案 md 是**一次性引导源**, 交付后不再依赖。后续补充知识直接编辑本文件。",
+            "corrections_source": args.corrections.name if args.corrections.is_file() else None,
+            "corrections_applied": corrections_applied,
         },
         "records": to_seed_records(entities, rels),
+        "rules": list(LOAD_RULES),
     }
     args.out.mkdir(parents=True, exist_ok=True)
     path = args.out / "power_domain_seed.json"
