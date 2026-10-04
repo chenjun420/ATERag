@@ -174,6 +174,38 @@ RULES: tuple[QuantityRule, ...] = (
 
 #: 刻意不给规则的词干及原因。列出它们本身就是交付物的一部分 ——
 #: 「为什么这些没覆盖」必须能回答, 否则「未解析」就只是一个数字。
+def _require_dimension(unit_expr: str) -> Dimension:
+    """解析量纲记号, 解析不出就**当场报错**。
+
+    公式级覆盖表里的量纲是字面量, 必然可解析; 若真解析不出, 说明表写错了,
+    必须在 import 时炸掉, 而不是塞一个 ``None`` 让下游拿到「无量纲」——
+    那正是「看起来对但错」的来源。
+    """
+    dim = parse_spec_dimension(unit_expr)
+    if dim is None:
+        raise ValueError(f"公式级覆盖的量纲记号无法解析: {unit_expr!r}")
+    return dim
+
+
+#: **公式级量纲覆盖**: ``(公式 ID, 符号)`` -> ``(量纲, 理由)``。
+#:
+#: 只处理**同名不同物**的碰撞 —— 即 U.5 的定义本身没错, 但在这条公式的语境里
+#: 是另一个物理量。改全局定义会把 U.5 那条正确的定义改错, 所以覆盖必须**窄到
+#: 单条公式**。
+#:
+#: 目前唯一一处: ``R_th``。U.5 收录的是**热阻** [K/W], 而 ``F_W.1.10_NORTON``
+#: 的诺顿等效里它是**等效电阻** [Ω] —— 实测原式 ``V_th/R_th`` 被解析成
+#: V/(K/W), 该公式因此永不可能齐次。
+FORMULA_SCOPED: Mapping[tuple[str, str], tuple[Dimension, str]] = {
+    ("F_W.1.10_NORTON", "R_th"): (
+        # ``parse_spec_dimension`` 返回 ``Dimension | None``; 此处字面量必然可解析,
+        # 但类型上仍需收窄 —— 解析不出就当场报错, 不能悄悄塞 None。
+        _require_dimension("[Ω]"),
+        "诺顿等效中 R_th 为等效电阻 [Ω], 非热阻 [K/W]; U.5 的热阻定义对热学语境仍然正确",
+    ),
+}
+
+
 _DELIBERATELY_UNRULED: Mapping[str, str] = {
     "T": "T_j/T_a 是温度 [K] 而 T_s 是开关周期 [s]; U.5 用 [T] 表示时间, 字母撞车",
     "A": "面积 [m²] 与安培 [A] 都可能 (A_core 是面积, A_out 若存在则可能是电流)",
@@ -200,11 +232,18 @@ class QuantityDictionary:
     u5: SymbolTable
     rules: tuple[QuantityRule, ...] = RULES
 
-    def resolve(self, symbol: str, namespace: str | None) -> Resolution:
+    def resolve(
+        self, symbol: str, namespace: str | None, formula_id: str | None = None
+    ) -> Resolution:
         """解 ``(符号, 命名空间)`` -> :class:`Resolution`。
 
-        顺序: U.5 命名空间精确 → U.5 全库唯一 → 规则表。**不做前缀回退** ——
-        U.5 自己警告过裸符号歧义, 回退等于把它又引回来。
+        顺序: **公式级覆盖** → U.5 命名空间精确 → U.5 全库唯一 → 规则表。
+        **不做前缀回退** —— U.5 自己警告过裸符号歧义, 回退等于把它又引回来。
+
+        **公式级覆盖**(:data:`FORMULA_SCOPED`)优先于一切, 因为它处理的是
+        **同名不同物**的碰撞: ``R_th`` 在热学语境确是热阻 [K/W](U.5 没写错),
+        但在诺顿等效里它是等效电阻 [Ω]。改全局定义会把热阻那条改错;
+        不处理则该公式量纲永不可能齐次。
 
         **U.5 写「见各条」时不拦截, 继续问规则表。** 「方案没写」不等于「方案
         禁止」: U.5 把 ``PFH``/``PFD``/``SFF``/``DC``/``ENOB`` 等写成「见各条」,
@@ -215,6 +254,10 @@ class QuantityDictionary:
         只有 U.5 **给出了互相矛盾**的量纲才停: 那说明方案自身冲突, 规则无权
         在其中选边 (例如 ``k`` 在 M 是 [1]、在 Q 是 [Ω])。
         """
+        if formula_id is not None:
+            override = FORMULA_SCOPED.get((formula_id, symbol))
+            if override is not None:
+                return Resolution(override[0], f"formula-scoped:{formula_id}")
         entry = self.u5.resolve(symbol, namespace)
         if entry is not None and entry.dimension is not None:
             return Resolution(entry.dimension, "u5-namespace")

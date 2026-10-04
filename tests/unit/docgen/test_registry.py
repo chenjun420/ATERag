@@ -42,30 +42,35 @@ class TestRejectsRatherThanFabricates:
     def test_不编造name_zh(self, built: tuple[tuple[object, ...], object]) -> None:
         """缺中文名的公式一律拒收, 不拿 ID 短名冒充中文名。"""
         _records, report = built
-        assert len(report.missing_name_zh) == 43
+        assert len(report.missing_name_zh) == 38
         assert all(fid.startswith("F_") for fid in report.missing_name_zh)
 
-    def test_不编造source_ref(self, built: tuple[tuple[object, ...], object]) -> None:
-        """§18.10 注 8「标准条款号不可编造」。
+    def test_source_ref_兜底为章节号而非标准号(self, built: tuple[tuple[object, ...], object]) -> None:
+        """``source_ref`` 缺时兜底记**方案章节号**, 绝不编造标准号。
 
-        ``source_ref`` 是 ``NOT NULL`` 且公式表**无此列**, 只能从标准条目
-        反查(实测仅覆盖 4/129)。缺口必须拒收上报。
-        """
-        _records, report = built
-        assert len(report.missing_source_ref) == 87
-        assert not any("编造" in r for r in report.reasons)
-
-    def test_当前语料下可入库为0(self, built: tuple[tuple[object, ...], object]) -> None:
-        """**当前**的正确行为就是 0 条。
-
-        83 缺 name_zh + 46 缺 source_ref = 129 全被拒。这不是 bug, 是方案侧
-        两处缺口。若哪天这个断言开始失败, 说明有人加了编造逻辑。
+        §18.10 注 8「标准条款号不可编造」+ 附录 V.12「认证申报前须核对原文」。
+        D1 决定 (a) 的落地: 记章节出处, 并用 ``source_kind`` 标明这不是标准号,
+        下游才不会把它当认证依据。
         """
         records, report = built
-        assert len(records) == 0
-        assert report.considered == len(report.missing_name_zh) + len(
-            report.missing_source_ref
-        )
+        assert not report.missing_source_ref, "章节兜底后不应再有缺 source_ref 的"
+        assert records, "应有可入库条目"
+        for r in records:
+            assert r.source_kind in ("standard", "section")
+            if r.source_kind == "section":
+                assert r.source_ref.startswith("V6.0§"), r.source_ref
+
+    def test_入库的是齐次子集且隔离逐条列名(self, built: tuple[tuple[object, ...], object]) -> None:
+        """可入库 > 0, 且**隔离的每条都有原因**。
+
+        入库路径现在**先跑齐次性**(见 ``registry.check_homogeneity``):
+        不齐次或引擎判不了的一律隔离。不齐次的**绝不入库** —— 入库即宣称已验证。
+        """
+        records, report = built
+        assert len(records) > 0, "source_ref 兜底后应有可入库条目"
+        assert all(reason.strip() for reason in report.quarantined.values())
+        # 隔离里必须真的含齐次性问题, 否则这道检查形同虚设。
+        assert any("不齐次" in why or "引擎判不了" in why for why in report.quarantined.values())
 
     def test_拒收原因逐条对应到ID(self, built: tuple[tuple[object, ...], object]) -> None:
         """缺口要能点名, 不能只是个数字。"""
@@ -93,6 +98,7 @@ class TestRecordShape:
             dimension_vec=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
             derive_from=("A-2",),
             source_ref="IEC 60255-1",
+            source_kind="standard",
             rendered=rendered,
         )
         row = rec.as_csv_row()

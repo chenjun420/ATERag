@@ -48,7 +48,7 @@ from .quantity_rules import build_dictionary
 from .render import Rendered, render_equation
 from .spec_parse import FormulaRow, parse_formula_rows, read_spec
 from .standards import parse_standards
-from .symbols import parse_symbol_table
+from .symbols import SymbolTable, parse_symbol_table
 
 __all__ = [
     "DIMENSION_ORDER",
@@ -84,6 +84,114 @@ _DOMAIN_TAG = {
 
 _DOMAIN_RE = re.compile(r"F_([A-Z])(?=[._])")
 
+#: **隔离名单**: 已确认公式与其自身声明量纲不符(方案侧错误), 或成因未定。
+#:
+#: 这些公式**不入库**, 但也不从报告里消失 —— 它们列在
+#: :class:`RejectionReport` 的 ``quarantined`` 里, 附原因与出处。
+#:
+#: 隔离而不是删��: 删掉就看不出「方案里有过这么一条且它有问题」, 而
+#: §18.10 注 8 禁止我方编造一个「看起来对」的式子替它。逐条依据见
+#: ``docs/w1-triage.md``。
+QUARANTINED: dict[str, str] = {
+    # —— 方案错误:公式与其自带量纲列冲突, 量纲算术即可定案 ——
+    "F_J.8.3_VDS_SPIKE": "方案错误: A·H·Hz 精确等于 V, 故 /C_oss 多余; "
+    "方案自记的 [A]·[H]·[Hz]/[F]=[V] 算术上即错",
+    "F_S.5_EFFICIENCY_CURVE": "方案错误: sqrt(W·Ω) 精确等于 V, 与声明的 [W] 冲突",
+    "F_J.8.1_SHOOT_THROUGH": "方案错误: 右侧 A/s 而非 A, 疑缺死区时间因子 t_dead",
+    "F_J.6.2_DCM_PEAK_CURRENT": "方案错误(待作者确认): 疑多余因子 D²·V_in; "
+    "sqrt(2P/(L·f)) 量纲自洽",
+    # —— 成因未定: 不敢归给方案, 也不敢归给自己 ——
+    "F_L.5.6_PFH_1001D": "成因未定: 右侧 λ_DU·T_proof 无量纲, 而 PFH 常被引为 1/h; "
+    "IEC 61508 对 1001D 引用纯数。约定需作者确认",
+}
+
+
+@dataclass
+class HomogeneityReport:
+    """量纲**齐次性**检查结果 —— 这才是 §18.9 G1 要的东西。
+
+    「符号都能查到量纲」只说明**符号有定义**, 不说明**方程自洽**。
+    §18.10 注 3 明写「量纲校验是 R1 的机器实现, 必须在入库阶段拦截」。
+    实测 130 条候选里只有 113 条齐次, 所以这道检查放在 registry 里(入库前),
+    而不只是门禁里(入库后)。
+    """
+
+    homogeneous: list[str] = field(default_factory=list)
+    #: (公式 ID, 归一化右侧, 原因)
+    inhomogeneous: list[tuple[str, str, str]] = field(default_factory=list)
+    #: (公式 ID, 引擎不支持的原因)
+    unsupported: list[tuple[str, str]] = field(default_factory=list)
+
+
+def check_homogeneity(
+    first: dict[str, FormulaRow],
+    closed: dict[str, tuple[str, ...]],
+    lhs_text: dict[str, str],
+    rhs_text: dict[str, str],
+    symbols: SymbolTable,
+) -> HomogeneityReport:
+    """对每条符号全可解析的公式跑 :func:`solver.symbolic.check_expression`。
+
+    LHS 量纲取左侧的**静态乘积**(纯乘除幂)。带加减或函数调用的左侧静态求不出,
+    记入 ``unsupported`` —— **不猜**。
+    """
+    from ..solver.symbolic import (
+        Dimension,
+        ExpressionError,
+        VariableSpec,
+        check_expression,
+    )
+
+    report = HomogeneityReport()
+    dictionary = build_dictionary(symbols)
+    for fid, variables in closed.items():
+        specs = {
+            v: VariableSpec(name=v, dimension=d)
+            for v, d in (
+                (v, dictionary.resolve(v, _domain_letter(fid), fid).dimension) for v in variables
+            )
+            if d is not None
+        }
+        vec = _lhs_dimension(lhs_text.get(fid), dictionary, _domain_letter(fid))
+        lhs = Dimension(**dict(zip(DIMENSION_ORDER, vec))) if vec else None
+        rhs = rhs_text.get(fid)
+        if rhs is None:
+            report.unsupported.append((fid, "无归一化右侧可校验"))
+            continue
+        try:
+            result = check_expression(rhs, specs, formula_id=fid, lhs_dimension=lhs)
+        except ExpressionError as exc:
+            report.unsupported.append((fid, str(exc)[:90]))
+            continue
+        if result.dimension_ok:
+            report.homogeneous.append(fid)
+        else:
+            report.inhomogeneous.append((fid, rhs[:60], result.reason or "两侧量纲不等"))
+    return report
+
+
+def _meanings_of(symbols: SymbolTable) -> dict[str, str]:
+    """U.5 的「含义」列 -> ``{符号: 中文}``, 供 ``expr_plaintext`` 渲染。
+
+    §18.3.1 要求 ``expr_plaintext`` 是「非 LaTeX 自然语言表述」。不传这张表
+    的话渲染器会**原样保留符号**(见 ``render`` 模块「未翻译的符号不许静默」),
+    产出 ``V_out等于D乘以V_in`` 这种半成品 —— 合法但没起到该起的作用。
+
+    一个符号有多条 U.5 条目时取**第一条非空**含义: 含义是给人看的, 选哪个都
+    不影响量纲, 不必为它引入歧义判定。
+    """
+    out: dict[str, str] = {}
+    for entry in symbols.entries:
+        meaning = (entry.meaning or "").strip()
+        if meaning and entry.symbol not in out:
+            out[entry.symbol] = meaning
+    return out
+
+
+def _domain_letter(formula_id: str) -> str | None:
+    match = _DOMAIN_RE.match(formula_id)
+    return match.group(1) if match else None
+
 
 @dataclass(frozen=True)
 class FormulaRecord:
@@ -98,6 +206,10 @@ class FormulaRecord:
     dimension_vec: tuple[float, ...]
     derive_from: tuple[str, ...]
     source_ref: str
+    #: ``source_ref`` 的来源类别: ``standard``(附录 V 反查到的标准号)/
+    #: ``section``(方案章节号)。**不是标准号**的必须标明, 否则下游会把它当
+    #: 认证依据用 —— 那是 §18.10 注 8 明令禁止的。
+    source_kind: str
     rendered: Rendered
     errata: str | None = None
     boundary: str | None = None
@@ -128,6 +240,7 @@ class FormulaRecord:
             "used_by_axon": _ARRAY_SEP.join(self.used_by_axon),
             "errata": self.errata or "",
             "source_ref": self.source_ref,
+            "source_kind": self.source_kind,
         }
         row.update({k: v or "" for k, v in self.rendered.as_row().items()})
         return row
@@ -138,7 +251,7 @@ CSV_COLUMNS: tuple[str, ...] = (
     "formula_id", "name_zh", "name_en", "domain", "section", "domain_tags",
     "var_refs", "dimension_vec", "dimension_ok", "derive_from", "boundary",
     "confidence", "scope", "used_by_rule", "used_by_test", "used_by_axon",
-    "errata", "source_ref",
+    "errata", "source_ref", "source_kind",
     "expr_latex", "expr_plaintext", "expr_ascii", "expr_ast",
 )
 
@@ -157,13 +270,15 @@ class RejectionReport:
     missing_dimension: list[str] = field(default_factory=list)
     #: 四种表达渲染失败
     render_failed: list[str] = field(default_factory=list)
+    #: 被隔离的公式 -> 原因(方案错误或成因未定)
+    quarantined: dict[str, str] = field(default_factory=dict)
     considered: int = 0
 
     def reject(self, reason: str, fid: str) -> None:
         self.reasons.setdefault(reason, []).append(fid)
 
     def summary(self) -> str:
-        parts = [f"考虑 {self.considered} 条量纲闭合公式"]
+        parts = [f"考虑 {self.considered} 条量纲闭合公式", f"隔离 {len(self.quarantined)} 条"]
         for reason in sorted(self.reasons):
             parts.append(f"{reason}: {len(self.reasons[reason])}")
         return "; ".join(parts)
@@ -223,26 +338,80 @@ def build_records(
     report = RejectionReport()
     out: list[FormulaRecord] = []
 
+    # 齐次性检查: **入库前**就跑, 不依赖门禁那一侧。G1 是入库后的 CI 门禁,
+    # 若只在那里拦, 就会有一批「已写进 CSV」的公式其实没过齐次性。
+    lhs_text: dict[str, str] = {}
+    rhs_text: dict[str, str] = {}
+    closed_vars: dict[str, tuple[str, ...]] = {}
+    for fid, row in first.items():
+        n = normalize_equation(row.expression)
+        if not n.ok:
+            continue
+        ns = _domain_letter(fid)
+        if any(dictionary.resolve(v, ns, fid).dimension is None for v in n.variables):
+            continue
+        closed_vars[fid] = n.variables
+        if n.lhs:
+            lhs_text[fid] = n.lhs
+        if n.rhs:
+            rhs_text[fid] = n.rhs
+    symbols = parse_symbol_table(lines)[0]
+    homo = check_homogeneity(first, closed_vars, lhs_text, rhs_text, symbols)
+    not_homogeneous = {fid: reason for fid, _e, reason in homo.inhomogeneous}
+    engine_gap = dict(homo.unsupported)
+
     for fid, row in first.items():
         normalized = normalize_equation(row.expression)
         if not normalized.ok:
             continue
-        match = _DOMAIN_RE.match(fid)
-        ns = match.group(1) if match else None
-        resolutions = [dictionary.resolve(v, ns) for v in normalized.variables]
-        if any(r.dimension is None for r in resolutions):
-            continue  # 未闭合, 不是 G1 的候选, 不算拒收
+        ns = _domain_letter(fid)
+        if fid not in closed_vars:
+            continue  # 未闭合, 不是候选
         report.considered += 1
+
+        # 不齐次 / 引擎判不了 -> 隔离。**绝不入库**: 入库即宣称已验证。
+        if fid in not_homogeneous:
+            report.quarantined[fid] = f"量纲不齐次: {not_homogeneous[fid]}"
+            continue
+        if fid in engine_gap:
+            report.quarantined[fid] = f"引擎判不了: {engine_gap[fid]}"
+            continue
+
+        # --- 隔离名单优先于一切 NOT NULL 检查 ---
+        # 已确认与自身声明量纲冲突的式子**不入库**, 也不去「修」它 ——
+        # §18.10 注 8 禁止编造。依据见 docs/w1-triage.md。
+        if fid in QUARANTINED:
+            report.quarantined[fid] = QUARANTINED[fid]
+            continue
+
+        # --- 无变量的「公式」是指引散文, 不是公式 ---
+        # 实测 F_W.6.13 的 ``需 t_resolve ≈ 1 个时钟周期`` 归一化成常数 1。
+        if not normalized.variables:
+            report.quarantined[fid] = "表达式无任何变量(指引散文, 非公式)"
+            continue
 
         # --- NOT NULL 前置: 缺任一项即拒收, **不填占位值** ---
         if not row.name_zh:
             report.missing_name_zh.append(fid)
             report.reject("缺 name_zh(方案只按 ID 建索引)", fid)
             continue
-        source = row.source_ref or next(iter(standards_of.get(fid, ())), None)
+        # ``source_ref`` 的来源优先级: 公式表自带 > 附录 V 反查标准号 >
+        # **方案章节号**。
+        #
+        # 最后一档是 D1 决定 (a) 的落地: 公式表**根本没有**这一列(实测全篇
+        # 公式表都没有「标准/来源」列角色), 而 §18.10 注 8 明写「标准条款号
+        # 不可编造」—— 所以绝不编造标准号, 改记**方案章节出处**, 并在
+        # provenance 里标明这不是标准号。
+        standard = row.source_ref or next(iter(standards_of.get(fid, ())), None)
+        if standard:
+            source, source_kind = standard, "standard"
+        elif row.section:
+            source, source_kind = f"V6.0§{row.section}", "section"
+        else:
+            source, source_kind = None, "none"
         if not source:
             report.missing_source_ref.append(fid)
-            report.reject("缺 source_ref(公式表无此列, 且标准反向未覆盖)", fid)
+            report.reject("缺 source_ref(无标准号、无章节号)", fid)
             continue
         domain = _domain_of(fid, row)
         section = row.section
@@ -262,7 +431,10 @@ def build_records(
             continue
 
         rendered = render_equation(
-            normalized.lhs, normalized.rhs or "", normalized.relation or "=", None
+            normalized.lhs,
+            normalized.rhs or "",
+            normalized.relation or "=",
+            _meanings_of(symbols),
         )
         if rendered.error:
             report.render_failed.append(fid)
@@ -280,6 +452,7 @@ def build_records(
                 dimension_vec=vec,
                 derive_from=tuple(derivation.refs),
                 source_ref=source,
+                source_kind=source_kind,
                 rendered=rendered,
                 errata=errata_of.get(fid),
                 used_by_rule=tuple(sorted(set(used_rule.get(fid, ())))),
@@ -425,6 +598,10 @@ def main(argv: list[str] | None = None) -> int:
     path = write_formula_csv(records, args.out)
     print(f"可入库 {len(records)} 条 -> {path}")
     print(f"过滤: {report.summary()}")
+    if report.quarantined:
+        print("隔离(不入库, 依据 docs/w1-triage.md):")
+        for fid, why in sorted(report.quarantined.items()):
+            print(f"  {fid}: {why[:96]}")
     for reason in sorted(report.reasons):
         print(f"  {reason}: {len(report.reasons[reason])} 条, 例 {report.reasons[reason][:3]}")
     if report.reasons:

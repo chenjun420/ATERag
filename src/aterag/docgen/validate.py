@@ -186,7 +186,7 @@ def load_corpus(spec: Path = SPEC_PATH) -> Corpus:
             corpus.rhs_text[fid] = normalized.rhs
         ns = _namespace_of(fid)
         unresolved = [
-            v for v in normalized.variables if dictionary.resolve(v, ns).dimension is None
+            v for v in normalized.variables if dictionary.resolve(v, ns, fid).dimension is None
         ]
         if not unresolved:
             corpus.closed[fid] = normalized.variables
@@ -263,7 +263,7 @@ def check_homogeneity(corpus: Corpus) -> HomogeneityReport:
     for fid, variables in corpus.closed.items():
         specs = {
             v: VariableSpec(name=v, dimension=d)
-            for v, d in ((v, dictionary.resolve(v, _ns_of(fid)).dimension) for v in variables)
+            for v, d in ((v, dictionary.resolve(v, _ns_of(fid), fid).dimension) for v in variables)
             if d is not None
         }
         lhs_vec = _lhs_dimension(corpus.lhs_text.get(fid), dictionary, _ns_of(fid))
