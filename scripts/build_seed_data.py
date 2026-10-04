@@ -731,7 +731,48 @@ def apply_corrections(
 
     for entry in corrections.get("standards") or ():
         # 标准 id 形如 ``std::GB 4943.1-2011``; 修正表按不带前缀的编号写
-        _do("standard", entry, f"std::{entry['id']}", {k: v for k, v in entry.items() if k not in ("id", "source", "checked", "note")})
+        _do("standard", entry, f"std::{entry['id']}", {k: v for k, v in entry.items() if k not in ("id", "source", "checked", "note", "current")})
+        # ``replaced_by`` 指向的标准**必须同时建成实体**, 否则那条指向是个悬空
+        # 引用 —— Semantica 的 foundation graph 校验会失败, 而缺一条标准实体
+        # 比多一条坏边更难排查(边还在, 节点没了)。旧条目标 SUPERSEDED 保留,
+        # 用来回答「历史报告依据的是哪一版」。
+        current = entry.get("current")
+        if current and current.get("id") and not entry.get("source"):
+            skipped.append(f"standard:{entry['id']}(缺 source)")
+        elif current:
+            cid = f"std::{current['id']}"
+            if cid not in by_id:
+                by_id[cid] = {
+                    "id": cid,
+                    "name": current.get("title") or current["id"],
+                    "type": "standard",
+                    "text": f"{current['id']} {current.get('title') or ''}".strip(),
+                    "properties": _props(
+                        {
+                            "standard_id": current["id"],
+                            "version": current.get("version"),
+                            "title": current.get("title"),
+                            "status": "CURRENT",
+                            "iec_equivalent": current.get("iec_equivalent"),
+                        },
+                        current["id"],
+                        "standard",
+                        None,
+                    ),
+                }
+                entities.append(by_id[cid])
+                applied.append(
+                    {
+                        "kind": "standard",
+                        "id": current["id"],
+                        "matched": cid,
+                        "before": None,
+                        "after": {"status": "CURRENT", "added_by": "correction"},
+                        "source": entry["source"],
+                        "checked": entry["checked"],
+                        "confidence": entry.get("confidence"),
+                    }
+                )
     for entry in corrections.get("concepts") or ():
         _do("power_concept", entry, entry["id"], {k: v for k, v in entry.items() if k not in ("id", "source", "checked", "note")})
     for entry in corrections.get("load_conditions") or ():
