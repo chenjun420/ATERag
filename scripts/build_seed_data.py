@@ -130,6 +130,72 @@ LOAD_RULES: tuple[dict[str, Any], ...] = (
     },
 )
 
+def _load_key(en: str) -> str:
+    """英文工况名 -> Datalog 常量名(下划线形态)。
+
+    **规则匹配只认这个形态**。实测: 事实里若写 ``half load``(带空格), 规则
+    ``load_ratio(Load, Ratio)`` 永远匹配不上 ``load_ratio(half_load, 0.5)``,
+    且不报错。实体 id、实体 ``load`` 属性、事实三处必须走同一个函数。
+    """
+    return en.replace(" ", "_")
+
+
+def build_facts() -> list[dict[str, Any]]:
+    """Datalog 事实 —— **必须显式随数据发布**。
+
+    ``DatalogReasoner.load_from_graph`` 读图时只产**一元**事实(``type``+``id``),
+    产不出 ``load_ratio(full_load, 1.0)`` 这种二元事实。早先只发布规则不发布
+    事实, 规则集因此是**死的**: 语法校验全过、``add_rule()`` 不报错, 而
+    ``derive_all()`` 永远为空 —— 与「实体关系分两个键写」同一类静默失效。
+
+    ``fact_str`` 是给 ``add_fact()`` 直接消费的形态, 三条实测契约:
+
+    1. ``add_fact`` 的 **dict 分支只认** ``subject``/``predicate``/``object``。
+       喂 ``{"predicate": ..., "args": [...]}`` 会走到
+       ``logger.warning("Unrecognised dict fact format")`` 之后 **直接 return**
+       —— 又一条不报错的丢失路径。``predicate``/``args`` 只作可读与审计用。
+    2. **常量首字母大写会被拒绝** (``Facts must be constants only``)。规则里
+       首字母大写才是变量, 事实里必须全小写。
+    3. 字符串分支**不做小写化**(只有 dict 分支 lowercases), 空格与大小写都得
+       自己写对。
+
+    只发布与型号无关的通用事实。``load-scaling`` 规则要的
+    ``value_at_full_load(...)`` 是**型号数据**, 不在这里编 —— 读���具体规格书
+    后由消费方补进去; 凭空给一个功率值会让推理在错误型号上运行且不报错。
+    """
+    facts: list[dict[str, Any]] = []
+    for item in LOAD_CONDITIONS:
+        if item["ratio"] is None:
+            continue
+        key = _load_key(item["en"])
+        facts.append(
+            {
+                "fact_id": f"load-ratio-{key}",
+                "predicate": "load_ratio",
+                "args": [key, str(item["ratio"])],
+                "fact_str": f"load_ratio({key}, {item['ratio']})",
+                "comment": (
+                    "归一化基准, 比例恒为 1.0"
+                    if item["ratio"] == 1.0
+                    else f"{item['zh']} = 满载 x {item['ratio']:.0%}"
+                ),
+                "authority_kind": "project_defined",
+            }
+        )
+    for alias in LOAD_ALIASES:
+        facts.append(
+            {
+                "fact_id": f"load-alias-{alias['alias']}",
+                "predicate": "load_alias",
+                "args": [alias["alias"], alias["canonical"]],
+                "fact_str": f"load_alias({alias['alias']}, {alias['canonical']})",
+                "comment": f"{alias['zh']} 归一到 {alias['canonical']}",
+                "authority_kind": "project_defined",
+            }
+        )
+    return facts
+
+
 #: 从 authority_ref 里抽标准号。GB/T、GB/Z、GB、IEC、YY/T 等形式。
 _STD_ID_RE = re.compile(r"(?:GB/I|GB/T|GB/Z|GB|YY/T|IEC/IEC|IEC|YD/T|JB/T)\s*\d+(?:\.\d+)*(?:-\d{4})?")
 
@@ -793,14 +859,14 @@ def extract_load_conditions() -> list[dict[str, Any]]:
         if item["ratio"] is not None:
             out.append(
                 {
-                    "id": f"loadratio::{item['en'].replace(' ', '_')}",
-                    "name": f"load_ratio({item['en'].replace(' ', '_')}, {item['ratio']})",
+                    "id": f"loadratio::{_load_key(item['en'])}",
+                    "name": f"load_ratio({_load_key(item['en'])}, {item['ratio']})",
                     "type": "load_ratio",
                     "text": f"{item['zh']} 是满载的 {item['ratio']:.0%}"
                             if item["ratio"] in (0.0, 0.5, 1.0)
                             else f"{item['zh']} 是满载的 {item['ratio']}",
                     "properties": _props(
-                        {"load": item["en"], "ratio": item["ratio"]},
+                        {"load": _load_key(item["en"]), "ratio": item["ratio"]},
                         "convention",
                         None,
                     ),
@@ -1201,6 +1267,7 @@ def main() -> int:
         },
         "records": to_seed_records(entities, rels),
         "rules": list(LOAD_RULES),
+        "facts": build_facts(),
     }
     args.out.mkdir(parents=True, exist_ok=True)
     path = args.out / "power_domain_seed.json"
@@ -1214,6 +1281,7 @@ def main() -> int:
     for k, v in sorted(counts.items(), key=lambda kv: -kv[1]):
         print(f"  {v:5}  {k}")
     print(f"  {n_rel:5}  relationships")
+    print(f"  {len(payload['facts']):5}  Datalog facts (load_from_graph 产不出二元事实)")
     print(f"  {len(payload['records']):5}  records (Semantica 读的就是这个数组)")
     return 0
 

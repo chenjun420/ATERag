@@ -5150,19 +5150,19 @@ ns1:load%3A%3Axx%25%E8%BD%BD a ns1:LoadCondition ;
 
 ns1:loadratio%3A%3Afull_load a ns1:LoadRatio ;
     ns1:authority_kind "project_defined" ;
-    ns1:load "full load" ;
+    ns1:load "full_load" ;
     ns1:name "load_ratio(full_load, 1.0)" ;
     ns1:ratio 1.0 .
 
 ns1:loadratio%3A%3Ahalf_load a ns1:LoadRatio ;
     ns1:authority_kind "project_defined" ;
-    ns1:load "half load" ;
+    ns1:load "half_load" ;
     ns1:name "load_ratio(half_load, 0.5)" ;
     ns1:ratio 0.5 .
 
 ns1:loadratio%3A%3Ano_load a ns1:LoadRatio ;
     ns1:authority_kind "project_defined" ;
-    ns1:load "no load" ;
+    ns1:load "no_load" ;
     ns1:name "load_ratio(no_load, 0.0)" ;
     ns1:ratio 0.0 .
 

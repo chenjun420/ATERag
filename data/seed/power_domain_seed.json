@@ -76511,13 +76511,13 @@
       "metadata": {
         "authority_kind": "project_defined"
       },
-      "load": "full load",
+      "load": "full_load",
       "ratio": 1.0,
       "authority_kind": "project_defined",
       "provenance": {
         "load": {
           "property_name": "load",
-          "value": "full load",
+          "value": "full_load",
           "sources": [
             {
               "document": "",
@@ -76675,13 +76675,13 @@
       "metadata": {
         "authority_kind": "project_defined"
       },
-      "load": "half load",
+      "load": "half_load",
       "ratio": 0.5,
       "authority_kind": "project_defined",
       "provenance": {
         "load": {
           "property_name": "load",
-          "value": "half load",
+          "value": "half_load",
           "sources": [
             {
               "document": "",
@@ -76801,13 +76801,13 @@
       "metadata": {
         "authority_kind": "project_defined"
       },
-      "load": "no load",
+      "load": "no_load",
       "ratio": 0.0,
       "authority_kind": "project_defined",
       "provenance": {
         "load": {
           "property_name": "load",
-          "value": "no load",
+          "value": "no_load",
           "sources": [
             {
               "document": "",
@@ -78099,6 +78099,52 @@
           ]
         }
       ]
+    }
+  ],
+  "facts": [
+    {
+      "fact_id": "load-ratio-full_load",
+      "predicate": "load_ratio",
+      "args": [
+        "full_load",
+        "1.0"
+      ],
+      "fact_str": "load_ratio(full_load, 1.0)",
+      "comment": "归一化基准, 比例恒为 1.0",
+      "authority_kind": "project_defined"
+    },
+    {
+      "fact_id": "load-ratio-half_load",
+      "predicate": "load_ratio",
+      "args": [
+        "half_load",
+        "0.5"
+      ],
+      "fact_str": "load_ratio(half_load, 0.5)",
+      "comment": "半载 = 满载 x 50%",
+      "authority_kind": "project_defined"
+    },
+    {
+      "fact_id": "load-ratio-no_load",
+      "predicate": "load_ratio",
+      "args": [
+        "no_load",
+        "0.0"
+      ],
+      "fact_str": "load_ratio(no_load, 0.0)",
+      "comment": "空载 = 满载 x 0%",
+      "authority_kind": "project_defined"
+    },
+    {
+      "fact_id": "load-alias-50pct_load",
+      "predicate": "load_alias",
+      "args": [
+        "50pct_load",
+        "half_load"
+      ],
+      "fact_str": "load_alias(50pct_load, half_load)",
+      "comment": "50%载 归一到 half_load",
+      "authority_kind": "project_defined"
     }
   ]
 }

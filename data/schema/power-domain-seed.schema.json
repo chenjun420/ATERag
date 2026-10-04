@@ -156,6 +156,47 @@
           }
         }
       }
+    },
+    "facts": {
+      "type": "array",
+      "description": "Datalog 事实。**必须显式随数据发布**: Semantica 的 load_from_graph 从图里只能产一元事实(type+id), 产不出 load_ratio(full_load, 1.0) 这类二元事实。只发规则不发事实会让规则集变成死的 —— 语法校验全过、add_rule() 不报错, 而 derive_all() 永远为空。",
+      "items": {
+        "type": "object",
+        "required": [
+          "fact_id",
+          "predicate",
+          "args",
+          "fact_str"
+        ],
+        "properties": {
+          "fact_id": {
+            "type": "string",
+            "description": "事实的稳定标识, 便于审计与增量更新时定位。"
+          },
+          "predicate": {
+            "type": "string",
+            "description": "谓词名。**全小写** —— Semantica add_fact() 拒绝首字母大写的常量(判为变量), 且字符串形态不做小写化, 只有 dict 形态才 lowercases。"
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "常量实参, 供可读与审计。**仅作展示用途**: add_fact() 的 dict 分支只认 subject/predicate/object, 喂 {predicate, args} 会走到 logger.warning('Unrecognised dict fact format') 后直接 return, 是一条不报错的丢失路径。"
+          },
+          "fact_str": {
+            "type": "string",
+            "pattern": "^[a-z][a-zA-Z0-9_]*\\s*\\(\\s*[^)]*\\s*\\)\\s*\\.?$",
+            "description": "给 add_fact() 直接消费的形态, 如 load_ratio(half_load, 0.5)。实参里不能有逗号分隔之外的空格 —— load_from_graph 产不出二元事实, 常量形态必须与实体、规则两侧归一一致(统一用下划线), 否则规则永远匹配不上且不报错。"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "authority_kind": {
+            "$ref": "#/$defs/source_kind"
+          }
+        }
+      }
     }
   },
   "$defs": {
