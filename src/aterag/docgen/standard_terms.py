@@ -84,6 +84,32 @@ STANDARD_TERMS: tuple[Term, ...] = (
     _t("失效间隔时间", "平均失效间隔时间", "GB/T 2900.99-2016", "192-05-01"),
     _t("instantaneous failure rate", "瞬时失效率", "GB/T 2900.99-2016", "192-03-01"),
     _t("dependability", "可信性", "GB/T 2900.99-2016", "192-01-07"),
+    # --- 电力半导体器件(GB/T 2900.32-1994 电工术语 电力半导体器件) ---
+    # 该标准是本项目「器件级热学与可靠性术语」的权威出处。条号即原文编号。
+    _t("thermal resistance", "热阻", "GB/T 2900.32-1994", "2.2.12"),
+    _t("transient thermal impedance", "瞬态热阻抗", "GB/T 2900.32-1994", "2.2.13"),
+    _t("thermal capacitance", "热容", "GB/T 2900.32-1994", "2.2.15"),
+    _t("thermal derating factor", "热降额因数", "GB/T 2900.32-1994", "2.2.9"),
+    _t("bulk lifetime", "体寿命", "GB/T 2900.32-1994", "2.1.24"),
+    _t("case temperature", "管壳温度", "GB/T 2900.32-1994", "2.2.10"),
+    _t("virtual junction temperature", "虚拟结温", "GB/T 2900.32-1994", "2.2.6",
+       结温="等效结温"),
+    # --- 电力电子技术(GB/T 2900.33-2004/IEC 60050-551:1998) ---
+    # 等同采用 IEC 60050-551:1998, 术语编号与国际标准一致, 故可写 IEC 号备查。
+    _t("power electronics", "电力电子学", "GB/T 2900.33-2004", "551-11-01"),
+    _t("(electronics)(power)conversion", "变流", "GB/T 2900.33-2004", "551-11-02",
+       换流="换流"),
+    _t("(electronics)(power)switching", "电子通断", "GB/T 2900.33-2004", "551-11-03"),
+    # --- 损耗与效率(GB/T 3859.1-2013 半导体变流器) ---
+    _t("switching loss", "开关损耗", "GB/T 3859.1-2013", "7.4.1"),
+    _t("conduction loss", "通态损耗", "GB/T 3859.1-2013", "7.4.1",
+       IGBT通态损耗="IGBT 通态损耗"),
+    _t("efficiency", "效率", "GB/T 3859.1-2013", "6.2.2"),
+    _t("ripple voltage and current", "纹波电压和电流", "GB/T 3859.1-2013", "7.3.5"),
+    _t("harmonic current", "谐波电流", "GB/T 3859.1-2013", "7.3.6"),
+    # --- 阀损耗专项(GB/T 35702.1-2017) ---
+    # 该标准专列「开关损耗」一章, 是本项目 MOSFET/IGBT 损耗口径最贴切���出处。
+    _t("switching loss of valve", "开关损耗", "GB/T 35702.1-2017", "8"),
 )
 
 
@@ -91,8 +117,18 @@ def resolve(term: str) -> Term | None:
     """按(术语, 标准优先级)取最权威的一条; 无出处则返回 ``None``。
 
     **找不到就返回 None, 不猜。** 调用方据此回落。
+
+    公式短名是 ``SCREAMING_SNAKE``(如 ``SWITCHING_LOSS``), 而术语表里是
+    小写带空格(``switching loss``), 所以先按原样查, 再按「下划线→空格 +
+    转小写」规范化查。**只做大小写与分隔符的规范化** —— 不做截断、不做
+    同义词猜测, 因为那会把不相关的术语匹配上。
     """
-    hits = [t for t in STANDARD_TERMS if t.term == term]
+    normalized = term.replace("_", " ").strip().lower()
+    hits = [
+        t
+        for t in STANDARD_TERMS
+        if t.term == term or t.term.lower() == normalized
+    ]
     if not hits:
         return None
     return min(hits, key=lambda t: (priority_of(t.standard_id), t.standard_id))
