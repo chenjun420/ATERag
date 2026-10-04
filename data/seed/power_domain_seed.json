@@ -489,6 +489,491 @@
         "confidence": 0.85
       },
       {
+        "kind": "power_concept",
+        "id": "INSTR_SOE_TESTER",
+        "matched": "INSTR_SOE_TESTER",
+        "before": {
+          "zh": "SOE测试仪",
+          "standard_ref": null,
+          "confidence": null,
+          "term_status": "unverified"
+        },
+        "after": {
+          "zh": "事故追忆测试设备",
+          "standard_ref": "GB/Z 14429-2005 2.1.45 事故追忆(post disturbance review)",
+          "confidence": 0.9,
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.9
+      },
+      {
+        "kind": "power_concept",
+        "id": "YX_AC_FAIL",
+        "matched": "YX_AC_FAIL",
+        "before": {
+          "zh": "交流输入掉电"
+        },
+        "after": {
+          "zh": "遥信·交流输入掉电",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YX_OVP_TRIP",
+        "matched": "YX_OVP_TRIP",
+        "before": {
+          "zh": "输出过压保护动作"
+        },
+        "after": {
+          "zh": "遥信·输出过压保护动作",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YX_OCP_TRIP",
+        "matched": "YX_OCP_TRIP",
+        "before": {
+          "zh": "输出过流保护动作"
+        },
+        "after": {
+          "zh": "遥信·输出过流保护动作",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YX_OTP_TRIP",
+        "matched": "YX_OTP_TRIP",
+        "before": {
+          "zh": "过温保护动作"
+        },
+        "after": {
+          "zh": "遥信·过温保护动作",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YX_SCP_TRIP",
+        "matched": "YX_SCP_TRIP",
+        "before": {
+          "zh": "输出短路保护动作"
+        },
+        "after": {
+          "zh": "遥信·输出短路保护动作",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YX_FAN_FAIL",
+        "matched": "YX_FAN_FAIL",
+        "before": {
+          "zh": "风扇故障"
+        },
+        "after": {
+          "zh": "遥信·风扇故障",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YX_ORING_FAULT",
+        "matched": "YX_ORING_FAULT",
+        "before": {
+          "zh": "ORING故障"
+        },
+        "after": {
+          "zh": "遥信·ORING故障",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YX_MODULE_PRESENT",
+        "matched": "YX_MODULE_PRESENT",
+        "before": {
+          "zh": "模块在位"
+        },
+        "after": {
+          "zh": "遥信·模块在位",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YX_HOT_SWAP_FAULT",
+        "matched": "YX_HOT_SWAP_FAULT",
+        "before": {
+          "zh": "热插拔故障"
+        },
+        "after": {
+          "zh": "遥信·热插拔故障",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YX_MIX_INSERT",
+        "matched": "YX_MIX_INSERT",
+        "before": {
+          "zh": "混插告警"
+        },
+        "after": {
+          "zh": "遥信·混插告警",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YX_COMM_TIMEOUT",
+        "matched": "YX_COMM_TIMEOUT",
+        "before": {
+          "zh": "通信超时"
+        },
+        "after": {
+          "zh": "遥信·通信超时",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YX_SUMMARY_ALARM",
+        "matched": "YX_SUMMARY_ALARM",
+        "before": {
+          "zh": "汇总告警"
+        },
+        "after": {
+          "zh": "遥信·汇总告警",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YX_POWER_GOOD",
+        "matched": "YX_POWER_GOOD",
+        "before": {
+          "zh": "电源正常"
+        },
+        "after": {
+          "zh": "遥信·电源正常",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YX_INPUT_UV",
+        "matched": "YX_INPUT_UV",
+        "before": {
+          "zh": "输入欠压告警"
+        },
+        "after": {
+          "zh": "遥信·输入欠压告警",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YC_VIN",
+        "matched": "YC_VIN",
+        "before": {
+          "zh": "输入电压"
+        },
+        "after": {
+          "zh": "遥测·输入电压",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YC_VOUT",
+        "matched": "YC_VOUT",
+        "before": {
+          "zh": "输出电压"
+        },
+        "after": {
+          "zh": "遥测·输出电压",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YC_IOUT",
+        "matched": "YC_IOUT",
+        "before": {
+          "zh": "输出电流"
+        },
+        "after": {
+          "zh": "遥测·输出电流",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YC_PIN",
+        "matched": "YC_PIN",
+        "before": {
+          "zh": "输入功率"
+        },
+        "after": {
+          "zh": "遥测·输入功率",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YC_POUT",
+        "matched": "YC_POUT",
+        "before": {
+          "zh": "输出功率"
+        },
+        "after": {
+          "zh": "遥测·输出功率",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YC_TEMP_AMB",
+        "matched": "YC_TEMP_AMB",
+        "before": {
+          "zh": "环境温度"
+        },
+        "after": {
+          "zh": "遥测·环境温度",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YC_TEMP_HOTSPOT",
+        "matched": "YC_TEMP_HOTSPOT",
+        "before": {
+          "zh": "热点温度"
+        },
+        "after": {
+          "zh": "遥测·热点温度",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YC_FAN_SPEED",
+        "matched": "YC_FAN_SPEED",
+        "before": {
+          "zh": "风扇转速"
+        },
+        "after": {
+          "zh": "遥测·风扇转速",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YC_EFFICIENCY",
+        "matched": "YC_EFFICIENCY",
+        "before": {
+          "zh": "效率"
+        },
+        "after": {
+          "zh": "遥测·效率",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YC_PF",
+        "matched": "YC_PF",
+        "before": {
+          "zh": "功率因数"
+        },
+        "after": {
+          "zh": "遥测·功率因数",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YC_ENERGY",
+        "matched": "YC_ENERGY",
+        "before": {
+          "zh": "电能"
+        },
+        "after": {
+          "zh": "遥测·电能",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YK_POWER_ON",
+        "matched": "YK_POWER_ON",
+        "before": {
+          "zh": "开机命令"
+        },
+        "after": {
+          "zh": "遥控·开机命令",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YK_POWER_OFF",
+        "matched": "YK_POWER_OFF",
+        "before": {
+          "zh": "关机命令"
+        },
+        "after": {
+          "zh": "遥控·关机命令",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YK_RESET",
+        "matched": "YK_RESET",
+        "before": {
+          "zh": "复位命令"
+        },
+        "after": {
+          "zh": "遥控·复位命令",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YK_CLEAR_ALARM",
+        "matched": "YK_CLEAR_ALARM",
+        "before": {
+          "zh": "告警清除命令"
+        },
+        "after": {
+          "zh": "遥控·告警清除命令",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YK_SET_VOUT",
+        "matched": "YK_SET_VOUT",
+        "before": {
+          "zh": "输出电压设定"
+        },
+        "after": {
+          "zh": "遥控·输出电压设定",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
+        "kind": "power_concept",
+        "id": "YK_FW_UPGRADE",
+        "matched": "YK_FW_UPGRADE",
+        "before": {
+          "zh": "固件升级命令"
+        },
+        "after": {
+          "zh": "遥控·固件升级命令",
+          "term_status": "standard_backed"
+        },
+        "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+        "checked": "2026-10-04",
+        "confidence": 0.95
+      },
+      {
         "kind": "symbol",
         "id": "R_E",
         "matched": "sym::R_E",
@@ -4888,25 +5373,26 @@
       "name": "SOE测试仪",
       "entity_type": "power_concept",
       "text": "INSTR_SOE_TESTER: SOE测试仪 SOE tester",
-      "confidence": null,
-      "zh": "SOE测试仪",
+      "confidence": 0.9,
+      "zh": "事故追忆测试设备",
       "en": "SOE tester",
       "aliases": "事件顺序记录测试仪",
       "source_ref": "V6.0§6.3.2",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "SOE测试仪",
+          "value": "事故追忆测试设备",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.2",
-              "line": 3216,
-              "confidence": null,
+              "document": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+              "section": null,
+              "line": null,
+              "confidence": 0.9,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "correction",
+                "checked": "2026-10-04"
               }
             }
           ]
@@ -4940,8 +5426,58 @@
               }
             }
           ]
+        },
+        "standard_ref": {
+          "property_name": "standard_ref",
+          "value": "GB/Z 14429-2005 2.1.45 事故追忆(post disturbance review)",
+          "sources": [
+            {
+              "document": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+              "section": null,
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "correction",
+                "checked": "2026-10-04"
+              }
+            }
+          ]
+        },
+        "confidence": {
+          "property_name": "confidence",
+          "value": 0.9,
+          "sources": [
+            {
+              "document": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+              "section": null,
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "correction",
+                "checked": "2026-10-04"
+              }
+            }
+          ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
+              "section": null,
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "source_kind": "correction",
+                "checked": "2026-10-04"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "SOE测试仪",
+      "standard_ref": "GB/Z 14429-2005 2.1.45 事故追忆(post disturbance review)"
     },
     {
       "id": "INSTR_TIME_SYNC_TESTER",
@@ -6243,24 +6779,24 @@
       "entity_type": "power_concept",
       "text": "YX_AC_FAIL: 交流输入掉电 AC input fail",
       "confidence": null,
-      "zh": "交流输入掉电",
+      "zh": "遥信·交流输入掉电",
       "en": "AC input fail",
       "aliases": "输入掉电, AC FAIL",
       "source_ref": "V6.0§6.3.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "交流输入掉电",
+          "value": "遥信·交流输入掉电",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.5",
-              "line": 3253,
-              "confidence": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -6294,8 +6830,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YX",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程信号",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "交流输入掉电",
+      "telemetry_family": "YX",
+      "standard_term": "远程信号",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
+      "standard_ref": "2.1.3"
     },
     {
       "id": "YX_OVP_TRIP",
@@ -6303,24 +6910,24 @@
       "entity_type": "power_concept",
       "text": "YX_OVP_TRIP: 输出过压保护动作 OVP trip",
       "confidence": null,
-      "zh": "输出过压保护动作",
+      "zh": "遥信·输出过压保护动作",
       "en": "OVP trip",
       "aliases": "过压保护动作",
       "source_ref": "V6.0§6.3.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "输出过压保护动作",
+          "value": "遥信·输出过压保护动作",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.5",
-              "line": 3254,
-              "confidence": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -6354,8 +6961,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YX",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程信号",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "输出过压保护动作",
+      "telemetry_family": "YX",
+      "standard_term": "远程信号",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
+      "standard_ref": "2.1.3"
     },
     {
       "id": "YX_OCP_TRIP",
@@ -6363,24 +7041,24 @@
       "entity_type": "power_concept",
       "text": "YX_OCP_TRIP: 输出过流保护动作 OCP trip",
       "confidence": null,
-      "zh": "输出过流保护动作",
+      "zh": "遥信·输出过流保护动作",
       "en": "OCP trip",
       "aliases": "过流保护动作",
       "source_ref": "V6.0§6.3.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "输出过流保护动作",
+          "value": "遥信·输出过流保护动作",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.5",
-              "line": 3255,
-              "confidence": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -6414,8 +7092,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YX",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程信号",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "输出过流保护动作",
+      "telemetry_family": "YX",
+      "standard_term": "远程信号",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
+      "standard_ref": "2.1.3"
     },
     {
       "id": "YX_OTP_TRIP",
@@ -6423,24 +7172,24 @@
       "entity_type": "power_concept",
       "text": "YX_OTP_TRIP: 过温保护动作 OTP trip",
       "confidence": null,
-      "zh": "过温保护动作",
+      "zh": "遥信·过温保护动作",
       "en": "OTP trip",
       "aliases": "过温保护动作",
       "source_ref": "V6.0§6.3.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "过温保护动作",
+          "value": "遥信·过温保护动作",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.5",
-              "line": 3256,
-              "confidence": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -6474,8 +7223,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YX",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程信号",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "过温保护动作",
+      "telemetry_family": "YX",
+      "standard_term": "远程信号",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
+      "standard_ref": "2.1.3"
     },
     {
       "id": "YX_SCP_TRIP",
@@ -6483,24 +7303,24 @@
       "entity_type": "power_concept",
       "text": "YX_SCP_TRIP: 输出短路保护动作 SCP trip",
       "confidence": null,
-      "zh": "输出短路保护动作",
+      "zh": "遥信·输出短路保护动作",
       "en": "SCP trip",
       "aliases": "短路保护动作",
       "source_ref": "V6.0§6.3.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "输出短路保护动作",
+          "value": "遥信·输出短路保护动作",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.5",
-              "line": 3257,
-              "confidence": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -6534,8 +7354,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YX",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程信号",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "输出短路保护动作",
+      "telemetry_family": "YX",
+      "standard_term": "远程信号",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
+      "standard_ref": "2.1.3"
     },
     {
       "id": "YX_FAN_FAIL",
@@ -6543,24 +7434,24 @@
       "entity_type": "power_concept",
       "text": "YX_FAN_FAIL: 风扇故障 fan fail",
       "confidence": null,
-      "zh": "风扇故障",
+      "zh": "遥信·风扇故障",
       "en": "fan fail",
       "aliases": "风扇失效",
       "source_ref": "V6.0§6.3.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "风扇故障",
+          "value": "遥信·风扇故障",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.5",
-              "line": 3258,
-              "confidence": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -6594,8 +7485,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YX",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程信号",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "风扇故障",
+      "telemetry_family": "YX",
+      "standard_term": "远程信号",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
+      "standard_ref": "2.1.3"
     },
     {
       "id": "YX_ORING_FAULT",
@@ -6603,24 +7565,24 @@
       "entity_type": "power_concept",
       "text": "YX_ORING_FAULT: ORING故障 ORing fault",
       "confidence": null,
-      "zh": "ORING故障",
+      "zh": "遥信·ORING故障",
       "en": "ORing fault",
       "aliases": "ORING失效",
       "source_ref": "V6.0§6.3.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "ORING故障",
+          "value": "遥信·ORING故障",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.5",
-              "line": 3259,
-              "confidence": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -6654,8 +7616,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YX",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程信号",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "ORING故障",
+      "telemetry_family": "YX",
+      "standard_term": "远程信号",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
+      "standard_ref": "2.1.3"
     },
     {
       "id": "YX_MODULE_PRESENT",
@@ -6663,24 +7696,24 @@
       "entity_type": "power_concept",
       "text": "YX_MODULE_PRESENT: 模块在位 module present",
       "confidence": null,
-      "zh": "模块在位",
+      "zh": "遥信·模块在位",
       "en": "module present",
       "aliases": "在位信号",
       "source_ref": "V6.0§6.3.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "模块在位",
+          "value": "遥信·模块在位",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.5",
-              "line": 3260,
-              "confidence": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -6714,8 +7747,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YX",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程信号",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "模块在位",
+      "telemetry_family": "YX",
+      "standard_term": "远程信号",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
+      "standard_ref": "2.1.3"
     },
     {
       "id": "YX_HOT_SWAP_FAULT",
@@ -6723,24 +7827,24 @@
       "entity_type": "power_concept",
       "text": "YX_HOT_SWAP_FAULT: 热插拔故障 hot swap fault",
       "confidence": null,
-      "zh": "热插拔故障",
+      "zh": "遥信·热插拔故障",
       "en": "hot swap fault",
       "aliases": "热插拔异常",
       "source_ref": "V6.0§6.3.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "热插拔故障",
+          "value": "遥信·热插拔故障",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.5",
-              "line": 3261,
-              "confidence": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -6774,8 +7878,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YX",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程信号",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "热插拔故障",
+      "telemetry_family": "YX",
+      "standard_term": "远程信号",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
+      "standard_ref": "2.1.3"
     },
     {
       "id": "YX_MIX_INSERT",
@@ -6783,24 +7958,24 @@
       "entity_type": "power_concept",
       "text": "YX_MIX_INSERT: 混插告警 mix insert alarm",
       "confidence": null,
-      "zh": "混插告警",
+      "zh": "遥信·混插告警",
       "en": "mix insert alarm",
       "aliases": "混插",
       "source_ref": "V6.0§6.3.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "混插告警",
+          "value": "遥信·混插告警",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.5",
-              "line": 3262,
-              "confidence": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -6834,8 +8009,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YX",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程信号",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "混插告警",
+      "telemetry_family": "YX",
+      "standard_term": "远程信号",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
+      "standard_ref": "2.1.3"
     },
     {
       "id": "YX_COMM_TIMEOUT",
@@ -6843,24 +8089,24 @@
       "entity_type": "power_concept",
       "text": "YX_COMM_TIMEOUT: 通信超时 communication timeout",
       "confidence": null,
-      "zh": "通信超时",
+      "zh": "遥信·通信超时",
       "en": "communication timeout",
       "aliases": "通信中断",
       "source_ref": "V6.0§6.3.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "通信超时",
+          "value": "遥信·通信超时",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.5",
-              "line": 3263,
-              "confidence": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -6894,8 +8140,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YX",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程信号",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "通信超时",
+      "telemetry_family": "YX",
+      "standard_term": "远程信号",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
+      "standard_ref": "2.1.3"
     },
     {
       "id": "YX_SUMMARY_ALARM",
@@ -6903,24 +8220,24 @@
       "entity_type": "power_concept",
       "text": "YX_SUMMARY_ALARM: 汇总告警 summary alarm",
       "confidence": null,
-      "zh": "汇总告警",
+      "zh": "遥信·汇总告警",
       "en": "summary alarm",
       "aliases": "总告警",
       "source_ref": "V6.0§6.3.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "汇总告警",
+          "value": "遥信·汇总告警",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.5",
-              "line": 3264,
-              "confidence": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -6954,8 +8271,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YX",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程信号",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "汇总告警",
+      "telemetry_family": "YX",
+      "standard_term": "远程信号",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
+      "standard_ref": "2.1.3"
     },
     {
       "id": "YX_POWER_GOOD",
@@ -6963,24 +8351,24 @@
       "entity_type": "power_concept",
       "text": "YX_POWER_GOOD: 电源正常 power good",
       "confidence": null,
-      "zh": "电源正常",
+      "zh": "遥信·电源正常",
       "en": "power good",
       "aliases": "PG信号",
       "source_ref": "V6.0§6.3.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "电源正常",
+          "value": "遥信·电源正常",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.5",
-              "line": 3265,
-              "confidence": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -7014,8 +8402,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YX",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程信号",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "电源正常",
+      "telemetry_family": "YX",
+      "standard_term": "远程信号",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
+      "standard_ref": "2.1.3"
     },
     {
       "id": "YX_INPUT_UV",
@@ -7023,24 +8482,24 @@
       "entity_type": "power_concept",
       "text": "YX_INPUT_UV: 输入欠压告警 input under-voltage alarm",
       "confidence": null,
-      "zh": "输入欠压告警",
+      "zh": "遥信·输入欠压告警",
       "en": "input under-voltage alarm",
       "aliases": "输入欠压",
       "source_ref": "V6.0§6.3.5",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "输入欠压告警",
+          "value": "遥信·输入欠压告警",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.5",
-              "line": 3266,
-              "confidence": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -7074,8 +8533,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YX",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程信号",
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
+          "sources": [
+            {
+              "document": "2.1.3",
+              "section": "2.1.3",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "输入欠压告警",
+      "telemetry_family": "YX",
+      "standard_term": "远程信号",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
+      "standard_ref": "2.1.3"
     },
     {
       "id": "YC_VIN",
@@ -7083,24 +8613,24 @@
       "entity_type": "power_concept",
       "text": "YC_VIN: 输入电压 input voltage",
       "confidence": null,
-      "zh": "输入电压",
+      "zh": "遥测·输入电压",
       "en": "input voltage",
       "aliases": "输入电压遥测",
       "source_ref": "V6.0§6.3.6",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "输入电压",
+          "value": "遥测·输入电压",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.6",
-              "line": 3272,
-              "confidence": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -7134,8 +8664,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YC",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程测量",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "输入电压",
+      "telemetry_family": "YC",
+      "standard_term": "远程测量",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
+      "standard_ref": "2.1.2"
     },
     {
       "id": "YC_VOUT",
@@ -7143,24 +8744,24 @@
       "entity_type": "power_concept",
       "text": "YC_VOUT: 输出电压 output voltage",
       "confidence": null,
-      "zh": "输出电压",
+      "zh": "遥测·输出电压",
       "en": "output voltage",
       "aliases": "输出电压遥测",
       "source_ref": "V6.0§6.3.6",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "输出电压",
+          "value": "遥测·输出电压",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.6",
-              "line": 3273,
-              "confidence": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -7194,8 +8795,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YC",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程测量",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "输出电压",
+      "telemetry_family": "YC",
+      "standard_term": "远程测量",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
+      "standard_ref": "2.1.2"
     },
     {
       "id": "YC_IOUT",
@@ -7203,24 +8875,24 @@
       "entity_type": "power_concept",
       "text": "YC_IOUT: 输出电流 output current",
       "confidence": null,
-      "zh": "输出电流",
+      "zh": "遥测·输出电流",
       "en": "output current",
       "aliases": "输出电流遥测",
       "source_ref": "V6.0§6.3.6",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "输出电流",
+          "value": "遥测·输出电流",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.6",
-              "line": 3274,
-              "confidence": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -7254,8 +8926,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YC",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程测量",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "输出电流",
+      "telemetry_family": "YC",
+      "standard_term": "远程测量",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
+      "standard_ref": "2.1.2"
     },
     {
       "id": "YC_PIN",
@@ -7263,24 +9006,24 @@
       "entity_type": "power_concept",
       "text": "YC_PIN: 输入功率 input power",
       "confidence": null,
-      "zh": "输入功率",
+      "zh": "遥测·输入功率",
       "en": "input power",
       "aliases": "输入功率遥测",
       "source_ref": "V6.0§6.3.6",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "输入功率",
+          "value": "遥测·输入功率",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.6",
-              "line": 3275,
-              "confidence": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -7314,8 +9057,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YC",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程测量",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "输入功率",
+      "telemetry_family": "YC",
+      "standard_term": "远程测量",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
+      "standard_ref": "2.1.2"
     },
     {
       "id": "YC_POUT",
@@ -7323,24 +9137,24 @@
       "entity_type": "power_concept",
       "text": "YC_POUT: 输出功率 output power",
       "confidence": null,
-      "zh": "输出功率",
+      "zh": "遥测·输出功率",
       "en": "output power",
       "aliases": "输出功率遥测",
       "source_ref": "V6.0§6.3.6",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "输出功率",
+          "value": "遥测·输出功率",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.6",
-              "line": 3276,
-              "confidence": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -7374,8 +9188,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YC",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程测量",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "输出功率",
+      "telemetry_family": "YC",
+      "standard_term": "远程测量",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
+      "standard_ref": "2.1.2"
     },
     {
       "id": "YC_TEMP_AMB",
@@ -7383,24 +9268,24 @@
       "entity_type": "power_concept",
       "text": "YC_TEMP_AMB: 环境温度 ambient temperature",
       "confidence": null,
-      "zh": "环境温度",
+      "zh": "遥测·环境温度",
       "en": "ambient temperature",
       "aliases": "环境温度遥测",
       "source_ref": "V6.0§6.3.6",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "环境温度",
+          "value": "遥测·环境温度",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.6",
-              "line": 3277,
-              "confidence": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -7434,8 +9319,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YC",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程测量",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "环境温度",
+      "telemetry_family": "YC",
+      "standard_term": "远程测量",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
+      "standard_ref": "2.1.2"
     },
     {
       "id": "YC_TEMP_HOTSPOT",
@@ -7443,24 +9399,24 @@
       "entity_type": "power_concept",
       "text": "YC_TEMP_HOTSPOT: 热点温度 hotspot temperature",
       "confidence": null,
-      "zh": "热点温度",
+      "zh": "遥测·热点温度",
       "en": "hotspot temperature",
       "aliases": "热点温度遥测",
       "source_ref": "V6.0§6.3.6",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "热点温度",
+          "value": "遥测·热点温度",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.6",
-              "line": 3278,
-              "confidence": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -7494,8 +9450,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YC",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程测量",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "热点温度",
+      "telemetry_family": "YC",
+      "standard_term": "远程测量",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
+      "standard_ref": "2.1.2"
     },
     {
       "id": "YC_FAN_SPEED",
@@ -7503,24 +9530,24 @@
       "entity_type": "power_concept",
       "text": "YC_FAN_SPEED: 风扇转速 fan speed",
       "confidence": null,
-      "zh": "风扇转速",
+      "zh": "遥测·风扇转速",
       "en": "fan speed",
       "aliases": "风扇转速遥测",
       "source_ref": "V6.0§6.3.6",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "风扇转速",
+          "value": "遥测·风扇转速",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.6",
-              "line": 3279,
-              "confidence": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -7554,8 +9581,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YC",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程测量",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "风扇转速",
+      "telemetry_family": "YC",
+      "standard_term": "远程测量",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
+      "standard_ref": "2.1.2"
     },
     {
       "id": "YC_EFFICIENCY",
@@ -7563,24 +9661,24 @@
       "entity_type": "power_concept",
       "text": "YC_EFFICIENCY: 效率 efficiency",
       "confidence": null,
-      "zh": "效率",
+      "zh": "遥测·效率",
       "en": "efficiency",
       "aliases": "效率遥测",
       "source_ref": "V6.0§6.3.6",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "效率",
+          "value": "遥测·效率",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.6",
-              "line": 3280,
-              "confidence": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -7614,8 +9712,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YC",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程测量",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "效率",
+      "telemetry_family": "YC",
+      "standard_term": "远程测量",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
+      "standard_ref": "2.1.2"
     },
     {
       "id": "YC_PF",
@@ -7623,24 +9792,24 @@
       "entity_type": "power_concept",
       "text": "YC_PF: 功率因数 power factor",
       "confidence": null,
-      "zh": "功率因数",
+      "zh": "遥测·功率因数",
       "en": "power factor",
       "aliases": "PF遥测",
       "source_ref": "V6.0§6.3.6",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "功率因数",
+          "value": "遥测·功率因数",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.6",
-              "line": 3281,
-              "confidence": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -7674,8 +9843,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YC",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程测量",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "功率因数",
+      "telemetry_family": "YC",
+      "standard_term": "远程测量",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
+      "standard_ref": "2.1.2"
     },
     {
       "id": "YC_ENERGY",
@@ -7683,24 +9923,24 @@
       "entity_type": "power_concept",
       "text": "YC_ENERGY: 电能 energy",
       "confidence": null,
-      "zh": "电能",
+      "zh": "遥测·电能",
       "en": "energy",
       "aliases": "累积电能",
       "source_ref": "V6.0§6.3.6",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "电能",
+          "value": "遥测·电能",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.6",
-              "line": 3282,
-              "confidence": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -7734,8 +9974,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YC",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程测量",
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
+          "sources": [
+            {
+              "document": "2.1.2",
+              "section": "2.1.2",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "电能",
+      "telemetry_family": "YC",
+      "standard_term": "远程测量",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
+      "standard_ref": "2.1.2"
     },
     {
       "id": "PROT_OCP",
@@ -9018,24 +11329,24 @@
       "entity_type": "power_concept",
       "text": "YK_POWER_ON: 开机命令 power on command",
       "confidence": null,
-      "zh": "开机命令",
+      "zh": "遥控·开机命令",
       "en": "power on command",
       "aliases": "开机",
       "source_ref": "V6.0§6.3.9",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "开机命令",
+          "value": "遥控·开机命令",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.9",
-              "line": 3315,
-              "confidence": null,
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -9069,8 +11380,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YK",
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程命令",
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥控",
+            "远程命令"
+          ],
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "开机命令",
+      "telemetry_family": "YK",
+      "standard_term": "远程命令",
+      "synonyms": [
+        "遥控",
+        "远程命令"
+      ],
+      "standard_ref": "2.1.4"
     },
     {
       "id": "YK_POWER_OFF",
@@ -9078,24 +11460,24 @@
       "entity_type": "power_concept",
       "text": "YK_POWER_OFF: 关机命令 power off command",
       "confidence": null,
-      "zh": "关机命令",
+      "zh": "遥控·关机命令",
       "en": "power off command",
       "aliases": "关机",
       "source_ref": "V6.0§6.3.9",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "关机命令",
+          "value": "遥控·关机命令",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.9",
-              "line": 3316,
-              "confidence": null,
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -9129,8 +11511,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YK",
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程命令",
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥控",
+            "远程命令"
+          ],
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "关机命令",
+      "telemetry_family": "YK",
+      "standard_term": "远程命令",
+      "synonyms": [
+        "遥控",
+        "远程命令"
+      ],
+      "standard_ref": "2.1.4"
     },
     {
       "id": "YK_RESET",
@@ -9138,24 +11591,24 @@
       "entity_type": "power_concept",
       "text": "YK_RESET: 复位命令 reset command",
       "confidence": null,
-      "zh": "复位命令",
+      "zh": "遥控·复位命令",
       "en": "reset command",
       "aliases": "复位",
       "source_ref": "V6.0§6.3.9",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "复位命令",
+          "value": "遥控·复位命令",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.9",
-              "line": 3317,
-              "confidence": null,
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -9189,8 +11642,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YK",
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程命令",
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥控",
+            "远程命令"
+          ],
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "复位命令",
+      "telemetry_family": "YK",
+      "standard_term": "远程命令",
+      "synonyms": [
+        "遥控",
+        "远程命令"
+      ],
+      "standard_ref": "2.1.4"
     },
     {
       "id": "YK_CLEAR_ALARM",
@@ -9198,24 +11722,24 @@
       "entity_type": "power_concept",
       "text": "YK_CLEAR_ALARM: 告警清除命令 clear alarm command",
       "confidence": null,
-      "zh": "告警清除命令",
+      "zh": "遥控·告警清除命令",
       "en": "clear alarm command",
       "aliases": "告警清除",
       "source_ref": "V6.0§6.3.9",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "告警清除命令",
+          "value": "遥控·告警清除命令",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.9",
-              "line": 3318,
-              "confidence": null,
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -9249,8 +11773,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YK",
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程命令",
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥控",
+            "远程命令"
+          ],
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "告警清除命令",
+      "telemetry_family": "YK",
+      "standard_term": "远程命令",
+      "synonyms": [
+        "遥控",
+        "远程命令"
+      ],
+      "standard_ref": "2.1.4"
     },
     {
       "id": "YK_SET_VOUT",
@@ -9258,24 +11853,24 @@
       "entity_type": "power_concept",
       "text": "YK_SET_VOUT: 输出电压设定 set output voltage",
       "confidence": null,
-      "zh": "输出电压设定",
+      "zh": "遥控·输出电压设定",
       "en": "set output voltage",
       "aliases": "调压",
       "source_ref": "V6.0§6.3.9",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "输出电压设定",
+          "value": "遥控·输出电压设定",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.9",
-              "line": 3319,
-              "confidence": null,
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -9309,8 +11904,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YK",
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程命令",
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥控",
+            "远程命令"
+          ],
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "输出电压设定",
+      "telemetry_family": "YK",
+      "standard_term": "远程命令",
+      "synonyms": [
+        "遥控",
+        "远程命令"
+      ],
+      "standard_ref": "2.1.4"
     },
     {
       "id": "YK_FW_UPGRADE",
@@ -9318,24 +11984,24 @@
       "entity_type": "power_concept",
       "text": "YK_FW_UPGRADE: 固件升级命令 firmware upgrade command",
       "confidence": null,
-      "zh": "固件升级命令",
+      "zh": "遥控·固件升级命令",
       "en": "firmware upgrade command",
       "aliases": "升级",
       "source_ref": "V6.0§6.3.9",
       "source_kind": "bootstrap_section",
-      "term_status": "unverified",
+      "term_status": "standard_backed",
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "固件升级命令",
+          "value": "遥控·固件升级命令",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.9",
-              "line": 3320,
-              "confidence": null,
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
               "metadata": {
-                "source_kind": "bootstrap_section"
+                "source_kind": "standard"
               }
             }
           ]
@@ -9369,8 +12035,79 @@
               }
             }
           ]
+        },
+        "term_status": {
+          "property_name": "term_status",
+          "value": "standard_backed",
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "telemetry_family": {
+          "property_name": "telemetry_family",
+          "value": "YK",
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "远程命令",
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥控",
+            "远程命令"
+          ],
+          "sources": [
+            {
+              "document": "2.1.4",
+              "section": "2.1.4",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "source_kind": "standard"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "固件升级命令",
+      "telemetry_family": "YK",
+      "standard_term": "远程命令",
+      "synonyms": [
+        "遥控",
+        "远程命令"
+      ],
+      "standard_ref": "2.1.4"
     },
     {
       "id": "sym::V_in",

@@ -877,6 +877,50 @@ def apply_corrections(
         if entry.get("standard_ref"):
             _updates["term_status"] = "standard_backed"
         _do("power_concept", entry, entry["id"], _updates)
+    for fam in corrections.get("telemetry_families") or ():
+        # 遥信/遥测/遥控用**行业通称**作 ``zh``, 标准正名另存 ``standard_term``。
+        #
+        # 早先一版反过来: 把 zh 换成 GB/Z 14429 的条目正名「远程信号 / 远程测量 /
+        # 远程命令」, 理由是「对齐标准」。那是**搞反了** —— 标准里这两个词都有,
+        # 且 2.1.2~2.1.5 明文把遥测/遥信/遥控/遥调列为**同义词**; 而工程师实际
+        # 说、实际搜的是后者, 方案自己的 YX_/YC_/YK_ 前缀也正是从它们缩写来的。
+        # 命名成「远程信号」之后搜「遥信」反而命中不了 —— 降低了 LightRAG 的
+        # 命中率, 与「对齐业界术语」的目标正好相反。
+        #
+        # 「对齐标准」在这里的落点是**记录标准正名与条号**, 不是替换掉通称。
+        industry = fam.get("industry_term") or fam.get("synonym") or fam["standard_term"]
+        standard_term = fam["standard_term"]
+        ref = fam.get("clause", "")
+        for cid in fam.get("concepts") or ():
+            target = by_id.get(cid)
+            if target is None:
+                skipped.append(f"telemetry:{cid}(目标不存在)")
+                continue
+            old = target["properties"].get("zh")
+            target["properties"]["zh_declared"] = old
+            target["properties"]["zh"] = f"{industry}·{old}" if old else industry
+            target["properties"]["telemetry_family"] = fam["family"]
+            target["properties"]["standard_term"] = standard_term
+            # **同义词全部记录**, 两种叫法都要能被检索命中。
+            # 早先只留 `standard_term` 一个字段, 于是搜「遥信」找不到标着
+            # 「远程信号」的那条 —— 命中率的损失是隐形的, 因为检索照样返回结果,
+            # 只是少了一部分。
+            target["properties"]["synonyms"] = [industry, standard_term]
+            target["properties"]["term_status"] = "standard_backed"
+            target["properties"]["standard_ref"] = ref
+            src = source_ref(ref, kind="standard", confidence=fam.get("confidence"))
+            for key in ("zh", "term_status", "telemetry_family", "standard_term", "synonyms"):
+                target["properties"].setdefault("provenance", {})[key] = {
+                    "property_name": key, "value": target["properties"][key], "sources": [src]
+                }
+            applied.append({
+                "kind": "power_concept", "id": cid, "matched": cid,
+                "before": {"zh": old},
+                "after": {"zh": target["properties"]["zh"], "term_status": "standard_backed"},
+                "source": fam["source"], "checked": fam["checked"],
+                "confidence": fam.get("confidence"),
+            })
+
     for group in corrections.get("symbols") or ():
         # 符号的术语出处是**组**的(一组符号共用一个标准的同一批词条), 不是逐条的。
         # 逐条写会把 30 多个符号抄 30 遍, 而标准不会为每个记号单列词条。
