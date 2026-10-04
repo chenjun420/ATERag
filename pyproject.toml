@@ -134,6 +134,7 @@ testpaths = ["tests"]
 markers = [
     "gate: 质量门禁测试, 需要 POSTGRES_DSN 与完整 seed 数据",
     "integration: 需要外部服务 (PG / 嵌入服务 / LLM)",
+    "slow: 需读 22,919 行方案全文, 数十秒级",
 ]
 addopts = "-m 'not gate'"
 
