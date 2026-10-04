@@ -47,6 +47,7 @@ from .expr_norm import normalize_equation
 from .quantity_rules import build_dictionary
 from .render import Rendered, render_equation
 from .spec_parse import FormulaRow, parse_formula_rows, read_spec
+from .standard_terms import Term, resolve
 from .standards import parse_standards
 from .symbols import SymbolTable, parse_symbol_table
 
@@ -177,9 +178,25 @@ def check_homogeneity(
 #: 前者的每个字都能在方案里指到出处。
 _ID_SHORT_NAME_RE = re.compile(r"^F_[A-Z](?:\.\d+)*_(.+)$")
 
-#: ``name_zh`` 的两种来源, 必须可区分。
-NAME_SOURCE_DECLARED = "declared"        # 方案给了中文名
-NAME_SOURCE_ID = "id-short-name"         # 方案只给了英文短名, 照用
+#: ``name_zh`` 的来源, 必须可区分。
+NAME_SOURCE_DECLARED = "declared"        # 方案自写中文名
+NAME_SOURCE_STANDARD = "standard"        # 标准术语(GB 国标优先), 后缀带标准号
+NAME_SOURCE_ID = "id-short-name"         # 方案只给英文短名, 照用
+
+
+def _standard_term_for(formula_id: str, short_name: str | None) -> Term | None:
+    """用公式短名去标准术语表查中文名; 查不到返回 ``None``。
+
+    先按**完整短名**查(``MTBF`` 这种纯缩写最可靠), 再按短名里的首个大写词
+    查(``MTBF_GAUGE`` -> ``MTBF``)。都不中就放弃 —— **不猜、不截断匹配**。
+    """
+    if not short_name:
+        return None
+    hit = resolve(short_name)
+    if hit is not None:
+        return hit
+    head = short_name.split("_")[0]
+    return resolve(head)
 
 
 def _english_short_name(formula_id: str) -> str | None:
@@ -240,12 +257,16 @@ class FormulaRecord:
     used_by_test: tuple[str, ...] = ()
     used_by_axon: tuple[str, ...] = ()
     confidence: float = 0.95
+    #: 方案自己写的中文名(若与 ``name_zh`` 不同则保留), 供追溯漂移。
+    #: 放在末尾是因为 dataclass 要求无默认值字段在前。
+    name_zh_declared: str | None = None
 
     def as_csv_row(self) -> dict[str, str]:
         """转成与 ``formula`` 表同名的 CSV 行(列序见 :data:`CSV_COLUMNS`)。"""
         row: dict[str, str] = {
             "formula_id": self.formula_id,
             "name_zh": self.name_zh,
+            "name_zh_declared": self.name_zh_declared or "",
             "name_source": self.name_source,
             "name_en": self.name_en or "",
             "domain": self.domain,
@@ -271,7 +292,8 @@ class FormulaRecord:
 
 #: CSV 列序。与 §18.3.1 的列序一致, 便于人工比对。
 CSV_COLUMNS: tuple[str, ...] = (
-    "formula_id", "name_zh", "name_source", "name_en", "domain", "section", "domain_tags",
+    "formula_id", "name_zh", "name_zh_declared", "name_source", "name_en",
+    "domain", "section", "domain_tags",
     "var_refs", "dimension_vec", "dimension_ok", "derive_from", "boundary",
     "confidence", "scope", "used_by_rule", "used_by_test", "used_by_axon",
     "errata", "source_ref", "source_kind",
@@ -293,6 +315,8 @@ class RejectionReport:
     missing_dimension: list[str] = field(default_factory=list)
     #: 四种表达渲染失败
     render_failed: list[str] = field(default_factory=list)
+    #: (公式 ID, 方案原名, 标准名, 标准号) —— 两者不一致, 记下来供人看
+    name_conflicts: list[tuple[str, str, str, str]] = field(default_factory=list)
     #: 被隔离的公式 -> 原因(方案错误或成因未定)
     quarantined: dict[str, str] = field(default_factory=dict)
     considered: int = 0
@@ -413,25 +437,29 @@ def build_records(
             report.quarantined[fid] = "表达式无任何变量(指引散文, 非公式)"
             continue
 
-        # --- name_zh: 方案给了中文名就用中文名; 只给英文短名就照用短名 ---
+        # --- name_zh 的取值: 三级来源, 全部可追溯 ---
         #
-        # 为什么不用 websearch 补中文译名: 查证过, 国标确有标准化中文术语
-        # (GB/T 3187-1994「平均失效间隔时间」、GB/T 2900.99-2016 等), 但
-        #   1. **一条都不在本项目 registry 的 177 条里** —— 那 177 条全是
-        #      IEC/UL/JEDEC/MIL/ANSI。引用项目未引用的标准, 等于擅自扩范围。
-        #   2. 同一缩写在不同标准里**译法互相冲突**: DL/T 861 把 MTTF 译作
-        #      「平均无故障工作时间」, GB/T 3187 译作「平均失效前时间」。
-        #      选哪个都是我的判断, 不是方案的判断。
-        # 而英文短名是**公式 ID 的一部分**, 由方案自己定义, 每个字都能在方案里
-        # 指到出处 —— 与「编一个译名」有本质区别。
+        # 优先级: 标准术语(GB 国标优先) > 方案自写中文名 > 公式 ID 英文短名。
+        #
+        # 为什么标准名排在方案原名**之前**(用户明确要求): 标准术语有出处、可被
+        # 引用与核对, 方案自写名只是作者当时的措辞。但**方案原名照样保留在
+        # ``name_zh_declared`` 列** —— 两者不一致时, 漂移的可见性比「谁赢」更重要,
+        # 且 §18.10 注 9 要求文档与代码同源, 不能让方案原文被静默替换掉。
+        short = _english_short_name(fid)
+        std = _standard_term_for(fid, short)
         if row.name_zh:
             name_zh, name_source = row.name_zh, NAME_SOURCE_DECLARED
-        else:
-            short = _english_short_name(fid)
-            if not short:
-                report.quarantined[fid] = "既无中文名也无英文短名(公式 ID 无短名部分)"
-                continue
+            if std is not None and std.zh != row.name_zh:
+                # 方案名与标准名不一致 —— 记下来让人看, 不自动改写方案原文。
+                report.name_conflicts.append((fid, row.name_zh, std.zh, std.standard_id))
+        elif std is not None:
+            name_zh, name_source = std.zh, f"{NAME_SOURCE_STANDARD}:{std.standard_id}"
+        elif short:
             name_zh, name_source = short, NAME_SOURCE_ID
+        else:
+            report.quarantined[fid] = "既无中文名也无英文短名(公式 ID 无短名部分)"
+            continue
+        if not row.name_zh:
             report.missing_name_zh.append(fid)
         # ``source_ref`` 的来源优先级: 公式表自带 > 附录 V 反查标准号 >
         # **方案章节号**。
@@ -484,6 +512,7 @@ def build_records(
                 formula_id=fid,
                 name_zh=name_zh,
                 name_source=name_source,
+                name_zh_declared=row.name_zh,
                 domain=domain,
                 section=section,
                 domain_tags=(_DOMAIN_TAG.get(domain, domain),),
@@ -637,6 +666,10 @@ def main(argv: list[str] | None = None) -> int:
     path = write_formula_csv(records, args.out)
     print(f"可入库 {len(records)} 条 -> {path}")
     print(f"过滤: {report.summary()}")
+    if report.name_conflicts:
+        print(f"方案名与标准名不一致 {len(report.name_conflicts)} 条(保留方案原文, 不自动改写):")
+        for fid, dec, std, sid in report.name_conflicts[:8]:
+            print(f"  {fid}: 方案={dec!r} 标准={std!r} ({sid})")
     if report.quarantined:
         print("隔离(不入库, 依据 docs/w1-triage.md):")
         for fid, why in sorted(report.quarantined.items()):
