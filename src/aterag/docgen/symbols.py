@@ -120,6 +120,11 @@ def _blank() -> dict[str, float]:
 
 def _parse_segment(seg: str, acc: dict[str, float]) -> bool:
     """把一段 (分子或分母) 的乘积累加进 ``acc``。认出不认识的单位返回 False。"""
+    # 纯数字段是「无量纲的倍数」: ``[1]`` 就是无量纲, ``[1/h]`` 的分子就是 1。
+    # 不特判的话 ``_TOKEN_RE`` 匹配不到任何记号, saw 保持 False, 整个 ``[1/h]``
+    # 被判成「不认识的单位」而返回 None。
+    if re.fullmatch(r"[0-9]+(?:\.[0-9]+)?", seg):
+        return True
     saw = False
     for m in _TOKEN_RE.finditer(seg):
         sym, exp = m.group(1), m.group(2)

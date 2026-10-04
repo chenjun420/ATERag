@@ -421,7 +421,12 @@ def _expand_sqrt(s: str) -> str:
             i += 1
             continue
         text, end = got
-        out.append(f"sqrt({text})")
+        # 前一个字符是标识符字符时必须补乘号: ``ω_n√(LC)`` 直接拼成
+        # ``ω_nsqrt(LC)`` —— 一个**合法但完全不同**的标识符, 比解析失败更糟
+        # (它会拿着名字 ``ω_nsqrt`` 去查量纲字典, 然后报「变量未定义」)。
+        tail = "".join(out)
+        needs_star = bool(tail) and (tail[-1].isalnum() or tail[-1] in "_)" or tail[-1] == "√")
+        out.append(("*" if needs_star else "") + f"sqrt({text})")
         i = end
     return "".join(out)
 
@@ -516,9 +521,32 @@ def _translate(s: str) -> str:
 # ---------------------------------------------------------------------------
 
 
+class _VarCollector(ast.NodeVisitor):
+    """收集表达式里的**变量**名。
+
+    必须特判 ``Call``: ``ast.walk`` 会把 ``sqrt``/``abs``/``min``/``max`` 这些
+    **函数名**也当成 ``ast.Name`` 收进来, 于是它们会被当成待查量纲的物理量,
+    在符号表里查不到, 公式因「变量 sqrt 未定义」而闭合失败 —— 一个纯粹由
+    工具缺陷造出来的失败。早先一版就是这么把 ``sqrt``(28 次) 与 ``abs``
+    (12 次) 混进「缺失变量」清单的。
+    """
+
+    def __init__(self) -> None:
+        self.names: list[str] = []
+
+    def visit_Name(self, node: ast.Name) -> None:  # noqa: N802
+        self.names.append(node.id)
+
+    def visit_Call(self, node: ast.Call) -> None:  # noqa: N802
+        # 只下探实参, 跳过 func —— 那不是变量
+        for arg in node.args:
+            self.visit(arg)
+
+
 def _ast_variables(expr: str) -> tuple[str, ...]:
-    tree = ast.parse(expr, mode="eval")
-    return tuple(dict.fromkeys(n.id for n in ast.walk(tree) if isinstance(n, ast.Name)))
+    collector = _VarCollector()
+    collector.visit(ast.parse(expr, mode="eval"))
+    return tuple(dict.fromkeys(collector.names))
 
 
 def _source_variables(text: str) -> tuple[str, ...]:
