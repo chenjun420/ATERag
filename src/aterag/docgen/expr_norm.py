@@ -503,10 +503,62 @@ def _fold_subscript_comma(s: str) -> str:
     return "".join(out)
 
 
+def _fold_caret(s: str) -> str:
+    """``^`` -> ``**``。
+
+    ``^`` 在 Python 里是**按位异或**, 不是幂。语料却拿它写幂: Steinmetz
+    公式 ``P_core = k_h·f^α·B^β``、Weibull ``exp(λt/η)^β``、以及一批 ``10^3``。
+    不折的话 ``f^α`` 会被解析成 ``BitXor``, 而 ``ast`` **照样通过** ——
+    字母上标于是被当成独立的物理量变量(``α``/``β``), 量纲按**乘法**算而不是
+    按幂算, 公式却「解析成功」。
+
+    这是静默算错: 实测 ``f^α`` 的变量集是 ``{f, α}`` 而不是 ``{f}``。一旦给
+    ``α`` 补上量纲规则, ``P_core`` 就会以一个**错误的**量纲闭合且
+    ``dimension_ok=true``。当前 126 条闭合公式里含字母上标的有 **0** 条,
+    所以既有结果未受影响 —— 但那只是因为 ``α``/``β`` 恰好无规则可查, 属于
+    侥幸, 不是设计保证。
+
+    **排在 :func:`_expand_exp` 之后**: 那里认的是 ``e^``/``e(``, 先折会把
+    ``e^x`` 变成 ``e**x`` 从而认不出来, 自然常数底就又会被当成变量。
+    """
+    if "^" not in s:
+        return s
+    # ``f^{α}`` 的花括号: ``f**{α}`` 虽然 ast 能过, 右边是**集合字面量**,
+    # 求值时 TypeError。折成括号才与原意一致。
+    s = re.sub(r"\^\s*\{([^{}]*)\}", r"**(\1)", s)
+    return s.replace("^", "**")
+
+
+#: ``R_ds(on)`` -> ``R_ds_on``。只认恰好 ``on``/``off``, 故不会误伤
+#: ``exp(t/τ)``/``min(a, b)`` 这类实参。
+_STATE_QUALIFIER_RE = re.compile(r"\b([A-Za-z_]\w*)\((on|off)\)")
+
+
+def _fold_state_qualifier(s: str) -> str:
+    """``R_ds(on)`` -> ``R_ds_on``: 把开关状态限定词并进符号名。
+
+    ``R_ds(on)``/``R_ds(off)`` 里的 ``on``/``off`` 是 MOSFET 的**状态标注**,
+    不是物理量。不折的话括号内容会被当成独立变量, 量纲字典里当然查不到 ——
+    实测 ``F_J.9.1_COND_LOSS`` 因此带着一个假变量 ``on``, 公式闭合失败,
+    而报错指向「变量 on 未定义」, 与真实原因(限定词没被识别)毫无关系。
+
+    折成 ``R_ds_on`` 之后 ``rule:resistance`` 就能命中, 量纲 **Ω**。
+
+    **这里得到一次独立交叉验证**: U.5 收录的 ``R_ds(on)`` 自带量纲就是 Ω
+    (命名空间 W7), 与规则推出的 Ω 一致 —— 规则又一次被方案自己的答案证实。
+
+    只认**恰好**是 ``on``/``off`` 的括号内容, 所以 ``exp(t/τ)``/``min(a, b)``
+    这类实参不受影响。
+    """
+    return _STATE_QUALIFIER_RE.sub(r"\1_\2", s)
+
+
 def _translate(s: str) -> str:
     """把一侧的文本翻成 Python 表达式语法 (不含合法性校验)。"""
     t = _expand_sqrt(s)
     t = _expand_exp(t)
+    t = _fold_caret(t)
+    t = _fold_state_qualifier(t)
     t = _insert_implicit_multiplication(t)
     t = _fold_subscript_comma(t)
     t = re.sub(r"\s+", "", t)

@@ -232,3 +232,84 @@ class TestVariablesAreTraceable:
         n = normalize_equation("ΔI_L = V_in·D/(L·f_sw)")
         assert n.ok, n.reason
         assert "ΔI_L" in n.variables
+
+    def test_caret_is_power_not_bitwise_xor(self) -> None:
+        """``^`` 必须翻成 ``**``。
+
+        ``^`` 在 Python 里是**按位异或**。语料拿它写幂(Steinmetz
+        ``f^α``、Weibull ``exp(λt/η)^β``)。不翻的话 ``ast`` **照样通过**,
+        字母上标被当成独立物理量变量, 量纲按乘法算而不是按幂算 ——
+        静默算错, 且报错都指不到真因。
+        """
+        for raw in ("P = k_h·f^α·B^β", "R = exp(λt/η)^β", "X = f^2", "Y = 10^3"):
+            tree = ast.parse(rhs_of(raw), mode="eval")
+            assert not any(
+                isinstance(node, ast.BitXor) for node in ast.walk(tree)
+            ), f"{raw!r} 仍含按位异或: {ast.dump(tree)}"
+
+    def test_caret_exponent_becomes_pow_node(self) -> None:
+        """``f^α`` 的根节点必须是 ``Pow``, 且指数是符号 ``α``。
+
+        变量集合区分不了 ``f*α`` 与 ``f**α`` —— 两者都只引用 ``{f, α}``。
+        所以这里断言 **AST 形状**, 而不是变量集合。
+        """
+        tree = ast.parse(rhs_of("P = f^α"), mode="eval")
+        assert isinstance(tree.body, ast.BinOp)
+        assert isinstance(tree.body.op, ast.Pow)
+        assert isinstance(tree.body.left, ast.Name)
+        assert isinstance(tree.body.right, ast.Name)
+        assert tree.body.right.id == "α"
+
+    def test_caret_braces_become_parentheses(self) -> None:
+        """``f^{2}`` 折成 ``f**(2)``。
+
+        ``f**{2}`` 虽然 ``ast`` 能过, 但右边是**集合字面量**, 求值时
+        TypeError —— 一个要到运行期才炸的坑。
+        """
+        tree = ast.parse(rhs_of("X = f^{2}"), mode="eval")
+        assert isinstance(tree.body.right, ast.Constant)
+        assert tree.body.right.value == 2
+
+    def test_caret_fold_runs_after_exp_fold(self) -> None:
+        """``e^x``/``e^(x)`` 仍翻成 ``exp(x)``。
+
+        这是 ``^`` 折叠的**顺序约束**: 折叠必须排在 ``_expand_exp`` 之后。
+        若先折, ``e^x`` 变成 ``e**x``, 自然常数底就又会被当成变量。
+        """
+        for raw in ("E = e^x", "E = e^(x+1)"):
+            tree = ast.parse(rhs_of(raw), mode="eval")
+            assert isinstance(tree.body, ast.Call), f"{raw!r} -> {ast.dump(tree)}"
+            assert isinstance(tree.body.func, ast.Name)
+            assert tree.body.func.id == "exp"
+
+    def test_state_qualifier_is_fused_into_symbol(self) -> None:
+        """``R_ds(on)`` 必须折成单个符号 ``R_ds_on``, 不留假变量 ``on``。
+
+        ``on``/``off`` 是 MOSFET 状态标注, 不是物理量。不折的话它会被当成
+        待查量纲的变量, 公式因「变量 on 未定义」而闭合失败 —— 报错指向
+        覆盖度, 掩盖真实原因(限定词没被识别)。
+        """
+        n = normalize_equation("P_cond = I_rms²·R_ds(on)·D")
+        assert n.ok, n.reason
+        assert "on" not in n.variables
+        assert "R_ds_on" in n.variables
+        n2 = normalize_equation("P_cond = I_rms²·R_ds(off)·D")
+        assert n2.ok, n2.reason
+        assert "off" not in n2.variables
+        assert "R_ds_off" in n2.variables
+
+    def test_state_qualifier_fold_spares_real_arguments(self) -> None:
+        """实参不是 ``on``/``off`` 时不得改动。
+
+        只认括号内容**恰好**是 ``on``/``off``, 所以 ``exp``/``sqrt``/
+        ``min`` 的实参不会被误并进函数名。
+        """
+        for raw, expect in (
+            ("R = exp(-t/τ)", "exp"),
+            ("X = min(a, b)", "min"),
+            ("Y = sqrt(L/C)", "sqrt"),
+        ):
+            tree = ast.parse(rhs_of(raw), mode="eval")
+            assert isinstance(tree.body, ast.Call), f"{raw!r} -> {ast.dump(tree)}"
+            assert isinstance(tree.body.func, ast.Name)
+            assert tree.body.func.id == expect, f"{raw!r} 函数名被误改"
