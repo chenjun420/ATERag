@@ -37,7 +37,10 @@ def corpus() -> Corpus:
 @pytest.mark.slow
 class TestCorpus:
     def test_counts(self, corpus: Corpus) -> None:
-        assert len(corpus.first) == 545
+        # ID 数 545 -> 573: 附录 U 的登记表没有表达式列, 早先被整行丢弃,
+        # 现改为按字段合并 + 一格多 ID 展开。可解析/闭合数不变 ——
+        # 合并不碰表达式。
+        assert len(corpus.first) == 573
         assert len(corpus.parseable) == 369
         assert len(corpus.closed) == 129
 
@@ -70,7 +73,7 @@ class TestGateHonesty:
     def test_g1_reports_all_three_denominators(self, corpus: Corpus) -> None:
         """覆盖率必须并列给出三个分母, 不能只挑一个好看的。"""
         (g1,) = [r for r in run_gates(["G1"], SPEC) if r.gate_id == "G1"]
-        for marker in ("分母全部545", "分母可解析", "分母可推导"):
+        for marker in ("分母全部573", "分母可解析", "分母可推导"):
             assert marker in g1.detail, f"缺分母 {marker}: {g1.detail}"
 
     @pytest.mark.parametrize("gid", ["G2", "G3", "G8", "G9"])

@@ -364,9 +364,13 @@ def gate_g6(corpus: Corpus) -> GateResult:
         detail=(
             f"已登记标准 {len(known_ids)} 条, 其中 {bound} 条能解析到公式; "
             f"{len(dangling)} 条引用悬空; "
-            f"正向不可判定(FormulaRow.source_ref 545 行全为空, 实测 {len(forward)} 个)"
+            f"正向不可判定(FormulaRow.source_ref 在 {len(corpus.first)} 行里只有 "
+            f"{len(forward)} 个非空 —— 公式表**没有**这一列)"
         ),
-        evidence=tuple(dangling[:10]),
+        # evidence 恒非空: 即使无悬空也要说明「查了什么」, 否则「无 evidence」
+        # 与「没查」在报告上长得一样。
+        evidence=tuple(dangling[:10])
+        or (f"无悬空: {bound} 条标准的 formula_refs 全部解析到公式",),
     )
 
 

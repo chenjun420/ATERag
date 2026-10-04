@@ -42,7 +42,7 @@ class TestRejectsRatherThanFabricates:
     def test_不编造name_zh(self, built: tuple[tuple[object, ...], object]) -> None:
         """缺中文名的公式一律拒收, 不拿 ID 短名冒充中文名。"""
         _records, report = built
-        assert len(report.missing_name_zh) == 83
+        assert len(report.missing_name_zh) == 42
         assert all(fid.startswith("F_") for fid in report.missing_name_zh)
 
     def test_不编造source_ref(self, built: tuple[tuple[object, ...], object]) -> None:
@@ -52,7 +52,7 @@ class TestRejectsRatherThanFabricates:
         反查(实测仅覆盖 4/129)。缺口必须拒收上报。
         """
         _records, report = built
-        assert len(report.missing_source_ref) == 46
+        assert len(report.missing_source_ref) == 87
         assert not any("编造" in r for r in report.reasons)
 
     def test_当前语料下可入库为0(self, built: tuple[tuple[object, ...], object]) -> None:

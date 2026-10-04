@@ -109,15 +109,23 @@ class TestNoGuessing:
         assert rep.rows == ()
         assert "表头角色误判" in rep.dropped[0][1]
 
-    def test_id_column_without_expression_column_is_dropped_with_reason(self) -> None:
+    def test_id_column_without_expression_keeps_other_fields(self) -> None:
+        """只有名称、没有表达式的行: **保留其字段**, 不整行丢弃。
+
+        早先一版把这种行整行丢进 ``dropped``, 理由是「无表达式列」。但附录 U
+        的公式登记表(公式 ID | 名称 | 上游 | 规则 | 测试)**根本没有表达式列**,
+        于是附录 U 对抽取零贡献 —— 实测 83 条闭合公式因此缺 ``name_zh``, 而那些
+        中文名在方案里明明写着。这是抽取器把登记表丢了, 不是方案缺口。
+        """
         src = """\
 | 名称 | 公式 ID | 说明 |
 |---|---|---|
 | 变位捕获 | `F_M.2.5` | SOE 条数 |
 """
         rep = parse_formula_rows(src.splitlines())
-        assert rep.rows == ()
-        assert rep.dropped and "无表达式列" in rep.dropped[0][1]
+        assert [r.formula_id for r in rep.rows] == ["F_M.2.5"]
+        assert rep.rows[0].name_zh == "变位捕获"
+        assert rep.rows[0].expression is None, "没有表达式就是没有, 不许编"
 
 
 class TestNonFormulaTablesIgnored:
@@ -156,13 +164,36 @@ class TestReport:
         rep = parse_formula_rows(src.splitlines())
         assert rep.duplicate_ids == ("F_E.1_OHM_LAW",)
 
-    def test_summary_mentions_dropped_count(self) -> None:
+    def test_summary_reports_metadata_only_rows(self) -> None:
+        """无表达式的行进 ``rows``, 所以 summary 不该再把它们算作「丢弃」。
+
+        ``丢弃`` 现在只统计真正被挡掉的行(表达式列取到公式ID本身)。把
+        「登记表行」继续算成丢弃, 会让人以为附录 U 的名称/上游被扔了。
+        """
+        src = """\
+| 公式 ID | 名称 | 说明 |
+|---|---|---|
+| `F_M.2.5` | 变位捕获 | SOE 条数 |
+"""
+        rep = parse_formula_rows(src.splitlines())
+        assert [r.formula_id for r in rep.rows] == ["F_M.2.5"]
+        assert rep.rows[0].expression is None
+        assert rep.dropped == ()
+        assert "丢弃" in rep.summary()  # 全角冒号, 不硬编码整句
+
+    def test_empty_shell_row_is_dropped_with_reason(self) -> None:
+        """既无表达式又无任何字段的行是空壳, 丢掉并记明原因。
+
+        否则「抽出 N 条」会被这类行虚高 —— 它们对下游毫无用处。
+        """
         src = """\
 | 公式 ID | 说明 |
 |---|---|
 | `F_M.2.5` | SOE 条数 |
 """
-        assert "丢弃 1 行" in parse_formula_rows(src.splitlines()).summary()
+        rep = parse_formula_rows(src.splitlines())
+        assert rep.rows == ()
+        assert rep.dropped and "空壳行" in rep.dropped[0][1]
 
 
 class TestFormulaIdPattern:
@@ -203,6 +234,12 @@ def test_corpus_reaches_the_w1_floor() -> None:
     rep = parse_formula_rows(SPEC.read_text(encoding="utf-8").splitlines())
     distinct = {r.formula_id for r in rep.rows}
     assert len(distinct) >= 400, f"只抽出 {len(distinct)} 条, 低于 W1 门槛 400"
-    assert all(r.expression for r in rep.rows)
+    # 有表达式的行必须是真表达式(绝不能是公式ID本身)。
+    assert not [r for r in rep.rows if r.expression and FORMULA_ID_RE.search(r.expression)]
+    # **无表达式的行合法**: 附录 U 的登记表只有名称/上游。但至少得带一个
+    # 别的字段 —— 空壳行已在解析阶段丢掉, 这里兜底。
+    orphans = [r for r in rep.rows
+               if not r.expression and not (r.name_zh or r.upstream or r.dimension_text)]
+    assert not orphans, f"空壳行: {[r.formula_id for r in orphans][:5]}"
     # 表达式不得是 ID 自身 (已在解析里挡, 这里复核一次)
     assert not [r for r in rep.rows if FORMULA_ID_RE.search(r.expression or "")]
