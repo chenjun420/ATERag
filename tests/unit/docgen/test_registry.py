@@ -98,6 +98,7 @@ class TestRecordShape:
             dimension_vec=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
             derive_from=("A-2",),
             source_ref="IEC 60255-1",
+            name_source="declared",
             source_kind="standard",
             rendered=rendered,
         )

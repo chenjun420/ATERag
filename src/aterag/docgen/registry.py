@@ -170,6 +170,24 @@ def check_homogeneity(
     return report
 
 
+#: ``formula_id`` 的英文短名部分: ``F_J.5.2_RIPPLE_RMS_SQ`` -> ``RIPPLE_RMS_SQ``。
+#:
+#: 方案用「域字母.章.节_英文短名」的形式给公式 ID, **短名是方案自己定义的**,
+#: 所以拿它当名称不是编造 —— 这是与「用 websearch 猜一个中文译名」的本质区别:
+#: 前者的每个字都能在方案里指到出处。
+_ID_SHORT_NAME_RE = re.compile(r"^F_[A-Z](?:\.\d+)*_(.+)$")
+
+#: ``name_zh`` 的两种来源, 必须可区分。
+NAME_SOURCE_DECLARED = "declared"        # 方案给了中文名
+NAME_SOURCE_ID = "id-short-name"         # 方案只给了英文短名, 照用
+
+
+def _english_short_name(formula_id: str) -> str | None:
+    """取公式 ID 的英文短名; 取不到就返回 ``None``(不拿 ID 整串糊弄)。"""
+    match = _ID_SHORT_NAME_RE.match(formula_id)
+    return match.group(1) if match else None
+
+
 def _meanings_of(symbols: SymbolTable) -> dict[str, str]:
     """U.5 的「含义」列 -> ``{符号: 中文}``, 供 ``expr_plaintext`` 渲染。
 
@@ -199,6 +217,10 @@ class FormulaRecord:
 
     formula_id: str
     name_zh: str
+    #: ``name_zh`` 的来源: ``declared``(方案给了中文名)/ ``id-short-name``
+    #: (方案只给英文短名, 照用)。**不做美化** —— ``PFH_1001D`` 转成
+    #: 「Pfh 1001d」反而更难认。
+    name_source: str
     domain: str
     section: str
     domain_tags: tuple[str, ...]
@@ -224,6 +246,7 @@ class FormulaRecord:
         row: dict[str, str] = {
             "formula_id": self.formula_id,
             "name_zh": self.name_zh,
+            "name_source": self.name_source,
             "name_en": self.name_en or "",
             "domain": self.domain,
             "section": self.section,
@@ -248,7 +271,7 @@ class FormulaRecord:
 
 #: CSV 列序。与 §18.3.1 的列序一致, 便于人工比对。
 CSV_COLUMNS: tuple[str, ...] = (
-    "formula_id", "name_zh", "name_en", "domain", "section", "domain_tags",
+    "formula_id", "name_zh", "name_source", "name_en", "domain", "section", "domain_tags",
     "var_refs", "dimension_vec", "dimension_ok", "derive_from", "boundary",
     "confidence", "scope", "used_by_rule", "used_by_test", "used_by_axon",
     "errata", "source_ref", "source_kind",
@@ -390,11 +413,26 @@ def build_records(
             report.quarantined[fid] = "表达式无任何变量(指引散文, 非公式)"
             continue
 
-        # --- NOT NULL 前置: 缺任一项即拒收, **不填占位值** ---
-        if not row.name_zh:
+        # --- name_zh: 方案给了中文名就用中文名; 只给英文短名就照用短名 ---
+        #
+        # 为什么不用 websearch 补中文译名: 查证过, 国标确有标准化中文术语
+        # (GB/T 3187-1994「平均失效间隔时间」、GB/T 2900.99-2016 等), 但
+        #   1. **一条都不在本项目 registry 的 177 条里** —— 那 177 条全是
+        #      IEC/UL/JEDEC/MIL/ANSI。引用项目未引用的标准, 等于擅自扩范围。
+        #   2. 同一缩写在不同标准里**译法互相冲突**: DL/T 861 把 MTTF 译作
+        #      「平均无故障工作时间」, GB/T 3187 译作「平均失效前时间」。
+        #      选哪个都是我的判断, 不是方案的判断。
+        # 而英文短名是**公式 ID 的一部分**, 由方案自己定义, 每个字都能在方案里
+        # 指到出处 —— 与「编一个译名」有本质区别。
+        if row.name_zh:
+            name_zh, name_source = row.name_zh, NAME_SOURCE_DECLARED
+        else:
+            short = _english_short_name(fid)
+            if not short:
+                report.quarantined[fid] = "既无中文名也无英文短名(公式 ID 无短名部分)"
+                continue
+            name_zh, name_source = short, NAME_SOURCE_ID
             report.missing_name_zh.append(fid)
-            report.reject("缺 name_zh(方案只按 ID 建索引)", fid)
-            continue
         # ``source_ref`` 的来源优先级: 公式表自带 > 附录 V 反查标准号 >
         # **方案章节号**。
         #
@@ -444,7 +482,8 @@ def build_records(
         out.append(
             FormulaRecord(
                 formula_id=fid,
-                name_zh=row.name_zh,
+                name_zh=name_zh,
+                name_source=name_source,
                 domain=domain,
                 section=section,
                 domain_tags=(_DOMAIN_TAG.get(domain, domain),),
