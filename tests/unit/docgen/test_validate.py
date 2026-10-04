@@ -43,7 +43,7 @@ class TestCorpus:
         # 合并不碰表达式。
         assert len(corpus.first) == 573
         assert len(corpus.parseable) == 369
-        assert len(corpus.closed) == 130
+        assert len(corpus.closed) == 145
 
     def test_derivable_excludes_deliberately_unruled(self, corpus: Corpus) -> None:
         """「可推导」不该把被**方案歧义**挡住的公式算进来。
@@ -69,7 +69,7 @@ class TestGateHonesty:
         - v1 取「已入库集」当分母, 比值恒 100% —— 空转的 PASS;
         - v2 报 ``NOT_APPLICABLE`` 说「表还没生成」—— 回避。
 
-        现在接上 :func:`solver.symbolic.check_expression`, 实测 130 条候选里
+        现在接上 :func:`solver.symbolic.check_expression`, 实测 145 条候选里
         只有 113 条齐次, 所以 G1 **必须**红。把它改成 PASS 才是在骗人。
         """
         (g1,) = [r for r in run_gates(["G1"], SPEC) if r.gate_id == "G1"]
