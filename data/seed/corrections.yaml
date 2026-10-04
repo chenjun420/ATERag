@@ -1,0 +1,188 @@
+version: 1
+standards:
+- id: GB 4943.1-2011
+  replaced_by: GB 4943.1-2022
+  current:
+    id: GB 4943.1-2022
+    version: '2022'
+    title: 音视频、信息技术和通信技术设备 第1部分：安全要求
+    iec_equivalent: IEC 62368-1:2018
+  version: '2022'
+  title: 音视频、信息技术和通信技术设备 第1部分：安全要求
+  status: SUPERSEDED
+  source: 全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=E4A2A4C875736A5DE05397BE0A0A61E8
+  checked: '2026-10-04'
+  confidence: 0.95
+  note: 方案写的是 2011 版, 已被 2022 版全部代替。对认证与产测依据而言这是硬错误 —— 按 2011 版做的测试项目与 2022 版不同(新增能量分级、液体相关条款、 无线发射部分等)。保留 2011 条目并标 SUPERSEDED, 是为了能回答 「历史报告依据的是哪一版」, 而不是把它悄悄删掉。
+- id: GB/T 17626.3-2021
+  replaced_by: GB/T 17626.3-2023
+  current:
+    id: GB/T 17626.3-2023
+    version: '2023'
+    title: 电磁兼容 试验和测量技术 第3部分：射频电磁场辐射抗扰度试验
+    iec_equivalent: IEC 61000-4-3
+  version: '2023'
+  title: 电磁兼容 试验和测量技术 第3部分：射频电磁场辐射抗扰度试验
+  status: SUPERSEDED
+  iec_equivalent: IEC 61000-4-3
+  source: 全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=0DF2F72AE296403DE06397BE0A0A87C4
+  checked: '2026-10-04'
+  confidence: 0.95
+  note: '方案写 GB/T 17626.3-2021, 但 2021 版**不存在** —— 现行为 2023 版, 上一版是 2016(已于 2024-07-01 废止)。引用一个不存在的版本号, 产测那边 按它去查标准会直接查不到, 而生成的数据本身「看起来完全正常」。 附 iec_equivalent 是为了双向追溯: GB/T 17626.3 等同/修改采用 IEC 61000-4-3。'
+- id: GB/T 17626.2-2018
+  version: '2018'
+  title: 电磁兼容 试验和测量技术 静电放电抗扰度试验
+  status: CURRENT
+  iec_equivalent: IEC 61000-4-2
+  replaces: GB/T 17626.2-2006
+  source: 全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=71F772D82E42D3A7E05397BE0A0AB82A
+  checked: '2026-10-04'
+  confidence: 0.95
+- id: GB/T 9254.1-2021
+  version: '2021'
+  title: 信息技术设备、多媒体设备和接收机 电磁兼容 第1部分：发射要求
+  status: CURRENT
+  replaces: GB/T 9254-2008, GB/T 13837-2012
+  source: 中国质量新闻网 / 中国质量研究院关于新版国标发布的说明
+  checked: '2026-10-04'
+  confidence: 0.9
+  note: 2021 版替代 GB/T 9254-2008 与 GB/T 13837-2012, 自 2022-07-01 实施。 方案已写 2021 版, 此条仅补 status 与被代替关系。
+- id: MTBF
+  zh: 平均失效间隔时间
+  zh_en: mean time between failures
+  original_zh: 平均故障间隔时间
+  source: GB/T 3187-1994 7.2.8; 现行标准 GB/T 2900.99-2016《电工术语 可信性》(等同采用 IEC 60050-192:2015)
+  checked: '2026-10-04'
+  confidence: 0.9
+  note: '**不填 GB/T 2900.99-2016 的具体条号** —— 该标准术语编号与 IEC 60050-192:2015 一致(如 192-01-01 产品), 但本次未逐条核到 MTBF 的编号, 编一个号出来是 §18.10 注 8 禁止的「编造条款号」。查证到标准号即可, 条号留待核。'
+- id: LIFETIME
+  zh: 寿命
+  source: 方案原文(GB/T 2900.99-2016 未核到对应词条)
+  checked: '2026-10-04'
+  confidence: 0.5
+  note: 方案自写名, 未查到标准术语, 保持原样并标记低置信度。
+- id: GB/T 17626.11-2018
+  replaced_by: GB/T 17626.11-2023
+  version: '2023'
+  title: 电磁兼容 试验和测量技术 第11部分：对每相输入电流小于或等于16 A设备的电压暂降、短时中断和电压变化抗扰度试验
+  status: SUPERSEDED
+  iec_equivalent: IEC 61000-4-11
+  source: 全国标准信息公共服务平台 std.samr.gov.cn; GB/T 17626 各标准正文「试验设备」条款
+  checked: '2026-10-04'
+  confidence: 0.9
+  current:
+    id: GB/T 17626.11-2023
+    version: '2023'
+    title: 电磁兼容 试验和测量技术 第11部分：对每相输入电流小于或等于16 A设备的电压暂降、短时中断和电压变化抗扰度试验
+    iec_equivalent: IEC 61000-4-11
+standards_superseded_chain:
+- id: GB/T 3187-1994
+  title: 可靠性、维修性术语
+  status: SUPERSEDED
+  replaced_by: GB/T 2900.13-2008
+  note: 2009-04-01 起被 GB/T 2900.13-2008 代替, 该版又于 2017-07-01 起被 GB/T 2900.99-2016 部分代替。现行引用应指向 GB/T 2900.99-2016。
+  source: 全国标准信息公共服务平台 std.samr.gov.cn; codeofchina.com/standard/GBT3187-1994.html
+  checked: '2026-10-04'
+  confidence: 0.9
+concepts:
+- id: MTBF
+  zh: 平均失效间隔时间
+  original_zh: 平均故障间隔时间
+  source: GB/T 3187-1994 7.2.8; 现行 GB/T 2900.99-2016《电工术语 可信性》(IEC 60050-192:2015)
+  checked: '2026-10-04'
+  confidence: 0.9
+  note: '「平均故障间隔」是通行说法但**标准不用它** —— 与「标称/额定」同类。未填 GB/T 2900.99-2016 的条号: 本次未逐条核到, 编号即 §18.10 注 8 禁止的编造条款号。'
+- id: ESD_IMMUNITY
+  zh: 静电放电抗扰度
+  standard_ref: GB/T 17626.2-2018
+  confidence: 0.95
+  source: 全国标准信息公共服务平台 std.samr.gov.cn (GB/T 17626.2 / .4 / .5 / .11 条目)
+  checked: '2026-10-04'
+- id: EFT_IMMUNITY
+  zh: 电快速瞬变脉冲群抗扰度
+  standard_ref: GB/T 17626.4-2018
+  confidence: 0.95
+  source: 全国标准信息公共服务平台 std.samr.gov.cn (GB/T 17626.2 / .4 / .5 / .11 条目)
+  checked: '2026-10-04'
+- id: SURGE_IMMUNITY
+  zh: 浪涌抗扰度
+  standard_ref: GB/T 17626.5-2019
+  confidence: 0.95
+  source: 全国标准信息公共服务平台 std.samr.gov.cn (GB/T 17626.2 / .4 / .5 / .11 条目)
+  checked: '2026-10-04'
+- id: DIP_IMMUNITY
+  zh: 电压暂降、短时中断和电压变化抗扰度
+  standard_ref: GB/T 17626.11-2023
+  confidence: 0.95
+  source: 全国标准信息公共服务平台 std.samr.gov.cn (GB/T 17626.2 / .4 / .5 / .11 条目)
+  checked: '2026-10-04'
+  note: 正式标题含「电压变化」; 且按每相输入电流 <=16A / >16A 分为 17626.11 与 17626.34 两部分。
+- id: LEAKAGE_CURRENT
+  zh: 漏电流
+  standard_ref: GB 4943.1-2022
+  confidence: 0.9
+  source: 全国标准信息公共服务平台 std.samr.gov.cn (GB/T 17626.2 / .4 / .5 / .11 条目)
+  checked: '2026-10-04'
+- id: INSULATION_VOLTAGE
+  zh: 绝缘试验电压
+  standard_ref: GB 4943.1-2022
+  confidence: 0.85
+  source: 全国标准信息公共服务平台 std.samr.gov.cn (GB/T 17626.2 / .4 / .5 / .11 条目)
+  checked: '2026-10-04'
+- id: COND_VIN_NOM
+  zh: 标称输入电压
+  note: 方案原文该行 ID 为 COND_VIN_NOM(标称)而中文写作「额定输入电压」—— 两者混用。此处按 ID 语义统一为「标称」, 并保留原措辞供审计。
+  original_zh: 额定输入电压
+  source: GB/T 2900.1 电工术语; IEC 60050-151
+  checked: '2026-10-04'
+  confidence: 0.85
+- id: INSTR_ESD_GENERATOR
+  zh: 静电放电发生器
+  standard_ref: GB/T 17626.2-2018 6.2
+  source: 全国标准信息公共服务平台 std.samr.gov.cn; GB/T 17626 各标准正文「试验设备」条款
+  checked: '2026-10-04'
+  confidence: 0.88
+- id: INSTR_EFT_GENERATOR
+  zh: 电快速瞬变脉冲群发生器
+  standard_ref: GB/T 17626.4-2018 6.2 脉冲群发生器
+  source: 全国标准信息公共服务平台 std.samr.gov.cn; GB/T 17626 各标准正文「试验设备」条款
+  checked: '2026-10-04'
+  confidence: 0.88
+- id: INSTR_SURGE_GENERATOR
+  zh: 浪涌(冲击)组合波发生器
+  standard_ref: GB/T 17626.5-2019 组合波发生器
+  source: 全国标准信息公共服务平台 std.samr.gov.cn; GB/T 17626 各标准正文「试验设备」条款
+  checked: '2026-10-04'
+  confidence: 0.88
+- id: INSTR_LISN
+  zh: 线性阻抗稳定网络
+  standard_ref: GB/T 17626.3-2023 附录(人工电源网络)
+  source: 全国标准信息公共服务平台 std.samr.gov.cn; GB/T 17626 各标准正文「试验设备」条款
+  checked: '2026-10-04'
+  confidence: 0.88
+- id: INSTR_HIPOT_TESTER
+  zh: 耐压试验装置
+  standard_ref: GB 4943.1-2022 耐压试验条款
+  source: 全国标准信息公共服务平台 std.samr.gov.cn; GB/T 17626 各标准正文「试验设备」条款
+  checked: '2026-10-04'
+  confidence: 0.88
+- id: INSTR_EMC_RECEIVER
+  zh: 骚扰接收机
+  standard_ref: GB/T 17626 系列测量设备条款
+  source: 全国标准信息公共服务平台 std.samr.gov.cn; GB/T 17626 各标准正文「试验设备」条款
+  checked: '2026-10-04'
+  confidence: 0.88
+load_conditions:
+- id: 半载
+  ratio: 0.5
+  derivation: 满载 × 50%
+  source: 用户给定定义(2026-10-04 会话确认)
+  checked: '2026-10-04'
+  confidence: 1.0
+  note: 这条 confidence 是 1.0, 因为它**不是外部知识**而是本项目对工况词的约定定义, 出处就是本文件本身。约定不需要外部查证, 需要的是写下来让所有人用同一个。
+- id: xx%载
+  derivation: 满载 × xx%
+  source: 用户给定定义(2026-10-04 会话确认)
+  checked: '2026-10-04'
+  confidence: 1.0
+  note: 模式 `^(\d+(?:\.\d+)?)\s*%\s*载$`, 整串锚定以免误吃 P_load 的 load。

@@ -21,8 +21,12 @@ pg_data/
 # registry.yaml    是导入文档后写出的注册表 (已注册型号 / kb_status);
 # 两者都是业务过程的产物, 随部署环境走, 不进版本库。
 # 生成方式见 docs/使用说明.md。
-data/
-registry.yaml
+# data/ 大部分是本机状态(annotations 人工标注、registry 运行态), 不入库。
+# **但 data/seed/ 必须入库** —— 它是交付物「电源产品通用知识初始数据」,
+# 也是交付后唯一受维护的知识源头。漏掉这一条的后果: 初始数据只存在于某台机器的
+# 工作区, 换机/换人就没了, 而 git 里查不到它曾经存在过。
+data/*
+!data/seed/
 
 # 客户规格书原件 —— 属客户知识产权, 不入库。
 # 仓库只保留从原件派生的产物 (config/annotations/*.conditions.yaml 等), 那些
