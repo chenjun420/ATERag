@@ -293,6 +293,35 @@ def extract_concepts(lines: list[str], sections: dict[int, str]) -> list[dict[st
 _U5_HEADER = re.compile(r"^\|\s*符号\s*\|\s*含义\s*\|")
 
 
+def _split_symbols(cell: str) -> list[str]:
+    """按逗号切符号格, **但不切反引号内的逗号**。
+
+    U.5 里两种写法并存:
+
+    - `` `V_in`, `V_out`, `V_ref` `` —— 每个符号各自加反引号, 逗号是分隔符
+    - `` `T_j,max` `` —— **一个**符号, 逗号在下标里表示「T_j 的最大值」
+
+    按逗号盲切会把 ``T_j,max`` 拆成 ``T_j`` 与 ``max`` 两个符号, 而 ``max``
+    会被当成一个真有量纲 ``[K]`` 的量 —— 那个量纲其实是「最高结温」的, 挂在
+    ``max`` 上看起来完全正常。这类错误不报错, 只会让下游推理多出一个叫
+    「max」的热学量。
+    """
+    parts: list[str] = []
+    buf: list[str] = []
+    in_code = False
+    for ch in cell:
+        if ch == "`":
+            in_code = not in_code
+            continue
+        if ch in ",，" and not in_code:
+            parts.append("".join(buf))
+            buf = []
+            continue
+        buf.append(ch)
+    parts.append("".join(buf))
+    return [p for p in parts if p.strip()]
+
+
 def extract_symbols(lines: list[str]) -> list[dict[str, Any]]:
     """U.5 符号表 -> ``symbol``。
 
@@ -321,11 +350,24 @@ def extract_symbols(lines: list[str]) -> list[dict[str, Any]]:
             continue
         meaning, dim_text = _clean(cells[1]), _clean(cells[2])
         ns = _clean(cells[3]) if len(cells) > 3 else None
-        for sym in re.split(r"[,，]", cells[0]):
-            name = _clean(sym)
-            if not name or name in seen:
+        names = [n for n in (_clean(s) for s in _split_symbols(cells[0])) if n]
+        # **量纲按位置对应**, 不能把整格的量纲发给每个符号。
+        # U.5 里 ``R_ESR`` 与 ``R_ESL`` 写在同一格, 量纲格是 ``[Ω],[H]`` ——
+        # 一一对应。早先一版给两个符号都发 ``[Ω],[H]``, 于是 ``R_ESR``(电阻)
+        # 带着电感的量纲, 而这种错会一路传到齐次性判定而不报错。
+        dims = [d for d in (_clean(x) for x in re.split(r"[,，/]", dim_text or "")) if d]
+        for index, name in enumerate(names):
+            if name in seen:
                 continue
             seen.add(name)
+            # 单符号多量纲(如 ``[K] 或 [℃]``)保留全部; 多符号时按位置取,
+            # 位置越界说明表格本身对不齐, 标 None 而不是猜。
+            if len(dims) == len(names):
+                own_dim = dims[index]
+            elif len(dims) == 1 or len(names) == 1:
+                own_dim = dim_text
+            else:
+                own_dim = None
             out.append(
                 {
                     "id": f"sym::{name}",
@@ -335,9 +377,11 @@ def extract_symbols(lines: list[str]) -> list[dict[str, Any]]:
                     "properties": _props(
                         {
                             "zh": meaning,
-                            "dimension": dim_text,
+                            "dimension": own_dim,
                             "namespaces": [ns] if ns else None,
-                            "dimension_declared": bool(dim_text and dim_text not in ("见各条",)),
+                            "dimension_declared": bool(
+                                own_dim and own_dim not in ("见各条", "无量纲")
+                            ),
                         },
                         "V6.0§U.5",
                         "bootstrap_section",

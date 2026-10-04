@@ -9729,7 +9729,7 @@
       "text": "R_ESR: 电容等效串联电阻/电感",
       "confidence": null,
       "zh": "电容等效串联电阻/电感",
-      "dimension": "[Ω],[H]",
+      "dimension": "[Ω]",
       "namespaces": [
         "E"
       ],
@@ -9755,7 +9755,7 @@
         },
         "dimension": {
           "property_name": "dimension",
-          "value": "[Ω],[H]",
+          "value": "[Ω]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -9809,7 +9809,7 @@
       "text": "R_ESL: 电容等效串联电阻/电感",
       "confidence": null,
       "zh": "电容等效串联电阻/电感",
-      "dimension": "[Ω],[H]",
+      "dimension": "[H]",
       "namespaces": [
         "E"
       ],
@@ -9835,7 +9835,7 @@
         },
         "dimension": {
           "property_name": "dimension",
-          "value": "[Ω],[H]",
+          "value": "[H]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -9889,11 +9889,10 @@
       "text": "R_θjc: 热阻",
       "confidence": null,
       "zh": "热阻",
-      "dimension": "[K/W]",
       "namespaces": [
         "N"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -9901,21 +9900,6 @@
         "zh": {
           "property_name": "zh",
           "value": "热阻",
-          "sources": [
-            {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§U.5",
-              "line": 25141,
-              "confidence": null,
-              "metadata": {
-                "source_kind": "bootstrap_section"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[K/W]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -9947,7 +9931,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -9969,11 +9953,10 @@
       "text": "R_θcs: 热阻",
       "confidence": null,
       "zh": "热阻",
-      "dimension": "[K/W]",
       "namespaces": [
         "N"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -9981,21 +9964,6 @@
         "zh": {
           "property_name": "zh",
           "value": "热阻",
-          "sources": [
-            {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§U.5",
-              "line": 25141,
-              "confidence": null,
-              "metadata": {
-                "source_kind": "bootstrap_section"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[K/W]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -10027,7 +9995,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -10049,11 +10017,10 @@
       "text": "R_θsa: 热阻",
       "confidence": null,
       "zh": "热阻",
-      "dimension": "[K/W]",
       "namespaces": [
         "N"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -10061,21 +10028,6 @@
         "zh": {
           "property_name": "zh",
           "value": "热阻",
-          "sources": [
-            {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§U.5",
-              "line": 25141,
-              "confidence": null,
-              "metadata": {
-                "source_kind": "bootstrap_section"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[K/W]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -10107,7 +10059,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -10129,11 +10081,10 @@
       "text": "R_θ: 热阻",
       "confidence": null,
       "zh": "热阻",
-      "dimension": "[K/W]",
       "namespaces": [
         "N"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -10141,21 +10092,6 @@
         "zh": {
           "property_name": "zh",
           "value": "热阻",
-          "sources": [
-            {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§U.5",
-              "line": 25141,
-              "confidence": null,
-              "metadata": {
-                "source_kind": "bootstrap_section"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[K/W]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -10187,7 +10123,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -11323,10 +11259,10 @@
       }
     },
     {
-      "id": "sym::max",
-      "name": "max",
+      "id": "sym::T_j,max",
+      "name": "T_j,max",
       "entity_type": "symbol",
-      "text": "max: 最高结温",
+      "text": "T_j,max: 最高结温",
       "confidence": null,
       "zh": "最高结温",
       "dimension": "[K]",
@@ -12293,7 +12229,7 @@
       "namespaces": [
         "J"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -12347,7 +12283,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -12373,7 +12309,7 @@
       "namespaces": [
         "J"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -12427,7 +12363,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -12773,7 +12709,7 @@
       "namespaces": [
         "K,J"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -12827,7 +12763,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -12853,7 +12789,7 @@
       "namespaces": [
         "W2"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -12907,7 +12843,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -12929,11 +12865,10 @@
       "text": "ω_n: 固有/谐振/零点/极点频率",
       "confidence": null,
       "zh": "固有/谐振/零点/极点频率",
-      "dimension": "[rad/s]",
       "namespaces": [
         "K,W3"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -12941,21 +12876,6 @@
         "zh": {
           "property_name": "zh",
           "value": "固有/谐振/零点/极点频率",
-          "sources": [
-            {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§U.5",
-              "line": 25163,
-              "confidence": null,
-              "metadata": {
-                "source_kind": "bootstrap_section"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[rad/s]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -12987,7 +12907,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -13009,11 +12929,10 @@
       "text": "ω₀: 固有/谐振/零点/极点频率",
       "confidence": null,
       "zh": "固有/谐振/零点/极点频率",
-      "dimension": "[rad/s]",
       "namespaces": [
         "K,W3"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -13021,21 +12940,6 @@
         "zh": {
           "property_name": "zh",
           "value": "固有/谐振/零点/极点频率",
-          "sources": [
-            {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§U.5",
-              "line": 25163,
-              "confidence": null,
-              "metadata": {
-                "source_kind": "bootstrap_section"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[rad/s]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -13067,7 +12971,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -13089,11 +12993,10 @@
       "text": "ω_z: 固有/谐振/零点/极点频率",
       "confidence": null,
       "zh": "固有/谐振/零点/极点频率",
-      "dimension": "[rad/s]",
       "namespaces": [
         "K,W3"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -13101,21 +13004,6 @@
         "zh": {
           "property_name": "zh",
           "value": "固有/谐振/零点/极点频率",
-          "sources": [
-            {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§U.5",
-              "line": 25163,
-              "confidence": null,
-              "metadata": {
-                "source_kind": "bootstrap_section"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[rad/s]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -13147,7 +13035,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -13169,11 +13057,10 @@
       "text": "ω_p: 固有/谐振/零点/极点频率",
       "confidence": null,
       "zh": "固有/谐振/零点/极点频率",
-      "dimension": "[rad/s]",
       "namespaces": [
         "K,W3"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -13181,21 +13068,6 @@
         "zh": {
           "property_name": "zh",
           "value": "固有/谐振/零点/极点频率",
-          "sources": [
-            {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§U.5",
-              "line": 25163,
-              "confidence": null,
-              "metadata": {
-                "source_kind": "bootstrap_section"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[rad/s]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -13227,7 +13099,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -13253,7 +13125,7 @@
       "namespaces": [
         "L"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -13307,7 +13179,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -13333,7 +13205,7 @@
       "namespaces": [
         "L"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -13387,7 +13259,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -13413,7 +13285,7 @@
       "namespaces": [
         "L"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -13467,7 +13339,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -13493,7 +13365,7 @@
       "namespaces": [
         "L"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -13547,7 +13419,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -13573,7 +13445,7 @@
       "namespaces": [
         "L"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -13627,7 +13499,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -13653,7 +13525,7 @@
       "namespaces": [
         "L"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -13707,7 +13579,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -13733,7 +13605,7 @@
       "namespaces": [
         "L"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -13787,7 +13659,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -13813,7 +13685,7 @@
       "namespaces": [
         "L"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -13867,7 +13739,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -13969,11 +13841,10 @@
       "text": "I_trip: 动作点/返回点",
       "confidence": null,
       "zh": "动作点/返回点",
-      "dimension": "[A],[V]",
       "namespaces": [
         "L"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -13981,21 +13852,6 @@
         "zh": {
           "property_name": "zh",
           "value": "动作点/返回点",
-          "sources": [
-            {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§U.5",
-              "line": 25168,
-              "confidence": null,
-              "metadata": {
-                "source_kind": "bootstrap_section"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[A],[V]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -14027,7 +13883,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -14049,11 +13905,10 @@
       "text": "U_trip: 动作点/返回点",
       "confidence": null,
       "zh": "动作点/返回点",
-      "dimension": "[A],[V]",
       "namespaces": [
         "L"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -14061,21 +13916,6 @@
         "zh": {
           "property_name": "zh",
           "value": "动作点/返回点",
-          "sources": [
-            {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§U.5",
-              "line": 25168,
-              "confidence": null,
-              "metadata": {
-                "source_kind": "bootstrap_section"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[A],[V]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -14107,7 +13947,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -14129,11 +13969,10 @@
       "text": "I_rel: 动作点/返回点",
       "confidence": null,
       "zh": "动作点/返回点",
-      "dimension": "[A],[V]",
       "namespaces": [
         "L"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -14141,21 +13980,6 @@
         "zh": {
           "property_name": "zh",
           "value": "动作点/返回点",
-          "sources": [
-            {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§U.5",
-              "line": 25168,
-              "confidence": null,
-              "metadata": {
-                "source_kind": "bootstrap_section"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[A],[V]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -14187,7 +14011,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -14209,11 +14033,10 @@
       "text": "U_rel: 动作点/返回点",
       "confidence": null,
       "zh": "动作点/返回点",
-      "dimension": "[A],[V]",
       "namespaces": [
         "L"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -14221,21 +14044,6 @@
         "zh": {
           "property_name": "zh",
           "value": "动作点/返回点",
-          "sources": [
-            {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§U.5",
-              "line": 25168,
-              "confidence": null,
-              "metadata": {
-                "source_kind": "bootstrap_section"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[A],[V]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -14267,7 +14075,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -15489,11 +15297,10 @@
       "text": "U: 扩展/合成/A类/B类不确定度、包含因子",
       "confidence": null,
       "zh": "扩展/合成/A类/B类不确定度、包含因子",
-      "dimension": "[X],[1]",
       "namespaces": [
         "M"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -15501,21 +15308,6 @@
         "zh": {
           "property_name": "zh",
           "value": "扩展/合成/A类/B类不确定度、包含因子",
-          "sources": [
-            {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§U.5",
-              "line": 25175,
-              "confidence": null,
-              "metadata": {
-                "source_kind": "bootstrap_section"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[X],[1]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -15547,7 +15339,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -15569,11 +15361,10 @@
       "text": "u_c: 扩展/合成/A类/B类不确定度、包含因子",
       "confidence": null,
       "zh": "扩展/合成/A类/B类不确定度、包含因子",
-      "dimension": "[X],[1]",
       "namespaces": [
         "M"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -15581,21 +15372,6 @@
         "zh": {
           "property_name": "zh",
           "value": "扩展/合成/A类/B类不确定度、包含因子",
-          "sources": [
-            {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§U.5",
-              "line": 25175,
-              "confidence": null,
-              "metadata": {
-                "source_kind": "bootstrap_section"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[X],[1]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -15627,7 +15403,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -15649,11 +15425,10 @@
       "text": "u_A: 扩展/合成/A类/B类不确定度、包含因子",
       "confidence": null,
       "zh": "扩展/合成/A类/B类不确定度、包含因子",
-      "dimension": "[X],[1]",
       "namespaces": [
         "M"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -15661,21 +15436,6 @@
         "zh": {
           "property_name": "zh",
           "value": "扩展/合成/A类/B类不确定度、包含因子",
-          "sources": [
-            {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§U.5",
-              "line": 25175,
-              "confidence": null,
-              "metadata": {
-                "source_kind": "bootstrap_section"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[X],[1]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -15707,7 +15467,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -15729,11 +15489,10 @@
       "text": "u_B: 扩展/合成/A类/B类不确定度、包含因子",
       "confidence": null,
       "zh": "扩展/合成/A类/B类不确定度、包含因子",
-      "dimension": "[X],[1]",
       "namespaces": [
         "M"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -15741,21 +15500,6 @@
         "zh": {
           "property_name": "zh",
           "value": "扩展/合成/A类/B类不确定度、包含因子",
-          "sources": [
-            {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§U.5",
-              "line": 25175,
-              "confidence": null,
-              "metadata": {
-                "source_kind": "bootstrap_section"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[X],[1]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -15787,7 +15531,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -15809,11 +15553,10 @@
       "text": "k: 扩展/合成/A类/B类不确定度、包含因子",
       "confidence": null,
       "zh": "扩展/合成/A类/B类不确定度、包含因子",
-      "dimension": "[X],[1]",
       "namespaces": [
         "M"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -15821,21 +15564,6 @@
         "zh": {
           "property_name": "zh",
           "value": "扩展/合成/A类/B类不确定度、包含因子",
-          "sources": [
-            {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§U.5",
-              "line": 25175,
-              "confidence": null,
-              "metadata": {
-                "source_kind": "bootstrap_section"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[X],[1]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -15867,7 +15595,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -15893,7 +15621,7 @@
       "namespaces": [
         "M"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -15947,7 +15675,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -17013,7 +16741,7 @@
       "namespaces": [
         "O"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -17067,7 +16795,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -17093,7 +16821,7 @@
       "namespaces": [
         "O"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -17147,7 +16875,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -17973,7 +17701,7 @@
       "namespaces": [
         "R（勘误 E-6）"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -18027,7 +17755,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -18053,7 +17781,7 @@
       "namespaces": [
         "R（勘误 E-6）"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -18107,7 +17835,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -18129,7 +17857,7 @@
       "text": "k(下垂系数): 下垂斜率/平均电流/均流偏差",
       "confidence": null,
       "zh": "下垂斜率/平均电流/均流偏差",
-      "dimension": "[Ω],[A],无量纲",
+      "dimension": "[Ω]",
       "namespaces": [
         "Q"
       ],
@@ -18155,7 +17883,7 @@
         },
         "dimension": {
           "property_name": "dimension",
-          "value": "[Ω],[A],无量纲",
+          "value": "[Ω]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -18209,7 +17937,7 @@
       "text": "I_avg: 下垂斜率/平均电流/均流偏差",
       "confidence": null,
       "zh": "下垂斜率/平均电流/均流偏差",
-      "dimension": "[Ω],[A],无量纲",
+      "dimension": "[A]",
       "namespaces": [
         "Q"
       ],
@@ -18235,7 +17963,7 @@
         },
         "dimension": {
           "property_name": "dimension",
-          "value": "[Ω],[A],无量纲",
+          "value": "[A]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -18289,11 +18017,11 @@
       "text": "ΔI%: 下垂斜率/平均电流/均流偏差",
       "confidence": null,
       "zh": "下垂斜率/平均电流/均流偏差",
-      "dimension": "[Ω],[A],无量纲",
+      "dimension": "无量纲",
       "namespaces": [
         "Q"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -18315,7 +18043,7 @@
         },
         "dimension": {
           "property_name": "dimension",
-          "value": "[Ω],[A],无量纲",
+          "value": "无量纲",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -18347,7 +18075,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -18769,11 +18497,10 @@
       "text": "E_a: 活化能/玻尔兹曼常数",
       "confidence": null,
       "zh": "活化能/玻尔兹曼常数",
-      "dimension": "[eV],[eV/K]",
       "namespaces": [
         "N"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -18781,21 +18508,6 @@
         "zh": {
           "property_name": "zh",
           "value": "活化能/玻尔兹曼常数",
-          "sources": [
-            {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§U.5",
-              "line": 25188,
-              "confidence": null,
-              "metadata": {
-                "source_kind": "bootstrap_section"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[eV],[eV/K]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -18827,7 +18539,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -18849,11 +18561,10 @@
       "text": "k_B: 活化能/玻尔兹曼常数",
       "confidence": null,
       "zh": "活化能/玻尔兹曼常数",
-      "dimension": "[eV],[eV/K]",
       "namespaces": [
         "N"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -18861,21 +18572,6 @@
         "zh": {
           "property_name": "zh",
           "value": "活化能/玻尔兹曼常数",
-          "sources": [
-            {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§U.5",
-              "line": 25188,
-              "confidence": null,
-              "metadata": {
-                "source_kind": "bootstrap_section"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[eV],[eV/K]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -18907,7 +18603,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -18933,7 +18629,7 @@
       "namespaces": [
         "N"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -18987,7 +18683,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -19013,7 +18709,7 @@
       "namespaces": [
         "N"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -19067,7 +18763,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -19409,7 +19105,7 @@
       "text": "V_clamp: 钳位电压/电容",
       "confidence": null,
       "zh": "钳位电压/电容",
-      "dimension": "[V],[F]",
+      "dimension": "[V]",
       "namespaces": [
         "J"
       ],
@@ -19435,7 +19131,7 @@
         },
         "dimension": {
           "property_name": "dimension",
-          "value": "[V],[F]",
+          "value": "[V]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -19489,7 +19185,7 @@
       "text": "C_clamp: 钳位电压/电容",
       "confidence": null,
       "zh": "钳位电压/电容",
-      "dimension": "[V],[F]",
+      "dimension": "[F]",
       "namespaces": [
         "J"
       ],
@@ -19515,7 +19211,7 @@
         },
         "dimension": {
           "property_name": "dimension",
-          "value": "[V],[F]",
+          "value": "[F]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -19649,7 +19345,7 @@
       "text": "Qg: 栅极电荷/栅电容",
       "confidence": null,
       "zh": "栅极电荷/栅电容",
-      "dimension": "[C],[F]",
+      "dimension": "[C]",
       "namespaces": [
         "W7"
       ],
@@ -19675,7 +19371,7 @@
         },
         "dimension": {
           "property_name": "dimension",
-          "value": "[C],[F]",
+          "value": "[C]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -19729,7 +19425,7 @@
       "text": "C_gate: 栅极电荷/栅电容",
       "confidence": null,
       "zh": "栅极电荷/栅电容",
-      "dimension": "[C],[F]",
+      "dimension": "[F]",
       "namespaces": [
         "W7"
       ],
@@ -19755,7 +19451,7 @@
         },
         "dimension": {
           "property_name": "dimension",
-          "value": "[C],[F]",
+          "value": "[F]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -20373,7 +20069,7 @@
       "namespaces": [
         "E9,W10"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -20427,7 +20123,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -20453,7 +20149,7 @@
       "namespaces": [
         "E9,W10"
       ],
-      "dimension_declared": true,
+      "dimension_declared": false,
       "source_ref": "V6.0§U.5",
       "source_kind": "bootstrap_section",
       "term_status": "unverified",
@@ -20507,7 +20203,7 @@
         },
         "dimension_declared": {
           "property_name": "dimension_declared",
-          "value": true,
+          "value": false,
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -20529,7 +20225,7 @@
       "text": "SE(屏蔽效能): 屏蔽/阻抗",
       "confidence": null,
       "zh": "屏蔽/阻抗",
-      "dimension": "[dB],[Ω]",
+      "dimension": "[dB]",
       "namespaces": [
         "P"
       ],
@@ -20555,7 +20251,7 @@
         },
         "dimension": {
           "property_name": "dimension",
-          "value": "[dB],[Ω]",
+          "value": "[dB]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
@@ -20609,7 +20305,7 @@
       "text": "ρ(特性阻抗): 屏蔽/阻抗",
       "confidence": null,
       "zh": "屏蔽/阻抗",
-      "dimension": "[dB],[Ω]",
+      "dimension": "[Ω]",
       "namespaces": [
         "P"
       ],
@@ -20635,7 +20331,7 @@
         },
         "dimension": {
           "property_name": "dimension",
-          "value": "[dB],[Ω]",
+          "value": "[Ω]",
           "sources": [
             {
               "document": "V6.0 开发指导方案",
