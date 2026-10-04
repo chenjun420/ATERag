@@ -698,6 +698,10 @@ def apply_corrections(
             skipped.append(f"{kind}:{entry.get('id')}(目标不存在)")
             return
         before = {k: target["properties"].get(k) for k in updates}
+        # 换用标准命名时, 把方案原文留在 ``zh_declared``: 标准名更权威, 但方案
+        # 原文是审计依据 —— 两者不一致时要能回答「方案原来怎么写的」。
+        if "zh" in updates and updates["zh"] != before.get("zh"):
+            target["properties"].setdefault("zh_declared", before.get("zh"))
         target["properties"].update(updates)
         for key, value in updates.items():
             target["properties"].setdefault("provenance", {})[key] = {
