@@ -300,6 +300,38 @@ concepts:
   checked: '2026-10-04'
   confidence: 0.85
   note: 「负载均流」是口语; 标准语境下叫「均流」, 属并联工作方式的分配问题。
+
+# --- 修: 返回系数 与 回差 被混为一谈(方案 md 的别名错误) ---
+- id: SET_OCP_RETURN
+  standard_term: 复归系数
+  synonyms: [过流保护返回系数, OCP return ratio, 复归系数, reset ratio, disengaging ratio]
+  clause: '3.10'
+  definition: 继电器刚好退出启动状态(启动信号由开变为关)的电压与元件的实际启动电压之间的比值。通常规定为百分数, 过电压元件小于100%, 欠电压元件大于100%。
+  standard_ref: GB/T 14598.127-2013
+  source: GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对
+  checked: '2026-10-05'
+  confidence: 0.9
+  note: "**与「回差」(HYSTERESIS)是两个不同的量**: 本条是比值, 回差是差值。方案 md 原本给本条加了别名「OCP回差/OVP回差/OTP回差」, 已按标准删除 —— 比值与差值互换会让保护整定算错。YD/T 1817-2017 的「保护点及回差」用的才是差值语义。**另注意** GB/T 14598.127-2013 3.6「返回时间 disengaging time」与 3.7「复归时间 reset time」是两个不同词条(起始触发点不同: 前者从「输入激励量产生能引起返回的规定变化」起算, 后者从「特性量发生变化」起算), 勿并。zh 保留业界通行的「返回系数」以便检索, 标准正名存 standard_term, 两套名字都在 synonyms 里。"
+- id: SET_OVP_RETURN
+  standard_term: 复归系数
+  synonyms: [过压保护返回系数, OVP return ratio, 复归系数, reset ratio, disengaging ratio]
+  clause: '3.10'
+  definition: 继电器刚好退出启动状态(启动信号由开变为关)的电压与元件的实际启动电压之间的比值。通常规定为百分数, 过电压元件小于100%, 欠电压元件大于100%。
+  standard_ref: GB/T 14598.127-2013
+  source: GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对
+  checked: '2026-10-05'
+  confidence: 0.9
+  note: "**与「回差」(HYSTERESIS)是两个不同的量**: 本条是比值, 回差是差值。方案 md 原本给本条加了别名「OCP回差/OVP回差/OTP回差」, 已按标准删除 —— 比值与差值互换会让保护整定算错。YD/T 1817-2017 的「保护点及回差」用的才是差值语义。**另注意** GB/T 14598.127-2013 3.6「返回时间 disengaging time」与 3.7「复归时间 reset time」是两个不同词条(起始触发点不同: 前者从「输入激励量产生能引起返回的规定变化」起算, 后者从「特性量发生变化」起算), 勿并。zh 保留业界通行的「返回系数」以便检索, 标准正名存 standard_term, 两套名字都在 synonyms 里。"
+- id: SET_OTP_RETURN
+  standard_term: 复归系数
+  synonyms: [过温保护返回系数, OTP return ratio, 复归系数, reset ratio, disengaging ratio]
+  clause: '3.10'
+  definition: 继电器刚好退出启动状态(启动信号由开变为关)的电压与元件的实际启动电压之间的比值。通常规定为百分数, 过电压元件小于100%, 欠电压元件大于100%。
+  standard_ref: GB/T 14598.127-2013
+  source: GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对
+  checked: '2026-10-05'
+  confidence: 0.9
+  note: "过温保护属温度类元件, 标准 3.10 的过/欠电压说明不直接适用; 但「复归系数=返回电压/启动电压」这一定义式对任何保护型元件通用。**与「回差」(HYSTERESIS)是两个不同的量**: 本条是比值, 回差是差值。方案 md 原本给本条加了别名「OCP回差/OVP回差/OTP回差」, 已按标准删除 —— 比值与差值互换会让保护整定算错。YD/T 1817-2017 的「保护点及回差」用的才是差值语义。**另注意** GB/T 14598.127-2013 3.6「返回时间 disengaging time」与 3.7「复归时间 reset time」是两个不同词条(起始触发点不同: 前者从「输入激励量产生能引起返回的规定变化」起算, 后者从「特性量发生变化」起算), 勿并。zh 保留业界通行的「返回系数」以便检索, 标准正名存 standard_term, 两套名字都在 synonyms 里。"
 load_conditions:
 - id: 半载
   ratio: 0.5

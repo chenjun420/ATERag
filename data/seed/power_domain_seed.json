@@ -719,6 +719,108 @@
       },
       {
         "kind": "power_concept",
+        "id": "SET_OCP_RETURN",
+        "matched": "SET_OCP_RETURN",
+        "before": {
+          "standard_term": null,
+          "synonyms": [
+            "过流保护返回系数",
+            "OCP return ratio",
+            "OCP回差"
+          ],
+          "clause": null,
+          "definition": null,
+          "confidence": null
+        },
+        "after": {
+          "standard_term": "复归系数",
+          "synonyms": [
+            "过流保护返回系数",
+            "OCP return ratio",
+            "复归系数",
+            "reset ratio",
+            "disengaging ratio"
+          ],
+          "clause": "3.10",
+          "definition": "继电器刚好退出启动状态(启动信号由开变为关)的电压与元件的实际启动电压之间的比值。通常规定为百分数, 过电压元件小于100%, 欠电压元件大于100%。",
+          "confidence": 0.9
+        },
+        "authority_kind": "standard",
+        "authority_ref": "GB/T 14598.127-2013",
+        "source": "GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对",
+        "checked": "2026-10-05",
+        "confidence": 0.9
+      },
+      {
+        "kind": "power_concept",
+        "id": "SET_OVP_RETURN",
+        "matched": "SET_OVP_RETURN",
+        "before": {
+          "standard_term": null,
+          "synonyms": [
+            "过压保护返回系数",
+            "OVP return ratio",
+            "OVP回差"
+          ],
+          "clause": null,
+          "definition": null,
+          "confidence": null
+        },
+        "after": {
+          "standard_term": "复归系数",
+          "synonyms": [
+            "过压保护返回系数",
+            "OVP return ratio",
+            "复归系数",
+            "reset ratio",
+            "disengaging ratio"
+          ],
+          "clause": "3.10",
+          "definition": "继电器刚好退出启动状态(启动信号由开变为关)的电压与元件的实际启动电压之间的比值。通常规定为百分数, 过电压元件小于100%, 欠电压元件大于100%。",
+          "confidence": 0.9
+        },
+        "authority_kind": "standard",
+        "authority_ref": "GB/T 14598.127-2013",
+        "source": "GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对",
+        "checked": "2026-10-05",
+        "confidence": 0.9
+      },
+      {
+        "kind": "power_concept",
+        "id": "SET_OTP_RETURN",
+        "matched": "SET_OTP_RETURN",
+        "before": {
+          "standard_term": null,
+          "synonyms": [
+            "过温保护返回系数",
+            "OTP return ratio",
+            "OTP回差"
+          ],
+          "clause": null,
+          "definition": null,
+          "confidence": null
+        },
+        "after": {
+          "standard_term": "复归系数",
+          "synonyms": [
+            "过温保护返回系数",
+            "OTP return ratio",
+            "复归系数",
+            "reset ratio",
+            "disengaging ratio"
+          ],
+          "clause": "3.10",
+          "definition": "继电器刚好退出启动状态(启动信号由开变为关)的电压与元件的实际启动电压之间的比值。通常规定为百分数, 过电压元件小于100%, 欠电压元件大于100%。",
+          "confidence": 0.9
+        },
+        "authority_kind": "standard",
+        "authority_ref": "GB/T 14598.127-2013",
+        "source": "GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对",
+        "checked": "2026-10-05",
+        "confidence": 0.9
+      },
+      {
+        "kind": "power_concept",
         "id": "CAPACITY",
         "action": "created",
         "matched": "CAPACITY",
@@ -2674,7 +2776,14 @@
       },
       "zh": "输出纹波",
       "en": "output ripple",
-      "aliases": "峰峰值杂音电压, ripple, pp纹波, 输出纹波电压",
+      "synonyms": [
+        "输出纹波",
+        "output ripple",
+        "峰峰值杂音电压",
+        "ripple",
+        "pp纹波",
+        "输出纹波电压"
+      ],
       "qudt_ref": "PotentialDifference",
       "authority_kind": "unverified",
       "provenance": {
@@ -2708,9 +2817,16 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "峰峰值杂音电压, ripple, pp纹波, 输出纹波电压",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输出纹波",
+            "output ripple",
+            "峰峰值杂音电压",
+            "ripple",
+            "pp纹波",
+            "输出纹波电压"
+          ],
           "sources": [
             {
               "document": "",
@@ -2753,7 +2869,12 @@
       },
       "zh": "额定输出电压",
       "en": "nominal output voltage",
-      "aliases": "输出标称电压, 标称输出",
+      "synonyms": [
+        "额定输出电压",
+        "nominal output voltage",
+        "输出标称电压",
+        "标称输出"
+      ],
       "qudt_ref": "PotentialDifference",
       "authority_kind": "unverified",
       "provenance": {
@@ -2787,9 +2908,14 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "输出标称电压, 标称输出",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "额定输出电压",
+            "nominal output voltage",
+            "输出标称电压",
+            "标称输出"
+          ],
           "sources": [
             {
               "document": "",
@@ -2832,7 +2958,12 @@
       },
       "zh": "输出电压整定值",
       "en": "output voltage trim",
-      "aliases": "输出调整电压, 输出电压精度",
+      "synonyms": [
+        "输出电压整定值",
+        "output voltage trim",
+        "输出调整电压",
+        "输出电压精度"
+      ],
       "qudt_ref": "PotentialDifference",
       "authority_kind": "unverified",
       "provenance": {
@@ -2866,9 +2997,14 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "输出调整电压, 输出电压精度",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输出电压整定值",
+            "output voltage trim",
+            "输出调整电压",
+            "输出电压精度"
+          ],
           "sources": [
             {
               "document": "",
@@ -2911,7 +3047,12 @@
       },
       "zh": "输出电压范围",
       "en": "output voltage range",
-      "aliases": "输出电压容差, 输出电压公差",
+      "synonyms": [
+        "输出电压范围",
+        "output voltage range",
+        "输出电压容差",
+        "输出电压公差"
+      ],
       "qudt_ref": "PotentialDifference",
       "authority_kind": "unverified",
       "provenance": {
@@ -2945,9 +3086,14 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "输出电压容差, 输出电压公差",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输出电压范围",
+            "output voltage range",
+            "输出电压容差",
+            "输出电压公差"
+          ],
           "sources": [
             {
               "document": "",
@@ -2990,7 +3136,11 @@
       },
       "zh": "输出电流",
       "en": "output current",
-      "aliases": "最大输出电流",
+      "synonyms": [
+        "输出电流",
+        "output current",
+        "最大输出电流"
+      ],
       "qudt_ref": "ElectricCurrent",
       "authority_kind": "unverified",
       "provenance": {
@@ -3024,9 +3174,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "最大输出电流",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输出电流",
+            "output current",
+            "最大输出电流"
+          ],
           "sources": [
             {
               "document": "",
@@ -3069,7 +3223,11 @@
       },
       "zh": "输出功率",
       "en": "output power",
-      "aliases": "最大输出功率",
+      "synonyms": [
+        "输出功率",
+        "output power",
+        "最大输出功率"
+      ],
       "qudt_ref": "Power",
       "authority_kind": "unverified",
       "provenance": {
@@ -3103,9 +3261,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "最大输出功率",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输出功率",
+            "output power",
+            "最大输出功率"
+          ],
           "sources": [
             {
               "document": "",
@@ -3148,7 +3310,12 @@
       },
       "zh": "整机效率",
       "en": "overall efficiency",
-      "aliases": "电源效率, 转换效率",
+      "synonyms": [
+        "整机效率",
+        "overall efficiency",
+        "电源效率",
+        "转换效率"
+      ],
       "qudt_ref": "DimensionlessRatio",
       "authority_kind": "unverified",
       "provenance": {
@@ -3182,9 +3349,14 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "电源效率, 转换效率",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "整机效率",
+            "overall efficiency",
+            "电源效率",
+            "转换效率"
+          ],
           "sources": [
             {
               "document": "",
@@ -3227,7 +3399,11 @@
       },
       "zh": "功率因数",
       "en": "power factor",
-      "aliases": "PF",
+      "synonyms": [
+        "功率因数",
+        "power factor",
+        "PF"
+      ],
       "qudt_ref": "DimensionlessRatio",
       "authority_kind": "unverified",
       "provenance": {
@@ -3261,9 +3437,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "PF",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "功率因数",
+            "power factor",
+            "PF"
+          ],
           "sources": [
             {
               "document": "",
@@ -3306,7 +3486,12 @@
       },
       "zh": "瞬态恢复时间",
       "en": "dynamic response recovery time",
-      "aliases": "负载瞬态响应, 瞬态恢复",
+      "synonyms": [
+        "动态响应恢复时间",
+        "dynamic response recovery time",
+        "负载瞬态响应",
+        "瞬态恢复"
+      ],
       "qudt_ref": "Time",
       "authority_kind": "standard",
       "provenance": {
@@ -3342,9 +3527,14 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "负载瞬态响应, 瞬态恢复",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "动态响应恢复时间",
+            "dynamic response recovery time",
+            "负载瞬态响应",
+            "瞬态恢复"
+          ],
           "sources": [
             {
               "document": "",
@@ -3406,7 +3596,12 @@
       },
       "zh": "过冲幅度",
       "en": "dynamic response overshoot",
-      "aliases": "负载瞬态过冲, 瞬态过冲",
+      "synonyms": [
+        "动态响应过冲",
+        "dynamic response overshoot",
+        "负载瞬态过冲",
+        "瞬态过冲"
+      ],
       "qudt_ref": "DimensionlessRatio",
       "authority_kind": "standard",
       "provenance": {
@@ -3442,9 +3637,14 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "负载瞬态过冲, 瞬态过冲",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "动态响应过冲",
+            "dynamic response overshoot",
+            "负载瞬态过冲",
+            "瞬态过冲"
+          ],
           "sources": [
             {
               "document": "",
@@ -3506,7 +3706,12 @@
       },
       "zh": "开机延迟时间",
       "en": "startup delay",
-      "aliases": "启动延迟, 上电延迟",
+      "synonyms": [
+        "开机输出延迟",
+        "startup delay",
+        "启动延迟",
+        "上电延迟"
+      ],
       "qudt_ref": "Time",
       "authority_kind": "standard",
       "provenance": {
@@ -3542,9 +3747,14 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "启动延迟, 上电延迟",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "开机输出延迟",
+            "startup delay",
+            "启动延迟",
+            "上电延迟"
+          ],
           "sources": [
             {
               "document": "",
@@ -3606,7 +3816,11 @@
       },
       "zh": "输出电压上升时间",
       "en": "output voltage rise time",
-      "aliases": "上升沿时间",
+      "synonyms": [
+        "输出电压上升时间",
+        "output voltage rise time",
+        "上升沿时间"
+      ],
       "qudt_ref": "Time",
       "authority_kind": "unverified",
       "provenance": {
@@ -3640,9 +3854,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "上升沿时间",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输出电压上升时间",
+            "output voltage rise time",
+            "上升沿时间"
+          ],
           "sources": [
             {
               "document": "",
@@ -3685,7 +3903,11 @@
       },
       "zh": "温度系数",
       "en": "temperature coefficient",
-      "aliases": "温度漂移",
+      "synonyms": [
+        "温度系数",
+        "temperature coefficient",
+        "温度漂移"
+      ],
       "qudt_ref": "DimensionlessRatio",
       "authority_kind": "unverified",
       "provenance": {
@@ -3719,9 +3941,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "温度漂移",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "温度系数",
+            "temperature coefficient",
+            "温度漂移"
+          ],
           "sources": [
             {
               "document": "",
@@ -3764,7 +3990,11 @@
       },
       "zh": "待机功耗",
       "en": "standby power",
-      "aliases": "空载功耗",
+      "synonyms": [
+        "待机功耗",
+        "standby power",
+        "空载功耗"
+      ],
       "qudt_ref": "Power",
       "authority_kind": "unverified",
       "provenance": {
@@ -3798,9 +4028,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "空载功耗",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "待机功耗",
+            "standby power",
+            "空载功耗"
+          ],
           "sources": [
             {
               "document": "",
@@ -3843,7 +4077,11 @@
       },
       "zh": "输入冲击电流",
       "en": "input inrush current",
-      "aliases": "浪涌电流",
+      "synonyms": [
+        "输入冲击电流",
+        "input inrush current",
+        "浪涌电流"
+      ],
       "qudt_ref": "ElectricCurrent",
       "authority_kind": "unverified",
       "provenance": {
@@ -3877,9 +4115,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "浪涌电流",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输入冲击电流",
+            "input inrush current",
+            "浪涌电流"
+          ],
           "sources": [
             {
               "document": "",
@@ -3922,7 +4164,12 @@
       },
       "zh": "输出过流保护",
       "en": "output over-current protection",
-      "aliases": "过流保护, OCP",
+      "synonyms": [
+        "输出过流保护",
+        "output over-current protection",
+        "过流保护",
+        "OCP"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -3955,9 +4202,14 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "过流保护, OCP",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输出过流保护",
+            "output over-current protection",
+            "过流保护",
+            "OCP"
+          ],
           "sources": [
             {
               "document": "",
@@ -3985,7 +4237,11 @@
       },
       "zh": "输入过压保护点",
       "en": "input over-voltage protection",
-      "aliases": "输入过压保护",
+      "synonyms": [
+        "输入过压保护点",
+        "input over-voltage protection",
+        "输入过压保护"
+      ],
       "qudt_ref": "PotentialDifference",
       "authority_kind": "unverified",
       "provenance": {
@@ -4019,9 +4275,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "输入过压保护",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输入过压保护点",
+            "input over-voltage protection",
+            "输入过压保护"
+          ],
           "sources": [
             {
               "document": "",
@@ -4064,7 +4324,11 @@
       },
       "zh": "输入欠压保护点",
       "en": "input under-voltage protection",
-      "aliases": "输入欠压保护",
+      "synonyms": [
+        "输入欠压保护点",
+        "input under-voltage protection",
+        "输入欠压保护"
+      ],
       "qudt_ref": "PotentialDifference",
       "authority_kind": "unverified",
       "provenance": {
@@ -4098,9 +4362,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "输入欠压保护",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输入欠压保护点",
+            "input under-voltage protection",
+            "输入欠压保护"
+          ],
           "sources": [
             {
               "document": "",
@@ -4143,7 +4411,12 @@
       },
       "zh": "输出短路保护",
       "en": "output short-circuit protection",
-      "aliases": "短路保护, SCP",
+      "synonyms": [
+        "输出短路保护",
+        "output short-circuit protection",
+        "短路保护",
+        "SCP"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -4176,9 +4449,14 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "短路保护, SCP",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输出短路保护",
+            "output short-circuit protection",
+            "短路保护",
+            "SCP"
+          ],
           "sources": [
             {
               "document": "",
@@ -4206,7 +4484,11 @@
       },
       "zh": "过温保护",
       "en": "over-temperature protection",
-      "aliases": "过温保护, OTP",
+      "synonyms": [
+        "过温保护",
+        "over-temperature protection",
+        "OTP"
+      ],
       "qudt_ref": "Temperature",
       "authority_kind": "unverified",
       "provenance": {
@@ -4240,9 +4522,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "过温保护, OTP",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "过温保护",
+            "over-temperature protection",
+            "OTP"
+          ],
           "sources": [
             {
               "document": "",
@@ -4285,7 +4571,11 @@
       },
       "zh": "输出静态过压保护",
       "en": "output static over-voltage protection",
-      "aliases": "静态过压保护",
+      "synonyms": [
+        "输出静态过压保护",
+        "output static over-voltage protection",
+        "静态过压保护"
+      ],
       "qudt_ref": "PotentialDifference",
       "authority_kind": "unverified",
       "provenance": {
@@ -4319,9 +4609,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "静态过压保护",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输出静态过压保护",
+            "output static over-voltage protection",
+            "静态过压保护"
+          ],
           "sources": [
             {
               "document": "",
@@ -4364,7 +4658,12 @@
       },
       "zh": "浪涌抗扰度",
       "en": "surge immunity",
-      "aliases": "浪涌, SURGE",
+      "synonyms": [
+        "浪涌抗扰度",
+        "surge immunity",
+        "浪涌",
+        "SURGE"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -4399,9 +4698,14 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "浪涌, SURGE",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "浪涌抗扰度",
+            "surge immunity",
+            "浪涌",
+            "SURGE"
+          ],
           "sources": [
             {
               "document": "",
@@ -4447,7 +4751,12 @@
       },
       "zh": "静电放电抗扰度",
       "en": "ESD immunity",
-      "aliases": "静电, ESD",
+      "synonyms": [
+        "静电抗扰度",
+        "ESD immunity",
+        "静电",
+        "ESD"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -4482,9 +4791,14 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "静电, ESD",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "静电抗扰度",
+            "ESD immunity",
+            "静电",
+            "ESD"
+          ],
           "sources": [
             {
               "document": "",
@@ -4531,7 +4845,12 @@
       },
       "zh": "电快速瞬变脉冲群抗扰度",
       "en": "EFT immunity",
-      "aliases": "电快速瞬变, EFT/B",
+      "synonyms": [
+        "电快速瞬变抗扰度",
+        "EFT immunity",
+        "电快速瞬变",
+        "EFT/B"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -4566,9 +4885,14 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "电快速瞬变, EFT/B",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "电快速瞬变抗扰度",
+            "EFT immunity",
+            "电快速瞬变",
+            "EFT/B"
+          ],
           "sources": [
             {
               "document": "",
@@ -4615,7 +4939,12 @@
       },
       "zh": "电压暂降、短时中断和电压变化抗扰度",
       "en": "voltage dip immunity",
-      "aliases": "电压跌落, DIP",
+      "synonyms": [
+        "电压跌落抗扰度",
+        "voltage dip immunity",
+        "电压跌落",
+        "DIP"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -4650,9 +4979,14 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "电压跌落, DIP",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "电压跌落抗扰度",
+            "voltage dip immunity",
+            "电压跌落",
+            "DIP"
+          ],
           "sources": [
             {
               "document": "",
@@ -4699,7 +5033,11 @@
       },
       "zh": "平均失效间隔时间",
       "en": "mean time between failures",
-      "aliases": "MTBF",
+      "synonyms": [
+        "平均故障间隔时间",
+        "mean time between failures",
+        "MTBF"
+      ],
       "qudt_ref": "Time",
       "authority_kind": "industry",
       "provenance": {
@@ -4735,9 +5073,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "MTBF",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "平均故障间隔时间",
+            "mean time between failures",
+            "MTBF"
+          ],
           "sources": [
             {
               "document": "",
@@ -4817,7 +5159,11 @@
       },
       "zh": "寿命",
       "en": "lifetime",
-      "aliases": "使用寿命",
+      "synonyms": [
+        "寿命",
+        "lifetime",
+        "使用寿命"
+      ],
       "qudt_ref": "Time",
       "authority_kind": "unverified",
       "provenance": {
@@ -4851,9 +5197,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "使用寿命",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "寿命",
+            "lifetime",
+            "使用寿命"
+          ],
           "sources": [
             {
               "document": "",
@@ -4896,7 +5246,11 @@
       },
       "zh": "绝缘试验电压",
       "en": "insulation voltage",
-      "aliases": "耐压",
+      "synonyms": [
+        "绝缘电压",
+        "insulation voltage",
+        "耐压"
+      ],
       "qudt_ref": "PotentialDifference",
       "authority_kind": "standard",
       "provenance": {
@@ -4932,9 +5286,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "耐压",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "绝缘电压",
+            "insulation voltage",
+            "耐压"
+          ],
           "sources": [
             {
               "document": "",
@@ -4996,7 +5354,11 @@
       },
       "zh": "漏电流",
       "en": "leakage current",
-      "aliases": "接触电流",
+      "synonyms": [
+        "漏电流",
+        "leakage current",
+        "接触电流"
+      ],
       "qudt_ref": "ElectricCurrent",
       "authority_kind": "standard",
       "provenance": {
@@ -5032,9 +5394,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "接触电流",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "漏电流",
+            "leakage current",
+            "接触电流"
+          ],
           "sources": [
             {
               "document": "",
@@ -5095,7 +5461,11 @@
       },
       "zh": "均流",
       "en": "current sharing",
-      "aliases": "均流度",
+      "synonyms": [
+        "负载均流度",
+        "current sharing",
+        "均流度"
+      ],
       "qudt_ref": "DimensionlessRatio",
       "authority_kind": "standard",
       "provenance": {
@@ -5131,9 +5501,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "均流度",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "负载均流度",
+            "current sharing",
+            "均流度"
+          ],
           "sources": [
             {
               "document": "",
@@ -5195,7 +5569,12 @@
       },
       "zh": "示波器",
       "en": "oscilloscope",
-      "aliases": "数字示波器, DSO",
+      "synonyms": [
+        "示波器",
+        "oscilloscope",
+        "数字示波器",
+        "DSO"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -5228,9 +5607,14 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "数字示波器, DSO",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "示波器",
+            "oscilloscope",
+            "数字示波器",
+            "DSO"
+          ],
           "sources": [
             {
               "document": "",
@@ -5258,7 +5642,12 @@
       },
       "zh": "万用表",
       "en": "multimeter",
-      "aliases": "数字万用表, DMM",
+      "synonyms": [
+        "万用表",
+        "multimeter",
+        "数字万用表",
+        "DMM"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -5291,9 +5680,14 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "数字万用表, DMM",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "万用表",
+            "multimeter",
+            "数字万用表",
+            "DMM"
+          ],
           "sources": [
             {
               "document": "",
@@ -5321,7 +5715,11 @@
       },
       "zh": "电子负载",
       "en": "electronic load",
-      "aliases": "可编程电子负载",
+      "synonyms": [
+        "电子负载",
+        "electronic load",
+        "可编程电子负载"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -5354,9 +5752,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "可编程电子负载",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "电子负载",
+            "electronic load",
+            "可编程电子负载"
+          ],
           "sources": [
             {
               "document": "",
@@ -5384,7 +5786,11 @@
       },
       "zh": "功率分析仪",
       "en": "power analyzer",
-      "aliases": "功率计",
+      "synonyms": [
+        "功率分析仪",
+        "power analyzer",
+        "功率计"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -5417,9 +5823,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "功率计",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "功率分析仪",
+            "power analyzer",
+            "功率计"
+          ],
           "sources": [
             {
               "document": "",
@@ -5447,7 +5857,11 @@
       },
       "zh": "可编程交流电源",
       "en": "programmable AC source",
-      "aliases": "交流电源",
+      "synonyms": [
+        "可编程交流电源",
+        "programmable AC source",
+        "交流电源"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -5480,9 +5894,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "交流电源",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "可编程交流电源",
+            "programmable AC source",
+            "交流电源"
+          ],
           "sources": [
             {
               "document": "",
@@ -5510,7 +5928,11 @@
       },
       "zh": "可编程直流电源",
       "en": "programmable DC source",
-      "aliases": "直流电源",
+      "synonyms": [
+        "可编程直流电源",
+        "programmable DC source",
+        "直流电源"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -5543,9 +5965,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "直流电源",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "可编程直流电源",
+            "programmable DC source",
+            "直流电源"
+          ],
           "sources": [
             {
               "document": "",
@@ -5573,7 +5999,12 @@
       },
       "zh": "温箱",
       "en": "thermal chamber",
-      "aliases": "恒温恒湿箱, 高低温箱",
+      "synonyms": [
+        "温箱",
+        "thermal chamber",
+        "恒温恒湿箱",
+        "高低温箱"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -5606,9 +6037,14 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "恒温恒湿箱, 高低温箱",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "温箱",
+            "thermal chamber",
+            "恒温恒湿箱",
+            "高低温箱"
+          ],
           "sources": [
             {
               "document": "",
@@ -5636,7 +6072,11 @@
       },
       "zh": "静电放电发生器",
       "en": "ESD generator",
-      "aliases": "静电发生器",
+      "synonyms": [
+        "ESD发生器",
+        "ESD generator",
+        "静电发生器"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -5671,9 +6111,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "静电发生器",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "ESD发生器",
+            "ESD generator",
+            "静电发生器"
+          ],
           "sources": [
             {
               "document": "",
@@ -5720,7 +6164,11 @@
       },
       "zh": "浪涌(冲击)组合波发生器",
       "en": "surge generator",
-      "aliases": "雷击浪涌发生器",
+      "synonyms": [
+        "浪涌发生器",
+        "surge generator",
+        "雷击浪涌发生器"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -5755,9 +6203,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "雷击浪涌发生器",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "浪涌发生器",
+            "surge generator",
+            "雷击浪涌发生器"
+          ],
           "sources": [
             {
               "document": "",
@@ -5804,7 +6256,11 @@
       },
       "zh": "电快速瞬变脉冲群发生器",
       "en": "EFT generator",
-      "aliases": "电快速瞬变发生器",
+      "synonyms": [
+        "EFT发生器",
+        "EFT generator",
+        "电快速瞬变发生器"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -5839,9 +6295,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "电快速瞬变发生器",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "EFT发生器",
+            "EFT generator",
+            "电快速瞬变发生器"
+          ],
           "sources": [
             {
               "document": "",
@@ -5888,7 +6348,11 @@
       },
       "zh": "线性阻抗稳定网络",
       "en": "LISN",
-      "aliases": "人工电源网络",
+      "synonyms": [
+        "线性阻抗稳定网络",
+        "LISN",
+        "人工电源网络"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -5923,9 +6387,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "人工电源网络",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "线性阻抗稳定网络",
+            "LISN",
+            "人工电源网络"
+          ],
           "sources": [
             {
               "document": "",
@@ -5971,7 +6439,11 @@
       },
       "zh": "耐压试验装置",
       "en": "hipot tester",
-      "aliases": "高压测试仪",
+      "synonyms": [
+        "耐压测试仪",
+        "hipot tester",
+        "高压测试仪"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -6006,9 +6478,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "高压测试仪",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "耐压测试仪",
+            "hipot tester",
+            "高压测试仪"
+          ],
           "sources": [
             {
               "document": "",
@@ -6055,7 +6531,11 @@
       },
       "zh": "电流探头",
       "en": "current probe",
-      "aliases": "电流钳",
+      "synonyms": [
+        "电流探头",
+        "current probe",
+        "电流钳"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -6088,9 +6568,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "电流钳",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "电流探头",
+            "current probe",
+            "电流钳"
+          ],
           "sources": [
             {
               "document": "",
@@ -6118,7 +6602,11 @@
       },
       "zh": "差分探头",
       "en": "differential probe",
-      "aliases": "—",
+      "synonyms": [
+        "差分探头",
+        "differential probe",
+        "—"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -6151,9 +6639,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "—",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "差分探头",
+            "differential probe",
+            "—"
+          ],
           "sources": [
             {
               "document": "",
@@ -6181,7 +6673,11 @@
       },
       "zh": "骚扰接收机",
       "en": "EMI receiver",
-      "aliases": "电磁干扰接收机",
+      "synonyms": [
+        "EMI接收机",
+        "EMI receiver",
+        "电磁干扰接收机"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -6216,9 +6712,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "电磁干扰接收机",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "EMI接收机",
+            "EMI receiver",
+            "电磁干扰接收机"
+          ],
           "sources": [
             {
               "document": "",
@@ -6265,7 +6765,11 @@
       },
       "zh": "频率响应分析仪",
       "en": "frequency response analyzer",
-      "aliases": "环路分析仪",
+      "synonyms": [
+        "频率响应分析仪",
+        "frequency response analyzer",
+        "环路分析仪"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -6298,9 +6802,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "环路分析仪",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "频率响应分析仪",
+            "frequency response analyzer",
+            "环路分析仪"
+          ],
           "sources": [
             {
               "document": "",
@@ -6328,7 +6836,11 @@
       },
       "zh": "继电保护测试仪",
       "en": "protection relay tester",
-      "aliases": "继保仪",
+      "synonyms": [
+        "继电保护测试仪",
+        "protection relay tester",
+        "继保仪"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -6361,9 +6873,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "继保仪",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "继电保护测试仪",
+            "protection relay tester",
+            "继保仪"
+          ],
           "sources": [
             {
               "document": "",
@@ -6391,7 +6907,11 @@
       },
       "zh": "规约分析仪",
       "en": "protocol analyzer",
-      "aliases": "通信分析仪",
+      "synonyms": [
+        "规约分析仪",
+        "protocol analyzer",
+        "通信分析仪"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -6424,9 +6944,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "通信分析仪",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "规约分析仪",
+            "protocol analyzer",
+            "通信分析仪"
+          ],
           "sources": [
             {
               "document": "",
@@ -6454,7 +6978,11 @@
       },
       "zh": "事故追忆测试设备",
       "en": "SOE tester",
-      "aliases": "事件顺序记录测试仪",
+      "synonyms": [
+        "SOE测试仪",
+        "SOE tester",
+        "事件顺序记录测试仪"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -6489,9 +7017,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "事件顺序记录测试仪",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "SOE测试仪",
+            "SOE tester",
+            "事件顺序记录测试仪"
+          ],
           "sources": [
             {
               "document": "",
@@ -6538,7 +7070,11 @@
       },
       "zh": "时间同步测试仪",
       "en": "time sync tester",
-      "aliases": "对时测试仪",
+      "synonyms": [
+        "时间同步测试仪",
+        "time sync tester",
+        "对时测试仪"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -6571,9 +7107,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "对时测试仪",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "时间同步测试仪",
+            "time sync tester",
+            "对时测试仪"
+          ],
           "sources": [
             {
               "document": "",
@@ -6601,7 +7141,12 @@
       },
       "zh": "环境温度参考",
       "en": "ambient temperature reference",
-      "aliases": "Ta, 环境温度",
+      "synonyms": [
+        "环境温度参考",
+        "ambient temperature reference",
+        "Ta",
+        "环境温度"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -6634,9 +7179,14 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "Ta, 环境温度",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "环境温度参考",
+            "ambient temperature reference",
+            "Ta",
+            "环境温度"
+          ],
           "sources": [
             {
               "document": "",
@@ -6664,7 +7214,12 @@
       },
       "zh": "壳温参考",
       "en": "case temperature reference",
-      "aliases": "Tc, 壳温",
+      "synonyms": [
+        "壳温参考",
+        "case temperature reference",
+        "Tc",
+        "壳温"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -6697,9 +7252,14 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "Tc, 壳温",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "壳温参考",
+            "case temperature reference",
+            "Tc",
+            "壳温"
+          ],
           "sources": [
             {
               "document": "",
@@ -6727,7 +7287,12 @@
       },
       "zh": "结温参考",
       "en": "junction temperature reference",
-      "aliases": "Tj, 结温",
+      "synonyms": [
+        "结温参考",
+        "junction temperature reference",
+        "Tj",
+        "结温"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -6760,9 +7325,14 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "Tj, 结温",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "结温参考",
+            "junction temperature reference",
+            "Tj",
+            "结温"
+          ],
           "sources": [
             {
               "document": "",
@@ -6790,7 +7360,11 @@
       },
       "zh": "标称输入电压",
       "en": "nominal input voltage",
-      "aliases": "额定输入",
+      "synonyms": [
+        "标称输入电压",
+        "nominal input voltage",
+        "额定输入"
+      ],
       "authority_kind": "industry",
       "provenance": {
         "zh": {
@@ -6825,9 +7399,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "额定输入",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "标称输入电压",
+            "nominal input voltage",
+            "额定输入"
+          ],
           "sources": [
             {
               "document": "",
@@ -6891,7 +7469,11 @@
       },
       "zh": "最小输入电压",
       "en": "minimum input voltage",
-      "aliases": "输入下限",
+      "synonyms": [
+        "最小输入电压",
+        "minimum input voltage",
+        "输入下限"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -6924,9 +7506,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "输入下限",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "最小输入电压",
+            "minimum input voltage",
+            "输入下限"
+          ],
           "sources": [
             {
               "document": "",
@@ -6954,7 +7540,11 @@
       },
       "zh": "最大输入电压",
       "en": "maximum input voltage",
-      "aliases": "输入上限",
+      "synonyms": [
+        "最大输入电压",
+        "maximum input voltage",
+        "输入上限"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -6987,9 +7577,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "输入上限",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "最大输入电压",
+            "maximum input voltage",
+            "输入上限"
+          ],
           "sources": [
             {
               "document": "",
@@ -7017,7 +7611,11 @@
       },
       "zh": "输出负载百分比",
       "en": "output load percentage",
-      "aliases": "负载百分比",
+      "synonyms": [
+        "输出负载百分比",
+        "output load percentage",
+        "负载百分比"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -7050,9 +7648,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "负载百分比",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输出负载百分比",
+            "output load percentage",
+            "负载百分比"
+          ],
           "sources": [
             {
               "document": "",
@@ -7080,7 +7682,11 @@
       },
       "zh": "阻性负载",
       "en": "resistive load",
-      "aliases": "R负载",
+      "synonyms": [
+        "阻性负载",
+        "resistive load",
+        "R负载"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -7113,9 +7719,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "R负载",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "阻性负载",
+            "resistive load",
+            "R负载"
+          ],
           "sources": [
             {
               "document": "",
@@ -7143,7 +7753,11 @@
       },
       "zh": "容性负载",
       "en": "capacitive load",
-      "aliases": "C负载",
+      "synonyms": [
+        "容性负载",
+        "capacitive load",
+        "C负载"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -7176,9 +7790,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "C负载",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "容性负载",
+            "capacitive load",
+            "C负载"
+          ],
           "sources": [
             {
               "document": "",
@@ -7206,7 +7824,11 @@
       },
       "zh": "感性负载",
       "en": "inductive load",
-      "aliases": "L负载",
+      "synonyms": [
+        "感性负载",
+        "inductive load",
+        "L负载"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -7239,9 +7861,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "L负载",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "感性负载",
+            "inductive load",
+            "L负载"
+          ],
           "sources": [
             {
               "document": "",
@@ -7269,7 +7895,11 @@
       },
       "zh": "自然对流",
       "en": "natural convection",
-      "aliases": "—",
+      "synonyms": [
+        "自然对流",
+        "natural convection",
+        "—"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -7302,9 +7932,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "—",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "自然对流",
+            "natural convection",
+            "—"
+          ],
           "sources": [
             {
               "document": "",
@@ -7332,7 +7966,11 @@
       },
       "zh": "强制风冷",
       "en": "forced air cooling",
-      "aliases": "风冷",
+      "synonyms": [
+        "强制风冷",
+        "forced air cooling",
+        "风冷"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -7365,9 +8003,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "风冷",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "强制风冷",
+            "forced air cooling",
+            "风冷"
+          ],
           "sources": [
             {
               "document": "",
@@ -7395,7 +8037,11 @@
       },
       "zh": "相对湿度",
       "en": "relative humidity",
-      "aliases": "湿度",
+      "synonyms": [
+        "相对湿度",
+        "relative humidity",
+        "湿度"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -7428,9 +8074,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "湿度",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "相对湿度",
+            "relative humidity",
+            "湿度"
+          ],
           "sources": [
             {
               "document": "",
@@ -7458,7 +8108,11 @@
       },
       "zh": "海拔高度",
       "en": "altitude",
-      "aliases": "—",
+      "synonyms": [
+        "海拔高度",
+        "altitude",
+        "—"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -7493,9 +8147,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "—",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "海拔高度",
+            "altitude",
+            "—"
+          ],
           "sources": [
             {
               "document": "",
@@ -7541,7 +8199,11 @@
       },
       "zh": "降额",
       "en": "derating",
-      "aliases": "降额准则",
+      "synonyms": [
+        "降额",
+        "derating",
+        "降额准则"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -7576,9 +8238,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "降额准则",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "降额",
+            "derating",
+            "降额准则"
+          ],
           "sources": [
             {
               "document": "",
@@ -7624,7 +8290,11 @@
       },
       "zh": "三防涂覆",
       "en": "conformal coating",
-      "aliases": "三防",
+      "synonyms": [
+        "三防处理",
+        "conformal coating",
+        "三防"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -7659,9 +8329,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "三防",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "三防处理",
+            "conformal coating",
+            "三防"
+          ],
           "sources": [
             {
               "document": "",
@@ -7708,7 +8382,11 @@
       },
       "zh": "混插策略",
       "en": "hot swap policy",
-      "aliases": "混插要求",
+      "synonyms": [
+        "混插策略",
+        "hot swap policy",
+        "混插要求"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -7741,9 +8419,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "混插要求",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "混插策略",
+            "hot swap policy",
+            "混插要求"
+          ],
           "sources": [
             {
               "document": "",
@@ -7771,7 +8453,11 @@
       },
       "zh": "失效隔离",
       "en": "failure isolation",
-      "aliases": "单模块故障隔离",
+      "synonyms": [
+        "失效隔离",
+        "failure isolation",
+        "单模块故障隔离"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -7804,9 +8490,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "单模块故障隔离",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "失效隔离",
+            "failure isolation",
+            "单模块故障隔离"
+          ],
           "sources": [
             {
               "document": "",
@@ -7834,7 +8524,11 @@
       },
       "zh": "污染等级",
       "en": "pollution degree",
-      "aliases": "—",
+      "synonyms": [
+        "污染等级",
+        "pollution degree",
+        "—"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -7869,9 +8563,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "—",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "污染等级",
+            "pollution degree",
+            "—"
+          ],
           "sources": [
             {
               "document": "",
@@ -7917,7 +8615,11 @@
       },
       "zh": "ORING要求",
       "en": "ORing requirement",
-      "aliases": "—",
+      "synonyms": [
+        "ORING要求",
+        "ORing requirement",
+        "—"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -7950,9 +8652,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "—",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "ORING要求",
+            "ORing requirement",
+            "—"
+          ],
           "sources": [
             {
               "document": "",
@@ -7980,7 +8686,10 @@
       },
       "zh": "遥信·交流输入掉电",
       "en": "AC input fail",
-      "aliases": "输入掉电, AC FAIL",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -8013,17 +8722,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "输入掉电, AC FAIL",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -8057,33 +8769,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥信",
-            "远程信号"
-          ],
-          "sources": [
-            {
-              "document": "2.1.3",
-              "section": "2.1.3",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "交流输入掉电",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "synonyms": [
-        "遥信",
-        "远程信号"
-      ],
       "authority_ref": "2.1.3"
     },
     {
@@ -8099,7 +8789,10 @@
       },
       "zh": "遥信·输出过压保护动作",
       "en": "OVP trip",
-      "aliases": "过压保护动作",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -8132,17 +8825,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "过压保护动作",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -8176,33 +8872,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥信",
-            "远程信号"
-          ],
-          "sources": [
-            {
-              "document": "2.1.3",
-              "section": "2.1.3",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "输出过压保护动作",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "synonyms": [
-        "遥信",
-        "远程信号"
-      ],
       "authority_ref": "2.1.3"
     },
     {
@@ -8218,7 +8892,10 @@
       },
       "zh": "遥信·输出过流保护动作",
       "en": "OCP trip",
-      "aliases": "过流保护动作",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -8251,17 +8928,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "过流保护动作",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -8295,33 +8975,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥信",
-            "远程信号"
-          ],
-          "sources": [
-            {
-              "document": "2.1.3",
-              "section": "2.1.3",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "输出过流保护动作",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "synonyms": [
-        "遥信",
-        "远程信号"
-      ],
       "authority_ref": "2.1.3"
     },
     {
@@ -8337,7 +8995,10 @@
       },
       "zh": "遥信·过温保护动作",
       "en": "OTP trip",
-      "aliases": "过温保护动作",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -8370,17 +9031,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "过温保护动作",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -8414,33 +9078,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥信",
-            "远程信号"
-          ],
-          "sources": [
-            {
-              "document": "2.1.3",
-              "section": "2.1.3",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "过温保护动作",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "synonyms": [
-        "遥信",
-        "远程信号"
-      ],
       "authority_ref": "2.1.3"
     },
     {
@@ -8456,7 +9098,10 @@
       },
       "zh": "遥信·输出短路保护动作",
       "en": "SCP trip",
-      "aliases": "短路保护动作",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -8489,17 +9134,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "短路保护动作",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -8533,33 +9181,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥信",
-            "远程信号"
-          ],
-          "sources": [
-            {
-              "document": "2.1.3",
-              "section": "2.1.3",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "输出短路保护动作",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "synonyms": [
-        "遥信",
-        "远程信号"
-      ],
       "authority_ref": "2.1.3"
     },
     {
@@ -8575,7 +9201,10 @@
       },
       "zh": "遥信·风扇故障",
       "en": "fan fail",
-      "aliases": "风扇失效",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -8608,17 +9237,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "风扇失效",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -8652,33 +9284,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥信",
-            "远程信号"
-          ],
-          "sources": [
-            {
-              "document": "2.1.3",
-              "section": "2.1.3",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "风扇故障",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "synonyms": [
-        "遥信",
-        "远程信号"
-      ],
       "authority_ref": "2.1.3"
     },
     {
@@ -8694,7 +9304,10 @@
       },
       "zh": "遥信·ORING故障",
       "en": "ORing fault",
-      "aliases": "ORING失效",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -8727,17 +9340,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "ORING失效",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -8771,33 +9387,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥信",
-            "远程信号"
-          ],
-          "sources": [
-            {
-              "document": "2.1.3",
-              "section": "2.1.3",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "ORING故障",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "synonyms": [
-        "遥信",
-        "远程信号"
-      ],
       "authority_ref": "2.1.3"
     },
     {
@@ -8813,7 +9407,10 @@
       },
       "zh": "遥信·模块在位",
       "en": "module present",
-      "aliases": "在位信号",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -8846,17 +9443,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "在位信号",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -8890,33 +9490,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥信",
-            "远程信号"
-          ],
-          "sources": [
-            {
-              "document": "2.1.3",
-              "section": "2.1.3",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "模块在位",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "synonyms": [
-        "遥信",
-        "远程信号"
-      ],
       "authority_ref": "2.1.3"
     },
     {
@@ -8932,7 +9510,10 @@
       },
       "zh": "遥信·热插拔故障",
       "en": "hot swap fault",
-      "aliases": "热插拔异常",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -8965,17 +9546,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "热插拔异常",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -9009,33 +9593,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥信",
-            "远程信号"
-          ],
-          "sources": [
-            {
-              "document": "2.1.3",
-              "section": "2.1.3",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "热插拔故障",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "synonyms": [
-        "遥信",
-        "远程信号"
-      ],
       "authority_ref": "2.1.3"
     },
     {
@@ -9051,7 +9613,10 @@
       },
       "zh": "遥信·混插告警",
       "en": "mix insert alarm",
-      "aliases": "混插",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -9084,17 +9649,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "混插",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -9128,33 +9696,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥信",
-            "远程信号"
-          ],
-          "sources": [
-            {
-              "document": "2.1.3",
-              "section": "2.1.3",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "混插告警",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "synonyms": [
-        "遥信",
-        "远程信号"
-      ],
       "authority_ref": "2.1.3"
     },
     {
@@ -9170,7 +9716,10 @@
       },
       "zh": "遥信·通信超时",
       "en": "communication timeout",
-      "aliases": "通信中断",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -9203,17 +9752,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "通信中断",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -9247,33 +9799,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥信",
-            "远程信号"
-          ],
-          "sources": [
-            {
-              "document": "2.1.3",
-              "section": "2.1.3",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "通信超时",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "synonyms": [
-        "遥信",
-        "远程信号"
-      ],
       "authority_ref": "2.1.3"
     },
     {
@@ -9289,7 +9819,10 @@
       },
       "zh": "遥信·汇总告警",
       "en": "summary alarm",
-      "aliases": "总告警",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -9322,17 +9855,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "总告警",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -9366,33 +9902,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥信",
-            "远程信号"
-          ],
-          "sources": [
-            {
-              "document": "2.1.3",
-              "section": "2.1.3",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "汇总告警",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "synonyms": [
-        "遥信",
-        "远程信号"
-      ],
       "authority_ref": "2.1.3"
     },
     {
@@ -9408,7 +9922,10 @@
       },
       "zh": "遥信·电源正常",
       "en": "power good",
-      "aliases": "PG信号",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -9441,17 +9958,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "PG信号",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -9485,33 +10005,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥信",
-            "远程信号"
-          ],
-          "sources": [
-            {
-              "document": "2.1.3",
-              "section": "2.1.3",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "电源正常",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "synonyms": [
-        "遥信",
-        "远程信号"
-      ],
       "authority_ref": "2.1.3"
     },
     {
@@ -9527,7 +10025,10 @@
       },
       "zh": "遥信·输入欠压告警",
       "en": "input under-voltage alarm",
-      "aliases": "输入欠压",
+      "synonyms": [
+        "遥信",
+        "远程信号"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -9560,17 +10061,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "输入欠压",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥信",
+            "远程信号"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.3",
+              "section": "2.1.3",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -9604,33 +10108,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥信",
-            "远程信号"
-          ],
-          "sources": [
-            {
-              "document": "2.1.3",
-              "section": "2.1.3",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "输入欠压告警",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "synonyms": [
-        "遥信",
-        "远程信号"
-      ],
       "authority_ref": "2.1.3"
     },
     {
@@ -9646,7 +10128,10 @@
       },
       "zh": "遥测·输入电压",
       "en": "input voltage",
-      "aliases": "输入电压遥测",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -9679,17 +10164,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "输入电压遥测",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -9723,33 +10211,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥测",
-            "远程测量"
-          ],
-          "sources": [
-            {
-              "document": "2.1.2",
-              "section": "2.1.2",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "输入电压",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "synonyms": [
-        "遥测",
-        "远程测量"
-      ],
       "authority_ref": "2.1.2"
     },
     {
@@ -9765,7 +10231,10 @@
       },
       "zh": "遥测·输出电压",
       "en": "output voltage",
-      "aliases": "输出电压遥测",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -9798,17 +10267,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "输出电压遥测",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -9842,33 +10314,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥测",
-            "远程测量"
-          ],
-          "sources": [
-            {
-              "document": "2.1.2",
-              "section": "2.1.2",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "输出电压",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "synonyms": [
-        "遥测",
-        "远程测量"
-      ],
       "authority_ref": "2.1.2"
     },
     {
@@ -9884,7 +10334,10 @@
       },
       "zh": "遥测·输出电流",
       "en": "output current",
-      "aliases": "输出电流遥测",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -9917,17 +10370,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "输出电流遥测",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -9961,33 +10417,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥测",
-            "远程测量"
-          ],
-          "sources": [
-            {
-              "document": "2.1.2",
-              "section": "2.1.2",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "输出电流",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "synonyms": [
-        "遥测",
-        "远程测量"
-      ],
       "authority_ref": "2.1.2"
     },
     {
@@ -10003,7 +10437,10 @@
       },
       "zh": "遥测·输入功率",
       "en": "input power",
-      "aliases": "输入功率遥测",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -10036,17 +10473,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "输入功率遥测",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -10080,33 +10520,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥测",
-            "远程测量"
-          ],
-          "sources": [
-            {
-              "document": "2.1.2",
-              "section": "2.1.2",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "输入功率",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "synonyms": [
-        "遥测",
-        "远程测量"
-      ],
       "authority_ref": "2.1.2"
     },
     {
@@ -10122,7 +10540,10 @@
       },
       "zh": "遥测·输出功率",
       "en": "output power",
-      "aliases": "输出功率遥测",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -10155,17 +10576,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "输出功率遥测",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -10199,33 +10623,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥测",
-            "远程测量"
-          ],
-          "sources": [
-            {
-              "document": "2.1.2",
-              "section": "2.1.2",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "输出功率",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "synonyms": [
-        "遥测",
-        "远程测量"
-      ],
       "authority_ref": "2.1.2"
     },
     {
@@ -10241,7 +10643,10 @@
       },
       "zh": "遥测·环境温度",
       "en": "ambient temperature",
-      "aliases": "环境温度遥测",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -10274,17 +10679,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "环境温度遥测",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -10318,33 +10726,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥测",
-            "远程测量"
-          ],
-          "sources": [
-            {
-              "document": "2.1.2",
-              "section": "2.1.2",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "环境温度",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "synonyms": [
-        "遥测",
-        "远程测量"
-      ],
       "authority_ref": "2.1.2"
     },
     {
@@ -10360,7 +10746,10 @@
       },
       "zh": "遥测·热点温度",
       "en": "hotspot temperature",
-      "aliases": "热点温度遥测",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -10393,17 +10782,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "热点温度遥测",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -10437,33 +10829,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥测",
-            "远程测量"
-          ],
-          "sources": [
-            {
-              "document": "2.1.2",
-              "section": "2.1.2",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "热点温度",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "synonyms": [
-        "遥测",
-        "远程测量"
-      ],
       "authority_ref": "2.1.2"
     },
     {
@@ -10479,7 +10849,10 @@
       },
       "zh": "遥测·风扇转速",
       "en": "fan speed",
-      "aliases": "风扇转速遥测",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -10512,17 +10885,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "风扇转速遥测",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -10556,33 +10932,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥测",
-            "远程测量"
-          ],
-          "sources": [
-            {
-              "document": "2.1.2",
-              "section": "2.1.2",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "风扇转速",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "synonyms": [
-        "遥测",
-        "远程测量"
-      ],
       "authority_ref": "2.1.2"
     },
     {
@@ -10598,7 +10952,10 @@
       },
       "zh": "遥测·效率",
       "en": "efficiency",
-      "aliases": "效率遥测",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -10631,17 +10988,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "效率遥测",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -10675,33 +11035,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥测",
-            "远程测量"
-          ],
-          "sources": [
-            {
-              "document": "2.1.2",
-              "section": "2.1.2",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "效率",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "synonyms": [
-        "遥测",
-        "远程测量"
-      ],
       "authority_ref": "2.1.2"
     },
     {
@@ -10717,7 +11055,10 @@
       },
       "zh": "遥测·功率因数",
       "en": "power factor",
-      "aliases": "PF遥测",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -10750,17 +11091,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "PF遥测",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -10794,33 +11138,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥测",
-            "远程测量"
-          ],
-          "sources": [
-            {
-              "document": "2.1.2",
-              "section": "2.1.2",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "功率因数",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "synonyms": [
-        "遥测",
-        "远程测量"
-      ],
       "authority_ref": "2.1.2"
     },
     {
@@ -10836,7 +11158,10 @@
       },
       "zh": "遥测·电能",
       "en": "energy",
-      "aliases": "累积电能",
+      "synonyms": [
+        "遥测",
+        "远程测量"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -10869,17 +11194,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "累积电能",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥测",
+            "远程测量"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.2",
+              "section": "2.1.2",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -10913,33 +11241,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥测",
-            "远程测量"
-          ],
-          "sources": [
-            {
-              "document": "2.1.2",
-              "section": "2.1.2",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "电能",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "synonyms": [
-        "遥测",
-        "远程测量"
-      ],
       "authority_ref": "2.1.2"
     },
     {
@@ -10955,7 +11261,11 @@
       },
       "zh": "输出过流保护",
       "en": "output over-current protection",
-      "aliases": "OCP",
+      "synonyms": [
+        "输出过流保护",
+        "output over-current protection",
+        "OCP"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -10988,9 +11298,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "OCP",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输出过流保护",
+            "output over-current protection",
+            "OCP"
+          ],
           "sources": [
             {
               "document": "",
@@ -11018,7 +11332,11 @@
       },
       "zh": "输出过压保护",
       "en": "output over-voltage protection",
-      "aliases": "OVP",
+      "synonyms": [
+        "输出过压保护",
+        "output over-voltage protection",
+        "OVP"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -11051,9 +11369,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "OVP",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输出过压保护",
+            "output over-voltage protection",
+            "OVP"
+          ],
           "sources": [
             {
               "document": "",
@@ -11081,7 +11403,11 @@
       },
       "zh": "输出欠压保护",
       "en": "output under-voltage protection",
-      "aliases": "UVP",
+      "synonyms": [
+        "输出欠压保护",
+        "output under-voltage protection",
+        "UVP"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -11114,9 +11440,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "UVP",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输出欠压保护",
+            "output under-voltage protection",
+            "UVP"
+          ],
           "sources": [
             {
               "document": "",
@@ -11144,7 +11474,11 @@
       },
       "zh": "输出过功率保护",
       "en": "output over-power protection",
-      "aliases": "OPP",
+      "synonyms": [
+        "输出过功率保护",
+        "output over-power protection",
+        "OPP"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -11177,9 +11511,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "OPP",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输出过功率保护",
+            "output over-power protection",
+            "OPP"
+          ],
           "sources": [
             {
               "document": "",
@@ -11207,7 +11545,11 @@
       },
       "zh": "短路保护",
       "en": "output short-circuit protection",
-      "aliases": "SCP",
+      "synonyms": [
+        "输出短路保护",
+        "output short-circuit protection",
+        "SCP"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -11242,9 +11584,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "SCP",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输出短路保护",
+            "output short-circuit protection",
+            "SCP"
+          ],
           "sources": [
             {
               "document": "",
@@ -11291,7 +11637,11 @@
       },
       "zh": "过热保护",
       "en": "over-temperature protection",
-      "aliases": "OTP",
+      "synonyms": [
+        "过温保护",
+        "over-temperature protection",
+        "OTP"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -11326,9 +11676,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "OTP",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "过温保护",
+            "over-temperature protection",
+            "OTP"
+          ],
           "sources": [
             {
               "document": "",
@@ -11375,7 +11729,11 @@
       },
       "zh": "输入过压保护",
       "en": "input over-voltage protection",
-      "aliases": "输入OVP",
+      "synonyms": [
+        "输入过压保护",
+        "input over-voltage protection",
+        "输入OVP"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -11408,9 +11766,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "输入OVP",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输入过压保护",
+            "input over-voltage protection",
+            "输入OVP"
+          ],
           "sources": [
             {
               "document": "",
@@ -11438,7 +11800,11 @@
       },
       "zh": "输入欠压保护",
       "en": "input under-voltage protection",
-      "aliases": "输入UVP",
+      "synonyms": [
+        "输入欠压保护",
+        "input under-voltage protection",
+        "输入UVP"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -11471,9 +11837,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "输入UVP",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "输入欠压保护",
+            "input under-voltage protection",
+            "输入UVP"
+          ],
           "sources": [
             {
               "document": "",
@@ -11501,7 +11871,11 @@
       },
       "zh": "反向电压保护",
       "en": "reverse polarity protection",
-      "aliases": "反接",
+      "synonyms": [
+        "反接保护",
+        "reverse polarity protection",
+        "反接"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -11536,9 +11910,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "反接",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "反接保护",
+            "reverse polarity protection",
+            "反接"
+          ],
           "sources": [
             {
               "document": "",
@@ -11585,7 +11963,11 @@
       },
       "zh": "限流门限电流",
       "en": "OCP trip setting",
-      "aliases": "OCP定值",
+      "synonyms": [
+        "过流保护动作值",
+        "OCP trip setting",
+        "OCP定值"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -11620,9 +12002,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "OCP定值",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "过流保护动作值",
+            "OCP trip setting",
+            "OCP定值"
+          ],
           "sources": [
             {
               "document": "",
@@ -11669,7 +12055,11 @@
       },
       "zh": "过流保护延时",
       "en": "OCP delay setting",
-      "aliases": "OCP延时",
+      "synonyms": [
+        "过流保护延时",
+        "OCP delay setting",
+        "OCP延时"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -11702,9 +12092,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "OCP延时",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "过流保护延时",
+            "OCP delay setting",
+            "OCP延时"
+          ],
           "sources": [
             {
               "document": "",
@@ -11724,16 +12118,22 @@
       "name": "过流保护返回系数",
       "entity_type": "power_concept",
       "text": "SET_OCP_RETURN: 过流保护返回系数 OCP return ratio",
-      "confidence": null,
-      "source": null,
+      "confidence": 0.9,
+      "source": "GB/T 14598.127-2013",
       "section": null,
       "metadata": {
-        "authority_kind": "unverified"
+        "authority_kind": "standard"
       },
       "zh": "过流保护返回系数",
       "en": "OCP return ratio",
-      "aliases": "OCP回差",
-      "authority_kind": "unverified",
+      "synonyms": [
+        "过流保护返回系数",
+        "OCP return ratio",
+        "复归系数",
+        "reset ratio",
+        "disengaging ratio"
+      ],
+      "authority_kind": "standard",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -11765,22 +12165,102 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "OCP回差",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "过流保护返回系数",
+            "OCP return ratio",
+            "复归系数",
+            "reset ratio",
+            "disengaging ratio"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
               "line": null,
-              "confidence": null,
+              "confidence": 0.9,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard",
+                "checked": "2026-10-05",
+                "correction_source": "GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "复归系数",
+          "sources": [
+            {
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "authority_kind": "standard",
+                "checked": "2026-10-05",
+                "correction_source": "GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对"
+              }
+            }
+          ]
+        },
+        "clause": {
+          "property_name": "clause",
+          "value": "3.10",
+          "sources": [
+            {
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "authority_kind": "standard",
+                "checked": "2026-10-05",
+                "correction_source": "GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "继电器刚好退出启动状态(启动信号由开变为关)的电压与元件的实际启动电压之间的比值。通常规定为百分数, 过电压元件小于100%, 欠电压元件大于100%。",
+          "sources": [
+            {
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "authority_kind": "standard",
+                "checked": "2026-10-05",
+                "correction_source": "GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对"
+              }
+            }
+          ]
+        },
+        "confidence": {
+          "property_name": "confidence",
+          "value": 0.9,
+          "sources": [
+            {
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "authority_kind": "standard",
+                "checked": "2026-10-05",
+                "correction_source": "GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对"
               }
             }
           ]
         }
-      }
+      },
+      "standard_term": "复归系数",
+      "clause": "3.10",
+      "definition": "继电器刚好退出启动状态(启动信号由开变为关)的电压与元件的实际启动电压之间的比值。通常规定为百分数, 过电压元件小于100%, 欠电压元件大于100%。",
+      "authority_ref": "GB/T 14598.127-2013"
     },
     {
       "id": "SET_OVP_TRIP",
@@ -11795,7 +12275,11 @@
       },
       "zh": "限压门限电压",
       "en": "OVP trip setting",
-      "aliases": "OVP定值",
+      "synonyms": [
+        "过压保护动作值",
+        "OVP trip setting",
+        "OVP定值"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -11830,9 +12314,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "OVP定值",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "过压保护动作值",
+            "OVP trip setting",
+            "OVP定值"
+          ],
           "sources": [
             {
               "document": "",
@@ -11879,7 +12367,11 @@
       },
       "zh": "过压保护延时",
       "en": "OVP delay setting",
-      "aliases": "OVP延时",
+      "synonyms": [
+        "过压保护延时",
+        "OVP delay setting",
+        "OVP延时"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -11912,9 +12404,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "OVP延时",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "过压保护延时",
+            "OVP delay setting",
+            "OVP延时"
+          ],
           "sources": [
             {
               "document": "",
@@ -11934,16 +12430,22 @@
       "name": "过压保护返回系数",
       "entity_type": "power_concept",
       "text": "SET_OVP_RETURN: 过压保护返回系数 OVP return ratio",
-      "confidence": null,
-      "source": null,
+      "confidence": 0.9,
+      "source": "GB/T 14598.127-2013",
       "section": null,
       "metadata": {
-        "authority_kind": "unverified"
+        "authority_kind": "standard"
       },
       "zh": "过压保护返回系数",
       "en": "OVP return ratio",
-      "aliases": "OVP回差",
-      "authority_kind": "unverified",
+      "synonyms": [
+        "过压保护返回系数",
+        "OVP return ratio",
+        "复归系数",
+        "reset ratio",
+        "disengaging ratio"
+      ],
+      "authority_kind": "standard",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -11975,22 +12477,102 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "OVP回差",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "过压保护返回系数",
+            "OVP return ratio",
+            "复归系数",
+            "reset ratio",
+            "disengaging ratio"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
               "line": null,
-              "confidence": null,
+              "confidence": 0.9,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard",
+                "checked": "2026-10-05",
+                "correction_source": "GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "复归系数",
+          "sources": [
+            {
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "authority_kind": "standard",
+                "checked": "2026-10-05",
+                "correction_source": "GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对"
+              }
+            }
+          ]
+        },
+        "clause": {
+          "property_name": "clause",
+          "value": "3.10",
+          "sources": [
+            {
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "authority_kind": "standard",
+                "checked": "2026-10-05",
+                "correction_source": "GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "继电器刚好退出启动状态(启动信号由开变为关)的电压与元件的实际启动电压之间的比值。通常规定为百分数, 过电压元件小于100%, 欠电压元件大于100%。",
+          "sources": [
+            {
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "authority_kind": "standard",
+                "checked": "2026-10-05",
+                "correction_source": "GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对"
+              }
+            }
+          ]
+        },
+        "confidence": {
+          "property_name": "confidence",
+          "value": 0.9,
+          "sources": [
+            {
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "authority_kind": "standard",
+                "checked": "2026-10-05",
+                "correction_source": "GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对"
               }
             }
           ]
         }
-      }
+      },
+      "standard_term": "复归系数",
+      "clause": "3.10",
+      "definition": "继电器刚好退出启动状态(启动信号由开变为关)的电压与元件的实际启动电压之间的比值。通常规定为百分数, 过电压元件小于100%, 欠电压元件大于100%。",
+      "authority_ref": "GB/T 14598.127-2013"
     },
     {
       "id": "SET_OTP_TRIP",
@@ -12005,7 +12587,11 @@
       },
       "zh": "过温保护动作值",
       "en": "OTP trip setting",
-      "aliases": "OTP定值",
+      "synonyms": [
+        "过温保护动作值",
+        "OTP trip setting",
+        "OTP定值"
+      ],
       "authority_kind": "unverified",
       "provenance": {
         "zh": {
@@ -12038,9 +12624,13 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "OTP定值",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "过温保护动作值",
+            "OTP trip setting",
+            "OTP定值"
+          ],
           "sources": [
             {
               "document": "",
@@ -12060,16 +12650,22 @@
       "name": "过温保护返回系数",
       "entity_type": "power_concept",
       "text": "SET_OTP_RETURN: 过温保护返回系数 OTP return ratio",
-      "confidence": null,
-      "source": null,
+      "confidence": 0.9,
+      "source": "GB/T 14598.127-2013",
       "section": null,
       "metadata": {
-        "authority_kind": "unverified"
+        "authority_kind": "standard"
       },
       "zh": "过温保护返回系数",
       "en": "OTP return ratio",
-      "aliases": "OTP回差",
-      "authority_kind": "unverified",
+      "synonyms": [
+        "过温保护返回系数",
+        "OTP return ratio",
+        "复归系数",
+        "reset ratio",
+        "disengaging ratio"
+      ],
+      "authority_kind": "standard",
       "provenance": {
         "zh": {
           "property_name": "zh",
@@ -12101,22 +12697,102 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "OTP回差",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "过温保护返回系数",
+            "OTP return ratio",
+            "复归系数",
+            "reset ratio",
+            "disengaging ratio"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
               "line": null,
-              "confidence": null,
+              "confidence": 0.9,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard",
+                "checked": "2026-10-05",
+                "correction_source": "GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对"
+              }
+            }
+          ]
+        },
+        "standard_term": {
+          "property_name": "standard_term",
+          "value": "复归系数",
+          "sources": [
+            {
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "authority_kind": "standard",
+                "checked": "2026-10-05",
+                "correction_source": "GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对"
+              }
+            }
+          ]
+        },
+        "clause": {
+          "property_name": "clause",
+          "value": "3.10",
+          "sources": [
+            {
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "authority_kind": "standard",
+                "checked": "2026-10-05",
+                "correction_source": "GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "继电器刚好退出启动状态(启动信号由开变为关)的电压与元件的实际启动电压之间的比值。通常规定为百分数, 过电压元件小于100%, 欠电压元件大于100%。",
+          "sources": [
+            {
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "authority_kind": "standard",
+                "checked": "2026-10-05",
+                "correction_source": "GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对"
+              }
+            }
+          ]
+        },
+        "confidence": {
+          "property_name": "confidence",
+          "value": 0.9,
+          "sources": [
+            {
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
+              "line": null,
+              "confidence": 0.9,
+              "metadata": {
+                "authority_kind": "standard",
+                "checked": "2026-10-05",
+                "correction_source": "GB/T 14598.127-2013《量度继电器和保护装置 第127部分:过/欠电压保护功能要求》3.10(等同采用 IEC 60255-127:2010)正文; 版本现行性经工标网 csres.com/detail/233986.html 核对"
               }
             }
           ]
         }
-      }
+      },
+      "standard_term": "复归系数",
+      "clause": "3.10",
+      "definition": "继电器刚好退出启动状态(启动信号由开变为关)的电压与元件的实际启动电压之间的比值。通常规定为百分数, 过电压元件小于100%, 欠电压元件大于100%。",
+      "authority_ref": "GB/T 14598.127-2013"
     },
     {
       "id": "YK_POWER_ON",
@@ -12131,7 +12807,10 @@
       },
       "zh": "遥控·开机命令",
       "en": "power on command",
-      "aliases": "开机",
+      "synonyms": [
+        "遥控",
+        "远程命令"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -12164,17 +12843,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "开机",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥控",
+            "远程命令"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.4",
+              "section": "2.1.4",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -12208,33 +12890,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥控",
-            "远程命令"
-          ],
-          "sources": [
-            {
-              "document": "2.1.4",
-              "section": "2.1.4",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "开机命令",
       "telemetry_family": "YK",
       "standard_term": "远程命令",
-      "synonyms": [
-        "遥控",
-        "远程命令"
-      ],
       "authority_ref": "2.1.4"
     },
     {
@@ -12250,7 +12910,10 @@
       },
       "zh": "遥控·关机命令",
       "en": "power off command",
-      "aliases": "关机",
+      "synonyms": [
+        "遥控",
+        "远程命令"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -12283,17 +12946,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "关机",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥控",
+            "远程命令"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.4",
+              "section": "2.1.4",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -12327,33 +12993,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥控",
-            "远程命令"
-          ],
-          "sources": [
-            {
-              "document": "2.1.4",
-              "section": "2.1.4",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "关机命令",
       "telemetry_family": "YK",
       "standard_term": "远程命令",
-      "synonyms": [
-        "遥控",
-        "远程命令"
-      ],
       "authority_ref": "2.1.4"
     },
     {
@@ -12369,7 +13013,10 @@
       },
       "zh": "遥控·复位命令",
       "en": "reset command",
-      "aliases": "复位",
+      "synonyms": [
+        "遥控",
+        "远程命令"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -12402,17 +13049,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "复位",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥控",
+            "远程命令"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.4",
+              "section": "2.1.4",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -12446,33 +13096,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥控",
-            "远程命令"
-          ],
-          "sources": [
-            {
-              "document": "2.1.4",
-              "section": "2.1.4",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "复位命令",
       "telemetry_family": "YK",
       "standard_term": "远程命令",
-      "synonyms": [
-        "遥控",
-        "远程命令"
-      ],
       "authority_ref": "2.1.4"
     },
     {
@@ -12488,7 +13116,10 @@
       },
       "zh": "遥控·告警清除命令",
       "en": "clear alarm command",
-      "aliases": "告警清除",
+      "synonyms": [
+        "遥控",
+        "远程命令"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -12521,17 +13152,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "告警清除",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥控",
+            "远程命令"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.4",
+              "section": "2.1.4",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -12565,33 +13199,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥控",
-            "远程命令"
-          ],
-          "sources": [
-            {
-              "document": "2.1.4",
-              "section": "2.1.4",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "告警清除命令",
       "telemetry_family": "YK",
       "standard_term": "远程命令",
-      "synonyms": [
-        "遥控",
-        "远程命令"
-      ],
       "authority_ref": "2.1.4"
     },
     {
@@ -12607,7 +13219,10 @@
       },
       "zh": "遥控·输出电压设定",
       "en": "set output voltage",
-      "aliases": "调压",
+      "synonyms": [
+        "遥控",
+        "远程命令"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -12640,17 +13255,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "调压",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥控",
+            "远程命令"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.4",
+              "section": "2.1.4",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -12684,33 +13302,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥控",
-            "远程命令"
-          ],
-          "sources": [
-            {
-              "document": "2.1.4",
-              "section": "2.1.4",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "输出电压设定",
       "telemetry_family": "YK",
       "standard_term": "远程命令",
-      "synonyms": [
-        "遥控",
-        "远程命令"
-      ],
       "authority_ref": "2.1.4"
     },
     {
@@ -12726,7 +13322,10 @@
       },
       "zh": "遥控·固件升级命令",
       "en": "firmware upgrade command",
-      "aliases": "升级",
+      "synonyms": [
+        "遥控",
+        "远程命令"
+      ],
       "authority_kind": "standard",
       "provenance": {
         "zh": {
@@ -12759,17 +13358,20 @@
             }
           ]
         },
-        "aliases": {
-          "property_name": "aliases",
-          "value": "升级",
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "遥控",
+            "远程命令"
+          ],
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "2.1.4",
+              "section": "2.1.4",
               "line": null,
-              "confidence": null,
+              "confidence": 0.95,
               "metadata": {
-                "authority_kind": "unverified"
+                "authority_kind": "standard"
               }
             }
           ]
@@ -12803,33 +13405,11 @@
               }
             }
           ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "遥控",
-            "远程命令"
-          ],
-          "sources": [
-            {
-              "document": "2.1.4",
-              "section": "2.1.4",
-              "line": null,
-              "confidence": 0.95,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
         }
       },
       "zh_declared": "固件升级命令",
       "telemetry_family": "YK",
       "standard_term": "远程命令",
-      "synonyms": [
-        "遥控",
-        "远程命令"
-      ],
       "authority_ref": "2.1.4"
     },
     {

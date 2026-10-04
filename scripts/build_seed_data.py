@@ -359,6 +359,12 @@ _CONCEPT_HEADER = re.compile(
 )
 
 
+#: ``aliases`` 列内部的别名分隔符。**不含 ``/``** —— 实测存在别名本身带斜杠
+#: (``电快速瞬变, EFT/B``), 切斜杠会把一个别名劈成两个不存在的别名, 而检索时
+#: 两个都命中不了真正那个词。
+_ALIAS_SPLIT = re.compile(r"[,、;；]")
+
+
 def extract_concepts(lines: list[str]) -> list[dict[str, Any]]:
     """概念字典(§6.3.1) -> ``power_concept``。
 
@@ -386,6 +392,14 @@ def extract_concepts(lines: list[str]) -> list[dict[str, Any]]:
             continue
         zh, en = _clean(cells[1]), _clean(cells[2])
         alias = _clean(cells[3]) if len(cells) > 3 else None
+        # 别名列拆成数组并入 ``synonyms`` —— 早先写成标量 ``aliases``, 而 schema
+        # 声明的检索字段是 ``synonyms``(数组), 且**没有任何消费方读 aliases**,
+        # 于是 118 条概念的另一种叫法对检索完全不可见, 而检索照样返回结果。
+        # 少召回是隐形的, 看不出来。synonyms 同时收 zh/en, 使同义集自洽。
+        synonyms: list[str] = []
+        for _s in [zh, en, *(x.strip() for x in _ALIAS_SPLIT.split(alias or ""))]:
+            if _s and _s not in synonyms:
+                synonyms.append(_s)
         qudt = None
         if len(cells) > 4 and cells[4].startswith("qudt:"):
             qudt = cells[4].split(":", 1)[1].strip()
@@ -395,7 +409,7 @@ def extract_concepts(lines: list[str]) -> list[dict[str, Any]]:
             "type": "power_concept",
             "text": f"{cid}: {zh or ''} {en or ''}".strip(": "),
             "properties": _props(
-                {"zh": zh, "en": en, "aliases": alias, "qudt_ref": qudt},
+                {"zh": zh, "en": en, "synonyms": synonyms or None, "qudt_ref": qudt},
                 "bootstrap_section",
                 i,
             ),
