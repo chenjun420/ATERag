@@ -386,15 +386,31 @@ def gate_g4(corpus: Corpus) -> GateResult:
 
 
 def gate_g5(corpus: Corpus) -> GateResult:
-    """勘误同步: 7 条勘误公式全部带 ``errata``。
+    """勘误同步: 7 条勘误指向的公式**必须真的进了库**。
 
     关联事实实在 ``Erratum.formula_refs`` 与 ``link_note``, **不在**
     ``FormulaRow.errata`` —— 实测该字段 545 行**全为空**, 读它会得到
-    「0/7」的假失败。``link_note`` 标明来源类别(正文点名 / 两跳推导 / 声明),
-    一并输出以便审计区分「有文档支撑」与「我方补的」。
+    「0/7」的假失败。
+
+    ## 分母必须是「已入库集」, 不是全语料
+
+    早先一版拿 :attr:`Corpus.first` 当分母, 于是每条勘误都能在全语料里找到
+    目标, 报出 ``7/7 PASS`` —— 而 ``seed/formula.csv`` 里当时只有 **2** 条
+    带 ``errata``。15 个目标因为齐次性门禁或符号未闭合被拒收, 于是「勘误已同步」
+    这个绿灯是**空转断言**: 它度量的是「方案里提到过」, 不是「知识库里查得到」。
+
+    勘误是全套数据里最要命的一类标注 —— 它说的是「这条式子有个常见错法」。
+    目标公式没入库, 这条警告就在库里彻底消失, 而下游看到的仍是绿灯。所以这里
+    改用 :func:`aterag.docgen.registry.build_records` 的**实际产物**当分母,
+    而不是读 ``seed/formula.csv``(那可能是上一次的陈旧文件)。
     """
+    from .registry import build_records
+
+    ingested = {record.formula_id for record in build_records(corpus.lines)[0]}
     lines: list[str] = []
     unresolved: list[str] = []
+    partial: list[str] = []
+    covered = 0
     for item in corpus.errata:
         tag = str(getattr(item, "tag", "?"))
         refs = tuple(getattr(item, "formula_refs", ()) or ())
@@ -402,16 +418,30 @@ def gate_g5(corpus: Corpus) -> GateResult:
         hits = _resolve_refs(refs, corpus.first)
         if not hits:
             unresolved.append(tag)
-        lines.append(f"{tag} [{note}] {len(hits)} 条: {', '.join(hits[:3])}")
-    status = Status.PASS if not unresolved and len(corpus.errata) == 7 else Status.FAIL
+            lines.append(f"{tag} [{note}] 0 条: 语料里就没有目标公式")
+            continue
+        in_kb = [f for f in hits if f in ingested]
+        covered += len(in_kb)
+        if not in_kb:
+            partial.append(f"{tag}(0/{len(hits)})")
+        elif len(in_kb) < len(hits):
+            partial.append(f"{tag}({len(in_kb)}/{len(hits)})")
+        lines.append(
+            f"{tag} [{note}] 目标 {len(hits)} 条, 入库 {len(in_kb)} 条: "
+            f"{', '.join(in_kb[:3]) or '(无)'}"
+        )
+    # 只要有勘误的目标没进库, 就**不算同步** —— 警告随公式一起丢了。
+    status = Status.PASS if not unresolved and not partial and len(corpus.errata) == 7 else Status.FAIL
     return GateResult(
         gate_id="G5",
         title="勘误同步",
         level=Level.MERGE_BLOCK,
         status=status,
         detail=(
-            f"{len(corpus.errata) - len(unresolved)}/7 条勘误关联到实际公式"
-            + (f"; 未解析: {', '.join(unresolved)}" if unresolved else "")
+            f"{len(corpus.errata) - len(unresolved) - len(partial)}/{len(corpus.errata)} "
+            f"条勘误的全部目标已入库(共 {covered} 个目标公式)。"
+            + (f" 未入库: {', '.join(partial)}" if partial else "")
+            + (f" 语料无目标: {', '.join(unresolved)}" if unresolved else "")
         ),
         evidence=tuple(lines),
     )

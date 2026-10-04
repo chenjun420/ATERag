@@ -409,11 +409,24 @@ def build_records(
 
     for fid, row in first.items():
         normalized = normalize_equation(row.expression)
-        if not normalized.ok:
-            continue
         ns = _domain_letter(fid)
+        if not normalized.ok:
+            # **绝不静默丢弃**。这里原本直接 ``continue``, 于是式子从所有报告里
+            # 彻底消失: 既不在 seed/formula.csv, 也不在 quarantine 名单里 ——
+            # 而勘误 E-1~E-7 里有 5 条正指向它们, 看上去就像「勘误没关联上」。
+            # 缺口必须**有名字、有原因**, 否则无人知道该去修什么。
+            report.quarantined[fid] = f"归一化失败: {normalized.reason}"
+            continue
         if fid not in closed_vars:
-            continue  # 未闭合, 不是候选
+            # 同理: 未闭合的式子要点名是**哪些符号**没有声明量纲。
+            blind = [
+                v
+                for v in normalized.variables
+                if dictionary.resolve(v, ns, fid).dimension is None
+            ]
+            detail = ", ".join(blind[:4]) or "(未定位)"
+            report.quarantined[fid] = f"符号未闭合: {len(blind)} 个符号无声明量纲({detail})"
+            continue
         report.considered += 1
 
         # 不齐次 / 引擎判不了 -> 隔离。**绝不入库**: 入库即宣称已验证。

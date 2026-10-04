@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import csv
 from pathlib import Path
 
 import pytest
@@ -109,11 +110,36 @@ class TestGateHonesty:
 
 @pytest.mark.slow
 class TestGateResults:
-    def test_g5_errata_all_linked(self, corpus: Corpus) -> None:
-        """G5: 7 条勘误全部关联到实际公式(判据 3)。"""
+    def test_g5_measures_ingested_set_not_corpus(self, corpus: Corpus) -> None:
+        """G5 的分母必须是**已入库集**, 不能是全语料。
+
+        这是一条**防假绿灯**的回归测试。G5 早先拿 ``Corpus.first`` 当分母,
+        于是每条勘误都能在全语料里找到目标, 报 ``7/7 PASS`` —— 而当时
+        ``seed/formula.csv`` 里只有 **2** 条带 ``errata``: 15 个目标公式被齐次性
+        门禁或符号未闭合拒收, 勘误随公式一起从知识库消失, 而门禁仍亮绿灯。
+
+        勘误是全套数据里最要命的标注(它说的是「这条式子有个常见错法」)。目标
+        没入库 = 警告在库里消失, 所以 G5 必须**如实报 FAIL 并点名是哪几条**。
+        """
         (g5,) = [r for r in run_gates(["G5"], SPEC) if r.gate_id == "G5"]
-        assert g5.status is Status.PASS
-        assert "7/7" in g5.detail
+        ingested = {
+            r["formula_id"]
+            for r in csv.DictReader(
+                (SPEC.parent / "seed" / "formula.csv").open(encoding="utf-8")
+            )
+        }
+        covered = sum(
+            1
+            for line in g5.evidence
+            for fid in ingested
+            if fid in line
+        )
+        assert g5.status is Status.FAIL, "勘误目标未全部入库时 G5 不得报 PASS"
+        # detail 必须点名未入库的勘误标签, 而不是笼统地说「7/7 关联到公式」。
+        assert "未入库" in g5.detail
+        for tag in ("E-1", "E-2", "E-3", "E-4", "E-5", "E-6", "E-7"):
+            assert tag in " ".join(g5.evidence), f"{tag} 的逐条证据缺失"
+        assert covered < len(ingested)  # 覆盖率确实不满, 才值得断言
 
     def test_g5_keeps_provenance_labels(self, corpus: Corpus) -> None:
         """勘误来源类别(正文点名 / 声明)必须出现在 evidence 里。
@@ -206,9 +232,20 @@ class TestCli:
         assert V.main(["--all", "--spec", str(SPEC)]) == 0
 
     def test_exit_zero_when_subset_passes(self) -> None:
+        """子集全通过时退出码 0。
+
+        用 **G4** 而不是 G5: G5 现在如实报 FAIL(勘误目标多数未入库), 拿它当
+        「应当通过」的样本, 等于把假绿灯写进测试 —— 那正是本测试原本犯的错。
+        """
         if not SPEC.is_file():
             pytest.skip(f"方案文件不在预期位置: {SPEC}")
-        assert main(["--gates", "G5", "--spec", str(SPEC)]) == 0
+        assert main(["--gates", "G4", "--spec", str(SPEC)]) == 0
+
+    def test_exit_nonzero_when_ingested_coverage_incomplete(self) -> None:
+        """反向: 覆盖不足必须让退出码非 0, 否则 CI 拦不住「勘误静默丢失」。"""
+        if not SPEC.is_file():
+            pytest.skip(f"方案文件不在预期位置: {SPEC}")
+        assert main(["--gates", "G5", "--spec", str(SPEC)]) != 0
 
     def test_requires_a_selector(self) -> None:
         with pytest.raises(SystemExit):
