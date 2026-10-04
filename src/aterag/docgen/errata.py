@@ -265,34 +265,37 @@ def parse_errata(lines: list[str]) -> ErrataReport:
         theorems = tuple(dict.fromkeys(f"T{t}" for t in _THEOREM_RE.findall(body)))
         approx = _APPROX_RE.findall(body)
 
-        refs = list(direct.get(tag, ()))
+        # 名字不叫 ``refs``: 256 行那个 ``refs`` 是 ``_split_refs`` 返回的
+        # tuple[str, ...], 同一作用域内重名会让 mypy 把首次绑定的类型
+        # 套到这次赋值上(实测 3 个 error)。这里确实需要 list —— 要 append。
+        collected = list(direct.get(tag, ()))
         hops: list[str] = []
         declared: tuple[str, ...] = ()
         for aid in (*axioms, *approx):
             for row in by_axiom.get(aid, ()):
                 for ref in row.formula_refs:
-                    if ref not in refs:
-                        refs.append(ref)
+                    if ref not in collected:
+                        collected.append(ref)
                 if aid not in hops:
                     hops.append(aid)
 
         # 自动关联不到时, 退回声明式落点 (见 DECLARED_ERRATA_LINKS)
-        if not refs and tag in DECLARED_ERRATA_LINKS:
+        if not collected and tag in DECLARED_ERRATA_LINKS:
             declared = DECLARED_ERRATA_LINKS[tag]
             for aid in declared:
                 for row in by_axiom.get(aid, ()):
                     for ref in row.formula_refs:
-                        if ref not in refs:
-                            refs.append(ref)
+                        if ref not in collected:
+                            collected.append(ref)
 
-        if refs:
+        if collected:
             if direct.get(tag):
                 note = "正文点名"
             elif declared:
                 note = "**声明**经 " + ", ".join(declared)
             else:
                 note = "经 " + ", ".join(hops)
-            link_note = f"{note} ({len(refs)} 条)"
+            link_note = f"{note} ({len(collected)} 条)"
         else:
             link_note = "**未关联**: 正文只点了公理/定理, 公理索引里查不到对应公式"
 
@@ -303,7 +306,7 @@ def parse_errata(lines: list[str]) -> ErrataReport:
                 line_no=line_no,
                 axioms=axioms or declared,
                 theorems=theorems,
-                formula_refs=tuple(refs),
+                formula_refs=tuple(collected),
                 link_note=link_note,
             )
         )

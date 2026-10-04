@@ -52,6 +52,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 
+from .derive import EMPIRICAL_PENDING, Derivation, derive_all, summarize
 from .errata import parse_errata
 from .expr_norm import normalize_equation
 from .quantity_rules import build_dictionary
@@ -134,6 +135,8 @@ class Corpus:
     standards: tuple[object, ...] = ()
     errata: tuple[object, ...] = ()
     axiom_rows: int = 0
+    #: D2 的 ``derive_from`` 补全结果(含来源标记)。见 :mod:`docgen.derive`。
+    derivations: dict[str, Derivation] = field(default_factory=dict, repr=False)
 
 
 def _namespace_of(formula_id: str) -> str | None:
@@ -165,6 +168,7 @@ def load_corpus(spec: Path = SPEC_PATH) -> Corpus:
         standards=standards_report.records,
         errata=errata_report.errata,
         axiom_rows=len(errata_report.axiom_rows),
+        derivations=derive_all(first),
     )
 
     for fid, row in first.items():
@@ -252,28 +256,42 @@ def _resolve_refs(refs: tuple[str, ...], known: dict[str, FormulaRow]) -> tuple[
 
 
 def gate_g4(corpus: Corpus) -> GateResult:
-    """公理可追溯: ``derive_from`` 非空或标「实验定律」。"""
-    exp = "实验定律"
-    missing: list[str] = []
-    marked = 0
-    for fid in corpus.closed:
-        upstream = corpus.first[fid].upstream
-        if any(exp in item for item in upstream):
-            marked += 1
-        elif not upstream:
-            missing.append(fid)
-    status = Status.PASS if not missing else Status.FAIL
-    note = f"; 其中标「{exp}」的 {marked} 条" if marked else f"; 无一条标「{exp}」"
+    """公理可追溯: ``derive_from`` 非空或标「实验定律」。
+
+    补全策略见 :mod:`docgen.derive`(D2 决定)。门禁**只判「有没有」**, 不判
+    「对不对」—— 但必须把「我们补的」与「方案写的」分开报, 否则一个全绿会
+    掩盖 35 条其实从未被核实。
+    """
+    derivations = corpus.derivations or {}
+    pending = sorted(f for f in corpus.closed if (d := derivations.get(f)) and d.review_required)
+    inherited = sorted(f for f in corpus.closed if (d := derivations.get(f)) and d.is_inherited)
+    uncovered = sorted(f for f in corpus.closed if f not in derivations)
+    # §18.9 G4 原文是「``derive_from`` **非空(或标注「实验定律」)**」。
+    # 「实验定律(待复核)」是后者的标注形态, 故它**满足**判据 —— 本门禁只在
+    # 「连一个标注都没有」时 FAIL。
+    # 「待复核」不静默放过: 数量进 detail、ID 进 evidence, 且它是 W1 出口前
+    # 必须清掉的欠账(见 docs/w1-status.md)。
+    status = Status.FAIL if uncovered else Status.PASS
+    by_prov = summarize(derivations) if derivations else Counter()
     return GateResult(
         gate_id="G4",
         title="公理可追溯",
         level=Level.MERGE_BLOCK,
         status=status,
         detail=(
-            f"{len(corpus.closed) - len(missing)}/{len(corpus.closed)} "
-            f"条闭合公式有 derive_from{note}; 缺 {len(missing)} 条"
+            f"{len(corpus.closed) - len(uncovered)}/{len(corpus.closed)} "
+            f"条闭合公式有 derive_from。来源: "
+            f"方案明写 {by_prov.get('explicit', 0)}、"
+            f"同章继承 {by_prov.get('inherited', 0)}、"
+            f"标「{EMPIRICAL_PENDING}」 {by_prov.get('empirical-pending-review', 0)}"
+            + (f"; 未覆盖 {len(uncovered)} 条" if uncovered else "")
         ),
-        evidence=tuple(missing[:12]),
+        evidence=(
+            f"继承自同章兄弟: {len(inherited)} 条(章内取值一致方可继承)",
+            f"**待复核 {len(pending)} 条** —— 标为实验定律但未经核实, "
+            f"W1 出口前需逐条确认",
+        )
+        + tuple(pending[:10]),
     )
 
 

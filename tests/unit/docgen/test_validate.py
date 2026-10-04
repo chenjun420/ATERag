@@ -121,13 +121,39 @@ class TestGateResults:
         assert "正向不可判定" in g6.detail
         assert g6.status is not Status.PASS
 
-    def test_g4_reports_missing_derive_from(self, corpus: Corpus) -> None:
-        """G4 缺 derive_from 是真实缺口, 必须 FAIL 而不是放水。"""
+    def test_g4_passes_but_names_the_pending_gap(self, corpus: Corpus) -> None:
+        """D2 后 G4 判 PASS, 但**缺口必须具名**, 不能只报一个计数。
+
+        「实验定律(待复核)」是 §18.9 G4 允许的标注形态, 故满足判据; 但这批
+        公式并未真被核实为实验定律(例如 ``F_J.8.1_SHOOT_THROUGH`` 是电路分析),
+        所以必须在 detail 与 evidence 里**逐条点名**, 否则一个绿灯就把它盖住了。
+        """
         (g4,) = [r for r in run_gates(["G4"], SPEC) if r.gate_id == "G4"]
-        assert g4.status is Status.FAIL
         assert g4.level is Level.MERGE_BLOCK
-        assert g4.blocks_merge
-        assert g4.evidence
+        assert g4.status is Status.PASS
+        assert not g4.blocks_merge
+        assert "待复核" in g4.detail
+        blob = " ".join(g4.evidence)
+        assert "待复核" in blob
+        # 缺口要能点名: evidence 里应有具体 formula_id, 不只是一句话。
+        assert any(fid.startswith("F_") for fid in g4.evidence)
+
+    def test_g4_would_fail_if_a_formula_had_no_derivation(self) -> None:
+        """安全网: 一旦某公式连标注都没有, G4 必须 FAIL。
+
+        直接构造「未覆盖」的情形, 而不是依赖语料状态 —— 否则语料每改善一次
+        这个测试就失去意义。
+        """
+        from aterag.docgen.spec_parse import FormulaRow
+        from aterag.docgen.validate import Corpus, gate_g4
+
+        corpus = Corpus(
+            lines=[],
+            first={"F_J.2.4_CUK": FormulaRow(formula_id="F_J.2.4_CUK")},
+            closed={"F_J.2.4_CUK": ("D", "V_in")},
+            derivations={},  # 没有任何补全结果 -> 未覆盖
+        )
+        assert gate_g4(corpus).status is Status.FAIL
 
     def test_unknown_gate_rejected(self) -> None:
         with pytest.raises(SystemExit):
@@ -135,11 +161,35 @@ class TestGateResults:
 
 
 class TestCli:
-    def test_exit_code_reflects_merge_block(self) -> None:
-        """有合并阻断项失败时退出码非 0。"""
+    def test_exit_code_zero_when_no_merge_block_fails(self) -> None:
+        """全绿时退出码 0。"""
         if not SPEC.is_file():
             pytest.skip(f"方案文件不在预期位置: {SPEC}")
-        assert main(["--all", "--spec", str(SPEC)]) == 1
+        assert main(["--all", "--spec", str(SPEC)]) == 0
+
+    def test_exit_code_nonzero_on_merge_block(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """有合并阻断项失败时退出码非 0。
+
+        用**合成**的门禁结果而不是依赖语料 —— 语料每改善一次(本次 D2 就把
+        G4 从 FAIL 修成 PASS),依赖语料的断言就会失去意义。
+        """
+        from aterag.docgen import validate as V
+
+        def fake(_ids: object = None, _spec: object = None) -> list[V.GateResult]:
+            return [V.GateResult("G4", "公理可追溯", V.Level.MERGE_BLOCK, V.Status.FAIL, "合成")]
+
+        monkeypatch.setattr(V, "run_gates", fake)
+        assert V.main(["--all", "--spec", str(SPEC)]) == 1
+
+    def test_exit_code_ignores_warning_level(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """警告级不阻断合并 —— G6/G7 是警告, 红了也不该卡住流水线。"""
+        from aterag.docgen import validate as V
+
+        def fake(_ids: object = None, _spec: object = None) -> list[V.GateResult]:
+            return [V.GateResult("G7", "命名空间隔离", V.Level.WARNING, V.Status.FAIL, "合成")]
+
+        monkeypatch.setattr(V, "run_gates", fake)
+        assert V.main(["--all", "--spec", str(SPEC)]) == 0
 
     def test_exit_zero_when_subset_passes(self) -> None:
         if not SPEC.is_file():
