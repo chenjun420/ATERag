@@ -1,0 +1,69 @@
+# 人工语义注记 (annotations): 规则切不出条件时的兜底。
+#
+# 何时需要:
+#   规则库 (condition_patterns.yaml) 与标题语义都切不出输入/输出条件, 但人读得懂
+#   规格书原文 —— 典型是复合条件 (SR-1213 开机输出延迟: 温度+输入+负载 三层嵌套)。
+#
+# 机制:
+#   * 按 req_id 索引, 生效前提是 fingerprint 与当前行内容一致 (文档改版后自动失效,
+#     回到待审队列), 避免用旧语义套新数据。
+#   * confidence=annotated, 下游可与 rule/proposed 区分。
+#   * 提议 (LLM 生成的草案) 放 config/annotations/proposals/, 未经人工确认不并入本文件;
+#     运行时永不调用 LLM。
+#
+# 填写示例见下方 entries。
+version: 1
+model_id: PA601-D54A
+entries:
+
+  # SR-1213 开机输出延迟: 温度/输入/负载/时间四层嵌套, 短语规则只能切出一部分
+  # (实测 unresolved_text 队列里就有它)。此处按人读语义补全。
+  #
+  # 评审流程: scripts/review_annotation.py --model PA601-D54A --show SR-...-1213
+  #           逐项核对后 --approve SR-...-1213 --by <评审人>
+  # status=draft 时语义照常生效 (优于规则切分), 但置信度标 proposed、
+  # 进 stats.annotation_draft, 且 CI 的 review_annotation.py --check 会红。
+  # 签字前请确认: 每个子句的 text 都能在规格书原文里找到对应, value 与原文一致。
+  #
+  # fingerprint 由 extract_test_conditions.py --print-fingerprint SR-PA601-D54A-1213 得到;
+  # 规格书改版后指纹失配, 注记自动失效并回到待审队列。
+  SR-PA601-D54A-1213:
+    status: draft
+    fingerprint: 08edce5df4009d4f
+    proposed_by: 装配器初稿 (需人工评审)
+    approved_by: null
+    approved_at: null
+    reason: "温度+输入+负载+时限四层复合条件, 正则无法完整切分"
+    input:
+      - kind: temperature
+        text: "温度≥-25℃:额定(标称)输入, 额定输出(电压和电流)"
+        value: { op: ">=", value: -25, unit: "℃" }
+      - kind: load
+        text: "额定输出(电压和电流)"
+        value: { value: "额定负载" }
+      - kind: temperature
+        text: "温度≤-25℃:低温下限启动, 输出半载"
+        value: { op: "<=", value: -25, unit: "℃" }
+      - kind: load
+        text: "输出半载"
+        value: { value: 50, unit: "% 额定" }
+      - kind: power_event
+        text: "输入上电"
+        value: { value: 上电 }
+    output:
+      - kind: timing
+        text: "常温(≥-25℃): 各路输出上升到90%的时间, 开机输出延时≤6s"
+        value: { max: 6, unit: s }
+      - kind: timing
+        text: "低温(≤-25℃)下限启动: 开机输出延时≤12s, 启动过程中允许跌落"
+        value: { max: 12, unit: s }
+# 填写模板 (复制上面的结构改字段名即可):
+#   SR-PA601-D54A-XXXX:
+#     status: draft            # draft=未评审(仍生效但标 proposed) / approved=已签字
+#     fingerprint: "<由 --print-fingerprint 得到>"
+#     proposed_by: <谁起草>
+#     approved_by: <评审人>     # --approve 时自动写入
+#     approved_at: <日期>       # --approve 时自动写入
+#     reason: "<为什么规则切不出>"
+#     input:  [{ kind: <词表内 kind>, text: <原文片段>, value: {...} }]
+#     output: [{ kind: <词表内 kind>, text: <原文片段>, value: {...} }]

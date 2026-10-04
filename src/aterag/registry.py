@@ -39,13 +39,39 @@ class Registry:
 
     # ---------- 加载 / 持久化 ----------
     @classmethod
+    def _resolve_path(cls, settings: Settings) -> Path:
+        """定位注册表文件, **找不到就报错**。
+
+        早先一版在路径不存在时 ``data = {}`` 静默返回空注册表, 而配置默认
+        ``registry.yaml``(CWD 相对)、文件实际在 ``data/registry.yaml`` ——
+        差一个目录, 于是本地永远拿到 ``products=[]`` 且不报错。后续
+        ``resolve_query`` 抛的却是 ``UnknownModel: no model identified``,
+        把根因藏了两层, 排查时先怀疑查询文本而不是配置路径。
+
+        兜底顺序: 配置路径 -> ``data/<basename>``(本项目其他路径如
+        ``annotations_dir="data/annotations"`` 都用 data/ 前缀) -> 报错。
+        """
+        configured = Path(settings.registry_path)
+        if configured.exists():
+            return configured
+        if configured.is_absolute():
+            raise FileNotFoundError(
+                f"registry_path 不存在: {configured} (settings.registry_path)"
+            )
+        fallback = Path("data") / configured.name
+        if fallback.exists():
+            return fallback
+        raise FileNotFoundError(
+            f"产品注册表不存在: 试过 {configured} 与 {fallback}。"
+            f"注册表决定系统知道哪些型号存在 —— 没有它, ingest/query 两侧"
+            f"都拿不到任何型号。部署时应随代码一并提供(已在版本库内)。"
+        )
+
+    @classmethod
     def load(cls, settings: Settings) -> Registry:
-        path = Path(settings.registry_path)
+        path = cls._resolve_path(settings)
         reg = cls(settings=settings, _path=path)
-        if path.exists():
-            data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-        else:
-            data = {}
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
         common = (data.get("common") or {}).get("workspace", settings.common_workspace)
         reg._common_workspace = common
         for name, d in (data.get("domains") or {}).items():

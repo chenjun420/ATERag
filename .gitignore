@@ -30,6 +30,15 @@ data/*
 # schema 也必须入库 —— 它是交付物的校验契约。没有它, 换台机器 clone 下来
 # 只能看到初始数据本身, 却没有任何东西能判定这批数据是否合规。
 !data/schema/
+# registry 与人工注记也入库 —— 它们是**部署初始数据**, 不是运行时状态:
+#   registry.yaml            决定系统知道哪些型号存在; 新机 clone 下来
+#                            没有它, ingest/query 两侧都拿不到 PA601
+#   annotations/*.yaml       人工签字的语义兜底(规则切不出的复合条件)
+# 唯一真状态的是 domains.*.kb_status, 它在同一文件里, 只能整文件入库,
+# 由 Registry.load 在运行期覆盖。
+!data/registry.yaml
+!data/annotations/
+!data/annotations/*.yaml
 
 # 客户规格书原件 —— 属客户知识产权, 不入库。
 # 仓库只保留从原件派生的产物 (config/annotations/*.conditions.yaml 等), 那些
