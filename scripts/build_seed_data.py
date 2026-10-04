@@ -72,35 +72,61 @@ LOAD_CONDITIONS: tuple[dict[str, Any], ...] = (
              "ratio 刻意为 null —— 它是待求量, 不是常量; 给出 1.0 之类的值会让推理"
              "把任意百分比都当成满载。整串锚定以免把 P_load 的 load 误认成工况词。"},
 )
+#: 工况别名词典: 别名 -> 规范名。**别名词也要能被规则匹配到** —— 规格书里写
+#: 「50% 载」而知识库写「半载」时, 两者必须归一到同一个比例, 否则产测用例会漏掉
+#: 一种工况写法。
+LOAD_ALIASES: tuple[dict[str, Any], ...] = (
+    {"alias": "50pct_load", "canonical": "half_load", "zh": "50%载"},
+)
 
-#: 半载 / xx%载 的推导规则, 编码成 Datalog(Horn 子句)。
+#: 工况 / xx%载 比例的推导, 编码成 Datalog(Horn 子句)。
 #:
-#: Semantica 的推理引擎(``semantica.reasoning.DatalogReasoner``)吃的是
-#: ``DatalogRule``(head_predicate + head_args + body), 所以这条**必须**是规则而
-#: 不是查表: 查表只能回答「半载是几倍」, 规则才能回答
-#: 「某型号在 30% 载时的输出功率是多少」—— 而后者才是产测推理要的。
+#: **为什么必须是规则而不是查表**: 查表只能回答「半载是几倍」, 规则才能回答
+#: 「某型号 30% 载时输出功率的基准与比例是多少」—— 后者要靠具体型号的规格数据
+#: 参与推理, 表里没有那些数据。
 #:
-#: 变量一律以 ``?`` 开头, 与 Datalog 惯例一致, 也让 Semantica 认出这是变量而非常量。
-#: ``?ratio * ?base`` 写成算术项, 因为 ``value_at_load`` 的第三个参数是数值。
+#: 三条 Semantica 契约, 都是实测撞出来的, **每一条都会静默失效**:
+#:
+#: 1. **变量必须首字母大写**。``DatalogReasoner._is_variable`` 判 ``term[0].isupper()``,
+#:    早先写 ``?ratio`` 会**被当成常量** —— 规则语法校验通过, 却永远匹配不上,
+#:    推导结果为空且不报错。
+#: 2. **同一变量名只能表一件事**。早先规则里 ``Base`` 同时当「满载比例」和
+#:    「满载功率值」用, 合一失败, 同样静默推不出东西。
+#: 3. **引擎是纯合一, 没有算术**。``multiply`` / 内建函数 / 聚合都不存在, 所以
+#:    「30% 载 = 满载 x 0.3」这个乘法**在引擎里算不出来**。规则只推出
+#:    (量, 工况, 满载基准值, 比例) 四元组, 乘法交给消费方 —— 那样乘法步骤本身
+#:    才是可审计的, 而不是一个藏在引擎里、无法逐步复核的中间值。
+#:
+#: ``rule_str`` 是给 Semantica 直接消费的形态: ``add_rule()`` 只收字符串。
 LOAD_RULES: tuple[dict[str, Any], ...] = (
     {
-        "rule_id": "load-scaling",
-        "comment": "任意 xx%载 的量值 = 满载量值 × 该载比例。依据用户给定定义: "
-                   "半载 = 50%载 = 满载 × 50%; xx%载 = 满载 × xx%。",
-        "head_predicate": "value_at_load",
-        "head_args": ("?quantity", "?load", "?ratio * ?base"),
+        "rule_id": "load-alias",
+        "comment": "工况别名归一: 50%载 = 半载。两者都要能匹配到同一比例。",
+        "rule_str": "load_ratio(Alias, Ratio) :- load_alias(Alias, Canonical), load_ratio(Canonical, Ratio).",
+        "head_predicate": "load_ratio",
+        "head_args": ("Alias", "Ratio"),
         "body": [
-            {"predicate": "load_ratio", "args": ("?load", "?ratio")},
-            {"predicate": "load_ratio", "args": ("full_load", "?base")},
-            {"predicate": "value_at_load", "args": ("?quantity", "full_load", "?base")},
+            {"predicate": "load_alias", "args": ("Alias", "Canonical")},
+            {"predicate": "load_ratio", "args": ("Canonical", "Ratio")},
         ],
     },
     {
-        "rule_id": "load-alias-50",
-        "comment": "半载 与 50%载 是同一个工况 —— 两个词都要能被规则匹配到。",
-        "head_predicate": "load_ratio",
-        "head_args": ("half_load", "0.5"),
-        "body": [{"predicate": "load_ratio", "args": ("full_load", "?base")},],
+        "rule_id": "load-scaling",
+        "comment": (
+            "某工况下某量的**满载基准值与载比例**。引擎无算术, 乘法由消费方做: "
+            "value = FullLoadValue x Ratio。半载 = 50%载 = 满载 x 50%; "
+            "xx%载 = 满载 x xx%。"
+        ),
+        "rule_str": (
+            "value_at_load(Quantity, Load, FullLoadValue, Ratio) :- "
+            "load_ratio(Load, Ratio), value_at_full_load(Quantity, FullLoadValue)."
+        ),
+        "head_predicate": "value_at_load",
+        "head_args": ("Quantity", "Load", "FullLoadValue", "Ratio"),
+        "body": [
+            {"predicate": "load_ratio", "args": ("Load", "Ratio")},
+            {"predicate": "value_at_full_load", "args": ("Quantity", "FullLoadValue")},
+        ],
     },
 )
 
@@ -125,17 +151,32 @@ def _clean(text: str | None) -> str | None:
     return out or None
 
 
-#: ``source_kind`` 的取值。**必须区分「文档里读的」与「推出来的」** ——
-#: 把两者混成一种, 审计就分不清哪条能当依据、哪条只是线索。
+#: **权威依据**的类型。这是决定「这条数据能不能当依据」的唯一字段。
 #:
-#: - ``bootstrap_section``  从方案 md 实读到, 行号可回溯
-#: - ``derived_from_id``    由实体 ID 编码反推(公式的 ``F_J.2.1`` -> ``J.2.1``)。
-#:                         **不是文档引用** —— ID 编码可能与实际章节不一致
-#: - ``correction``         来自 corrections.yaml, 带外部出处与查证日期
-#: - ``convention``         本项目的约定定义(工况词口径)。方案里**没有**这个
-#:                         概念的出处, 硬指一个章节号就是编造条款号
-#: - ``standard``           真标准号(可作认证依据)
-SOURCE_KINDS = (
+#: - ``standard``        标准依据 —— ``authority_ref`` 给标准号(+条号), 可作认证依据
+#: - ``book``            具名出版物依据: 专著/手册/教材。有书名、版次、出版社才算
+#:                       依据; 「业内一般认为」不是
+#: - ``industry``        业界依据但非出版物: 行业术语表、主流厂商规格书、通行叫法
+#: - ``project_defined`` **已确认无外部对应术语**, 本项目自行定义
+#: - ``unverified``      **尚未查证** —— 这是待办, 不是结论
+#:
+#: ``unverified`` 与 ``project_defined`` 必须可区分: 前者要继续查, 后者是查完
+#: 的结论。混起来等于把待办显示成已完成。
+AUTHORITY_KINDS = ("standard", "book", "industry", "project_defined", "unverified")
+
+#: ``produced_by`` 的取值 —— **构建期**信息, 决定权威类型的默认值。**不写进记录**。
+#:
+#: 方案 md 只是**设计思路与参考数据**: 它告诉我们「这个领域有哪些概念」, 但
+#: **不能作为这些概念的出处**。早先一版把 ``source_ref=V6.0§X`` 当出处, 等于
+#: 引用了一份本身不是依据的文件 —— 看起来可追溯, 实则无法复核。
+#:
+#: - ``bootstrap_section``  从方案 md 实读到, 行号可回溯(**仅线索**)
+#: - ``derived_from_id``    由实体 ID 编码反推(公式 ``F_J.2.1`` -> ``J.2.1``)。
+#:                         **连线索都不算** —— ID 编码可能与实际章节不一致
+#: - ``correction``         来自 corrections.yaml(每条自带外部权威出处)
+#: - ``convention``         本项目约定(工况词口径)。方案里没有这个概念的出处
+#: - ``standard``           真标准号
+PRODUCED_BY = (
     "bootstrap_section",
     "derived_from_id",
     "correction",
@@ -143,66 +184,89 @@ SOURCE_KINDS = (
     "standard",
 )
 
+#: 线索类型 -> 默认权威类型。**只有 ``standard`` 与 ``convention`` 能直接推断**:
+#: 从方案读到的概念一律 ``unverified`` —— 读到不等于有依据。
+_PRODUCED_BY_TO_AUTHORITY = {
+    "bootstrap_section": "unverified",
+    "derived_from_id": "unverified",
+    "correction": "standard",
+    "convention": "project_defined",
+    "standard": "standard",
+}
 
-def source_ref(
-    ref: str | None, *, kind: str, line_no: int | None = None, confidence: float | None = None
+
+def authority_ref(
+    ref: str | None,
+    *,
+    kind: str,
+    line_no: int | None = None,
+    confidence: float | None = None,
 ) -> dict[str, Any]:
-    """构造 ``semantica.provenance.schemas.SourceReference`` 形态的出处。
+    """构造 ``semantica.provenance.schemas.SourceReference`` 形态的**权威出处**。
 
-    ``kind`` 取 :data:`SOURCE_KINDS` 之一, 是**受约束字段**: 它决定下游能不能
-    把这个出处当认证依据。区分「读到的」与「推出来的」不是为了好看 —— 把
-    ``derived_from_id`` 混进 ``bootstrap_section``, 审计就会拿一条推出来的章节号
-    去核对原文, 核不到, 然后怀疑整份数据。
+    ``kind`` 取 :data:`AUTHORITY_KINDS` 之一。受约束字段: 它决定下游能不能把
+    这个出处当认证依据。
 
-    ``ref`` 为 ``None`` 且 ``kind`` 非 ``standard`` 时是允许的: 表示「**没有**
-    文档出处」, 而不是「出处未知」。后者危险得多 —— 前者是事实, 后者是没查。
+    ``confidence`` 为 ``None`` 表示**未查证**。「方案里提到过」不是「已验证」,
+    给 1.0 会让未查证内容在审计里与已查证等价。
+
+    ``ref`` 为 ``None`` 且 ``kind`` 非 ``standard`` / ``book`` 时表示「**没有**
+    权威出处」, 而不是「出处未知」。后者危险得多 —— 前者是事实, 后者是没查。
     """
-    if kind not in SOURCE_KINDS:
-        raise ValueError(f"source_kind 必须是 {SOURCE_KINDS} 之一, 得到 {kind!r}")
+    if kind not in AUTHORITY_KINDS:
+        raise ValueError(f"authority_kind 必须是 {AUTHORITY_KINDS} 之一, 得到 {kind!r}")
+    if kind in ("standard", "book") and not ref:
+        raise ValueError(f"authority_kind={kind} 时必须给 authority_ref(标准号/书名)")
     return {
-        "document": _BOOTSTRAP if kind.startswith("bootstrap") or kind.startswith("derived") else (ref or ""),
+        "document": ref or "",
         "section": ref,
         "line": line_no,
         "confidence": confidence,
-        "metadata": {"source_kind": kind},
+        "metadata": {"authority_kind": kind},
     }
+
 
 
 def _props(
     values: dict[str, Any],
-    ref: str | None,
-    kind: str,
+    produced_by: str,
     line_no: int | None,
     *,
-    term_status: str = "unverified",
+    authority_kind: str | None = None,
+    authority: str | None = None,
+    confidence: float | None = None,
 ) -> dict[str, Any]:
     """组装 properties + 逐属性 provenance。
 
+    **只持久化权威依据, 不持久化线索来源。**
+
+    方案 md 是设计思路与参考数据 —— 它告诉我们这个领域有哪些概念, 但**不构成
+    这些概念的依据**。而且它在 ``.gitignore`` 里, 所以 ``V6.0§6.3.1`` 这种引用
+    任何人都解析不了: 留着一个查不到的引用, 正是「看起来可追溯、实则无法复核」
+    的那种假出处, 比不写更坏。整份数据的引导源只在 ``provenance.bootstrap_source``
+    里记一次文件名即可。
+
+    ``produced_by`` 是**构建期**参数(见 :data:`PRODUCED_BY`), 只用来在没显式给
+    ``authority_kind`` 时推断默认权威类型, **不写进记录**。从方案读到的一律
+    ``unverified`` —— 读到不等于有依据。
+
     只给**有值**的属性挂 provenance —— 给空值挂一条出处是在声称「这个空值也有
     来源」, 那会让冲突检测把「未提供」误判成「两处来源不一致」。
-
-    ``term_status`` 标的是**这个领域名词有没有标准背书**, 与「这条数据从哪来」
-    是两件事:
-
-    - ``standard_backed``  有标准术语, ``standard_ref`` 给出处
-    - ``project_defined``  项目自定的合成词, 标准里没有对应术语(如 ORING、混插策略)
-    - ``unverified``       还没核过标准 —— **必须能区分于「确认没有」**
-
-    最后那个区分是要紧的: 「未核」和「确认无对应术语」的处置完全不同, 混起来
-    就等于把待办事项显示成已完成结论。
     """
+    if produced_by not in PRODUCED_BY:
+        raise ValueError(f"produced_by 必须是 {PRODUCED_BY} 之一, 得到 {produced_by!r}")
+    kind = authority_kind or _PRODUCED_BY_TO_AUTHORITY[produced_by]
+    ref = authority_ref(authority, kind=kind, confidence=confidence)
     out = {k: v for k, v in values.items() if v is not None}
-    out["source_ref"] = ref
-    out["source_kind"] = kind
-    out["term_status"] = term_status
+    out["authority_kind"] = kind
+    if authority:
+        out["authority_ref"] = authority
+    # 每条值都挂**权威出处**。``authority_kind=unverified`` 时 confidence 为
+    # None, 语义是「未查证」而不是「查了没有结果」。
     out["provenance"] = {
-        k: {
-            "property_name": k,
-            "value": v,
-            "sources": [source_ref(ref, kind=kind, line_no=line_no)],
-        }
+        k: {"property_name": k, "value": v, "sources": [ref]}
         for k, v in out.items()
-        if k not in ("source_ref", "source_kind", "provenance", "term_status")
+        if k not in ("authority_kind", "authority_ref", "provenance")
     }
     return out
 
@@ -282,7 +346,6 @@ def extract_concepts(lines: list[str], sections: dict[int, str]) -> list[dict[st
             "text": f"{cid}: {zh or ''} {en or ''}".strip(": "),
             "properties": _props(
                 {"zh": zh, "en": en, "aliases": alias, "qudt_ref": qudt},
-                f"V6.0§{sec}" if sec else None,
                 "bootstrap_section",
                 i,
             ),
@@ -383,7 +446,6 @@ def extract_symbols(lines: list[str]) -> list[dict[str, Any]]:
                                 own_dim and own_dim not in ("见各条", "无量纲")
                             ),
                         },
-                        "V6.0§U.5",
                         "bootstrap_section",
                         i,
                     ),
@@ -459,7 +521,6 @@ def extract_formulas(lines: list[str], sections: dict[int, str]) -> list[dict[st
                         "upstream": upstream,
                         "domain": fid[2],
                     },
-                    f"V6.0§{sec}" if sec else None,
                     "bootstrap_section",
                     i,
                 ),
@@ -551,8 +612,10 @@ def extract_standards(lines: list[str]) -> list[dict[str, Any]]:
                         "bindings": bindings,
                         "citation_status": "UNVERIFIED",
                     },
-                    full,
-                    "standard",
+                    # 标准条目本身也是从方案表里读的, **读到不等于现行有效**。
+                    # 默认 unverified; 只有 corrections.yaml 里查证过的(现行版号、
+                    # 废止关系)才会被 _do 升级为 standard 依据。
+                    "bootstrap_section",
                     i,
                 ),
             }
@@ -586,7 +649,7 @@ def extract_errata(lines: list[str]) -> list[dict[str, Any]]:
                 "name": tag,
                 "type": "erratum",
                 "text": text,
-                "properties": _props({"statement": text}, "V6.0§A", "bootstrap_section", i),
+                "properties": _props({"statement": text}, "bootstrap_section", i),
             }
         )
     return out
@@ -643,7 +706,6 @@ def extract_axioms(lines: list[str]) -> tuple[list[dict[str, Any]], list[dict[st
                 "text": label,
                 "properties": _props(
                     {"label": label, "theorems": [], "rules": [], "tests": [], "formula_refs": []},
-                    "V6.0§I.4",
                     "bootstrap_section",
                     i,
                 ),
@@ -666,7 +728,7 @@ def extract_axioms(lines: list[str]) -> tuple[list[dict[str, Any]], list[dict[st
                 "name": tname,
                 "type": "theorem",
                 "text": tname,
-                "properties": _props({"theorem_id": tid}, "V6.0§I.4", "bootstrap_section", i),
+                "properties": _props({"theorem_id": tid}, "bootstrap_section", i),
             },
         )
         rels.append({"source": aid, "target": f"thm::{tid}", "type": "has_theorem", "properties": {}})
@@ -701,7 +763,6 @@ def extract_load_conditions() -> list[dict[str, Any]]:
                         "pattern": item.get("pattern"),
                         "note": item["note"],
                     },
-                    "V6.0§J.5",
                     "convention",
                     None,
                 ),
@@ -718,7 +779,6 @@ def extract_load_conditions() -> list[dict[str, Any]]:
                             else f"{item['zh']} 是满载的 {item['ratio']}",
                     "properties": _props(
                         {"load": item["en"], "ratio": item["ratio"]},
-                        "V6.0§J.5",
                         "convention",
                         None,
                     ),
@@ -780,7 +840,25 @@ def apply_corrections(
     applied: list[dict[str, Any]] = []
     skipped: list[str] = []
 
+    def _authority_of(entry: dict[str, Any]) -> tuple[str, str | None]:
+        """决定这条修正的**权威依据**类型与出处。
+
+        - 有 ``standard_ref`` -> ``standard``, 出处是标准号
+        - 显式给了 ``authority_kind`` (``book`` / ``industry``) -> 用它, 出处取
+          ``authority_ref`` 或 ``source`` 原文
+        - 都没给 -> ``industry``: 只查到了业界来源(行业术语表/通行叫法/厂商规格书)
+
+        ``unverified`` **不能**作为修正的默认: 修正本身就是「已查证并改过」,
+        没有依据的修正应该在读取时被跳过(见下面的 source/checked 检查)。
+        """
+        if entry.get("standard_ref"):
+            return "standard", entry["standard_ref"]
+        kind = entry.get("authority_kind") or "industry"
+        return kind, entry.get("authority_ref") or entry.get("source")
+
     def _do(kind: str, entry: dict[str, Any], match: str, updates: dict[str, Any]) -> None:
+        # **无 source / checked 的修正必须跳过并计数**: 无出处的「修正」比不修正更
+        # 危险 —— 看起来可信、无法复核、会随标准改版悄悄失效。
         if not entry.get("source") or not entry.get("checked"):
             skipped.append(f"{kind}:{entry.get('id')}")
             return
@@ -789,27 +867,24 @@ def apply_corrections(
             skipped.append(f"{kind}:{entry.get('id')}(目标不存在)")
             return
         before = {k: target["properties"].get(k) for k in updates}
-        # 换用标准命名时, 把方案原文留在 ``zh_declared``: 标准名更权威, 但方案
-        # 原文是审计依据 —— 两者不一致时要能回答「方案原来怎么写的」。
+        # 换用标准命名时, 把原文存进 ``zh_declared``: 标准名更权威, 但方案原文是
+        # 换名决策的审计依据。
         if "zh" in updates and updates["zh"] != before.get("zh"):
             target["properties"].setdefault("zh_declared", before.get("zh"))
+        akind, aref = _authority_of(entry)
+        src = authority_ref(aref, kind=akind, confidence=entry.get("confidence"))
+        src["metadata"]["checked"] = entry["checked"]
+        src["metadata"]["correction_source"] = entry["source"]
         target["properties"].update(updates)
+        # 整条记录的权威类型随之升级 —— 有查证过的依据就不再是 unverified。
+        target["properties"]["authority_kind"] = akind
+        if aref:
+            target["properties"]["authority_ref"] = aref
         for key, value in updates.items():
             target["properties"].setdefault("provenance", {})[key] = {
                 "property_name": key,
                 "value": value,
-                "sources": [
-                    {
-                        "document": entry["source"],
-                        "section": entry.get("note", "")[:80] or None,
-                        "line": None,
-                        "confidence": entry.get("confidence"),
-                        "metadata": {
-                            "source_kind": "correction",
-                            "checked": entry["checked"],
-                        },
-                    }
-                ],
+                "sources": [src],
             }
         applied.append(
             {
@@ -818,6 +893,8 @@ def apply_corrections(
                 "matched": match,
                 "before": before,
                 "after": updates,
+                "authority_kind": akind,
+                "authority_ref": aref,
                 "source": entry["source"],
                 "checked": entry["checked"],
                 "confidence": entry.get("confidence"),
@@ -827,10 +904,9 @@ def apply_corrections(
     for entry in corrections.get("standards") or ():
         # 标准 id 形如 ``std::GB 4943.1-2011``; 修正表按不带前缀的编号写
         _do("standard", entry, f"std::{entry['id']}", {k: v for k, v in entry.items() if k not in ("id", "source", "checked", "note", "current")})
-        # ``replaced_by`` 指向的标准**必须同时建成实体**, 否则那条指向是个悬空
-        # 引用 —— Semantica 的 foundation graph 校验会失败, 而缺一条标准实体
-        # 比多一条坏边更难排查(边还在, 节点没了)。旧条目标 SUPERSEDED 保留,
-        # 用来回答「历史报告依据的是哪一版」。
+        # ``replaced_by`` 指向的标准**必须同时建成实体**。只标 SUPERSEDED 而不建
+        # 新实体, 会在 Semantica 的 foundation graph 里产生悬空边 —— 而缺一条
+        # 边比多一条边更难排查(悬空引用看起来像数据不全, 实际是关系缺失)。
         current = entry.get("current")
         if current and current.get("id") and not entry.get("source"):
             skipped.append(f"standard:{entry['id']}(缺 source)")
@@ -842,6 +918,8 @@ def apply_corrections(
                     "name": current.get("title") or current["id"],
                     "type": "standard",
                     "text": f"{current['id']} {current.get('title') or ''}".strip(),
+                    # 现行版是**查证过的**, 因此权威类型是 standard 且出处就是
+                    # 标准号本身 —— 不再经过方案。
                     "properties": _props(
                         {
                             "standard_id": current["id"],
@@ -850,9 +928,11 @@ def apply_corrections(
                             "status": "CURRENT",
                             "iec_equivalent": current.get("iec_equivalent"),
                         },
-                        current["id"],
-                        "standard",
+                        "correction",
                         None,
+                        authority=current["id"],
+                        authority_kind="standard",
+                        confidence=entry.get("confidence"),
                     ),
                 }
                 entities.append(by_id[cid])
@@ -863,19 +943,23 @@ def apply_corrections(
                         "matched": cid,
                         "before": None,
                         "after": {"status": "CURRENT", "added_by": "correction"},
+                        "authority_kind": "standard",
+                        "authority_ref": current["id"],
                         "source": entry["source"],
                         "checked": entry["checked"],
                         "confidence": entry.get("confidence"),
                     }
                 )
+
     for entry in corrections.get("concepts") or ():
-        # ``standard_ref`` 有值 => 该领域名词**有标准背书**; 没值 => 还没查到
-        # 标准对应术语。后者是「未核」, 不是「确认没有」—— 两者处置不同。
+        # ``standard_ref`` / ``authority_ref`` 不作为**属性**写进概念 —— 它们是
+        # 权威依据的载体, 走 ``authority_kind`` + ``authority_ref``, 由 _do 统一
+        # 处理。写两遍会导致两处不一致时无从判断哪处为准。
         _updates = {
-            k: v for k, v in entry.items() if k not in ("id", "source", "checked", "note")
+            k: v
+            for k, v in entry.items()
+            if k not in ("id", "source", "checked", "note", "standard_ref", "authority_ref", "authority_kind")
         }
-        if entry.get("standard_ref"):
-            _updates["term_status"] = "standard_backed"
         _do("power_concept", entry, entry["id"], _updates)
     for fam in corrections.get("telemetry_families") or ():
         # 遥信/遥测/遥控用**行业通称**作 ``zh``, 标准正名另存 ``standard_term``。
@@ -906,17 +990,17 @@ def apply_corrections(
             # 「远程信号」的那条 —— 命中率的损失是隐形的, 因为检索照样返回结果,
             # 只是少了一部分。
             target["properties"]["synonyms"] = [industry, standard_term]
-            target["properties"]["term_status"] = "standard_backed"
-            target["properties"]["standard_ref"] = ref
-            src = source_ref(ref, kind="standard", confidence=fam.get("confidence"))
-            for key in ("zh", "term_status", "telemetry_family", "standard_term", "synonyms"):
+            src = authority_ref(ref, kind="standard", confidence=fam.get("confidence"))
+            target["properties"]["authority_kind"] = "standard"
+            target["properties"]["authority_ref"] = ref
+            for key in ("zh", "telemetry_family", "standard_term", "synonyms"):
                 target["properties"].setdefault("provenance", {})[key] = {
                     "property_name": key, "value": target["properties"][key], "sources": [src]
                 }
             applied.append({
                 "kind": "power_concept", "id": cid, "matched": cid,
                 "before": {"zh": old},
-                "after": {"zh": target["properties"]["zh"], "term_status": "standard_backed"},
+                "after": {"zh": target["properties"]["zh"]}, "authority_kind": "standard", "authority_ref": ref,
                 "source": fam["source"], "checked": fam["checked"],
                 "confidence": fam.get("confidence"),
             })
@@ -924,19 +1008,18 @@ def apply_corrections(
     for group in corrections.get("symbols") or ():
         # 符号的术语出处是**组**的(一组符号共用一个标准的同一批词条), 不是逐条的。
         # 逐条写会把 30 多个符号抄 30 遍, 而标准不会为每个记号单列词条。
-        source = source_ref(
-            group.get("standard_ref"), kind="standard", confidence=group.get("confidence")
-        )
+        aref = group.get("standard_ref")
+        source = authority_ref(aref, kind="standard", confidence=group.get("confidence"))
         for name in group.get("symbols") or ():
             target = by_id.get(f"sym::{name}")
             if target is None:
                 skipped.append(f"symbol:{name}(目标不存在)")
                 continue
-            target["properties"]["term_status"] = "standard_backed"
-            target["properties"]["standard_ref"] = group.get("standard_ref")
-            target["properties"]["provenance"]["term_status"] = {
-                "property_name": "term_status",
-                "value": "standard_backed",
+            target["properties"]["authority_kind"] = "standard"
+            target["properties"]["authority_ref"] = aref
+            target["properties"]["provenance"]["authority_ref"] = {
+                "property_name": "authority_ref",
+                "value": aref,
                 "sources": [source],
             }
             applied.append(
@@ -944,9 +1027,8 @@ def apply_corrections(
                     "kind": "symbol",
                     "id": name,
                     "matched": f"sym::{name}",
-                    "before": {"term_status": target["properties"].get("term_status")},
-                    "after": {"term_status": "standard_backed",
-                              "standard_ref": group.get("standard_ref")},
+                    "before": {},
+                    "after": {"authority_kind": "standard", "authority_ref": aref},
                     "source": group["source"],
                     "checked": group["checked"],
                     "confidence": group.get("confidence"),
