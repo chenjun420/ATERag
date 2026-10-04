@@ -365,6 +365,96 @@
         "confidence": 0.88
       },
       {
+        "kind": "power_concept",
+        "id": "PROT_REVERSE",
+        "matched": "PROT_REVERSE",
+        "before": {
+          "zh": "反接保护",
+          "standard_ref": null,
+          "confidence": null
+        },
+        "after": {
+          "zh": "反向电压保护",
+          "standard_ref": "3.66 reverse voltage protection",
+          "confidence": 0.85
+        },
+        "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+        "checked": "2026-10-04",
+        "confidence": 0.85
+      },
+      {
+        "kind": "power_concept",
+        "id": "PROT_OTP",
+        "matched": "PROT_OTP",
+        "before": {
+          "zh": "过温保护",
+          "standard_ref": null,
+          "confidence": null
+        },
+        "after": {
+          "zh": "过热保护",
+          "standard_ref": "3.68 over-temperature protection",
+          "confidence": 0.85
+        },
+        "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+        "checked": "2026-10-04",
+        "confidence": 0.85
+      },
+      {
+        "kind": "power_concept",
+        "id": "PROT_SCP",
+        "matched": "PROT_SCP",
+        "before": {
+          "zh": "输出短路保护",
+          "standard_ref": null,
+          "confidence": null
+        },
+        "after": {
+          "zh": "短路保护",
+          "standard_ref": "3.72 短路电流 short-circuit current",
+          "confidence": 0.85
+        },
+        "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+        "checked": "2026-10-04",
+        "confidence": 0.85
+      },
+      {
+        "kind": "power_concept",
+        "id": "SET_OCP_TRIP",
+        "matched": "SET_OCP_TRIP",
+        "before": {
+          "zh": "过流保护动作值",
+          "standard_ref": null,
+          "confidence": null
+        },
+        "after": {
+          "zh": "限流门限电流",
+          "standard_ref": "3.70 门限电流 current limiting threshold",
+          "confidence": 0.85
+        },
+        "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+        "checked": "2026-10-04",
+        "confidence": 0.85
+      },
+      {
+        "kind": "power_concept",
+        "id": "SET_OVP_TRIP",
+        "matched": "SET_OVP_TRIP",
+        "before": {
+          "zh": "过压保护动作值",
+          "standard_ref": null,
+          "confidence": null
+        },
+        "after": {
+          "zh": "限压门限电压",
+          "standard_ref": "3.74 门限电压 voltage limiting threshold",
+          "confidence": 0.85
+        },
+        "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+        "checked": "2026-10-04",
+        "confidence": 0.85
+      },
+      {
         "kind": "load_condition",
         "id": "半载",
         "matched": "load::半载",
@@ -7117,8 +7207,8 @@
       "name": "输出短路保护",
       "entity_type": "power_concept",
       "text": "PROT_SCP: 输出短路保护 output short-circuit protection",
-      "confidence": null,
-      "zh": "输出短路保护",
+      "confidence": 0.85,
+      "zh": "短路保护",
       "en": "output short-circuit protection",
       "aliases": "SCP",
       "source_ref": "V6.0§6.3.7",
@@ -7126,15 +7216,16 @@
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "输出短路保护",
+          "value": "短路保护",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.7",
-              "line": 3292,
-              "confidence": null,
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": null,
+              "line": null,
+              "confidence": 0.85,
               "metadata": {
-                "source_kind": "section"
+                "source_kind": "correction",
+                "checked": "2026-10-04"
               }
             }
           ]
@@ -7168,16 +7259,50 @@
               }
             }
           ]
+        },
+        "standard_ref": {
+          "property_name": "standard_ref",
+          "value": "3.72 短路电流 short-circuit current",
+          "sources": [
+            {
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": null,
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "source_kind": "correction",
+                "checked": "2026-10-04"
+              }
+            }
+          ]
+        },
+        "confidence": {
+          "property_name": "confidence",
+          "value": 0.85,
+          "sources": [
+            {
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": null,
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "source_kind": "correction",
+                "checked": "2026-10-04"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "输出短路保护",
+      "standard_ref": "3.72 短路电流 short-circuit current"
     },
     {
       "id": "PROT_OTP",
       "name": "过温保护",
       "entity_type": "power_concept",
       "text": "PROT_OTP: 过温保护 over-temperature protection",
-      "confidence": null,
-      "zh": "过温保护",
+      "confidence": 0.85,
+      "zh": "过热保护",
       "en": "over-temperature protection",
       "aliases": "OTP",
       "source_ref": "V6.0§6.3.7",
@@ -7185,15 +7310,16 @@
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "过温保护",
+          "value": "过热保护",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.7",
-              "line": 3293,
-              "confidence": null,
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": null,
+              "line": null,
+              "confidence": 0.85,
               "metadata": {
-                "source_kind": "section"
+                "source_kind": "correction",
+                "checked": "2026-10-04"
               }
             }
           ]
@@ -7227,8 +7353,42 @@
               }
             }
           ]
+        },
+        "standard_ref": {
+          "property_name": "standard_ref",
+          "value": "3.68 over-temperature protection",
+          "sources": [
+            {
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": null,
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "source_kind": "correction",
+                "checked": "2026-10-04"
+              }
+            }
+          ]
+        },
+        "confidence": {
+          "property_name": "confidence",
+          "value": 0.85,
+          "sources": [
+            {
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": null,
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "source_kind": "correction",
+                "checked": "2026-10-04"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "过温保护",
+      "standard_ref": "3.68 over-temperature protection"
     },
     {
       "id": "PROT_INPUT_OVP",
@@ -7353,8 +7513,8 @@
       "name": "反接保护",
       "entity_type": "power_concept",
       "text": "PROT_REVERSE: 反接保护 reverse polarity protection",
-      "confidence": null,
-      "zh": "反接保护",
+      "confidence": 0.85,
+      "zh": "反向电压保护",
       "en": "reverse polarity protection",
       "aliases": "反接",
       "source_ref": "V6.0§6.3.7",
@@ -7362,15 +7522,16 @@
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "反接保护",
+          "value": "反向电压保护",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.7",
-              "line": 3296,
-              "confidence": null,
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": null,
+              "line": null,
+              "confidence": 0.85,
               "metadata": {
-                "source_kind": "section"
+                "source_kind": "correction",
+                "checked": "2026-10-04"
               }
             }
           ]
@@ -7404,16 +7565,50 @@
               }
             }
           ]
+        },
+        "standard_ref": {
+          "property_name": "standard_ref",
+          "value": "3.66 reverse voltage protection",
+          "sources": [
+            {
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": null,
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "source_kind": "correction",
+                "checked": "2026-10-04"
+              }
+            }
+          ]
+        },
+        "confidence": {
+          "property_name": "confidence",
+          "value": 0.85,
+          "sources": [
+            {
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": null,
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "source_kind": "correction",
+                "checked": "2026-10-04"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "反接保护",
+      "standard_ref": "3.66 reverse voltage protection"
     },
     {
       "id": "SET_OCP_TRIP",
       "name": "过流保护动作值",
       "entity_type": "power_concept",
       "text": "SET_OCP_TRIP: 过流保护动作值 OCP trip setting",
-      "confidence": null,
-      "zh": "过流保护动作值",
+      "confidence": 0.85,
+      "zh": "限流门限电流",
       "en": "OCP trip setting",
       "aliases": "OCP定值",
       "source_ref": "V6.0§6.3.8",
@@ -7421,15 +7616,16 @@
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "过流保护动作值",
+          "value": "限流门限电流",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.8",
-              "line": 3302,
-              "confidence": null,
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": null,
+              "line": null,
+              "confidence": 0.85,
               "metadata": {
-                "source_kind": "section"
+                "source_kind": "correction",
+                "checked": "2026-10-04"
               }
             }
           ]
@@ -7463,8 +7659,42 @@
               }
             }
           ]
+        },
+        "standard_ref": {
+          "property_name": "standard_ref",
+          "value": "3.70 门限电流 current limiting threshold",
+          "sources": [
+            {
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": null,
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "source_kind": "correction",
+                "checked": "2026-10-04"
+              }
+            }
+          ]
+        },
+        "confidence": {
+          "property_name": "confidence",
+          "value": 0.85,
+          "sources": [
+            {
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": null,
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "source_kind": "correction",
+                "checked": "2026-10-04"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "过流保护动作值",
+      "standard_ref": "3.70 门限电流 current limiting threshold"
     },
     {
       "id": "SET_OCP_DELAY",
@@ -7589,8 +7819,8 @@
       "name": "过压保护动作值",
       "entity_type": "power_concept",
       "text": "SET_OVP_TRIP: 过压保护动作值 OVP trip setting",
-      "confidence": null,
-      "zh": "过压保护动作值",
+      "confidence": 0.85,
+      "zh": "限压门限电压",
       "en": "OVP trip setting",
       "aliases": "OVP定值",
       "source_ref": "V6.0§6.3.8",
@@ -7598,15 +7828,16 @@
       "provenance": {
         "zh": {
           "property_name": "zh",
-          "value": "过压保护动作值",
+          "value": "限压门限电压",
           "sources": [
             {
-              "document": "V6.0 开发指导方案",
-              "section": "V6.0§6.3.8",
-              "line": 3305,
-              "confidence": null,
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": null,
+              "line": null,
+              "confidence": 0.85,
               "metadata": {
-                "source_kind": "section"
+                "source_kind": "correction",
+                "checked": "2026-10-04"
               }
             }
           ]
@@ -7640,8 +7871,42 @@
               }
             }
           ]
+        },
+        "standard_ref": {
+          "property_name": "standard_ref",
+          "value": "3.74 门限电压 voltage limiting threshold",
+          "sources": [
+            {
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": null,
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "source_kind": "correction",
+                "checked": "2026-10-04"
+              }
+            }
+          ]
+        },
+        "confidence": {
+          "property_name": "confidence",
+          "value": 0.85,
+          "sources": [
+            {
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": null,
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "source_kind": "correction",
+                "checked": "2026-10-04"
+              }
+            }
+          ]
         }
-      }
+      },
+      "zh_declared": "过压保护动作值",
+      "standard_ref": "3.74 门限电压 voltage limiting threshold"
     },
     {
       "id": "SET_OVP_DELAY",

@@ -172,6 +172,36 @@ concepts:
   source: 全国标准信息公共服务平台 std.samr.gov.cn; GB/T 17626 各标准正文「试验设备」条款
   checked: '2026-10-04'
   confidence: 0.88
+- id: PROT_REVERSE
+  zh: 反向电压保护
+  standard_ref: 3.66 reverse voltage protection
+  source: 《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)
+  checked: '2026-10-04'
+  confidence: 0.85
+- id: PROT_OTP
+  zh: 过热保护
+  standard_ref: 3.68 over-temperature protection
+  source: 《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)
+  checked: '2026-10-04'
+  confidence: 0.85
+- id: PROT_SCP
+  zh: 短路保护
+  standard_ref: 3.72 短路电流 short-circuit current
+  source: 《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)
+  checked: '2026-10-04'
+  confidence: 0.85
+- id: SET_OCP_TRIP
+  zh: 限流门限电流
+  standard_ref: 3.70 门限电流 current limiting threshold
+  source: 《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)
+  checked: '2026-10-04'
+  confidence: 0.85
+- id: SET_OVP_TRIP
+  zh: 限压门限电压
+  standard_ref: 3.74 门限电压 voltage limiting threshold
+  source: 《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)
+  checked: '2026-10-04'
+  confidence: 0.85
 load_conditions:
 - id: 半载
   ratio: 0.5
