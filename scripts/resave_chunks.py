@@ -1,24 +1,27 @@
-"""重存型号分块 (幂等清理): PG 去重重建 + Qdrant 确定性 ID 重写."""
+"""重存型号分块 (幂等): PG 单表写入(chunk + 向量一次完成)。
+
+原先要分别管 PG 行与 Qdrant 点两套 ID 体系; 现在向量与行同表, 一次
+``save_chunk_vectors`` 就够 —— 且按内容寻址的 ``chunk_key`` upsert, 重跑幂等。
+"""
 
 import asyncio
 import sys
 
+import psycopg
+
 sys.path.insert(0, "src")
 sys.stdout.reconfigure(encoding="utf-8")
 
-from qdrant_client import QdrantClient
-from qdrant_client.models import FieldCondition, Filter, MatchValue, PointStruct
-
 from aterag.config import get_settings
 from aterag.ingest.pipeline import (
-    CHUNK_COLLECTION,
     blocks_to_chunks,
     delete_workspace_chunks,
     ensure_pg_schema,
-    ensure_qdrant,
     parse_markdown,
+    save_chunks_rows,
 )
 from aterag.models import EmbeddingClient
+from aterag.retrieval import hybrid
 
 MODEL = sys.argv[1] if len(sys.argv) > 1 else "PA601-D54A"
 DOC = sys.argv[2] if len(sys.argv) > 2 else "PA601-D54A 定制电源技术规格书.md"
@@ -36,59 +39,32 @@ async def main() -> int:
     print(f"chunks={len(chunks)}")
 
     ensure_pg_schema(settings.postgres_dsn)
+    hybrid.ensure_vector_schema(settings.postgres_dsn, embed.dimension)
     deleted = delete_workspace_chunks(settings.postgres_dsn, MODEL)
     print(f"PG deleted={deleted}")
-
-    from aterag.ingest.pipeline import save_chunks_rows
 
     n = save_chunks_rows(settings.postgres_dsn, chunks)
     print(f"PG saved={n}")
 
-    qdrant = QdrantClient(url=settings.qdrant_url, timeout=120)
-    ensure_qdrant(qdrant, embed.dimension)
-    qdrant.delete(
-        collection_name=CHUNK_COLLECTION,
-        points_selector=Filter(
-            must=[FieldCondition(key="workspace_id", match=MatchValue(value=MODEL))]
-        ),
-    )
     vecs = await embed.embed([c["content"] for c in chunks])
-    import uuid
+    n_vec = hybrid.save_chunk_vectors(settings.postgres_dsn, chunks, vecs)
+    print(f"PG vectors={n_vec}")
 
-    ns = uuid.UUID("a7e2c9d4-0000-4000-8000-1a7e00000001")
-    points = [
-        PointStruct(
-            id=str(uuid.uuid5(ns, f"{MODEL}:{i}")),
-            vector=v,
-            payload=c,
-        )
-        for i, (c, v) in enumerate(zip(chunks, vecs))
-    ]
-    for i in range(0, len(points), 256):
-        qdrant.upsert(collection_name=CHUNK_COLLECTION, points=points[i : i + 256])
-    info = qdrant.count(
-        CHUNK_COLLECTION,
-        count_filter=Filter(
-            must=[FieldCondition(key="workspace_id", match=MatchValue(value=MODEL))]
-        ),
-        exact=True,
-    )
-    print(f"QDRANT workspace points={info.count}")
+    with psycopg.connect(settings.postgres_dsn) as conn:
+        total = conn.execute(
+            "SELECT count(*), count(embedding) FROM aterag_chunks WHERE workspace_id = %s",
+            (MODEL,),
+        ).fetchone()
+    print(f"PG workspace rows={total[0]} with_embedding={total[1]}")
 
-    # 验证 1309 组块
-    hits = qdrant.scroll(
-        collection_name=CHUNK_COLLECTION,
-        scroll_filter=Filter(
-            must=[
-                FieldCondition(key="workspace_id", match=MatchValue(value=MODEL)),
-                FieldCondition(key="req_id", match=MatchValue(value="SR-PA601-D54A-1308")),
-            ]
-        ),
-        limit=3,
-        with_payload=True,
-    )
-    for p in hits[0]:
-        c = p.payload.get("content", "")
+    # 验证 1308 组块
+    with psycopg.connect(settings.postgres_dsn) as conn:
+        rows = conn.execute(
+            "SELECT content FROM aterag_chunks "
+            "WHERE workspace_id = %s AND req_id = %s LIMIT 3",
+            (MODEL, "SR-PA601-D54A-1308"),
+        ).fetchall()
+    for (c,) in rows:
         print(f"1308-chunk has12={'12' in c} has18={'18' in c} len={len(c)}")
     await embed.aclose()
     return 0

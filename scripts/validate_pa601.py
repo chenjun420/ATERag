@@ -12,10 +12,10 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 from aterag.config import get_settings
 from aterag.inference import InferenceEngine
-from aterag.ingest.pipeline import bm25_search, qdrant_search, rrf_fuse
 from aterag.models import EmbeddingClient
 from aterag.rag.service import RagService
 from aterag.registry import AmbiguousModel, Registry, UnknownModel
+from aterag.retrieval import hybrid
 
 PASS, FAIL = "✅", "❌"
 results: list[tuple[str, bool, str]] = []
@@ -99,14 +99,17 @@ ps:x a ps:Protection ; ps:tripValue 12 ; ps:recoveryValue 10 ; ps:hysteresis 3 .
     )
     if "PN1000-48A" in registry.products:
         # 状态 B: PN1000 已导入 -> 用真实数据做跨型号隔离测试
-        hits_pn = await qdrant_search(rag._qdrant, embed, ["PN1000-48A"], "输出电流", 10)
+        hits_pn = await hybrid.vector_search(
+        settings.postgres_dsn, embed, ["PN1000-48A"], "输出电流", 10)
         pn_content = " ".join(str(h.get("content", "")) for h in hits_pn)
         check("隔离-PN1000自身数据可见", "20.8" in pn_content, f"hits={len(hits_pn)}")
-        hits_pa = await qdrant_search(rag._qdrant, embed, ["PA601-D54A"], "输出电流 20.8A", 10)
+        hits_pa = await hybrid.vector_search(
+        settings.postgres_dsn, embed, ["PA601-D54A"], "输出电流 20.8A", 10)
         leaked = any("20.8" in str(h.get("content", "")) for h in hits_pa)
         check("隔离-PA601查不到PN1000的20.8A", not leaked, f"hits={len(hits_pa)}")
         # 共享域: 两个型号都能查到 power 域知识
-        hits_dom = await qdrant_search(rag._qdrant, embed, ["_domain_power"], "欧姆定律 功率", 5)
+        hits_dom = await hybrid.vector_search(
+        settings.postgres_dsn, embed, ["_domain_power"], "欧姆定律 功率", 5)
         check("共享域-PA601/PN1000可见power域", len(hits_dom) > 0, f"hits={len(hits_dom)}")
     else:
         # 状态 A: PN1000 未注册 -> fail-closed
@@ -115,7 +118,8 @@ ps:x a ps:Protection ; ps:tripValue 12 ; ps:recoveryValue 10 ; ps:hysteresis 3 .
             check("隔离-未注册型号拒绝", False)
         except UnknownModel:
             check("隔离-未注册型号拒绝", True)
-        hits = await qdrant_search(rag._qdrant, embed, [layers[0][0]], "PN1000-48A 输出电流", 10)
+        hits = await hybrid.vector_search(
+        settings.postgres_dsn, embed, [layers[0][0]], "PN1000-48A 输出电流", 10)
         leaked = any("PN1000" in str(h.get("content", "")) for h in hits)
         check("隔离-跨型号无泄漏(未导入)", not leaked, f"hits={len(hits)}")
 
@@ -132,10 +136,11 @@ ps:x a ps:Protection ; ps:tripValue 12 ; ps:recoveryValue 10 ; ps:hysteresis 3 .
             check("自动识别-双型号歧义拒绝", True)
 
     # ---------- 7. BM25 与 RRF ----------
-    bm = bm25_search(settings.postgres_dsn, [ws[0] for ws in layers], "输出过流保护", 10)
+    bm = hybrid.bm25_search(settings.postgres_dsn, [ws[0] for ws in layers], "输出过流保护", 10)
     check("BM25-中文检索有结果", len(bm) > 0, f"hits={len(bm)}")
-    fused = rrf_fuse(
-        await qdrant_search(rag._qdrant, embed, [ws[0] for ws in layers], "输出过流保护", 10),
+    fused = hybrid.rrf_fuse(
+        await hybrid.vector_search(
+        settings.postgres_dsn, embed, [ws[0] for ws in layers], "输出过流保护", 10),
         bm,
         top_k=5,
     )

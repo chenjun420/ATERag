@@ -1,6 +1,6 @@
-"""摄取管线: 规格书 -> 三存储 (LightRAG 图谱 / Qdrant 过滤索引 / PG 实体+BM25).
+"""摄取管线: 规格书 -> 单一 PostgreSQL 底座 (LightRAG 图谱 / pgvector 预过滤 / pg_textsearch BM25).
 
-- ingest-spec: 型号文档 -> {model_id} workspace + Qdrant/PG
+- ingest-spec: 型号文档 -> {model_id} workspace + pgvector/BM25
 - build-domain: 领域知识 -> _domain_{type} workspace (只读共享)
 """
 
@@ -11,17 +11,6 @@ import re
 from pathlib import Path
 
 import psycopg
-from qdrant_client import QdrantClient
-from qdrant_client.models import (
-    Distance,
-    FieldCondition,
-    Filter,
-    KeywordIndexParams,
-    MatchValue,
-    PayloadSchemaType,
-    PointStruct,
-    VectorParams,
-)
 
 from aterag.config import Settings
 from aterag.ingest.classify import classify_product_type
@@ -34,6 +23,7 @@ from aterag.ingest.markdown_parser import (
 from aterag.ingest.table_schema import load_registry
 from aterag.models import EmbeddingClient, LLMClient
 from aterag.registry import Registry
+from aterag.retrieval import hybrid
 
 CHUNK_COLLECTION = "aterag_chunks"
 
@@ -141,8 +131,33 @@ def save_chunks_rows(dsn: str, rows: list[dict]) -> int:
     return len(rows)
 
 
-# ---------------- Qdrant chunk 索引 ----------------
-def ensure_qdrant(client: QdrantClient, dim: int) -> None:
+# ---------------- legacy Qdrant 后端 (ADR-014 待删, 默认不走) ----------------
+def _legacy_qdrant(settings: Settings):
+    """惰性构造 Qdrant 客户端。
+
+    **必须惰性**: 模块级 ``from qdrant_client import ...`` 就是 ADR-014:37
+    禁止的破损态 —— 板卡上 Qdrant 已经不存在, 留着模块级 import 会让整个
+    ingest 在 import 期就炸。改成惰性后, 没装 qdrant 也不影响默认路径。
+    """
+    try:
+        from qdrant_client import QdrantClient
+    except ImportError as exc:  # pragma: no cover - 仅 legacy 分支
+        raise RuntimeError(
+            "retrieval_backend=qdrant 需要安装 qdrant-client。默认路径是 pgvector, "
+            "不需要 Qdrant(ADR-014: 单一 PostgreSQL 存储底座)。"
+        ) from exc
+    return QdrantClient(url=settings.qdrant_url, timeout=60)
+
+
+def _ensure_qdrant_legacy(client, dim: int) -> None:
+    """legacy 集合/索引初始化。搬运自原实现, 仅 qdrant 后端使用。"""
+    from qdrant_client.models import (
+        Distance,
+        KeywordIndexParams,
+        PayloadSchemaType,
+        VectorParams,
+    )
+
     existing = {c.name for c in client.get_collections().collections}
     if CHUNK_COLLECTION not in existing:
         client.create_collection(
@@ -158,10 +173,42 @@ def ensure_qdrant(client: QdrantClient, dim: int) -> None:
     ):
         idx = client.get_collection(CHUNK_COLLECTION).payload_schema or {}
         if field not in idx:
-            schema = KeywordIndexParams(type=PayloadSchemaType.KEYWORD, is_tenant=tenant)
             client.create_payload_index(
-                collection_name=CHUNK_COLLECTION, field_name=field, field_schema=schema
+                collection_name=CHUNK_COLLECTION,
+                field_name=field,
+                field_schema=KeywordIndexParams(type=PayloadSchemaType.KEYWORD, is_tenant=tenant),
             )
+
+
+def _index_chunks(settings: Settings, workspace: str, chunks: list[dict], vectors, *, replace: bool) -> None:
+    """把 chunk 与向量落库。默认 pgvector; ``retrieval_backend=qdrant`` 走 legacy。"""
+    if settings.retrieval_backend == "qdrant":
+        import uuid
+
+        from qdrant_client.models import FieldCondition, Filter, MatchValue, PointStruct
+
+        client = _legacy_qdrant(settings)
+        _ensure_qdrant_legacy(client, len(vectors[0]) if len(vectors) else 0)
+        if replace:
+            client.delete(
+                collection_name=CHUNK_COLLECTION,
+                points_selector=Filter(
+                    must=[FieldCondition(key="workspace_id", match=MatchValue(value=workspace))]
+                ),
+            )
+        ns = uuid.UUID("a7e2c9d4-0000-4000-8000-1a7e00000001")
+        points = [
+            PointStruct(
+                id=str(uuid.uuid5(ns, f"{workspace}:{i}")),
+                vector=v,
+                payload=c,
+            )
+            for i, (c, v) in enumerate(zip(chunks, vectors))
+        ]
+        for i in range(0, len(points), 256):
+            client.upsert(collection_name=CHUNK_COLLECTION, points=points[i : i + 256])
+        return
+    hybrid.save_chunk_vectors(settings.postgres_dsn, chunks, vectors)
 
 
 # ---------------- 分块生成 ----------------
@@ -397,24 +444,9 @@ async def ingest_spec(
     n_ent = save_entities(settings.postgres_dsn, model_id, entities)
     n_chunk = save_chunks_rows(settings.postgres_dsn, chunks)
 
-    qdrant = QdrantClient(url=settings.qdrant_url, timeout=60)
-    ensure_qdrant(qdrant, dim)
+    hybrid.ensure_vector_schema(settings.postgres_dsn, dim)
     vecs = await embed.embed([c["content"] for c in chunks])
-    # 确定性 ID: uuid5(命名空间, model:index) — 跨进程幂等, 重导即覆盖
-    import uuid
-
-    ns = uuid.UUID("a7e2c9d4-0000-4000-8000-1a7e00000001")
-    points = [
-        PointStruct(
-            id=str(uuid.uuid5(ns, f"{model_id}:{i}")),
-            vector=v,
-            payload=c | {"doc_version": doc_version},
-        )
-        for i, (c, v) in enumerate(zip(chunks, vecs))
-    ]
-    # 分批 upsert
-    for i in range(0, len(points), 256):
-        qdrant.upsert(collection_name=CHUNK_COLLECTION, points=points[i : i + 256])
+    _index_chunks(settings, model_id, chunks, vecs, replace=False)
 
     # LightRAG: 确定性实体注入 + 原文入库 (型号 workspace, 归一化小写)
     rag = build_lightrag(settings, lrag_workspace(model_id), embed, llm, dim)
@@ -505,90 +537,22 @@ async def build_domain(
     chunks = blocks_to_chunks(blocks, workspace, layer="domain")
     ensure_pg_schema(settings.postgres_dsn)
     save_chunks_rows(settings.postgres_dsn, chunks)
-    qdrant = QdrantClient(url=settings.qdrant_url, timeout=60)
-    ensure_qdrant(qdrant, dim)
-    # 幂等: 先清空该 workspace 的旧向量点
-    from qdrant_client.models import FieldCondition, Filter, MatchValue
-
-    qdrant.delete(
-        collection_name=CHUNK_COLLECTION,
-        points_selector=Filter(
-            must=[FieldCondition(key="workspace_id", match=MatchValue(value=workspace))]
-        ),
-    )
+    hybrid.ensure_vector_schema(settings.postgres_dsn, dim)
+    # 幂等: 先清空该 workspace 的旧行(含向量), 再整批写入
+    delete_workspace_chunks(settings.postgres_dsn, workspace)
     vecs = await embed.embed([c["content"] for c in chunks])
-    # 确定性 ID: uuid5(workspace:index), 跨进程幂等
-    import uuid
-
-    ns = uuid.UUID("a7e2c9d4-0000-4000-8000-1a7e00000001")
-    points = [
-        PointStruct(
-            id=str(uuid.uuid5(ns, f"{workspace}:{i}")),
-            vector=v,
-            payload=c,
-        )
-        for i, (c, v) in enumerate(zip(chunks, vecs))
-    ]
-    for i in range(0, len(points), 256):
-        qdrant.upsert(collection_name=CHUNK_COLLECTION, points=points[i : i + 256])
+    _index_chunks(settings, workspace, chunks, vecs, replace=True)
 
     registry.set_domain_populated(domain)
     return {"domain": domain, "rules_chunks": len(rule_docs and blocks), "chunks": len(chunks)}
 
 
-def bm25_search(
-    dsn: str,
-    workspaces: list[str],
-    query: str,
-    top_k: int,
-    section_path: str | None = None,
-    category: str | None = None,
-    priority: str | None = None,
-) -> list[dict]:
-    """pg_textsearch BM25 检索 (中文配置), 跨 workspace UNION, 支持元数据过滤。"""
-    if not workspaces:
-        return []
-    placeholders = ", ".join(f"'{w}'" for w in workspaces)  # workspace 为内部受控值
-    conds = [f"workspace_id IN ({placeholders})"]
-    params: list = []
-    if section_path:
-        conds.append("section_path = %s")
-        params.append(section_path)
-    if category and category != "all":
-        conds.append("category = %s")
-        params.append(category)
-    if priority and priority != "all":
-        conds.append("priority = %s")
-        params.append(priority)
-    where = " AND ".join(conds)
-    sql = f"""
-        SELECT id, workspace_id, layer, section_path, heading, category,
-               priority, rail, req_id, content
-        FROM aterag_chunks
-        WHERE {where}
-        ORDER BY content <@> to_bm25query(%s, 'idx_aterag_chunks_bm25')
-        LIMIT %s
-    """
-    params += [query, top_k]
-    with psycopg.connect(dsn) as conn:
-        rows = conn.execute(sql, params).fetchall()
-    cols = [
-        "id",
-        "workspace_id",
-        "layer",
-        "section_path",
-        "heading",
-        "category",
-        "priority",
-        "rail",
-        "req_id",
-        "content",
-    ]
-    return [dict(zip(cols, r)) for r in rows]
 
-
-async def qdrant_search(
-    client: QdrantClient,
+# 检索原语已搬到 ``retrieval.hybrid``(BM25 与 RRF 本来就是纯 PG, 与 Qdrant 无关;
+# 向量那一路从 Qdrant 换成 pgvector)。这里保留同名再导出, 免得砸掉 scripts/ 下
+# 直接 import 它们的验证脚本(verify_search / validate_pa601 等)。
+async def legacy_vector_search(
+    client,
     embed: EmbeddingClient,
     workspaces: list[str],
     query: str,
@@ -597,7 +561,14 @@ async def qdrant_search(
     category: str | None = None,
     priority: str | None = None,
 ) -> list[dict]:
-    """Qdrant 预过滤向量检索 (章节/类别/优先级为 payload 硬过滤)。"""
+    """Qdrant 预过滤向量检索 —— ADR-014 待删的 legacy 路径。
+
+    只在 ``retrieval_backend="qdrant"`` 时走。默认路径是
+    ``retrieval.hybrid.vector_search``(pgvector), 不需要 Qdrant。
+    过滤语义与 pgvector 版逐项一致, 保证换后端不换检索策略。
+    """
+    from qdrant_client.models import FieldCondition, Filter, MatchValue
+
     must = [FieldCondition(key="workspace_id", match=MatchValue(value=w)) for w in workspaces]
     if section_path:
         must.append(FieldCondition(key="section_path", match=MatchValue(value=section_path)))
@@ -622,15 +593,5 @@ async def qdrant_search(
     return out
 
 
-def rrf_fuse(*ranked_lists: list[dict], k: int = 60, top_k: int = 10) -> list[dict]:
-    """RRF 融合多路检索结果 (按 content 去重)。"""
-    scores: dict[str, float] = {}
-    best: dict[str, dict] = {}
-    for lst in ranked_lists:
-        for rank, item in enumerate(lst):
-            key = item.get("content", "")[:200]
-            scores[key] = scores.get(key, 0.0) + 1.0 / (k + rank + 1)
-            if key not in best or item.get("score", 0) > best[key].get("score", 0):
-                best[key] = item
-    ordered = sorted(scores.items(), key=lambda x: -x[1])[:top_k]
-    return [best[key] | {"rrf_score": s} for key, s in ordered]
+bm25_search = hybrid.bm25_search
+rrf_fuse = hybrid.rrf_fuse

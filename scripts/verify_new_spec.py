@@ -57,22 +57,18 @@ def main() -> int:
         checks.append(("PG 分块已入库", n_chunk > 0, f"{n_chunk} 分块"))
         checks.append(("LightRAG 图谱已入库", n_lrag > 0, f"{n_lrag} 实体"))
 
-    # ---- 3. Qdrant ----
-    from qdrant_client import QdrantClient
-
-    q = QdrantClient(url=s.qdrant_url, timeout=30)
+    # ---- 3. pgvector (向量与分块同表, ADR-014) ----
     try:
-        from qdrant_client.models import FieldCondition, Filter, MatchValue
+        import psycopg
 
-        cnt = q.count(
-            collection_name="aterag_chunks",
-            count_filter=Filter(
-                must=[FieldCondition(key="workspace_id", match=MatchValue(value=MODEL))]
-            ),
-        )
-        checks.append(("Qdrant 向量已入库", cnt.count > 0, f"{cnt.count} 点"))
+        with psycopg.connect(s.postgres_dsn) as conn:
+            n_row, n_vec = conn.execute(
+                "SELECT count(*), count(embedding) FROM aterag_chunks WHERE workspace_id = %s",
+                (MODEL,),
+            ).fetchone()
+        checks.append(("pgvector 向量已入库", n_vec > 0, f"{n_vec}/{n_row} 行有向量"))
     except Exception as e:  # noqa: BLE001
-        checks.append(("Qdrant 向量已入库", False, str(e)[:60]))
+        checks.append(("pgvector 向量已入库", False, str(e)[:60]))
 
     # ---- 4. 检索 + 隔离 ----
     async def probe() -> None:

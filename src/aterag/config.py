@@ -27,9 +27,12 @@ class Settings(BaseSettings):
     embed_batch_size: int = 10
     embed_dim: int = 0  # 0 = 启动时探针实测
 
-    # ---- 存储 (远程唯一后端) ----
+    # ---- 存储 (单一 PostgreSQL 底座, ADR-002/ADR-014) ----
     postgres_dsn: str
-    qdrant_url: str
+    # 检索向量落在哪: pgvector(默认, 单一 PG 底座) | qdrant(legacy, ADR-014 待删)
+    retrieval_backend: str = "pgvector"
+    # legacy 后端才需要下面两项; 走 pgvector 时不读
+    qdrant_url: str = ""
     qdrant_collection: str = "lightrag_vectors"
 
     # ---- 知识分层 ----

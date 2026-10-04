@@ -1,9 +1,14 @@
 """RAG 检索服务: 三层 workspace 装配 + 双引擎检索 + 引用溯源.
 
 路由策略:
-  带章节/类别/优先级过滤 -> Qdrant 预过滤向量检索 + PG BM25 -> RRF 融合
-  无过滤                -> Qdrant+BM25 融合 + LightRAG mix (图导航) 补充
+  带章节/类别/优先级过滤 -> pgvector 预过滤向量检索 + PG BM25 -> RRF 融合
+  无过滤                -> 向量+BM25 融合 + LightRAG mix (图导航) 补充
 隔离: workspace 三层 [model, _domain_{type}, _common]; 未注册型号 fail-closed。
+
+**LightRAG mix 那路不含 BM25**: 它是 entities VDB + relationships VDB +
+chunks VDB 三次**向量**检索做 round-robin 合并(见 lightrag/operate.py)。
+所以 chunk 层的 BM25 这一路必须自己留着 —— 中文规格书的精确标识符
+(``SR-1203`` / ``-54V`` / ``11.1A``)靠向量命不中。
 """
 
 from __future__ import annotations
@@ -11,12 +16,11 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 
-from qdrant_client import QdrantClient
-
 from aterag.config import Settings
 from aterag.ingest import pipeline
 from aterag.models import EmbeddingClient
 from aterag.registry import Registry
+from aterag.retrieval import hybrid
 
 # 命中来源 workspace 未在注册表三层装配内 -> 显式标记, 不得混入 model/domain/common。
 # 标成 "model" 会让未注册 workspace 的命中被当成型号事实, 污染溯源分层与隔离判断。
@@ -50,8 +54,22 @@ class RagService:
         self.settings = settings
         self.registry = registry
         self.embed = embed
-        self._qdrant = QdrantClient(url=settings.qdrant_url, timeout=60)
+        # legacy Qdrant 客户端**惰性**构造: 模块级 import 就是 ADR-014:37 禁止的
+        # 破损态(板卡上没有 Qdrant, 留着会让 import 期就炸)。
+        self._qdrant = None
         self._lightrag_cache: dict[str, object] = {}
+
+    def _qdrant_client(self):
+        if self._qdrant is None:
+            try:
+                from qdrant_client import QdrantClient
+            except ImportError as exc:  # pragma: no cover - 仅 legacy 分支
+                raise RuntimeError(
+                    "retrieval_backend=qdrant 需要安装 qdrant-client; "
+                    "默认 pgvector 不需要(ADR-014)"
+                ) from exc
+            self._qdrant = QdrantClient(url=self.settings.qdrant_url, timeout=60)
+        return self._qdrant
 
     # ---------- workspace 装配 ----------
     def resolve(self, query: str, model_id: str | None):
@@ -82,20 +100,31 @@ class RagService:
         workspaces = [w for w, _ in ws_layers]
         layer_map = {w: layer for w, layer in ws_layers}
 
-        vector_hits = await pipeline.qdrant_search(
-            self._qdrant,
-            self.embed,
-            workspaces,
-            query,
-            top_k=top_k * 2,
-            section_path=section_path,
-            category=category,
-            priority=priority,
-        )
-        for h in vector_hits:
-            # 未知 workspace 标 "unregistered" 而非 "model": 混入未注册 workspace 的命中
-            # 会被误当成型号事实, 污染溯源分层与隔离判断
-            h["layer"] = layer_map.get(h.get("workspace_id", ""), UNREGISTERED_LAYER)
+        if self.settings.retrieval_backend == "qdrant":
+            await pipeline.legacy_vector_search(
+                self._qdrant_client(),
+                self.embed,
+                workspaces,
+                query,
+                top_k=top_k * 2,
+                section_path=section_path,
+                category=category,
+                priority=priority,
+            )
+        else:
+            vector_hits = await hybrid.vector_search(
+                self.settings.postgres_dsn,
+                self.embed,
+                workspaces,
+                query,
+                top_k=top_k * 2,
+                section_path=section_path,
+                category=category,
+                priority=priority,
+            )
+        # 未知 workspace 标 "unregistered" 而非 "model": 混入未注册 workspace 的命中
+        # 会被误当成型号事实, 污染溯源分层与隔离判断
+        hybrid.tag_layers(vector_hits, layer_map)
 
         bm25_hits = pipeline.bm25_search(
             self.settings.postgres_dsn,
@@ -106,8 +135,7 @@ class RagService:
             category=category,
             priority=priority,
         )
-        for h in bm25_hits:
-            h["layer"] = layer_map.get(h.get("workspace_id", ""), UNREGISTERED_LAYER)
+        hybrid.tag_layers(bm25_hits, layer_map)
 
         fused = pipeline.rrf_fuse(vector_hits, bm25_hits, top_k=top_k)
         results = [
