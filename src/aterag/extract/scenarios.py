@@ -176,14 +176,65 @@ class Tier:
 
 
 @dataclass(frozen=True, slots=True)
+class DimensionMode:
+    """维度内的一种取值形态。
+
+    同一维度下两种形态并存 (如负载):
+      level —— 静态档, 各取值**互斥**, 测20%就不测50%, 一个取值一个场景;
+      slew  —— 变化序列, 有序路径, 必须整体执行 (25%->50%->25%), 一个序列一个场景。
+    路径上的关键节点同时作为静态档记录 (derive_levels), 但那是从序列去重
+    推导出来的, 不独立解析 —— 否则两条正则可能各认一半, 出现"路径里有但档位
+    表里没有"的不一致。
+    """
+
+    id: str
+    pattern: str = ""
+    derive_levels: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class DimensionValue:
+    """维度解析出的一个取值 (数值全部来自规格书原文)。"""
+
+    key: str
+    #: 呈现文本, 例 "90~176Vac" / "25%->50%->25%"
+    text: str
+    #: 关键节点/静态档, 从 text 去重推导 (仅 slew 形态产出)
+    levels: tuple[str, ...] = ()
+    #: 排序用数值; None 表示按声明顺序稳定排
+    order: float | None = None
+    #: 溯源: 命中的原文片段
+    source_text: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "key": self.key,
+            "text": self.text,
+            "levels": list(self.levels),
+            "order": self.order,
+            "source_text": self.source_text,
+        }
+
+
+@dataclass(frozen=True, slots=True)
 class DimensionSpec:
-    """一个可展开的条件维度 (从规格书解析取值)。"""
+    """一个可展开的条件维度 (从规格书解析取值)。
+
+    carrier 决定取值从哪来 —— 这是维度能否跨产品通用的关键:
+      tier           —— 全局共享, 由 tiers 解析得到 (输入电压功率档);
+      notes_span     —— 该条需求 notes 内的多档 (SR-1204 "90~176Vac: 400W;
+                        176~286Vac: 600W"); 一条 notes 内取值互斥;
+      repeated_row   —— 同 req_id 多行各带一个取值 (SR-1210 三行 20%/50%/最大);
+                        每行自带其工况, 不靠 notes 再解析。
+    """
 
     key: str
     label: str = ""
     unit_hint: str = ""
     pattern: str = ""
     from_notes: bool = True
+    carrier: str = "notes_span"
+    modes: tuple[DimensionMode, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -231,6 +282,15 @@ class ScenarioRules:
                     unit_hint=str(d.get("unit_hint", "")),
                     pattern=str(d.get("pattern", "")),
                     from_notes=bool(d.get("from_notes", True)),
+                    carrier=str(d.get("carrier", "notes_span")),
+                    modes=tuple(
+                        DimensionMode(
+                            id=str(m.get("id", "")),
+                            pattern=str(m.get("pattern", "")),
+                            derive_levels=bool(m.get("derive_levels", False)),
+                        )
+                        for m in (d.get("modes") or [])
+                    ),
                 )
                 for d in (doc.get("dimensions") or [])
             ),
@@ -267,6 +327,20 @@ class ScenarioRules:
                     re.compile(d.pattern)
                 except re.error as e:
                     bad.append(f"dimension[{d.key}].pattern 正则非法: {e}")
+            # carrier=tier 的维度取值来自 tiers 解析, 无需自带 pattern;
+            # 其余 carrier 必须有取值来源, 否则该维度解析恒为空 —— 配置看着
+            # 齐全, 展开时静默不生效, 是最难排查的一类"配置未生效"。
+            if d.carrier != "tier" and not d.pattern and not d.modes:
+                bad.append(
+                    f"dimension[{d.key}] carrier={d.carrier} 既无 pattern 也无 modes "
+                    "(取值无来源, 展开时恒为空)"
+                )
+            for m in d.modes:
+                if m.pattern:
+                    try:
+                        re.compile(m.pattern)
+                    except re.error as e:
+                        bad.append(f"dimension[{d.key}].modes[{m.id}].pattern 正则非法: {e}")
         for t in self.tier_pattern and [self.tier_pattern] or []:
             try:
                 re.compile(t)
@@ -607,8 +681,121 @@ class ScenarioResult:
         }
 
 
+def _slew_label(nodes: Sequence[float], unit: str = "%") -> str:
+    """变化序列的呈现文本, 例 "25%->50%->25%"。"""
+    return "->".join(f"{n:g}{unit}" for n in nodes)
+
+
+def parse_condition_dimensions(
+    spec: DimensionSpec, c: TestCondition
+) -> list[DimensionValue]:
+    """解析**单条需求**在某维度上的取值。
+
+    工况维度必须逐需求解析, 不能做成全局取值池: 温度窗口只对 SR-1206/
+    SR-1213 有意义, 负载档只对 SR-1210/1104 有意义。做成全局池后笛卡尔积会把
+    无关工况绑到无关需求上(ESD 抗扰被标上"温度≤-30℃"), 场景数还会成倍膨胀 ——
+    而产测看到的是一个自己根本不成立的工况。
+    """
+    return _parse_values(spec, (c,))
+
+
+def parse_dimension_values(
+    spec: DimensionSpec, conditions: Sequence[TestCondition]
+) -> list[DimensionValue]:
+    """从规格书原文解析某维度的取值 —— 代码只认正则, 数值全部来自原文。
+
+    两种 notes 来源都要覆盖, 否则同一条需求的工况表达形式不同就解析不到:
+      pattern + modes 都配  -> 先按 modes 切 (level/slew), 未命中的部分再按
+                                顶层 pattern 兜底;
+      只配 pattern          -> 整体按 pattern 切。
+    """
+    return _parse_values(spec, conditions)
+
+
+def _parse_values(
+    spec: DimensionSpec, conditions: Sequence[TestCondition]
+) -> list[DimensionValue]:
+    if spec.carrier == "tier":
+        return []  # tier 维度取值由 parse_tiers 提供, 这里不重复解析
+    pats: list[tuple[DimensionMode, re.Pattern[str]]] = []
+    for m in spec.modes:
+        if m.pattern:
+            try:
+                pats.append((m, re.compile(m.pattern)))
+            except re.error as e:
+                raise ValueError(f"dimension[{spec.key}].modes[{m.id}].pattern 正则非法: {e}") from e
+    top = None
+    if spec.pattern:
+        try:
+            top = re.compile(spec.pattern)
+        except re.error as e:
+            raise ValueError(f"dimension[{spec.key}].pattern 正则非法: {e}") from e
+
+    out: list[DimensionValue] = []
+    seen: set[tuple[str, str]] = set()
+    for c in conditions:
+        if not c.notes:
+            continue
+        if not spec.from_notes:
+            continue
+        for mode, rx in pats:
+            for m in rx.finditer(c.notes):
+                text = _clean_cell(m.group(0))
+                if not text or (spec.key, text) in seen:
+                    continue
+                nums = [float(x) for x in re.findall(r"-?\d+(?:\.\d+)?", m.group(0))]
+                levels: tuple[str, ...] = ()
+                order: float | None = None
+                if mode.derive_levels:
+                    # 路径上的关键节点同时作为静态档记录: 从序列去重, 不独立解析,
+                    # 保证"路径里有"与"档位表里有"永远一致。
+                    levels = tuple(dict.fromkeys(f"{n:g}%" for n in nums))
+                elif mode.id == "level":
+                    order = nums[0] if nums else None
+                seen.add((spec.key, text))
+                out.append(
+                    DimensionValue(
+                        key=spec.key,
+                        text=_slew_label(nums) if mode.derive_levels else text,
+                        levels=levels,
+                        order=order,
+                        source_text=text,
+                    )
+                )
+        if top is not None:
+            for m in top.finditer(c.notes):
+                text = _clean_cell(m.group(0))
+                if not text or (spec.key, text) in seen:
+                    continue
+                nums = [float(x) for x in re.findall(r"-?\d+(?:\.\d+)?", m.group(0))]
+                seen.add((spec.key, text))
+                out.append(
+                    DimensionValue(
+                        key=spec.key,
+                        text=text,
+                        order=nums[0] if nums else None,
+                        source_text=text,
+                    )
+                )
+    # 数值维度升序, 无序值按声明顺序稳定排 —— case_code 由 seq 派生, 顺序不稳
+    # 就会让幂等导入重复建用例。
+    out.sort(key=lambda v: (v.order is None, v.order if v.order is not None else 0.0, v.text))
+    return out
+
+
+def _clean_cell(v: Any) -> str:
+    """去掉 markdown 表格残留的加粗标记与首尾空白 (不改写原文语义)。"""
+    return re.sub(r"\s+", " ", str(v or "").replace("**", "").replace("<br>", " ")).strip()
+
+
 def parse_tiers(rules: ScenarioRules, conditions: Sequence[TestCondition]) -> list[Tier]:
-    """从规格书原文解析输入电压档 —— 代码只认正则, 数字全部来自原文。"""
+    """从规格书原文解析输入电压档 —— 代码只认正则, 数字全部来自原文。
+
+    档位是**跨需求共享**的: 它由 SR-1204(输出功率)的 notes 声明, 却约束
+    SR-1203(输出电流) 等所有有轨需求的判据。故解析要看全部 conditions, 而不是
+    调用方手里那一条 —— 只传单条需求必然解析不到档位, 轨级推导会静默失效。
+    单需求查询场景须先全量解析再按 req_id 过滤, 不能就地调用本函数。
+    """
     if not rules.tier_pattern:
         return []
     rx = re.compile(rules.tier_pattern)
@@ -664,6 +851,24 @@ def _rail_voltages(conditions: Sequence[TestCondition]) -> dict[str, float]:
         if m:
             out.setdefault(c.rail, abs(float(m.group(1))))
     return out
+
+
+def _is_load_bearing(c: TestCondition) -> bool:
+    """该需求的判据是否真的是"这一轨能拉多大电流"。
+
+    轨级推导出来的电流只对输出电流类需求有意义。绑到额定输出电压(SR-1200)、
+    温度系数(SR-1217)、短路保护(SR-1308)上是错的: 那些判据是电压/温度/保护点,
+    挂一个输出电流只会让产测人员以为还要额外拉这个电流 —— 或是更糟, 拿它去
+    反推负载设定, 于是给电压判据的用例也去按 7.401A 设负载。
+
+    判据与 _rated_currents 同源(输出电流语义 + 电流单位), 两处必须一致 ——
+    否则会出现"额定表里有这条轨, 但它不产推导场景"的空洞。
+    """
+    if not c.rail:
+        return False
+    return any(cl.kind == _KIND_OUTPUT_CURRENT for cl in c.output_conditions) or (
+        c.limits.get("unit") == _UNIT_CURRENT
+    )
 
 
 def _derive_load(
@@ -732,10 +937,34 @@ def expand_scenarios(
     case_code 由 seq 派生, 顺序若不稳定, 幂等导入就会重复建用例。
     """
     rules.validate()
+    # 配置自洽性先于数据校验: dimension_order 引用未声明维度是配置错误, 必须
+    # 优先报出 —— 否则它会被后续的"数据不足"类报错盖住, 让人误以为是数据问题。
+    unknown = [k for k in rules.dimension_order if k not in {d.key for d in rules.dimensions}]
+    if unknown:
+        raise ValueError(
+            f"ordering.dimension_order 引用了未声明的维度: {unknown} — "
+            f"已声明: {[d.key for d in rules.dimensions]}"
+        )
     tiers = parse_tiers(rules, conditions)
     rated = _rated_currents(conditions)
     volts = _rail_voltages(conditions)
     derived = _derive_load(rules, tiers, rated, volts) if tiers else {}
+
+    # tier 维度的取值来自已解析的档位, 全局共享(功率档对所有需求一致);
+    # 其余工况维度逐需求解析 —— 见 parse_condition_dimensions 的说明。
+    tier_pool: list[DimensionValue] = [
+        DimensionValue(
+            key=spec.key,
+            text=f"{t.min_vac:g}~{t.max_vac:g}Vac",
+            order=t.min_vac,
+            source_text=t.source_text,
+        )
+        for spec in rules.dimensions
+        if spec.carrier == "tier"
+        for t in tiers
+    ]
+    specs_by_key = {d.key: d for d in rules.dimensions}
+    active_keys = [k for k in rules.dimension_order if k in specs_by_key]
 
     res = ScenarioResult(tiers=tiers)
     # seq 必须"每需求内唯一且连续": P2 的 case_code = f"{req_id}-S{seq:03d}",
@@ -744,29 +973,75 @@ def expand_scenarios(
     # 故序号按需求维度统一分配, 而不是按行。
     seq_by_req: dict[str, int] = {}
     for c in conditions:
-        # 无分档维度可用时, 每条需求一个基线场景(不拆)
-        if not tiers:
+        # 本条需求的维度取值池: tier 维度全局共享, 其余逐需求解析。
+        # 只有实际取到值的维度才进笛卡尔积 —— 空池进积等于 0 个场景。
+        # 有轨的需求才需要功率档绑定: 无轨行是整机要求(如 SR-1204 输出功率),
+        # 把档位绑上去会让同一条整机要求被当成"逐档的逐轨判据"。
+        # 有轨但 notes 为空的行(如 SR-1203 "长期工作")**必须**绑档位 ——
+        # 它就是额定 11.1A 那条, 不绑档就会退回按额定值判, 低压段击穿 400W。
+        pools: list[list[DimensionValue]] = []
+        for k in active_keys:
+            spec = specs_by_key[k]
+            if spec.carrier == "tier":
+                vals = tier_pool if c.rail else []
+            else:
+                vals = parse_condition_dimensions(spec, c)
+            if vals:
+                pools.append(vals)
+        # 无任何维度取值可用时, 每条需求一个基线场景(不拆)
+        if not pools:
             res.scenarios.append(
                 Scenario(
-                    scenario_id=f"{c.req_id}#base",
-                    seq=0,
+                    # 必须含轨与行限定词: 同一编号可能有多行(如 SR-1100 标称输入
+                    # 分 110Vac/220Vac 两行共用 req_id), 只用 req_id#base 会让它们
+                    # 撞成同一个 id, 幂等导入把两行并成一条用例, 条件集静默少一半。
+                    scenario_id=_sid(c.req_id, (), c.rail, c.notes),
+                    # seq 按需求递增, 不能恒为 0: 同编号多行(如 SR-1100 分
+                    # 110Vac/220Vac 两行)会撞 (req_id, seq), case_code 随之撞车。
+                    seq=seq_by_req.get(c.req_id, 0),
                     req_id=c.req_id,
                     title=c.title,
                     rail=c.rail,
                     name=derive_scenario_name(c, rules.naming, c.rail),
-                    basis="no_tier_split",
+                    basis="no_dimension_split",
                     source="spec",
                 )
             )
+            seq_by_req[c.req_id] = seq_by_req.get(c.req_id, 0) + 1
             continue
         seq = seq_by_req.get(c.req_id, 0)
-        for t in tiers:
-            binding = {
-                "ac_input_tier": f"{t.min_vac:g}~{t.max_vac:g}Vac",
-            }
-            key = (t.min_vac, t.max_vac, t.power_w)
-            d = derived.get(key, {})
+        # 笛卡尔积: 维度按 dimension_order 声明顺序, 越靠外的维度变化越慢,
+        # 保证同一 (需求, 轨) 下 seq 递增顺序可复现。
+        for combo in _combos(pools):
+            binding = {v.key: v.text for v in combo}
+            # tier 取值决定功率档与轨级推导: 只认 carrier=tier 维度给出的档位,
+            # 其余维度只绑定工况, 不影响功率分配。
+            tier = _tier_of(combo, tiers)
+            # 轨级电流只对输出电流类需求成立 —— 见 _is_load_bearing。
+            # 其余有轨需求仍要绑档位(档位是通用工况), 只是不挂推导电流。
+            d = (
+                derived.get((tier.min_vac, tier.max_vac, tier.power_w), {})
+                if tier and _is_load_bearing(c)
+                else {}
+            )
             for rail in c.rail and [c.rail] or []:
+                if not d:
+                    # 档位已绑、但不产推导电流 -> 基线场景(判据来自规格书本身)。
+                    res.scenarios.append(
+                        Scenario(
+                            scenario_id=_sid(c.req_id, combo, rail, c.notes),
+                            seq=seq,
+                            req_id=c.req_id,
+                            title=c.title,
+                            rail=rail,
+                            bindings=binding,
+                            name=derive_scenario_name(c, rules.naming, rail),
+                            basis=(f"tier_bound:{tier.power_w:g}W" if tier else "dimension_split"),
+                            source="spec",
+                        )
+                    )
+                    seq += 1
+                    continue
                 if rail in d:
                     if d[rail] > rated.get(rail, d[rail]) + 1e-3:
                         res.excluded.append(
@@ -781,7 +1056,7 @@ def expand_scenarios(
                         continue
                     res.scenarios.append(
                         Scenario(
-                            scenario_id=_sid(c.req_id, t, rail, c.notes),
+                            scenario_id=_sid(c.req_id, combo, rail, c.notes),
                             seq=seq,
                             req_id=c.req_id,
                             title=c.title,
@@ -789,7 +1064,9 @@ def expand_scenarios(
                             bindings=binding,
                             derived={rail: d[rail]},
                             name=derive_scenario_name(c, rules.naming, rail),
-                            basis=f"tier_power_capped:{t.power_w:g}W",
+                            basis=(
+                                f"tier_power_capped:{tier.power_w:g}W" if tier else "dimension_split"
+                            ),
                             source="derived",
                         )
                     )
@@ -807,14 +1084,14 @@ def expand_scenarios(
             if not c.rail:
                 res.scenarios.append(
                     Scenario(
-                        scenario_id=_sid(c.req_id, t, "", c.notes),
+                        scenario_id=_sid(c.req_id, combo, "", c.notes),
                         seq=seq,
                         req_id=c.req_id,
                         title=c.title,
                         rail="",
                         bindings=binding,
                         name=derive_scenario_name(c, rules.naming, ""),
-                        basis=f"tier_power_capped:{t.power_w:g}W",
+                        basis=(f"tier_power_capped:{tier.power_w:g}W" if tier else "dimension_split"),
                         source="spec",
                     )
                 )
@@ -846,19 +1123,65 @@ def _assert_unique(scenarios: Sequence[Scenario]) -> None:
         )
 
 
-def _sid(req_id: str, tier: Tier, rail: str, notes: str = "") -> str:
+def _combos(pools: Sequence[Sequence[DimensionValue]]) -> list[tuple[DimensionValue, ...]]:
+    """维度取值的笛卡尔积 (最外层 = 最先声明的维度)。"""
+    out: list[tuple[DimensionValue, ...]] = [()]
+    for pool in pools:
+        out = [(*base, v) for base in out for v in pool]
+    return out
+
+
+def _tier_of(combo: Sequence[DimensionValue], tiers: Sequence[Tier]) -> Tier | None:
+    """从维度取值组合里还原对应的功率档。
+
+    按**取值文本**匹配, 不能拿维度 key 去查以档位文本为键的字典 —— key 与
+    档位文本本就不同源, 那样查永远落空, 推导会静默变成空字典(所有有轨场景
+    被判"该轨不由档位供电"而整体排除, 场景数从数百掉到几十)。
+
+    同一组合内可能有多维, 谁先命中以谁为准: carrier=tier 的维度已在构造取值池
+    时保证文本规范, 而工况维度取值不会与档位文本同形。
+    """
+    by_text = {f"{t.min_vac:g}~{t.max_vac:g}Vac": t for t in tiers}
+    for v in combo:
+        t = by_text.get(v.text)
+        if t is not None:
+            return t
+    return None
+
+
+def _sid(
+    req_id: str, combo: Sequence[DimensionValue], rail: str, notes: str = ""
+) -> str:
     """场景标识。
 
-    必须含 req_id + 档位 + 轨 + 行限定词 四要素:
+    必须含 req_id + 全部维度取值 + 轨 + 行限定词:
       * 同一需求可能有多行(多轨拆分、以及同轨不同工作制, 如 SR-1203 有
         -54V 长期/-54V 短期/3.45V 长期三行共用一个 req_id);
+      * 维度取值必须全部进标识 —— 否则两个工况不同的场景(效率 20% 档 vs 50% 档)
+        会撞成同一个 id, 幂等导入把两行并成一条用例, 判据只剩一个。
       * P2 的 case_code 由本标识派生, 一旦重复, 幂等导入就会把多行合并成
         一条用例, 条件集静默丢失 —— 这是最难在产线上发现的一类错误。
     notes 在此只作区分限定词(内部空白归一), 不改写原文 —— 原文仍由
     TestCondition.notes 原样保留。
     """
-    tier_part = f"t{tier.min_vac:g}-{tier.max_vac:g}"
+    dim_part = "".join(f".{_slug(v.key)}{_slug(v.text)}" for v in combo)
     rail_part = f"@{rail}" if rail else "@na"
     qual = re.sub(r"\s+", "", notes or "")[:12]
     qual_part = f"#{qual}" if qual else ""
-    return f"{req_id}#{tier_part}{rail_part}{qual_part}"
+    return f"{req_id}#{dim_part}{rail_part}{qual_part}"
+
+
+def _slug(s: str) -> str:
+    """维度键/取值压成标识片段: 保留可读字符, 其余一律去噪。
+
+    取值里可能有 "~" "-" ">" "℃" 等符号, 直接进标识虽合法但可读性差,
+    且符号差异可能造成本应不同的两个 id 撞车(挤掉分隔符后)。统一转成
+    字母数字并把其余字符编码为两位十六进制, 保证映射是单射。
+    """
+    out: list[str] = []
+    for ch in str(s):
+        if ch.isalnum() or ch in "_":
+            out.append(ch)
+        else:
+            out.append(f"~{ord(ch):02x}")
+    return "".join(out)

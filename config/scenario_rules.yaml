@@ -113,13 +113,68 @@ naming:
 # 它是所有场景共有的基线, 展开它只会让场景数无意义地翻倍。
 dimensions:
   # 输入电压档: 由 SR-1204 备注原文 "90~176Vac: 400W; 176~286Vac: 600W" 解析
+  #
+  # carrier=tier: 取值来自 tiers.parse 的解析结果, 不在本维度重复用正则切。
+  # 之所以归到维度体系而不是留作平行机制: 它与其余工况维度同构(一个指标 × N 个
+  # 工况窗口), 统一后新增维度只需加配置, 不必再写第二套展开逻辑。
   - key: ac_input_tier
     label: 输入电压档
     unit_hint: Vac
-    pattern: '(\d+)\s*[~～]\s*(\d+)Vac'
+    carrier: tier
+
+  # 负载: 两种形态并存, 语义不同不能合并。
+  #
+  #   level 静态档 —— 各取值互斥, 测 20% 就不测 50%(SR-1210 "20%最大输出负载"
+  #         /"50%最大输出负载"/"最大输出负载测试", 三行共 req_id, 典型值 86/91/93)
+  #   slew  变化序列 —— 有序路径, 必须整体执行(SR-1211 "25%~50%~25% 或
+  #         50%~75%~50% 负载变化", 判据是 200us 恢复时间)
+  #
+  # derive_levels: 序列路径上的关键节点同时记为静态挡位, 且**从序列去重推导**,
+  # 不独立解析 —— 否则两条正则各认一半, 会出现"路径里有但挡位表里没有"。
+  - key: load
+    label: 负载
+    unit_hint: "%"
+    carrier: notes_span
+    modes:
+      - id: slew
+        pattern: '\d+(?:\.\d+)?\s*%\s*[~～]\s*\d+(?:\.\d+)?\s*%(?:\s*[~～]\s*\d+(?:\.\d+)?\s*%)?'
+        derive_levels: true
+      - id: level
+        pattern: '(\d+(?:\.\d+)?)\s*%\s*(?:最大)?(?:输出)?负载'
     from_notes: true
-  # 负载档: 仅在规格书明确分档时声明(当前 4.3 未对某条目声明, 故此处不预设)
-  # 需要时按条目启用, 避免给每条需求都套上三档负载造成场景爆炸。
+
+  # 温度窗口: 同一指标在不同温度窗口有不同判据。
+  #   SR-1213 开机输出延迟 "温度≥-25℃:...≤6s; 温度≤-25℃:...≤12s"
+  #   SR-1206 峰峰值杂音 "温度≤-30°时, 纹波放宽至600mV"
+  # 注意原文用 "≥-25℃" 与 "≤-30°"(无 C), 故单位写法必须一并容忍。
+  - key: temp_window
+    label: 温度窗口
+    unit_hint: "℃"
+    carrier: notes_span
+    pattern: '温度\s*[≥≤<>\-]\s*-?\d+(?:\.\d+)?\s*°?\s*C?'
+    from_notes: true
+
+  # 电压暂降/中断幅度与持续时间 (SR-2106 共 13 行, 是幅度 × 时长 × 输入电压
+  # 三维组合; 其负载条件 Ut=110Vac→400W / 220Vac→600W 即 4.3.2 的功率档,
+  # 由 ac_input_tier 维度提供, 不在此重复解析)。
+  - key: dip_depth
+    label: 跌落幅度
+    unit_hint: "%Ut"
+    carrier: repeated_row
+    pattern: '跌落到\s*(\d+(?:\.\d+)?)\s*%\s*Ut'
+    from_notes: true
+  - key: dip_duration
+    label: 持续时间
+    unit_hint: ms
+    carrier: repeated_row
+    pattern: '持续时间\s*(\d+(?:\.\d+)?)\s*(ms|us|s)?'
+    from_notes: true
+  - key: ut_level
+    label: 标称输入电压
+    unit_hint: Vac
+    carrier: repeated_row
+    pattern: 'Ut\s*=\s*(\d+(?:\.\d+)?)\s*Vac'
+    from_notes: true
 
 # ---- 输入电压 -> 输出功率档 (tier) ----
 # parse 出的每个档: {min, max, power}
@@ -180,6 +235,8 @@ feasibility:
 # case_code 由 P2 生成, 但序号来源在此定义, 保证同一需求每次拆分的顺序稳定 ——
 # 顺序不稳定会导致 case_code 漂移, 幂等导入就失效了。
 ordering:
-  # 维度展开顺序: 电压档由低到高, 其余维度按声明顺序
-  dimension_order: [ac_input_tier]
+  # 展开顺序: 最外层 = 变化最慢的维度。输入电压档在前, 因为功率封顶派生出的
+# 轨级电流依赖它; 掉电类维度在后, 避免让 SR-2106 的 13 行与电压档做笛卡尔积
+  # 把场景数放大到不可用(那 13 行的负载条件本身就由输入电压档决定)。
+  dimension_order: [ac_input_tier, temp_window, load, dip_depth, dip_duration, ut_level]
   sort_numeric_ascending: true

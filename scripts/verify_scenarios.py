@@ -93,13 +93,16 @@ def main() -> int:
         "黄金回归-已在配置中声明", der is not None, f"{len(der.regression_golden) if der else 0} 条"
     )
     if der:
+        # 按 key 取维度取值, 不能用 list(bindings.values())[0] —— 展开顺序变了
+        # (现在还有温度/负载/掉电等维度), "第一个绑定值"未必是输入电压档, 那样
+        # 会拿别的维度的取值去比档位, 黄金回归就失去防漂移的作用。
         for g in der.regression_golden:
             got = None
             for s in res.scenarios:
                 if (
                     s.rail == g["expect_rail"]
                     and s.derived
-                    and list(s.bindings.values())[0] == g["tier"]
+                    and s.bindings.get("ac_input_tier") == g["tier"]
                 ):
                     got = list(s.derived.values())[0]
                     break
