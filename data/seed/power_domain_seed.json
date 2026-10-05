@@ -51581,6 +51581,121 @@
       }
     },
     {
+      "id": "A-4",
+      "name": "电感伏秒",
+      "entity_type": "axiom",
+      "text": "电感伏秒",
+      "confidence": null,
+      "source": null,
+      "section": null,
+      "metadata": {
+        "authority_kind": "unverified"
+      },
+      "label": "电感伏秒",
+      "theorems": [
+        "T3"
+      ],
+      "rules": [
+        "R2",
+        "R8"
+      ],
+      "tests": [
+        "G.3"
+      ],
+      "formula_refs": [
+        "A-J.1"
+      ],
+      "authority_kind": "unverified",
+      "provenance": {
+        "label": {
+          "property_name": "label",
+          "value": "电感伏秒",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": null,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
+        "theorems": {
+          "property_name": "theorems",
+          "value": [
+            "T3"
+          ],
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": null,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
+        "rules": {
+          "property_name": "rules",
+          "value": [
+            "R2",
+            "R8"
+          ],
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": null,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
+        "tests": {
+          "property_name": "tests",
+          "value": [
+            "G.3"
+          ],
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": null,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
+        "formula_refs": {
+          "property_name": "formula_refs",
+          "value": [
+            "F_J.3_INDUCTOR_RIPPLE",
+            "F_J.4_OUTPUT_RIPPLE",
+            "A-J.1"
+          ],
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": null,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
       "id": "A-5",
       "name": "电容电荷",
       "entity_type": "axiom",
@@ -51605,7 +51720,6 @@
         "G.28"
       ],
       "formula_refs": [
-        "F_J.4_OUTPUT_RIPPLE",
         "F_K.7_RHPZ_BW"
       ],
       "authority_kind": "unverified",
@@ -52579,6 +52693,121 @@
         "formula_refs": {
           "property_name": "formula_refs",
           "value": [],
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": null,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "A-15",
+      "name": "因果无源",
+      "entity_type": "axiom",
+      "text": "因果无源",
+      "confidence": null,
+      "source": null,
+      "section": null,
+      "metadata": {
+        "authority_kind": "unverified"
+      },
+      "label": "因果无源",
+      "theorems": [
+        "T21",
+        "T25"
+      ],
+      "rules": [
+        "P3",
+        "P7"
+      ],
+      "tests": [
+        "G.28",
+        "G.29"
+      ],
+      "formula_refs": [],
+      "authority_kind": "unverified",
+      "provenance": {
+        "label": {
+          "property_name": "label",
+          "value": "因果无源",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": null,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
+        "theorems": {
+          "property_name": "theorems",
+          "value": [
+            "T21",
+            "T25"
+          ],
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": null,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
+        "rules": {
+          "property_name": "rules",
+          "value": [
+            "P3",
+            "P7"
+          ],
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": null,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
+        "tests": {
+          "property_name": "tests",
+          "value": [
+            "G.28",
+            "G.29"
+          ],
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": null,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
+        "formula_refs": {
+          "property_name": "formula_refs",
+          "value": [
+            "F_K.6_FILTER_CRITERION"
+          ],
           "sources": [
             {
               "document": "",
@@ -59511,6 +59740,18 @@
       "confidence": null
     },
     {
+      "source_id": "A-4",
+      "target_id": "thm::T3",
+      "relationship_type": "has_theorem",
+      "confidence": null
+    },
+    {
+      "source_id": "A-4",
+      "target_id": "thm::T3",
+      "relationship_type": "has_theorem",
+      "confidence": null
+    },
+    {
       "source_id": "A-5",
       "target_id": "thm::T3",
       "relationship_type": "has_theorem",
@@ -59573,6 +59814,18 @@
     {
       "source_id": "A-14",
       "target_id": "thm::T3",
+      "relationship_type": "has_theorem",
+      "confidence": null
+    },
+    {
+      "source_id": "A-15",
+      "target_id": "thm::T21",
+      "relationship_type": "has_theorem",
+      "confidence": null
+    },
+    {
+      "source_id": "A-15",
+      "target_id": "thm::T25",
       "relationship_type": "has_theorem",
       "confidence": null
     }

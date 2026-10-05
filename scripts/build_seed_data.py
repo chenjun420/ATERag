@@ -779,13 +779,45 @@ def _split_refs(cell: str) -> list[str]:
 
     只取记号本身, 丢掉中文说明 —— 留着会让关系的 target 变成 ``R5 通例`` 这种
     永远匹配不上的串。
+
+    **空格后紧跟的说明只在「记号本身不是完整 id」时才切。** 早先一版无条件
+    ``split(" ")[0]``, 于是索引表里写全的 ``F_E.1_OHM_LAW`` 被砍成 ``F_E.1``
+    —— 而库里的 id 就是 ``F_E.1_OHM_LAW``, 于是这条引用永远匹配不上。
+    分号两侧都是记号时更明显: ``F_J.3_INDUCTOR_RIPPLE`` 本身含下划线, 砍完
+    就成了 ``F_J.3_INDUCTOR_RIPPLE`` 之外的那个短号, 指向另一个公式。
+
+    判定用 ``_looks_like_token``: 记号形态是 ``字母[.数字/下划线...]``, 后面
+    再跟内容说明就切, 没跟就原样保留。
     """
     out: list[str] = []
     for part in re.split(r"[,;、]", cell):
-        token = (_clean(part) or "").split(" ")[0]
-        if re.fullmatch(r"[AFGRPETUW]\.?[\w.]*", token):
+        cleaned = _clean(part) or ""
+        if not cleaned:
+            continue
+        token = cleaned.split(" ")[0]
+        if _looks_like_token(token):
             out.append(token)
     return out
+
+
+#: 记号形态: ``A`` / ``A-1`` / ``F_E.1`` / ``F_E.1_OHM_LAW`` / ``R5`` / ``G.26``。
+#:
+#: 用于两处: :func:`_split_refs` 判定切不切说明, 以及剪枝时判定「公式归属哪个
+#: W 子域」。后者曾靠 ``domain`` 字段, 但那是生成时算的 —— 用 id 前缀判更直接,
+#: 且不受 ``_props`` 里字段缺失影响。
+#:
+#: 记号形态。**逐段都要能吃多字符** —— 记号可以以多个同类字符开头
+#: (``FF_x`` / ``TT_y``), 所以首段是 ``[A-Za-z0-9_]+`` 而不是单个字母。
+#:
+#: 写这个正则时试过三版, 前两版都静默丢引用: ``[AFGRPETUW]([.-]...)?``
+#: 只吃一个首字符, 于是 ``F_E.1`` / ``R5`` / ``P3`` 全不匹配, 公理
+#: ``formula_refs`` 从 12 条掉到 1 条, 而生成器不报错、``fullmatch``
+#: 只是返回 None。**改正则必须逐个试过这些短记号**。
+_TOKEN_RE = re.compile(r"[AFGRPETUW][A-Za-z0-9_]*(?:[.-][A-Za-z0-9_]+)*")
+
+
+def _looks_like_token(s: str) -> bool:
+    return bool(_TOKEN_RE.fullmatch(s))
 
 
 def extract_axioms(lines: list[str]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -1469,6 +1501,16 @@ def prune_non_executable(
     def axiom_refs_gone(e: dict[str, Any]) -> bool:
         refs = props_of(e).get("formula_refs") or []
         return bool(refs) and all(r in dropped_formula_ids for r in refs)
+
+    # 摘掉指向已删公式的引用。不摘的话公理上留着一个指向空处的记号, 而下游
+    # 无法区分「这条公理本来就没有公式支撑」与「公式 id 写错了/被删了」。
+    for e in kept_entities:
+        refs = props_of(e).get("formula_refs")
+        if not refs:
+            continue
+        alive_refs = [r for r in refs if r not in dropped_formula_ids]
+        if len(alive_refs) != len(refs):
+            props_of(e)["formula_refs"] = alive_refs
 
     kept_entities = [
         e
