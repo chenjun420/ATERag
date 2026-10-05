@@ -985,7 +985,11 @@ def _rated_currents(conditions: Sequence[TestCondition]) -> dict[str, float]:
 
     必须按"输出电流"语义筛选, 不能只看 rail + max: 同一电压轨下还有输出电压
     (max=55.62)、温度(-54.8) 等行, 混进来会把额定电流算错一个量级。
-    筛选条件: 条件子句里出现输出电流语义, 且限值单位是电流单位。
+
+    判据只认 output_current 子句, 不看量纲 —— 见 _is_load_bearing 的说明:
+    保护动作阈值(短路/过流)单位也是 A, 按量纲收会把"保护动作点"当成
+    "该轨额定满载电流", 于是 -54V 轨的额定值被记成保护动作点(PA601 是
+    18A 而非 11.1A), 轨级推导的封顶基准直接错一个量级。
     """
     out: dict[str, float] = {}
     for c in conditions:
@@ -994,14 +998,25 @@ def _rated_currents(conditions: Sequence[TestCondition]) -> dict[str, float]:
         mx = c.limits.get("max") if c.limits else None
         if mx is None:
             continue
-        # 输出电流语义: 标题或子句 kind 指明是电流
-        is_current = any(cl.kind == _KIND_OUTPUT_CURRENT for cl in c.output_conditions) or (
-            c.limits.get("unit") == _UNIT_CURRENT
-        )
-        if not is_current:
+        if not _has_output_current_kind(c):
             continue
         out.setdefault(c.rail, float(mx))
     return out
+
+
+def _has_output_current_kind(c: TestCondition) -> bool:
+    """该需求测的是否就是"这条轨能拉多大电流"。
+
+    只认 output_current 子句 —— 这是"被测对象"的语义, 而非限值的量纲。
+    limit_kinds 把 A 一律映射成 output_current, 但保护条款 (role=
+    protection_response) 的限值子句在装配层已被改判成 protection_action
+    (assembler 对 ROLE_PROTECTION 显式覆盖), 所以这里看到的是保护语义。
+
+    漏掉这道区分的具体后果: PA601 SR-1309 输出过流保护动作区间 12~18A,
+    派生电流却被挂成 7.401A —— 落在动作区间之下, 产测按它设负载根本不触发
+    保护, 保护功能测不出来却显示通过。
+    """
+    return any(cl.kind == _KIND_OUTPUT_CURRENT for cl in c.output_conditions)
 
 
 def _rail_voltages(conditions: Sequence[TestCondition]) -> dict[str, float]:
@@ -1024,14 +1039,17 @@ def _is_load_bearing(c: TestCondition) -> bool:
     挂一个输出电流只会让产测人员以为还要额外拉这个电流 —— 或是更糟, 拿它去
     反推负载设定, 于是给电压判据的用例也去按 7.401A 设负载。
 
-    判据与 _rated_currents 同源(输出电流语义 + 电流单位), 两处必须一致 ——
+    判据只认 output_current 子句, 不看量纲 (见 _has_output_current_kind):
+    短路/过流保护的单位也是 A, 按量纲判会把它们一起收进来, 而保护动作点与
+    输出电流上限是两种量 —— 前者是"电流多大时保护动作", 后者是"这轨能拉多大"。
+    PA601 SR-1309 动作区间 12~18A, 挂上 7.401A 后产测设负载根本不触发保护。
+
+    与 _rated_currents 同源(同一个 _has_output_current_kind), 两处必须一致 ——
     否则会出现"额定表里有这条轨, 但它不产推导场景"的空洞。
     """
     if not c.rail:
         return False
-    return any(cl.kind == _KIND_OUTPUT_CURRENT for cl in c.output_conditions) or (
-        c.limits.get("unit") == _UNIT_CURRENT
-    )
+    return _has_output_current_kind(c)
 
 
 def _derive_load(
