@@ -299,35 +299,55 @@ for r in rows:
     say(f"    {r}")
 
 half = VALUES["pout_max"] / 2
-got = [r for r in rows if str(half) in {str(v) for v in r.values()}]
-say(f"  人工核对: 满载 {VALUES['pout_max']}W x 0.5 = {half}W "
-    f"-> {'与推导结果一致' if got else '**推导结果里没有这个值**'}")
-
-# ---- 规则与约束互相矛盾: 这是本次联合验证最重要的发现 ----
+say(f"  规则产出的四元组: {rows}")
 say("")
-say("  !! 规则与领域约束互相矛盾 !!")
-say("     规则 load-scaling 的头是 value_at_load(Q, Load, FullLoadValue, Ratio),")
-say("     而 Ratio 虽被 load_ratio(Load, Ratio) 绑定, **却从未参与乘法**:")
-say(f"       规则实际给出: half_load 的 value = {VALUES['pout_max']}W (与满载相同)")
-say(f"       物理上应是:   half_load 的 value = {half}W")
-say("     而同属领域知识的 LoadScalingShape 明确要求「半载功率必须等于满载功率的一半」。")
-say("     即: **可执行规则没实现缩放, 而约束按缩放判定** —— 两者互相矛盾。")
-say("     后果: 任何按这条规则推出的数据去跑 SHACL, 都会被 LoadScalingShape 判违规,")
-say("     而人看到的是「约束报错」, 真正的错在规则。")
+say("  注意第 3 位是**满载基准值**, 不是该工况下的值 —— 这是设计, 不是缺陷:")
+say("    build_seed_data.py:95-98 写明「引擎是纯合一, 没有算术……规则只推出")
+say("    (量, 工况, 满载基准值, 比例) 四元组, **乘法交给消费方** —— 那样乘法")
+say("    步骤本身才是可审计的, 而不是一个藏在引擎里、无法复核的中间值」。")
+say("    下面由 aterag.reasoning.load_scaling 补上这个消费方。")
 
-# 用 SHACL 证实: 按规则生成的数据确实被 LoadScalingShape 判违规
+from aterag.reasoning.load_scaling import scale_bindings  # noqa: E402
+
+scaled = scale_bindings(rows, quantity="pout_max")
 say("")
-say("  用 SHACL 交叉验证这个矛盾 (把规则推出的值喂给 LoadScalingShape):")
+say("  消费方(aterag.reasoning.scale_bindings)算出的值:")
+for s in scaled:
+    say(f"    {s.as_fact()}")
+
+got = [s for s in scaled if s.value == half]
+say("")
+say(f"  人工核对: 满载 {VALUES['pout_max']}W x 0.5 = {half}W -> "
+    f"{'与消费方结果一致' if got else '**不一致**'}")
+
+# 让 SHACL 独立判定消费方的结果 —— 判对判错不归本模块, 归 shape
 from rdflib import RDF, Graph, Literal, Namespace, URIRef  # noqa: E402
 
 EX = Namespace("http://aterag.local/power#")
-g2 = Graph()
-spec2 = URIRef("http://aterag.local/power#PA601-D54A-ruleout")
-g2.add((spec2, RDF.type, EX.ModelSpec))
-g2.add((spec2, EX.full_load_power, Literal(VALUES["pout_max"])))
-g2.add((spec2, EX.half_load_power, Literal(VALUES["pout_max"])))  # 规则的实际输出
-run_shacl(g2.serialize(format="turtle"), "按 load-scaling 规则产出的数据")
-say("     期望: LoadScalingShape 报违规 —— 那就证明规则与约束矛盾, 而不是约束错了。")
+
+
+def _spec(name: str, full: float, halfv: float) -> str:
+    g = Graph()
+    s = URIRef(f"http://aterag.local/power#{name}")
+    g.add((s, RDF.type, EX.ModelSpec))
+    g.add((s, EX.full_load_power, Literal(full)))
+    g.add((s, EX.half_load_power, Literal(halfv)))
+    return g.serialize(format="turtle")
+
+
+say("")
+say("  让 SHACL 独立判定 (LoadScalingShape: 半载功率 = 满载功率 / 2):")
+ok_scaled, _ = run_shacl(_spec("PA601-D54A-scaled", VALUES["pout_max"], half),
+                         "消费方算出的半载功率")
+say(f"    -> conforms={ok_scaled}  "
+    f"{'**通过: 消费方的乘法与领域约束一致**' if ok_scaled else '**仍违规**'}")
+
+say("")
+say("  对照组: 把规则的原始输出(未缩放的满载值)喂给同一个 shape:")
+ok_raw, _ = run_shacl(_spec("PA601-D54A-unscaled", VALUES["pout_max"], VALUES["pout_max"]),
+                      "未缩放的值")
+say(f"    -> conforms={ok_raw}  "
+    f"{'通过(意外)' if ok_raw else '报违规 -> shape 确实在判缩放, 消费方的乘法是必要的'}")
 
 # 别名归一: 50pct_load 应被规则解析成 half_load, 两者比例相同
 rows2 = dr.query("load_ratio(?alias, ?ratio)")

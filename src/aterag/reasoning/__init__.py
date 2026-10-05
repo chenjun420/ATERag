@@ -15,4 +15,6 @@
 
 from __future__ import annotations
 
-__all__: list[str] = []
+from aterag.reasoning.load_scaling import ScaledValue, scale, scale_bindings
+
+__all__ = ["ScaledValue", "scale", "scale_bindings"]
