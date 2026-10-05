@@ -79,16 +79,16 @@ naming:
   #   上下限都有且含典型值 -> 输入典型值(标称点)
   #   标题声明"极限" -> 输入极限值(与工作范围区分)
   input_levels:
-    - {id: il_extreme, when: {limits_only: [max], title_pattern: "极限"}, name: 输入极限值}
-    - {id: il_max, when: {limits_only: [max]}, name: 输入最大值}
-    - {id: il_min, when: {limits_only: [min]}, name: 输入最小值}
-    - {id: il_typ, when: {limits_all: [min, typ, max]}, name: 输入典型值}
+    - {id: il_extreme, when: {limit_kind_is: [input_voltage], limits_only: [max], title_pattern: "极限"}, name: 输入极限值}
+    - {id: il_max, when: {limit_kind_is: [input_voltage], limits_only: [max]}, name: 输入最大值}
+    - {id: il_min, when: {limit_kind_is: [input_voltage], limits_only: [min]}, name: 输入最小值}
+    - {id: il_typ, when: {limit_kind_is: [input_voltage], limits_all: [min, typ, max]}, name: 输入典型值}
     # il_range 只对"电压"语义生效: 备注里带输入电压分档的行(如输出功率
     # "90~176Vac: 400W; 176~286Vac: 600W")也有 min/max, 不加单位闸会被
     # 命名成"输入范围0~600Vac" —— 把 600W 功率说成 600V 电压, 产测照此
     # 设输入电压会直接把产品打坏。
-    - {id: il_range, when: {limits_all: [min, max], unit_is: [Vac, Vdc, V]}, name_pattern: "输入范围{min_g}~{max_g}{unit}"}
-    - {id: il_nominal, when: {limits_all: [typ]}, name: 输入典型值}
+    - {id: il_range, when: {limit_kind_is: [input_voltage, input_frequency], limits_all: [min, max], }, name_pattern: "输入范围{min_g}~{max_g}{unit}"}
+    - {id: il_nominal, when: {limit_kind_is: [input_voltage], limits_all: [typ]}, name: 输入典型值}
 
   # ---- 工作制前缀 (长期/短期) ----
   duty_levels:

@@ -62,6 +62,8 @@ limit_kinds:
   us: timing
   s: timing
   uF: cap_load
+  'Vac/Vdc': input_voltage  # 交流直流皆可的保护点 (输入量纲)
+  '℃': thermal  # 温度量纲; 与 %/℃(温度系数) 不同
 
 # ---- 激励短语规则 ----
 # kind    : kinds 中的成员

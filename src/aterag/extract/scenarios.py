@@ -35,6 +35,9 @@ DEFAULT_RULES_PATH = Path("config/scenario_rules.yaml")
 #: 语义常量: 用于按"输出电流"语义筛选额定电流。kind 与单位名取自
 #: condition_patterns.yaml 的封闭词表 —— 这里只做等值比较, 不引入新的词汇。
 _KIND_OUTPUT_CURRENT = "output_current"
+#: 输入侧的两个驱动 kind (见 _input_clause: 电压与频率都是输入侧的量)。
+#: 取自 kinds.input 封闭词表, 不在代码里另造语义。
+_KIND_INPUT_FREQUENCY = "input_frequency"
 _KIND_LOAD = "load"
 _KIND_INPUT_VOLTAGE = "input_voltage"
 _KIND_DUTY = "duty"
@@ -44,6 +47,34 @@ _UNIT_CURRENT = "A"
 
 #: 语义常量: 限值的三个形态键(与 TestCondition.limits 的键同名)。
 _LIMIT_KEYS = ("min", "typ", "max")
+
+#: 限值子句的来源标记 (与 models.SRC_LIMITS 同值)。
+_SRC_LIMITS = "limits"
+
+
+def _limit_kind(cond: TestCondition) -> str:
+    """限值列对应的语义分类 —— 判断"被测对象是什么量"的唯一依据。
+
+    取自装配层写入的 ConditionClause.kind (source=limits), 不在此重新实现
+    单位→kind 的映射: 那套映射由 condition_patterns.yaml 的 limit_kinds 与
+    title_kinds 决定, 复用可保证命名层与限值子句的语义永远一致。实测 PA601 的
+    SRC_LIMITS 子句 100% 落在封闭 kinds 词表内, 故该值可信。
+
+    **两侧都要看**: 装配层按章节先验 (role) 决定限值子句归到哪一侧 ——
+    输入特性表的条款 (role=input_domain) 限值落在**输入侧**, 输出侧只有补齐
+    层加的通用判据。只看输出侧的话, 输入电压范围/输入频率这类条款取不到值,
+    limit_kind 恒为空, 输入侧前缀会全部失效(比修之前更糟)。
+
+    保护类条款的 kind 已被装配层显式覆盖成 protection_action (assembler 对
+    ROLE_PROTECTION 有专门分支), 这里如实反映, 不做二次改判。
+
+    取不到时返回空串 —— 命名层据此**不给**输入侧前缀。空值只出现在无数值的
+    条款(信号类/功能要求类), 那些本就不该带输入前缀, 是安全默认。
+    """
+    for cl in (*cond.input_conditions, *cond.output_conditions):
+        if cl.source == _SRC_LIMITS and cl.kind:
+            return cl.kind
+    return ""
 
 #: 名称模板可用的渲染上下文 (键固定, 避免模板引用不存在变量)。
 _NAME_CTX = frozenset({"value_g", "min_g", "max_g", "value", "rail", "unit"})
@@ -464,9 +495,16 @@ def _load_clause(cond: TestCondition) -> Any:
 
 
 def _input_clause(cond: TestCondition) -> Any:
-    for cl in cond.input_conditions:
-        if cl.kind == _KIND_INPUT_VOLTAGE:
-            return cl
+    """取输入侧的驱动子句 (无则 None)。
+
+    认两种 kind: 输入电压与输入频率。二者都是"设定输入侧的量", 是输入侧命名
+    前缀的语境。只认输入电压的话, SR-1103 交流输入频率取不到子句 -> 走不到
+    input_levels 规则 -> 即使 limit_kind 与 limits 都对, 也只会退回标题兜底。
+    """
+    for kind in (_KIND_INPUT_VOLTAGE, _KIND_INPUT_FREQUENCY):
+        for cl in cond.input_conditions:
+            if cl.kind == kind:
+                return cl
     return None
 
 
@@ -507,6 +545,17 @@ def _match_naming(rule: NamingRule, ctx: Mapping[str, Any]) -> bool:
         # 产测照此设输入电压会直接损坏产品。
         units = w["unit_is"] if isinstance(w["unit_is"], list) else [w["unit_is"]]
         if ctx.get("unit") not in units:
+            return False
+    if "limit_kind_is" in w:
+        # 限定"被测对象是什么量", 而不限"限值列有几个键"。
+        # 只看键数时, 输出电压(min=3.45)、纹波(max=500mV)、上升时间(max=20ms)
+        # 因为恰好只有 min 或 max 一个键, 会被输入前缀规则接走 —— 产测照
+        # "输入最小值@-54V" 设输入电压, 测到的却不是被测对象。
+        # limit_kind 来自 condition_patterns.yaml 的 limit_kinds (V→output_voltage
+        # / mV→ripple / ms→timing), 单位缺省时回落 title_kinds, 与装配层同源。
+        kinds = w["limit_kind_is"]
+        kinds = kinds if isinstance(kinds, list) else [kinds]
+        if ctx.get("limit_kind") not in kinds:
             return False
     if "title_pattern" in w and not re.search(str(w["title_pattern"]), str(ctx.get("title", ""))):
         return False
@@ -562,6 +611,8 @@ def _name_ctx(cl: Any, cond: TestCondition, kind: str = "") -> dict[str, Any]:
         "raw_value": (cl.value or {}).get("value") if cl is not None and cl.value else None,
         "has_value": val is not None,
         "limit_keys": [k for k in _LIMIT_KEYS if (cond.limits or {}).get(k) is not None],
+        # 被测对象的量纲分类, 供 limit_kind_is 闸门使用 —— 见 _limit_kind
+        "limit_kind": _limit_kind(cond),
         "title": cond.title or "",
         "subject_kind": kind,
         "rail": cond.rail or "",
