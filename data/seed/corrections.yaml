@@ -203,31 +203,31 @@ concepts:
   confidence: 0.88
 - id: PROT_REVERSE
   zh: 反向电压保护
-  standard_ref: 3.66 reverse voltage protection
+  clause: "3.66"
   source: 《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)
   checked: '2026-10-04'
   confidence: 0.85
 - id: PROT_OTP
   zh: 过热保护
-  standard_ref: 3.68 over-temperature protection
+  clause: "3.68"
   source: 《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)
   checked: '2026-10-04'
   confidence: 0.85
 - id: PROT_SCP
   zh: 短路保护
-  standard_ref: 3.72 短路电流 short-circuit current
+  clause: "3.72"
   source: 《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)
   checked: '2026-10-04'
   confidence: 0.85
 - id: SET_OCP_TRIP
   zh: 限流门限电流
-  standard_ref: 3.70 门限电流 current limiting threshold
+  clause: "3.70"
   source: 《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)
   checked: '2026-10-04'
   confidence: 0.85
 - id: SET_OVP_TRIP
   zh: 限压门限电压
-  standard_ref: 3.74 门限电压 voltage limiting threshold
+  clause: "3.74"
   source: 《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)
   checked: '2026-10-04'
   confidence: 0.85
@@ -274,28 +274,28 @@ concepts:
   note: 耐受电压是标准术语; 「绝缘试验电压」是试验条件下的说法, 二者指向同一件事的不同侧面。
 - id: DYNAMIC_RESPONSE
   zh: 瞬态恢复时间
-  standard_ref: 3.49 瞬态恢复时间(transient recovery time)
+  clause: "3.49"
   source: 《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)
   checked: '2026-10-04'
   confidence: 0.85
   note: 方案写「动态响应恢复时间」, 标准术语是「瞬态恢复时间」。
 - id: DYNAMIC_OVERSHOOT
   zh: 过冲幅度
-  standard_ref: 3.42 过冲幅度(overshoot amplitude)
+  clause: "3.42"
   source: 《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)
   checked: '2026-10-04'
   confidence: 0.85
   note: 方案写「动态响应过冲」, 标准把「过冲」与「过冲幅度」分列为两个量(3.41/3.42), 这里取后者。
 - id: STARTUP_DELAY
   zh: 开机延迟时间
-  standard_ref: 3.50 开机延迟时间(turn-on delay time)
+  clause: "3.50"
   source: 《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)
   checked: '2026-10-04'
   confidence: 0.85
   note: 方案写「开机输出延迟」。
 - id: CURRENT_SHARING
   zh: 均流
-  standard_ref: 3.60 规定负载分配的并联工作(parallel operation with specified load sharing)
+  clause: "3.60"
   source: 《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)
   checked: '2026-10-04'
   confidence: 0.85

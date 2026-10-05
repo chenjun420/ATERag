@@ -453,14 +453,16 @@
         "matched": "PROT_REVERSE",
         "before": {
           "zh": "反接保护",
+          "clause": null,
           "confidence": null
         },
         "after": {
           "zh": "反向电压保护",
+          "clause": "3.66",
           "confidence": 0.85
         },
-        "authority_kind": "standard",
-        "authority_ref": "3.66 reverse voltage protection",
+        "authority_kind": "industry",
+        "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
         "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
         "checked": "2026-10-04",
         "confidence": 0.85
@@ -471,14 +473,16 @@
         "matched": "PROT_OTP",
         "before": {
           "zh": "过温保护",
+          "clause": null,
           "confidence": null
         },
         "after": {
           "zh": "过热保护",
+          "clause": "3.68",
           "confidence": 0.85
         },
-        "authority_kind": "standard",
-        "authority_ref": "3.68 over-temperature protection",
+        "authority_kind": "industry",
+        "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
         "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
         "checked": "2026-10-04",
         "confidence": 0.85
@@ -489,14 +493,16 @@
         "matched": "PROT_SCP",
         "before": {
           "zh": "输出短路保护",
+          "clause": null,
           "confidence": null
         },
         "after": {
           "zh": "短路保护",
+          "clause": "3.72",
           "confidence": 0.85
         },
-        "authority_kind": "standard",
-        "authority_ref": "3.72 短路电流 short-circuit current",
+        "authority_kind": "industry",
+        "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
         "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
         "checked": "2026-10-04",
         "confidence": 0.85
@@ -507,14 +513,16 @@
         "matched": "SET_OCP_TRIP",
         "before": {
           "zh": "过流保护动作值",
+          "clause": null,
           "confidence": null
         },
         "after": {
           "zh": "限流门限电流",
+          "clause": "3.70",
           "confidence": 0.85
         },
-        "authority_kind": "standard",
-        "authority_ref": "3.70 门限电流 current limiting threshold",
+        "authority_kind": "industry",
+        "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
         "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
         "checked": "2026-10-04",
         "confidence": 0.85
@@ -525,14 +533,16 @@
         "matched": "SET_OVP_TRIP",
         "before": {
           "zh": "过压保护动作值",
+          "clause": null,
           "confidence": null
         },
         "after": {
           "zh": "限压门限电压",
+          "clause": "3.74",
           "confidence": 0.85
         },
-        "authority_kind": "standard",
-        "authority_ref": "3.74 门限电压 voltage limiting threshold",
+        "authority_kind": "industry",
+        "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
         "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
         "checked": "2026-10-04",
         "confidence": 0.85
@@ -651,14 +661,16 @@
         "matched": "DYNAMIC_RESPONSE",
         "before": {
           "zh": "动态响应恢复时间",
+          "clause": null,
           "confidence": null
         },
         "after": {
           "zh": "瞬态恢复时间",
+          "clause": "3.49",
           "confidence": 0.85
         },
-        "authority_kind": "standard",
-        "authority_ref": "3.49 瞬态恢复时间(transient recovery time)",
+        "authority_kind": "industry",
+        "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
         "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
         "checked": "2026-10-04",
         "confidence": 0.85
@@ -669,14 +681,16 @@
         "matched": "DYNAMIC_OVERSHOOT",
         "before": {
           "zh": "动态响应过冲",
+          "clause": null,
           "confidence": null
         },
         "after": {
           "zh": "过冲幅度",
+          "clause": "3.42",
           "confidence": 0.85
         },
-        "authority_kind": "standard",
-        "authority_ref": "3.42 过冲幅度(overshoot amplitude)",
+        "authority_kind": "industry",
+        "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
         "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
         "checked": "2026-10-04",
         "confidence": 0.85
@@ -687,14 +701,16 @@
         "matched": "STARTUP_DELAY",
         "before": {
           "zh": "开机输出延迟",
+          "clause": null,
           "confidence": null
         },
         "after": {
           "zh": "开机延迟时间",
+          "clause": "3.50",
           "confidence": 0.85
         },
-        "authority_kind": "standard",
-        "authority_ref": "3.50 开机延迟时间(turn-on delay time)",
+        "authority_kind": "industry",
+        "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
         "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
         "checked": "2026-10-04",
         "confidence": 0.85
@@ -705,14 +721,16 @@
         "matched": "CURRENT_SHARING",
         "before": {
           "zh": "负载均流度",
+          "clause": null,
           "confidence": null
         },
         "after": {
           "zh": "均流",
+          "clause": "3.60",
           "confidence": 0.85
         },
-        "authority_kind": "standard",
-        "authority_ref": "3.60 规定负载分配的并联工作(parallel operation with specified load sharing)",
+        "authority_kind": "industry",
+        "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
         "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
         "checked": "2026-10-04",
         "confidence": 0.85
@@ -1847,7 +1865,8 @@
           "zh": "遥信·交流输入掉电"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.3",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.3",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -1863,7 +1882,8 @@
           "zh": "遥信·输出过压保护动作"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.3",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.3",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -1879,7 +1899,8 @@
           "zh": "遥信·输出过流保护动作"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.3",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.3",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -1895,7 +1916,8 @@
           "zh": "遥信·过温保护动作"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.3",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.3",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -1911,7 +1933,8 @@
           "zh": "遥信·输出短路保护动作"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.3",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.3",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -1927,7 +1950,8 @@
           "zh": "遥信·风扇故障"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.3",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.3",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -1943,7 +1967,8 @@
           "zh": "遥信·ORING故障"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.3",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.3",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -1959,7 +1984,8 @@
           "zh": "遥信·模块在位"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.3",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.3",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -1975,7 +2001,8 @@
           "zh": "遥信·热插拔故障"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.3",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.3",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -1991,7 +2018,8 @@
           "zh": "遥信·混插告警"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.3",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.3",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2007,7 +2035,8 @@
           "zh": "遥信·通信超时"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.3",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.3",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2023,7 +2052,8 @@
           "zh": "遥信·汇总告警"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.3",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.3",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2039,7 +2069,8 @@
           "zh": "遥信·电源正常"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.3",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.3",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2055,7 +2086,8 @@
           "zh": "遥信·输入欠压告警"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.3",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.3",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2071,7 +2103,8 @@
           "zh": "遥测·输入电压"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.2",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.2",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2087,7 +2120,8 @@
           "zh": "遥测·输出电压"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.2",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.2",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2103,7 +2137,8 @@
           "zh": "遥测·输出电流"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.2",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.2",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2119,7 +2154,8 @@
           "zh": "遥测·输入功率"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.2",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.2",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2135,7 +2171,8 @@
           "zh": "遥测·输出功率"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.2",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.2",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2151,7 +2188,8 @@
           "zh": "遥测·环境温度"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.2",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.2",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2167,7 +2205,8 @@
           "zh": "遥测·热点温度"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.2",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.2",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2183,7 +2222,8 @@
           "zh": "遥测·风扇转速"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.2",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.2",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2199,7 +2239,8 @@
           "zh": "遥测·效率"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.2",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.2",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2215,7 +2256,8 @@
           "zh": "遥测·功率因数"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.2",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.2",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2231,7 +2273,8 @@
           "zh": "遥测·电能"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.2",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.2",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2247,7 +2290,8 @@
           "zh": "遥控·开机命令"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.4",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.4",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2263,7 +2307,8 @@
           "zh": "遥控·关机命令"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.4",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.4",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2279,7 +2324,8 @@
           "zh": "遥控·复位命令"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.4",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.4",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2295,7 +2341,8 @@
           "zh": "遥控·告警清除命令"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.4",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.4",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2311,7 +2358,8 @@
           "zh": "遥控·输出电压设定"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.4",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.4",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -2327,7 +2375,8 @@
           "zh": "遥控·固件升级命令"
         },
         "authority_kind": "standard",
-        "authority_ref": "2.1.4",
+        "authority_ref": "GB/Z 14429-2005",
+        "clause": "2.1.4",
         "source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)",
         "checked": "2026-10-04",
         "confidence": 0.95
@@ -3479,10 +3528,10 @@
       "entity_type": "power_concept",
       "text": "DYNAMIC_RESPONSE: 动态响应恢复时间 dynamic response recovery time",
       "confidence": 0.85,
-      "source": "3.49 瞬态恢复时间(transient recovery time)",
+      "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
       "section": null,
       "metadata": {
-        "authority_kind": "standard"
+        "authority_kind": "industry"
       },
       "zh": "瞬态恢复时间",
       "en": "dynamic response recovery time",
@@ -3493,19 +3542,19 @@
         "瞬态恢复"
       ],
       "qudt_ref": "Time",
-      "authority_kind": "standard",
+      "authority_kind": "industry",
       "provenance": {
         "zh": {
           "property_name": "zh",
           "value": "瞬态恢复时间",
           "sources": [
             {
-              "document": "3.49 瞬态恢复时间(transient recovery time)",
-              "section": "3.49 瞬态恢复时间(transient recovery time)",
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
               "line": null,
               "confidence": 0.85,
               "metadata": {
-                "authority_kind": "standard",
+                "authority_kind": "industry",
                 "checked": "2026-10-04",
                 "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
               }
@@ -3562,17 +3611,34 @@
             }
           ]
         },
+        "clause": {
+          "property_name": "clause",
+          "value": "3.49",
+          "sources": [
+            {
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "industry",
+                "checked": "2026-10-04",
+                "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
+              }
+            }
+          ]
+        },
         "confidence": {
           "property_name": "confidence",
           "value": 0.85,
           "sources": [
             {
-              "document": "3.49 瞬态恢复时间(transient recovery time)",
-              "section": "3.49 瞬态恢复时间(transient recovery time)",
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
               "line": null,
               "confidence": 0.85,
               "metadata": {
-                "authority_kind": "standard",
+                "authority_kind": "industry",
                 "checked": "2026-10-04",
                 "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
               }
@@ -3581,7 +3647,8 @@
         }
       },
       "zh_declared": "动态响应恢复时间",
-      "authority_ref": "3.49 瞬态恢复时间(transient recovery time)"
+      "clause": "3.49",
+      "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
     },
     {
       "id": "DYNAMIC_OVERSHOOT",
@@ -3589,10 +3656,10 @@
       "entity_type": "power_concept",
       "text": "DYNAMIC_OVERSHOOT: 动态响应过冲 dynamic response overshoot",
       "confidence": 0.85,
-      "source": "3.42 过冲幅度(overshoot amplitude)",
+      "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
       "section": null,
       "metadata": {
-        "authority_kind": "standard"
+        "authority_kind": "industry"
       },
       "zh": "过冲幅度",
       "en": "dynamic response overshoot",
@@ -3603,19 +3670,19 @@
         "瞬态过冲"
       ],
       "qudt_ref": "DimensionlessRatio",
-      "authority_kind": "standard",
+      "authority_kind": "industry",
       "provenance": {
         "zh": {
           "property_name": "zh",
           "value": "过冲幅度",
           "sources": [
             {
-              "document": "3.42 过冲幅度(overshoot amplitude)",
-              "section": "3.42 过冲幅度(overshoot amplitude)",
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
               "line": null,
               "confidence": 0.85,
               "metadata": {
-                "authority_kind": "standard",
+                "authority_kind": "industry",
                 "checked": "2026-10-04",
                 "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
               }
@@ -3672,17 +3739,34 @@
             }
           ]
         },
+        "clause": {
+          "property_name": "clause",
+          "value": "3.42",
+          "sources": [
+            {
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "industry",
+                "checked": "2026-10-04",
+                "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
+              }
+            }
+          ]
+        },
         "confidence": {
           "property_name": "confidence",
           "value": 0.85,
           "sources": [
             {
-              "document": "3.42 过冲幅度(overshoot amplitude)",
-              "section": "3.42 过冲幅度(overshoot amplitude)",
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
               "line": null,
               "confidence": 0.85,
               "metadata": {
-                "authority_kind": "standard",
+                "authority_kind": "industry",
                 "checked": "2026-10-04",
                 "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
               }
@@ -3691,7 +3775,8 @@
         }
       },
       "zh_declared": "动态响应过冲",
-      "authority_ref": "3.42 过冲幅度(overshoot amplitude)"
+      "clause": "3.42",
+      "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
     },
     {
       "id": "STARTUP_DELAY",
@@ -3699,10 +3784,10 @@
       "entity_type": "power_concept",
       "text": "STARTUP_DELAY: 开机输出延迟 startup delay",
       "confidence": 0.85,
-      "source": "3.50 开机延迟时间(turn-on delay time)",
+      "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
       "section": null,
       "metadata": {
-        "authority_kind": "standard"
+        "authority_kind": "industry"
       },
       "zh": "开机延迟时间",
       "en": "startup delay",
@@ -3713,19 +3798,19 @@
         "上电延迟"
       ],
       "qudt_ref": "Time",
-      "authority_kind": "standard",
+      "authority_kind": "industry",
       "provenance": {
         "zh": {
           "property_name": "zh",
           "value": "开机延迟时间",
           "sources": [
             {
-              "document": "3.50 开机延迟时间(turn-on delay time)",
-              "section": "3.50 开机延迟时间(turn-on delay time)",
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
               "line": null,
               "confidence": 0.85,
               "metadata": {
-                "authority_kind": "standard",
+                "authority_kind": "industry",
                 "checked": "2026-10-04",
                 "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
               }
@@ -3782,17 +3867,34 @@
             }
           ]
         },
+        "clause": {
+          "property_name": "clause",
+          "value": "3.50",
+          "sources": [
+            {
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "industry",
+                "checked": "2026-10-04",
+                "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
+              }
+            }
+          ]
+        },
         "confidence": {
           "property_name": "confidence",
           "value": 0.85,
           "sources": [
             {
-              "document": "3.50 开机延迟时间(turn-on delay time)",
-              "section": "3.50 开机延迟时间(turn-on delay time)",
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
               "line": null,
               "confidence": 0.85,
               "metadata": {
-                "authority_kind": "standard",
+                "authority_kind": "industry",
                 "checked": "2026-10-04",
                 "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
               }
@@ -3801,7 +3903,8 @@
         }
       },
       "zh_declared": "开机输出延迟",
-      "authority_ref": "3.50 开机延迟时间(turn-on delay time)"
+      "clause": "3.50",
+      "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
     },
     {
       "id": "VOUT_RISE_TIME",
@@ -5454,10 +5557,10 @@
       "entity_type": "power_concept",
       "text": "CURRENT_SHARING: 负载均流度 current sharing",
       "confidence": 0.85,
-      "source": "3.60 规定负载分配的并联工作(parallel operation with specified load sharing)",
+      "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
       "section": null,
       "metadata": {
-        "authority_kind": "standard"
+        "authority_kind": "industry"
       },
       "zh": "均流",
       "en": "current sharing",
@@ -5467,19 +5570,19 @@
         "均流度"
       ],
       "qudt_ref": "DimensionlessRatio",
-      "authority_kind": "standard",
+      "authority_kind": "industry",
       "provenance": {
         "zh": {
           "property_name": "zh",
           "value": "均流",
           "sources": [
             {
-              "document": "3.60 规定负载分配的并联工作(parallel operation with specified load sharing)",
-              "section": "3.60 规定负载分配的并联工作(parallel operation with specified load sharing)",
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
               "line": null,
               "confidence": 0.85,
               "metadata": {
-                "authority_kind": "standard",
+                "authority_kind": "industry",
                 "checked": "2026-10-04",
                 "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
               }
@@ -5535,17 +5638,34 @@
             }
           ]
         },
+        "clause": {
+          "property_name": "clause",
+          "value": "3.60",
+          "sources": [
+            {
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "industry",
+                "checked": "2026-10-04",
+                "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
+              }
+            }
+          ]
+        },
         "confidence": {
           "property_name": "confidence",
           "value": 0.85,
           "sources": [
             {
-              "document": "3.60 规定负载分配的并联工作(parallel operation with specified load sharing)",
-              "section": "3.60 规定负载分配的并联工作(parallel operation with specified load sharing)",
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
               "line": null,
               "confidence": 0.85,
               "metadata": {
-                "authority_kind": "standard",
+                "authority_kind": "industry",
                 "checked": "2026-10-04",
                 "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
               }
@@ -5554,7 +5674,8 @@
         }
       },
       "zh_declared": "负载均流度",
-      "authority_ref": "3.60 规定负载分配的并联工作(parallel operation with specified load sharing)"
+      "clause": "3.60",
+      "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
     },
     {
       "id": "INSTR_OSCILLOSCOPE",
@@ -8679,7 +8800,7 @@
       "entity_type": "power_concept",
       "text": "YX_AC_FAIL: 交流输入掉电 AC input fail",
       "confidence": null,
-      "source": "2.1.3",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -8697,12 +8818,14 @@
           "value": "遥信·交流输入掉电",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -8730,12 +8853,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -8745,12 +8870,14 @@
           "value": "YX",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -8760,12 +8887,14 @@
           "value": "远程信号",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -8774,7 +8903,8 @@
       "zh_declared": "交流输入掉电",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "authority_ref": "2.1.3"
+      "clause": "2.1.3",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YX_OVP_TRIP",
@@ -8782,7 +8912,7 @@
       "entity_type": "power_concept",
       "text": "YX_OVP_TRIP: 输出过压保护动作 OVP trip",
       "confidence": null,
-      "source": "2.1.3",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -8800,12 +8930,14 @@
           "value": "遥信·输出过压保护动作",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -8833,12 +8965,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -8848,12 +8982,14 @@
           "value": "YX",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -8863,12 +8999,14 @@
           "value": "远程信号",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -8877,7 +9015,8 @@
       "zh_declared": "输出过压保护动作",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "authority_ref": "2.1.3"
+      "clause": "2.1.3",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YX_OCP_TRIP",
@@ -8885,7 +9024,7 @@
       "entity_type": "power_concept",
       "text": "YX_OCP_TRIP: 输出过流保护动作 OCP trip",
       "confidence": null,
-      "source": "2.1.3",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -8903,12 +9042,14 @@
           "value": "遥信·输出过流保护动作",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -8936,12 +9077,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -8951,12 +9094,14 @@
           "value": "YX",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -8966,12 +9111,14 @@
           "value": "远程信号",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -8980,7 +9127,8 @@
       "zh_declared": "输出过流保护动作",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "authority_ref": "2.1.3"
+      "clause": "2.1.3",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YX_OTP_TRIP",
@@ -8988,7 +9136,7 @@
       "entity_type": "power_concept",
       "text": "YX_OTP_TRIP: 过温保护动作 OTP trip",
       "confidence": null,
-      "source": "2.1.3",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -9006,12 +9154,14 @@
           "value": "遥信·过温保护动作",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9039,12 +9189,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9054,12 +9206,14 @@
           "value": "YX",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9069,12 +9223,14 @@
           "value": "远程信号",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9083,7 +9239,8 @@
       "zh_declared": "过温保护动作",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "authority_ref": "2.1.3"
+      "clause": "2.1.3",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YX_SCP_TRIP",
@@ -9091,7 +9248,7 @@
       "entity_type": "power_concept",
       "text": "YX_SCP_TRIP: 输出短路保护动作 SCP trip",
       "confidence": null,
-      "source": "2.1.3",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -9109,12 +9266,14 @@
           "value": "遥信·输出短路保护动作",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9142,12 +9301,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9157,12 +9318,14 @@
           "value": "YX",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9172,12 +9335,14 @@
           "value": "远程信号",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9186,7 +9351,8 @@
       "zh_declared": "输出短路保护动作",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "authority_ref": "2.1.3"
+      "clause": "2.1.3",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YX_FAN_FAIL",
@@ -9194,7 +9360,7 @@
       "entity_type": "power_concept",
       "text": "YX_FAN_FAIL: 风扇故障 fan fail",
       "confidence": null,
-      "source": "2.1.3",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -9212,12 +9378,14 @@
           "value": "遥信·风扇故障",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9245,12 +9413,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9260,12 +9430,14 @@
           "value": "YX",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9275,12 +9447,14 @@
           "value": "远程信号",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9289,7 +9463,8 @@
       "zh_declared": "风扇故障",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "authority_ref": "2.1.3"
+      "clause": "2.1.3",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YX_ORING_FAULT",
@@ -9297,7 +9472,7 @@
       "entity_type": "power_concept",
       "text": "YX_ORING_FAULT: ORING故障 ORing fault",
       "confidence": null,
-      "source": "2.1.3",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -9315,12 +9490,14 @@
           "value": "遥信·ORING故障",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9348,12 +9525,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9363,12 +9542,14 @@
           "value": "YX",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9378,12 +9559,14 @@
           "value": "远程信号",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9392,7 +9575,8 @@
       "zh_declared": "ORING故障",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "authority_ref": "2.1.3"
+      "clause": "2.1.3",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YX_MODULE_PRESENT",
@@ -9400,7 +9584,7 @@
       "entity_type": "power_concept",
       "text": "YX_MODULE_PRESENT: 模块在位 module present",
       "confidence": null,
-      "source": "2.1.3",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -9418,12 +9602,14 @@
           "value": "遥信·模块在位",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9451,12 +9637,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9466,12 +9654,14 @@
           "value": "YX",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9481,12 +9671,14 @@
           "value": "远程信号",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9495,7 +9687,8 @@
       "zh_declared": "模块在位",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "authority_ref": "2.1.3"
+      "clause": "2.1.3",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YX_HOT_SWAP_FAULT",
@@ -9503,7 +9696,7 @@
       "entity_type": "power_concept",
       "text": "YX_HOT_SWAP_FAULT: 热插拔故障 hot swap fault",
       "confidence": null,
-      "source": "2.1.3",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -9521,12 +9714,14 @@
           "value": "遥信·热插拔故障",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9554,12 +9749,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9569,12 +9766,14 @@
           "value": "YX",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9584,12 +9783,14 @@
           "value": "远程信号",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9598,7 +9799,8 @@
       "zh_declared": "热插拔故障",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "authority_ref": "2.1.3"
+      "clause": "2.1.3",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YX_MIX_INSERT",
@@ -9606,7 +9808,7 @@
       "entity_type": "power_concept",
       "text": "YX_MIX_INSERT: 混插告警 mix insert alarm",
       "confidence": null,
-      "source": "2.1.3",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -9624,12 +9826,14 @@
           "value": "遥信·混插告警",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9657,12 +9861,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9672,12 +9878,14 @@
           "value": "YX",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9687,12 +9895,14 @@
           "value": "远程信号",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9701,7 +9911,8 @@
       "zh_declared": "混插告警",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "authority_ref": "2.1.3"
+      "clause": "2.1.3",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YX_COMM_TIMEOUT",
@@ -9709,7 +9920,7 @@
       "entity_type": "power_concept",
       "text": "YX_COMM_TIMEOUT: 通信超时 communication timeout",
       "confidence": null,
-      "source": "2.1.3",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -9727,12 +9938,14 @@
           "value": "遥信·通信超时",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9760,12 +9973,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9775,12 +9990,14 @@
           "value": "YX",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9790,12 +10007,14 @@
           "value": "远程信号",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9804,7 +10023,8 @@
       "zh_declared": "通信超时",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "authority_ref": "2.1.3"
+      "clause": "2.1.3",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YX_SUMMARY_ALARM",
@@ -9812,7 +10032,7 @@
       "entity_type": "power_concept",
       "text": "YX_SUMMARY_ALARM: 汇总告警 summary alarm",
       "confidence": null,
-      "source": "2.1.3",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -9830,12 +10050,14 @@
           "value": "遥信·汇总告警",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9863,12 +10085,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9878,12 +10102,14 @@
           "value": "YX",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9893,12 +10119,14 @@
           "value": "远程信号",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9907,7 +10135,8 @@
       "zh_declared": "汇总告警",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "authority_ref": "2.1.3"
+      "clause": "2.1.3",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YX_POWER_GOOD",
@@ -9915,7 +10144,7 @@
       "entity_type": "power_concept",
       "text": "YX_POWER_GOOD: 电源正常 power good",
       "confidence": null,
-      "source": "2.1.3",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -9933,12 +10162,14 @@
           "value": "遥信·电源正常",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9966,12 +10197,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9981,12 +10214,14 @@
           "value": "YX",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -9996,12 +10231,14 @@
           "value": "远程信号",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10010,7 +10247,8 @@
       "zh_declared": "电源正常",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "authority_ref": "2.1.3"
+      "clause": "2.1.3",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YX_INPUT_UV",
@@ -10018,7 +10256,7 @@
       "entity_type": "power_concept",
       "text": "YX_INPUT_UV: 输入欠压告警 input under-voltage alarm",
       "confidence": null,
-      "source": "2.1.3",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -10036,12 +10274,14 @@
           "value": "遥信·输入欠压告警",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10069,12 +10309,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10084,12 +10326,14 @@
           "value": "YX",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10099,12 +10343,14 @@
           "value": "远程信号",
           "sources": [
             {
-              "document": "2.1.3",
-              "section": "2.1.3",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10113,7 +10359,8 @@
       "zh_declared": "输入欠压告警",
       "telemetry_family": "YX",
       "standard_term": "远程信号",
-      "authority_ref": "2.1.3"
+      "clause": "2.1.3",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YC_VIN",
@@ -10121,7 +10368,7 @@
       "entity_type": "power_concept",
       "text": "YC_VIN: 输入电压 input voltage",
       "confidence": null,
-      "source": "2.1.2",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -10139,12 +10386,14 @@
           "value": "遥测·输入电压",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10172,12 +10421,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10187,12 +10438,14 @@
           "value": "YC",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10202,12 +10455,14 @@
           "value": "远程测量",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10216,7 +10471,8 @@
       "zh_declared": "输入电压",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "authority_ref": "2.1.2"
+      "clause": "2.1.2",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YC_VOUT",
@@ -10224,7 +10480,7 @@
       "entity_type": "power_concept",
       "text": "YC_VOUT: 输出电压 output voltage",
       "confidence": null,
-      "source": "2.1.2",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -10242,12 +10498,14 @@
           "value": "遥测·输出电压",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10275,12 +10533,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10290,12 +10550,14 @@
           "value": "YC",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10305,12 +10567,14 @@
           "value": "远程测量",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10319,7 +10583,8 @@
       "zh_declared": "输出电压",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "authority_ref": "2.1.2"
+      "clause": "2.1.2",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YC_IOUT",
@@ -10327,7 +10592,7 @@
       "entity_type": "power_concept",
       "text": "YC_IOUT: 输出电流 output current",
       "confidence": null,
-      "source": "2.1.2",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -10345,12 +10610,14 @@
           "value": "遥测·输出电流",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10378,12 +10645,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10393,12 +10662,14 @@
           "value": "YC",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10408,12 +10679,14 @@
           "value": "远程测量",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10422,7 +10695,8 @@
       "zh_declared": "输出电流",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "authority_ref": "2.1.2"
+      "clause": "2.1.2",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YC_PIN",
@@ -10430,7 +10704,7 @@
       "entity_type": "power_concept",
       "text": "YC_PIN: 输入功率 input power",
       "confidence": null,
-      "source": "2.1.2",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -10448,12 +10722,14 @@
           "value": "遥测·输入功率",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10481,12 +10757,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10496,12 +10774,14 @@
           "value": "YC",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10511,12 +10791,14 @@
           "value": "远程测量",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10525,7 +10807,8 @@
       "zh_declared": "输入功率",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "authority_ref": "2.1.2"
+      "clause": "2.1.2",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YC_POUT",
@@ -10533,7 +10816,7 @@
       "entity_type": "power_concept",
       "text": "YC_POUT: 输出功率 output power",
       "confidence": null,
-      "source": "2.1.2",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -10551,12 +10834,14 @@
           "value": "遥测·输出功率",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10584,12 +10869,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10599,12 +10886,14 @@
           "value": "YC",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10614,12 +10903,14 @@
           "value": "远程测量",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10628,7 +10919,8 @@
       "zh_declared": "输出功率",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "authority_ref": "2.1.2"
+      "clause": "2.1.2",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YC_TEMP_AMB",
@@ -10636,7 +10928,7 @@
       "entity_type": "power_concept",
       "text": "YC_TEMP_AMB: 环境温度 ambient temperature",
       "confidence": null,
-      "source": "2.1.2",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -10654,12 +10946,14 @@
           "value": "遥测·环境温度",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10687,12 +10981,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10702,12 +10998,14 @@
           "value": "YC",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10717,12 +11015,14 @@
           "value": "远程测量",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10731,7 +11031,8 @@
       "zh_declared": "环境温度",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "authority_ref": "2.1.2"
+      "clause": "2.1.2",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YC_TEMP_HOTSPOT",
@@ -10739,7 +11040,7 @@
       "entity_type": "power_concept",
       "text": "YC_TEMP_HOTSPOT: 热点温度 hotspot temperature",
       "confidence": null,
-      "source": "2.1.2",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -10757,12 +11058,14 @@
           "value": "遥测·热点温度",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10790,12 +11093,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10805,12 +11110,14 @@
           "value": "YC",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10820,12 +11127,14 @@
           "value": "远程测量",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10834,7 +11143,8 @@
       "zh_declared": "热点温度",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "authority_ref": "2.1.2"
+      "clause": "2.1.2",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YC_FAN_SPEED",
@@ -10842,7 +11152,7 @@
       "entity_type": "power_concept",
       "text": "YC_FAN_SPEED: 风扇转速 fan speed",
       "confidence": null,
-      "source": "2.1.2",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -10860,12 +11170,14 @@
           "value": "遥测·风扇转速",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10893,12 +11205,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10908,12 +11222,14 @@
           "value": "YC",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10923,12 +11239,14 @@
           "value": "远程测量",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10937,7 +11255,8 @@
       "zh_declared": "风扇转速",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "authority_ref": "2.1.2"
+      "clause": "2.1.2",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YC_EFFICIENCY",
@@ -10945,7 +11264,7 @@
       "entity_type": "power_concept",
       "text": "YC_EFFICIENCY: 效率 efficiency",
       "confidence": null,
-      "source": "2.1.2",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -10963,12 +11282,14 @@
           "value": "遥测·效率",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -10996,12 +11317,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -11011,12 +11334,14 @@
           "value": "YC",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -11026,12 +11351,14 @@
           "value": "远程测量",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -11040,7 +11367,8 @@
       "zh_declared": "效率",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "authority_ref": "2.1.2"
+      "clause": "2.1.2",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YC_PF",
@@ -11048,7 +11376,7 @@
       "entity_type": "power_concept",
       "text": "YC_PF: 功率因数 power factor",
       "confidence": null,
-      "source": "2.1.2",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -11066,12 +11394,14 @@
           "value": "遥测·功率因数",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -11099,12 +11429,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -11114,12 +11446,14 @@
           "value": "YC",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -11129,12 +11463,14 @@
           "value": "远程测量",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -11143,7 +11479,8 @@
       "zh_declared": "功率因数",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "authority_ref": "2.1.2"
+      "clause": "2.1.2",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YC_ENERGY",
@@ -11151,7 +11488,7 @@
       "entity_type": "power_concept",
       "text": "YC_ENERGY: 电能 energy",
       "confidence": null,
-      "source": "2.1.2",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -11169,12 +11506,14 @@
           "value": "遥测·电能",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -11202,12 +11541,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -11217,12 +11558,14 @@
           "value": "YC",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -11232,12 +11575,14 @@
           "value": "远程测量",
           "sources": [
             {
-              "document": "2.1.2",
-              "section": "2.1.2",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -11246,7 +11591,8 @@
       "zh_declared": "电能",
       "telemetry_family": "YC",
       "standard_term": "远程测量",
-      "authority_ref": "2.1.2"
+      "clause": "2.1.2",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "PROT_OCP",
@@ -11538,10 +11884,10 @@
       "entity_type": "power_concept",
       "text": "PROT_SCP: 输出短路保护 output short-circuit protection",
       "confidence": 0.85,
-      "source": "3.72 短路电流 short-circuit current",
+      "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
       "section": null,
       "metadata": {
-        "authority_kind": "standard"
+        "authority_kind": "industry"
       },
       "zh": "短路保护",
       "en": "output short-circuit protection",
@@ -11550,19 +11896,19 @@
         "output short-circuit protection",
         "SCP"
       ],
-      "authority_kind": "standard",
+      "authority_kind": "industry",
       "provenance": {
         "zh": {
           "property_name": "zh",
           "value": "短路保护",
           "sources": [
             {
-              "document": "3.72 短路电流 short-circuit current",
-              "section": "3.72 短路电流 short-circuit current",
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
               "line": null,
               "confidence": 0.85,
               "metadata": {
-                "authority_kind": "standard",
+                "authority_kind": "industry",
                 "checked": "2026-10-04",
                 "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
               }
@@ -11603,17 +11949,34 @@
             }
           ]
         },
+        "clause": {
+          "property_name": "clause",
+          "value": "3.72",
+          "sources": [
+            {
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "industry",
+                "checked": "2026-10-04",
+                "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
+              }
+            }
+          ]
+        },
         "confidence": {
           "property_name": "confidence",
           "value": 0.85,
           "sources": [
             {
-              "document": "3.72 短路电流 short-circuit current",
-              "section": "3.72 短路电流 short-circuit current",
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
               "line": null,
               "confidence": 0.85,
               "metadata": {
-                "authority_kind": "standard",
+                "authority_kind": "industry",
                 "checked": "2026-10-04",
                 "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
               }
@@ -11622,7 +11985,8 @@
         }
       },
       "zh_declared": "输出短路保护",
-      "authority_ref": "3.72 短路电流 short-circuit current"
+      "clause": "3.72",
+      "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
     },
     {
       "id": "PROT_OTP",
@@ -11630,10 +11994,10 @@
       "entity_type": "power_concept",
       "text": "PROT_OTP: 过温保护 over-temperature protection",
       "confidence": 0.85,
-      "source": "3.68 over-temperature protection",
+      "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
       "section": null,
       "metadata": {
-        "authority_kind": "standard"
+        "authority_kind": "industry"
       },
       "zh": "过热保护",
       "en": "over-temperature protection",
@@ -11642,19 +12006,19 @@
         "over-temperature protection",
         "OTP"
       ],
-      "authority_kind": "standard",
+      "authority_kind": "industry",
       "provenance": {
         "zh": {
           "property_name": "zh",
           "value": "过热保护",
           "sources": [
             {
-              "document": "3.68 over-temperature protection",
-              "section": "3.68 over-temperature protection",
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
               "line": null,
               "confidence": 0.85,
               "metadata": {
-                "authority_kind": "standard",
+                "authority_kind": "industry",
                 "checked": "2026-10-04",
                 "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
               }
@@ -11695,17 +12059,34 @@
             }
           ]
         },
+        "clause": {
+          "property_name": "clause",
+          "value": "3.68",
+          "sources": [
+            {
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "industry",
+                "checked": "2026-10-04",
+                "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
+              }
+            }
+          ]
+        },
         "confidence": {
           "property_name": "confidence",
           "value": 0.85,
           "sources": [
             {
-              "document": "3.68 over-temperature protection",
-              "section": "3.68 over-temperature protection",
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
               "line": null,
               "confidence": 0.85,
               "metadata": {
-                "authority_kind": "standard",
+                "authority_kind": "industry",
                 "checked": "2026-10-04",
                 "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
               }
@@ -11714,7 +12095,8 @@
         }
       },
       "zh_declared": "过温保护",
-      "authority_ref": "3.68 over-temperature protection"
+      "clause": "3.68",
+      "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
     },
     {
       "id": "PROT_INPUT_OVP",
@@ -11864,10 +12246,10 @@
       "entity_type": "power_concept",
       "text": "PROT_REVERSE: 反接保护 reverse polarity protection",
       "confidence": 0.85,
-      "source": "3.66 reverse voltage protection",
+      "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
       "section": null,
       "metadata": {
-        "authority_kind": "standard"
+        "authority_kind": "industry"
       },
       "zh": "反向电压保护",
       "en": "reverse polarity protection",
@@ -11876,19 +12258,19 @@
         "reverse polarity protection",
         "反接"
       ],
-      "authority_kind": "standard",
+      "authority_kind": "industry",
       "provenance": {
         "zh": {
           "property_name": "zh",
           "value": "反向电压保护",
           "sources": [
             {
-              "document": "3.66 reverse voltage protection",
-              "section": "3.66 reverse voltage protection",
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
               "line": null,
               "confidence": 0.85,
               "metadata": {
-                "authority_kind": "standard",
+                "authority_kind": "industry",
                 "checked": "2026-10-04",
                 "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
               }
@@ -11929,17 +12311,34 @@
             }
           ]
         },
+        "clause": {
+          "property_name": "clause",
+          "value": "3.66",
+          "sources": [
+            {
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "industry",
+                "checked": "2026-10-04",
+                "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
+              }
+            }
+          ]
+        },
         "confidence": {
           "property_name": "confidence",
           "value": 0.85,
           "sources": [
             {
-              "document": "3.66 reverse voltage protection",
-              "section": "3.66 reverse voltage protection",
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
               "line": null,
               "confidence": 0.85,
               "metadata": {
-                "authority_kind": "standard",
+                "authority_kind": "industry",
                 "checked": "2026-10-04",
                 "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
               }
@@ -11948,7 +12347,8 @@
         }
       },
       "zh_declared": "反接保护",
-      "authority_ref": "3.66 reverse voltage protection"
+      "clause": "3.66",
+      "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
     },
     {
       "id": "SET_OCP_TRIP",
@@ -11956,10 +12356,10 @@
       "entity_type": "power_concept",
       "text": "SET_OCP_TRIP: 过流保护动作值 OCP trip setting",
       "confidence": 0.85,
-      "source": "3.70 门限电流 current limiting threshold",
+      "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
       "section": null,
       "metadata": {
-        "authority_kind": "standard"
+        "authority_kind": "industry"
       },
       "zh": "限流门限电流",
       "en": "OCP trip setting",
@@ -11968,19 +12368,19 @@
         "OCP trip setting",
         "OCP定值"
       ],
-      "authority_kind": "standard",
+      "authority_kind": "industry",
       "provenance": {
         "zh": {
           "property_name": "zh",
           "value": "限流门限电流",
           "sources": [
             {
-              "document": "3.70 门限电流 current limiting threshold",
-              "section": "3.70 门限电流 current limiting threshold",
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
               "line": null,
               "confidence": 0.85,
               "metadata": {
-                "authority_kind": "standard",
+                "authority_kind": "industry",
                 "checked": "2026-10-04",
                 "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
               }
@@ -12021,17 +12421,34 @@
             }
           ]
         },
+        "clause": {
+          "property_name": "clause",
+          "value": "3.70",
+          "sources": [
+            {
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "industry",
+                "checked": "2026-10-04",
+                "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
+              }
+            }
+          ]
+        },
         "confidence": {
           "property_name": "confidence",
           "value": 0.85,
           "sources": [
             {
-              "document": "3.70 门限电流 current limiting threshold",
-              "section": "3.70 门限电流 current limiting threshold",
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
               "line": null,
               "confidence": 0.85,
               "metadata": {
-                "authority_kind": "standard",
+                "authority_kind": "industry",
                 "checked": "2026-10-04",
                 "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
               }
@@ -12040,7 +12457,8 @@
         }
       },
       "zh_declared": "过流保护动作值",
-      "authority_ref": "3.70 门限电流 current limiting threshold"
+      "clause": "3.70",
+      "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
     },
     {
       "id": "SET_OCP_DELAY",
@@ -12268,10 +12686,10 @@
       "entity_type": "power_concept",
       "text": "SET_OVP_TRIP: 过压保护动作值 OVP trip setting",
       "confidence": 0.85,
-      "source": "3.74 门限电压 voltage limiting threshold",
+      "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
       "section": null,
       "metadata": {
-        "authority_kind": "standard"
+        "authority_kind": "industry"
       },
       "zh": "限压门限电压",
       "en": "OVP trip setting",
@@ -12280,19 +12698,19 @@
         "OVP trip setting",
         "OVP定值"
       ],
-      "authority_kind": "standard",
+      "authority_kind": "industry",
       "provenance": {
         "zh": {
           "property_name": "zh",
           "value": "限压门限电压",
           "sources": [
             {
-              "document": "3.74 门限电压 voltage limiting threshold",
-              "section": "3.74 门限电压 voltage limiting threshold",
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
               "line": null,
               "confidence": 0.85,
               "metadata": {
-                "authority_kind": "standard",
+                "authority_kind": "industry",
                 "checked": "2026-10-04",
                 "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
               }
@@ -12333,17 +12751,34 @@
             }
           ]
         },
+        "clause": {
+          "property_name": "clause",
+          "value": "3.74",
+          "sources": [
+            {
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "industry",
+                "checked": "2026-10-04",
+                "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
+              }
+            }
+          ]
+        },
         "confidence": {
           "property_name": "confidence",
           "value": 0.85,
           "sources": [
             {
-              "document": "3.74 门限电压 voltage limiting threshold",
-              "section": "3.74 门限电压 voltage limiting threshold",
+              "document": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+              "section": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
               "line": null,
               "confidence": 0.85,
               "metadata": {
-                "authority_kind": "standard",
+                "authority_kind": "industry",
                 "checked": "2026-10-04",
                 "correction_source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
               }
@@ -12352,7 +12787,8 @@
         }
       },
       "zh_declared": "过压保护动作值",
-      "authority_ref": "3.74 门限电压 voltage limiting threshold"
+      "clause": "3.74",
+      "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
     },
     {
       "id": "SET_OVP_DELAY",
@@ -12800,7 +13236,7 @@
       "entity_type": "power_concept",
       "text": "YK_POWER_ON: 开机命令 power on command",
       "confidence": null,
-      "source": "2.1.4",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -12818,12 +13254,14 @@
           "value": "遥控·开机命令",
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -12851,12 +13289,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -12866,12 +13306,14 @@
           "value": "YK",
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -12881,12 +13323,14 @@
           "value": "远程命令",
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -12895,7 +13339,8 @@
       "zh_declared": "开机命令",
       "telemetry_family": "YK",
       "standard_term": "远程命令",
-      "authority_ref": "2.1.4"
+      "clause": "2.1.4",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YK_POWER_OFF",
@@ -12903,7 +13348,7 @@
       "entity_type": "power_concept",
       "text": "YK_POWER_OFF: 关机命令 power off command",
       "confidence": null,
-      "source": "2.1.4",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -12921,12 +13366,14 @@
           "value": "遥控·关机命令",
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -12954,12 +13401,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -12969,12 +13418,14 @@
           "value": "YK",
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -12984,12 +13435,14 @@
           "value": "远程命令",
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -12998,7 +13451,8 @@
       "zh_declared": "关机命令",
       "telemetry_family": "YK",
       "standard_term": "远程命令",
-      "authority_ref": "2.1.4"
+      "clause": "2.1.4",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YK_RESET",
@@ -13006,7 +13460,7 @@
       "entity_type": "power_concept",
       "text": "YK_RESET: 复位命令 reset command",
       "confidence": null,
-      "source": "2.1.4",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -13024,12 +13478,14 @@
           "value": "遥控·复位命令",
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -13057,12 +13513,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -13072,12 +13530,14 @@
           "value": "YK",
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -13087,12 +13547,14 @@
           "value": "远程命令",
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -13101,7 +13563,8 @@
       "zh_declared": "复位命令",
       "telemetry_family": "YK",
       "standard_term": "远程命令",
-      "authority_ref": "2.1.4"
+      "clause": "2.1.4",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YK_CLEAR_ALARM",
@@ -13109,7 +13572,7 @@
       "entity_type": "power_concept",
       "text": "YK_CLEAR_ALARM: 告警清除命令 clear alarm command",
       "confidence": null,
-      "source": "2.1.4",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -13127,12 +13590,14 @@
           "value": "遥控·告警清除命令",
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -13160,12 +13625,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -13175,12 +13642,14 @@
           "value": "YK",
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -13190,12 +13659,14 @@
           "value": "远程命令",
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -13204,7 +13675,8 @@
       "zh_declared": "告警清除命令",
       "telemetry_family": "YK",
       "standard_term": "远程命令",
-      "authority_ref": "2.1.4"
+      "clause": "2.1.4",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YK_SET_VOUT",
@@ -13212,7 +13684,7 @@
       "entity_type": "power_concept",
       "text": "YK_SET_VOUT: 输出电压设定 set output voltage",
       "confidence": null,
-      "source": "2.1.4",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -13230,12 +13702,14 @@
           "value": "遥控·输出电压设定",
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -13263,12 +13737,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -13278,12 +13754,14 @@
           "value": "YK",
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -13293,12 +13771,14 @@
           "value": "远程命令",
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -13307,7 +13787,8 @@
       "zh_declared": "输出电压设定",
       "telemetry_family": "YK",
       "standard_term": "远程命令",
-      "authority_ref": "2.1.4"
+      "clause": "2.1.4",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "YK_FW_UPGRADE",
@@ -13315,7 +13796,7 @@
       "entity_type": "power_concept",
       "text": "YK_FW_UPGRADE: 固件升级命令 firmware upgrade command",
       "confidence": null,
-      "source": "2.1.4",
+      "source": "GB/Z 14429-2005",
       "section": null,
       "metadata": {
         "authority_kind": "standard"
@@ -13333,12 +13814,14 @@
           "value": "遥控·固件升级命令",
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -13366,12 +13849,14 @@
           ],
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -13381,12 +13866,14 @@
           "value": "YK",
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -13396,12 +13883,14 @@
           "value": "远程命令",
           "sources": [
             {
-              "document": "2.1.4",
-              "section": "2.1.4",
+              "document": "GB/Z 14429-2005",
+              "section": "GB/Z 14429-2005",
               "line": null,
               "confidence": 0.95,
               "metadata": {
-                "authority_kind": "standard"
+                "authority_kind": "standard",
+                "checked": "2026-10-04",
+                "correction_source": "全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)"
               }
             }
           ]
@@ -13410,7 +13899,8 @@
       "zh_declared": "固件升级命令",
       "telemetry_family": "YK",
       "standard_term": "远程命令",
-      "authority_ref": "2.1.4"
+      "clause": "2.1.4",
+      "authority_ref": "GB/Z 14429-2005"
     },
     {
       "id": "sym::V_in",
@@ -38431,12 +38921,13 @@
       "entity_type": "standard",
       "text": "IEC 60664-1-2020 低压系统内设备的绝缘配合 第1部分：原理、规则和计划",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60664-1-2020",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60664-1-2020",
+      "authority_ref": "IEC 60664-1-2020",
       "version": "2020",
       "title": "低压系统内设备的绝缘配合 第1部分：原理、规则和计划",
       "scope": "电气间隙、爬电距离、污染等级、材料组",
@@ -38542,12 +39033,13 @@
       "entity_type": "standard",
       "text": "IEC 60664-2-1 采用基础绝缘的间隔",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60664-2-1",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60664-2-1",
+      "authority_ref": "IEC 60664-2-1",
       "title": "采用基础绝缘的间隔",
       "scope": "间隔计算",
       "bindings": "G.12",
@@ -38637,12 +39129,13 @@
       "entity_type": "standard",
       "text": "IEC 62368-1-2018 音视频/信息通信技术设备安全 第1部分：一般要求",
       "confidence": null,
-      "source": null,
+      "source": "IEC 62368-1-2018",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 62368-1-2018",
+      "authority_ref": "IEC 62368-1-2018",
       "version": "2018",
       "title": "音视频/信息通信技术设备安全 第1部分：一般要求",
       "scope": "电源产品主安规标准、爬电距离表 17、接触电流",
@@ -38748,12 +39241,13 @@
       "entity_type": "standard",
       "text": "IEC 60601-1-2005+A1:2012 医用电气设备 第1部分：基本安全与基本性能",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60601-1-2005+A1:2012",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60601-1-2005+A1:2012",
+      "authority_ref": "IEC 60601-1-2005+A1:2012",
       "version": "2005+A1:2012",
       "title": "医用电气设备 第1部分：基本安全与基本性能",
       "scope": "医疗类电源（漏电流限值更严）",
@@ -38865,6 +39359,7 @@
         "authority_kind": "industry"
       },
       "standard_id": "GB 4943.1-2011",
+      "authority_ref": "全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=E4A2A4C875736A5DE05397BE0A0A61E8",
       "title": "音视频、信息技术和通信技术设备 第1部分：安全要求",
       "scope": "中国对应 IEC 62368-1",
       "bindings": "G.12",
@@ -39019,8 +39514,7 @@
       },
       "replaced_by": "GB 4943.1-2022",
       "version": "2022",
-      "status": "SUPERSEDED",
-      "authority_ref": "全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=E4A2A4C875736A5DE05397BE0A0A61E8"
+      "status": "SUPERSEDED"
     },
     {
       "id": "std::GB 9706.1-2020",
@@ -39028,12 +39522,13 @@
       "entity_type": "standard",
       "text": "GB 9706.1-2020 医用电气设备基本安全",
       "confidence": null,
-      "source": null,
+      "source": "GB 9706.1-2020",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "GB 9706.1-2020",
+      "authority_ref": "GB 9706.1-2020",
       "title": "医用电气设备基本安全",
       "scope": "中国对应 IEC 60601-1",
       "bindings": "G.12",
@@ -39123,12 +39618,13 @@
       "entity_type": "standard",
       "text": "UL 62368-1-2013 UL 音视频/ICT 安全标准",
       "confidence": null,
-      "source": null,
+      "source": "UL 62368-1-2013",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "UL 62368-1-2013",
+      "authority_ref": "UL 62368-1-2013",
       "version": "2013",
       "title": "UL 音视频/ICT 安全标准",
       "scope": "北美认证",
@@ -39234,12 +39730,13 @@
       "entity_type": "standard",
       "text": "UL 60950-1 （旧版，已被 62368-1 取代）",
       "confidence": null,
-      "source": null,
+      "source": "UL 60950-1",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "UL 60950-1",
+      "authority_ref": "UL 60950-1",
       "title": "（旧版，已被 62368-1 取代）",
       "scope": "历史产品",
       "bindings": "—",
@@ -39329,12 +39826,13 @@
       "entity_type": "standard",
       "text": "IEC 60529-1989+A2:2013 外壳防护等级（IP Code）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60529-1989+A2:2013",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60529-1989+A2:2013",
+      "authority_ref": "IEC 60529-1989+A2:2013",
       "version": "1989+A2:2013",
       "title": "外壳防护等级（IP Code）",
       "scope": "IP 等级定义",
@@ -39440,12 +39938,13 @@
       "entity_type": "standard",
       "text": "IEC 61140 防触电保护和接地",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61140",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61140",
+      "authority_ref": "IEC 61140",
       "title": "防触电保护和接地",
       "scope": "接地连续性",
       "bindings": "G.12",
@@ -39535,12 +40034,13 @@
       "entity_type": "standard",
       "text": "IEC 61558 变压器安全（安全隔离变压器）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61558",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61558",
+      "authority_ref": "IEC 61558",
       "title": "变压器安全（安全隔离变压器）",
       "scope": "隔离变压器（电源）",
       "bindings": "G.12",
@@ -39630,12 +40130,13 @@
       "entity_type": "standard",
       "text": "UL 94 塑料材料阻燃等级（V-0/V-1）",
       "confidence": null,
-      "source": null,
+      "source": "UL 94",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "UL 94",
+      "authority_ref": "UL 94",
       "title": "塑料材料阻燃等级（V-0/V-1）",
       "scope": "三防/灌封阻燃",
       "bindings": "G.25、附录F.10",
@@ -39725,12 +40226,13 @@
       "entity_type": "standard",
       "text": "IEC 60068-2-27 环境试验：冲击",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60068-2-27",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60068-2-27",
+      "authority_ref": "IEC 60068-2-27",
       "title": "环境试验：冲击",
       "scope": "机械冲击",
       "bindings": "G.13、G.24",
@@ -39820,12 +40322,13 @@
       "entity_type": "standard",
       "text": "IEC 60068-2-6 环境试验：振动",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60068-2-6",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60068-2-6",
+      "authority_ref": "IEC 60068-2-6",
       "title": "环境试验：振动",
       "scope": "振动",
       "bindings": "G.13、G.24",
@@ -39915,12 +40418,13 @@
       "entity_type": "standard",
       "text": "IEC 60068-2-14 环境试验：温度变化（温度循环）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60068-2-14",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60068-2-14",
+      "authority_ref": "IEC 60068-2-14",
       "title": "环境试验：温度变化（温度循环）",
       "scope": "温度循环",
       "bindings": "G.13、G.24（F_N.4.7）",
@@ -40010,12 +40514,13 @@
       "entity_type": "standard",
       "text": "CISPR 22-2008 信息技术设备骚扰特性限值与测量方法",
       "confidence": null,
-      "source": null,
+      "source": "CISPR 22-2008",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "CISPR 22-2008",
+      "authority_ref": "CISPR 22-2008",
       "version": "2008",
       "title": "信息技术设备骚扰特性限值与测量方法",
       "scope": "传导/辐射发射（ITE）",
@@ -40121,12 +40626,13 @@
       "entity_type": "standard",
       "text": "CISPR 32-2015 多媒体设备 EMC 特性",
       "confidence": null,
-      "source": null,
+      "source": "CISPR 32-2015",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "CISPR 32-2015",
+      "authority_ref": "CISPR 32-2015",
       "version": "2015",
       "title": "多媒体设备 EMC 特性",
       "scope": "发射限值（替代 CISPR 22）",
@@ -40232,12 +40738,13 @@
       "entity_type": "standard",
       "text": "CISPR 35-2017 多媒体设备抗扰度",
       "confidence": null,
-      "source": null,
+      "source": "CISPR 35-2017",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "CISPR 35-2017",
+      "authority_ref": "CISPR 35-2017",
       "version": "2017",
       "title": "多媒体设备抗扰度",
       "scope": "抗扰度要求",
@@ -40343,12 +40850,13 @@
       "entity_type": "standard",
       "text": "CISPR 16-1-2 耦合/测量设备：传导骚扰测量",
       "confidence": null,
-      "source": null,
+      "source": "CISPR 16-1-2",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "CISPR 16-1-2",
+      "authority_ref": "CISPR 16-1-2",
       "title": "耦合/测量设备：传导骚扰测量",
       "scope": "LISN、接收机",
       "bindings": "F_P.2.1、G.11",
@@ -40438,12 +40946,13 @@
       "entity_type": "standard",
       "text": "CISPR 24 设备抗扰度",
       "confidence": null,
-      "source": null,
+      "source": "CISPR 24",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "CISPR 24",
+      "authority_ref": "CISPR 24",
       "title": "设备抗扰度",
       "scope": "通用抗扰",
       "bindings": "G.11",
@@ -40533,12 +41042,13 @@
       "entity_type": "standard",
       "text": "IEC 61000-4-2-2008 静电放电抗扰度",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61000-4-2-2008",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61000-4-2-2008",
+      "authority_ref": "IEC 61000-4-2-2008",
       "version": "2008",
       "title": "静电放电抗扰度",
       "scope": "ESD（接触/空气）",
@@ -40650,6 +41160,7 @@
         "authority_kind": "industry"
       },
       "standard_id": "GB/T 17626.2-2018",
+      "authority_ref": "全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=71F772D82E42D3A7E05397BE0A0AB82A",
       "version": "2018",
       "title": "电磁兼容 试验和测量技术 静电放电抗扰度试验",
       "scope": "中国对应 IEC 61000-4-2",
@@ -40822,8 +41333,7 @@
       },
       "status": "CURRENT",
       "iec_equivalent": "IEC 61000-4-2",
-      "replaces": "GB/T 17626.2-2006",
-      "authority_ref": "全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=71F772D82E42D3A7E05397BE0A0AB82A"
+      "replaces": "GB/T 17626.2-2006"
     },
     {
       "id": "std::IEC 61000-4-3-2020",
@@ -40831,12 +41341,13 @@
       "entity_type": "standard",
       "text": "IEC 61000-4-3-2020 辐射 RF 场抗扰度",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61000-4-3-2020",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61000-4-3-2020",
+      "authority_ref": "IEC 61000-4-3-2020",
       "version": "2020",
       "title": "辐射 RF 场抗扰度",
       "scope": "RS",
@@ -40948,6 +41459,7 @@
         "authority_kind": "industry"
       },
       "standard_id": "GB/T 17626.3-2021",
+      "authority_ref": "全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=0DF2F72AE296403DE06397BE0A0A87C4",
       "title": "电磁兼容 试验和测量技术 第3部分：射频电磁场辐射抗扰度试验",
       "scope": "同上",
       "bindings": "G.11",
@@ -41120,8 +41632,7 @@
       "replaced_by": "GB/T 17626.3-2023",
       "version": "2023",
       "status": "SUPERSEDED",
-      "iec_equivalent": "IEC 61000-4-3",
-      "authority_ref": "全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=0DF2F72AE296403DE06397BE0A0A87C4"
+      "iec_equivalent": "IEC 61000-4-3"
     },
     {
       "id": "std::IEC 61000-4-4-2012",
@@ -41129,12 +41640,13 @@
       "entity_type": "standard",
       "text": "IEC 61000-4-4-2012 电快速瞬变脉冲群（EFT/B）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61000-4-4-2012",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61000-4-4-2012",
+      "authority_ref": "IEC 61000-4-4-2012",
       "version": "2012",
       "title": "电快速瞬变脉冲群（EFT/B）",
       "scope": "EFT",
@@ -41240,12 +41752,13 @@
       "entity_type": "standard",
       "text": "GB/T 17626.4-2018 电快速瞬变脉冲群抗扰度",
       "confidence": null,
-      "source": null,
+      "source": "GB/T 17626.4-2018",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "GB/T 17626.4-2018",
+      "authority_ref": "GB/T 17626.4-2018",
       "version": "2018",
       "title": "电快速瞬变脉冲群抗扰度",
       "scope": "同上",
@@ -41351,12 +41864,13 @@
       "entity_type": "standard",
       "text": "IEC 61000-4-5-2014 浪涌（冲击）抗扰度",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61000-4-5-2014",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61000-4-5-2014",
+      "authority_ref": "IEC 61000-4-5-2014",
       "version": "2014",
       "title": "浪涌（冲击）抗扰度",
       "scope": "Surge",
@@ -41462,12 +41976,13 @@
       "entity_type": "standard",
       "text": "GB/T 17626.5-2019 浪涌抗扰度",
       "confidence": null,
-      "source": null,
+      "source": "GB/T 17626.5-2019",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "GB/T 17626.5-2019",
+      "authority_ref": "GB/T 17626.5-2019",
       "version": "2019",
       "title": "浪涌抗扰度",
       "scope": "同上",
@@ -41573,12 +42088,13 @@
       "entity_type": "standard",
       "text": "IEC 61000-4-6-2013 传导 RF 抗扰度",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61000-4-6-2013",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61000-4-6-2013",
+      "authority_ref": "IEC 61000-4-6-2013",
       "version": "2013",
       "title": "传导 RF 抗扰度",
       "scope": "CS",
@@ -41684,12 +42200,13 @@
       "entity_type": "standard",
       "text": "GB/T 17626.6-2015 传导射频电磁场感应场抗扰度",
       "confidence": null,
-      "source": null,
+      "source": "GB/T 17626.6-2015",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "GB/T 17626.6-2015",
+      "authority_ref": "GB/T 17626.6-2015",
       "version": "2015",
       "title": "传导射频电磁场感应场抗扰度",
       "scope": "同上",
@@ -41795,12 +42312,13 @@
       "entity_type": "standard",
       "text": "IEC 61000-4-8-2009 工频磁场抗扰度",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61000-4-8-2009",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61000-4-8-2009",
+      "authority_ref": "IEC 61000-4-8-2009",
       "version": "2009",
       "title": "工频磁场抗扰度",
       "scope": "PFMF",
@@ -41906,12 +42424,13 @@
       "entity_type": "standard",
       "text": "GB/T 17626.8-2012 工频磁场抗扰度",
       "confidence": null,
-      "source": null,
+      "source": "GB/T 17626.8-2012",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "GB/T 17626.8-2012",
+      "authority_ref": "GB/T 17626.8-2012",
       "version": "2012",
       "title": "工频磁场抗扰度",
       "scope": "同上",
@@ -42017,12 +42536,13 @@
       "entity_type": "standard",
       "text": "IEC 61000-4-11-2020 交流电压暂降与短时中断抗扰度",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61000-4-11-2020",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61000-4-11-2020",
+      "authority_ref": "IEC 61000-4-11-2020",
       "version": "2020",
       "title": "交流电压暂降与短时中断抗扰度",
       "scope": "DIP",
@@ -42134,6 +42654,7 @@
         "authority_kind": "industry"
       },
       "standard_id": "GB/T 17626.11-2018",
+      "authority_ref": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 17626 各标准正文「试验设备」条款",
       "version": "2023",
       "title": "电磁兼容 试验和测量技术 第11部分：对每相输入电流小于或等于16 A设备的电压暂降、短时中断和电压变化抗扰度试验",
       "scope": "同上",
@@ -42306,8 +42827,7 @@
       },
       "replaced_by": "GB/T 17626.11-2023",
       "status": "SUPERSEDED",
-      "iec_equivalent": "IEC 61000-4-11",
-      "authority_ref": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 17626 各标准正文「试验设备」条款"
+      "iec_equivalent": "IEC 61000-4-11"
     },
     {
       "id": "std::IEC 61000-4-18-2010",
@@ -42315,12 +42835,13 @@
       "entity_type": "standard",
       "text": "IEC 61000-4-18-2010 振荡波（100 kHz）抗扰度",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61000-4-18-2010",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61000-4-18-2010",
+      "authority_ref": "IEC 61000-4-18-2010",
       "version": "2010",
       "title": "振荡波（100 kHz）抗扰度",
       "scope": "Surge(100k)",
@@ -42426,12 +42947,13 @@
       "entity_type": "standard",
       "text": "IEC 61000-3-2-2018 谐波电流发射限值（≤75 A）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61000-3-2-2018",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61000-3-2-2018",
+      "authority_ref": "IEC 61000-3-2-2018",
       "version": "2018",
       "title": "谐波电流发射限值（≤75 A）",
       "scope": "PF/THD 限值",
@@ -42543,6 +43065,7 @@
         "authority_kind": "industry"
       },
       "standard_id": "GB/T 9254.1-2021",
+      "authority_ref": "中国质量新闻网 / 中国质量研究院关于新版国标发布的说明",
       "title": "信息技术设备、多媒体设备和接收机 电磁兼容 第1部分：发射要求",
       "scope": "中国对应 IEC 61000-3-2",
       "bindings": "G.5",
@@ -42697,8 +43220,7 @@
       },
       "version": "2021",
       "status": "CURRENT",
-      "replaces": "GB/T 9254-2008, GB/T 13837-2012",
-      "authority_ref": "中国质量新闻网 / 中国质量研究院关于新版国标发布的说明"
+      "replaces": "GB/T 9254-2008, GB/T 13837-2012"
     },
     {
       "id": "std::IEC 61000-3-12-2011",
@@ -42706,12 +43228,13 @@
       "entity_type": "standard",
       "text": "IEC 61000-3-12-2011 谐波电流发射限值（>75 A & ≤600 A）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61000-3-12-2011",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61000-3-12-2011",
+      "authority_ref": "IEC 61000-3-12-2011",
       "version": "2011",
       "title": "谐波电流发射限值（>75 A & ≤600 A）",
       "scope": "大功率",
@@ -42817,12 +43340,13 @@
       "entity_type": "standard",
       "text": "IEC 61000-4-30-2015 电能质量测量方法",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61000-4-30-2015",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61000-4-30-2015",
+      "authority_ref": "IEC 61000-4-30-2015",
       "version": "2015",
       "title": "电能质量测量方法",
       "scope": "A/B 类 MPE",
@@ -42928,12 +43452,13 @@
       "entity_type": "standard",
       "text": "IEC 61000-4-15 闪烁（Flicker）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61000-4-15",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61000-4-15",
+      "authority_ref": "IEC 61000-4-15",
       "title": "闪烁（Flicker）",
       "scope": "输入闪烁",
       "bindings": "G.5",
@@ -43023,12 +43548,13 @@
       "entity_type": "standard",
       "text": "IEC 61000-4-38 谐波与闪烁（多设备）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61000-4-38",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61000-4-38",
+      "authority_ref": "IEC 61000-4-38",
       "title": "谐波与闪烁（多设备）",
       "scope": "—",
       "bindings": "G.5",
@@ -43118,12 +43644,13 @@
       "entity_type": "standard",
       "text": "IEEE C37.238-2017 电力系统时间同步（PTP 电力轮廓）",
       "confidence": null,
-      "source": null,
+      "source": "IEEE C37.238-2017",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEEE C37.238-2017",
+      "authority_ref": "IEEE C37.238-2017",
       "version": "2017",
       "title": "电力系统时间同步（PTP 电力轮廓）",
       "scope": "PTP ≤1 μs",
@@ -43229,12 +43756,13 @@
       "entity_type": "standard",
       "text": "IEEE C37.118.1-2011 同步相量测量",
       "confidence": null,
-      "source": null,
+      "source": "IEEE C37.118.1-2011",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEEE C37.118.1-2011",
+      "authority_ref": "IEEE C37.118.1-2011",
       "version": "2011",
       "title": "同步相量测量",
       "scope": "PMU",
@@ -43340,12 +43868,13 @@
       "entity_type": "standard",
       "text": "IEC 60255-1-2018 继电保护设备 第1部分：通用要求",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60255-1-2018",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60255-1-2018",
+      "authority_ref": "IEC 60255-1-2018",
       "version": "2018",
       "title": "继电保护设备 第1部分：通用要求",
       "scope": "保护装置通用",
@@ -43451,12 +43980,13 @@
       "entity_type": "standard",
       "text": "IEC 60255-3-1989 过电流保护设备 反时限特性",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60255-3-1989",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60255-3-1989",
+      "authority_ref": "IEC 60255-3-1989",
       "version": "1989",
       "title": "过电流保护设备 反时限特性",
       "scope": "反时限曲线 t = K·TSM/((I/I_p)ⁿ−1)",
@@ -43562,12 +44092,13 @@
       "entity_type": "standard",
       "text": "ANSI/IEEE C37.112-1996 反时限过电流继电器特性",
       "confidence": null,
-      "source": null,
+      "source": "ANSI/IEEE C37.112-1996",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "ANSI/IEEE C37.112-1996",
+      "authority_ref": "ANSI/IEEE C37.112-1996",
       "version": "1996",
       "title": "反时限过电流继电器特性",
       "scope": "IEC 60255-3 前身",
@@ -43673,12 +44204,13 @@
       "entity_type": "standard",
       "text": "IEC 60255-5-1994 差动保护设备",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60255-5-1994",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60255-5-1994",
+      "authority_ref": "IEC 60255-5-1994",
       "version": "1994",
       "title": "差动保护设备",
       "scope": "比率制动",
@@ -43784,12 +44316,13 @@
       "entity_type": "standard",
       "text": "IEC 60255-11-2015 方向过流保护",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60255-11-2015",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60255-11-2015",
+      "authority_ref": "IEC 60255-11-2015",
       "version": "2015",
       "title": "方向过流保护",
       "scope": "方向判据",
@@ -43895,12 +44428,13 @@
       "entity_type": "standard",
       "text": "IEC 61869-2-2018 电流互感器（CT）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61869-2-2018",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61869-2-2018",
+      "authority_ref": "IEC 61869-2-2018",
       "version": "2018",
       "title": "电流互感器（CT）",
       "scope": "复合误差（10% 误差原则）",
@@ -44006,12 +44540,13 @@
       "entity_type": "standard",
       "text": "IEC 61869-3-2010 电压互感器（VT）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61869-3-2010",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61869-3-2010",
+      "authority_ref": "IEC 61869-3-2010",
       "version": "2010",
       "title": "电压互感器（VT）",
       "scope": "VT 误差",
@@ -44117,12 +44652,13 @@
       "entity_type": "standard",
       "text": "IEC 61850-2013+ 变电站自动化通信网络",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61850-2013+",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61850-2013+",
+      "authority_ref": "IEC 61850-2013+",
       "version": "2013+",
       "title": "变电站自动化通信网络",
       "scope": "通信架构",
@@ -44228,12 +44764,13 @@
       "entity_type": "standard",
       "text": "IEC 61850-7-4-2010 兼容的逻辑节点类与数据对象",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61850-7-4-2010",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61850-7-4-2010",
+      "authority_ref": "IEC 61850-7-4-2010",
       "version": "2010",
       "title": "兼容的逻辑节点类与数据对象",
       "scope": "点表建模（信息模型）",
@@ -44339,12 +44876,13 @@
       "entity_type": "standard",
       "text": "IEC 61850-8-1-2011 GOOSE（面向通用事件的对象）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61850-8-1-2011",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61850-8-1-2011",
+      "authority_ref": "IEC 61850-8-1-2011",
       "version": "2011",
       "title": "GOOSE（面向通用事件的对象）",
       "scope": "快速事件通信",
@@ -44450,12 +44988,13 @@
       "entity_type": "standard",
       "text": "IEC 61850-9-2-2011+A1:2020 采样值（SV）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61850-9-2-2011+A1:2020",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61850-9-2-2011+A1:2020",
+      "authority_ref": "IEC 61850-9-2-2011+A1:2020",
       "version": "2011+A1:2020",
       "title": "采样值（SV）",
       "scope": "同步采样（80/4000 samples per cycle）",
@@ -44561,12 +45100,13 @@
       "entity_type": "standard",
       "text": "IEC 62443-3-3-2013 工业自动化与控制系统 安全（系统要求）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 62443-3-3-2013",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 62443-3-3-2013",
+      "authority_ref": "IEC 62443-3-3-2013",
       "version": "2013",
       "title": "工业自动化与控制系统 安全（系统要求）",
       "scope": "通信安全",
@@ -44672,12 +45212,13 @@
       "entity_type": "standard",
       "text": "IEC 62443-4-2-2019 安全组件技术要求",
       "confidence": null,
-      "source": null,
+      "source": "IEC 62443-4-2-2019",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 62443-4-2-2019",
+      "authority_ref": "IEC 62443-4-2-2019",
       "version": "2019",
       "title": "安全组件技术要求",
       "scope": "设备安全",
@@ -44783,12 +45324,13 @@
       "entity_type": "standard",
       "text": "IEC 61588-2016 测量、控制和实验室用时间同步协议（PTP）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61588-2016",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61588-2016",
+      "authority_ref": "IEC 61588-2016",
       "version": "2016",
       "title": "测量、控制和实验室用时间同步协议（PTP）",
       "scope": "PTP 精度等级",
@@ -44894,12 +45436,13 @@
       "entity_type": "standard",
       "text": "IEC 62351-2018 电力系统管理相关的信息安全",
       "confidence": null,
-      "source": null,
+      "source": "IEC 62351-2018",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 62351-2018",
+      "authority_ref": "IEC 62351-2018",
       "version": "2018",
       "title": "电力系统管理相关的信息安全",
       "scope": "通信安全",
@@ -45005,12 +45548,13 @@
       "entity_type": "standard",
       "text": "IEC 60898-1/2 断路器（MCB）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60898-1/2",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60898-1/2",
+      "authority_ref": "IEC 60898-1/2",
       "title": "断路器（MCB）",
       "scope": "断路器额定",
       "bindings": "F_L.8.3、G.40",
@@ -45100,12 +45644,13 @@
       "entity_type": "standard",
       "text": "IEC 60947-2 低压开关设备和控制设备 断路器",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60947-2",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60947-2",
+      "authority_ref": "IEC 60947-2",
       "title": "低压开关设备和控制设备 断路器",
       "scope": "塑壳断路器 MCCB",
       "bindings": "F_L.8.3",
@@ -45195,12 +45740,13 @@
       "entity_type": "standard",
       "text": "IEC 60269 低压熔断器",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60269",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60269",
+      "authority_ref": "IEC 60269",
       "title": "低压熔断器",
       "scope": "熔断器特性、I²t",
       "bindings": "F_L.8.1/F_L.8.2、G.40",
@@ -45290,12 +45836,13 @@
       "entity_type": "standard",
       "text": "IEC 60947-4-1 接触器与启动器",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60947-4-1",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60947-4-1",
+      "authority_ref": "IEC 60947-4-1",
       "title": "接触器与启动器",
       "scope": "接触器",
       "bindings": "G.31（弹跳）",
@@ -45385,12 +45932,13 @@
       "entity_type": "standard",
       "text": "IEC 62443-5-1 （见 IEC 62443-3-3）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 62443-5-1",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 62443-5-1",
+      "authority_ref": "IEC 62443-5-1",
       "title": "（见 IEC 62443-3-3）",
       "scope": "—",
       "bindings": "—",
@@ -45480,12 +46028,13 @@
       "entity_type": "standard",
       "text": "IEC 61812-1 时间继电器（定时限）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61812-1",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61812-1",
+      "authority_ref": "IEC 61812-1",
       "title": "时间继电器（定时限）",
       "scope": "延时器",
       "bindings": "F_L.3.2",
@@ -45575,12 +46124,13 @@
       "entity_type": "standard",
       "text": "DL/T 587 （中国电力行业标准）微机继电保护装置运行管理规程",
       "confidence": null,
-      "source": null,
+      "source": "DL/T 587",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "DL/T 587",
+      "authority_ref": "DL/T 587",
       "title": "（中国电力行业标准）微机继电保护装置运行管理规程",
       "scope": "定值管理",
       "bindings": "F_L.6、G.39",
@@ -45670,12 +46220,13 @@
       "entity_type": "standard",
       "text": "DL/T 624 （中国）继电保护微机型试验装置",
       "confidence": null,
-      "source": null,
+      "source": "DL/T 624",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "DL/T 624",
+      "authority_ref": "DL/T 624",
       "title": "（中国）继电保护微机型试验装置",
       "scope": "整定值检验",
       "bindings": "G.39",
@@ -45765,12 +46316,13 @@
       "entity_type": "standard",
       "text": "DL/T 860 （中国）变电站通信框架和协议（IEC 61850 对应）",
       "confidence": null,
-      "source": null,
+      "source": "DL/T 860",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "DL/T 860",
+      "authority_ref": "DL/T 860",
       "title": "（中国）变电站通信框架和协议（IEC 61850 对应）",
       "scope": "通信",
       "bindings": "G.14",
@@ -45860,12 +46412,13 @@
       "entity_type": "standard",
       "text": "IEC 61508-1-2010 功能安全 第1部分：框架、定义与要求",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61508-1-2010",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61508-1-2010",
+      "authority_ref": "IEC 61508-1-2010",
       "version": "2010",
       "title": "功能安全 第1部分：框架、定义与要求",
       "scope": "SIL 等级、风险图",
@@ -45971,12 +46524,13 @@
       "entity_type": "standard",
       "text": "IEC 61508-2-2010 第2部分：E/E/PE 安全相关系统的要求",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61508-2-2010",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61508-2-2010",
+      "authority_ref": "IEC 61508-2-2010",
       "version": "2010",
       "title": "第2部分：E/E/PE 安全相关系统的要求",
       "scope": "硬件、架构、DC、诊断措施",
@@ -46082,12 +46636,13 @@
       "entity_type": "standard",
       "text": "IEC 61508-3-2010 第3部分：软件要求",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61508-3-2010",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61508-3-2010",
+      "authority_ref": "IEC 61508-3-2010",
       "version": "2010",
       "title": "第3部分：软件要求",
       "scope": "软件安全生命周期",
@@ -46193,12 +46748,13 @@
       "entity_type": "standard",
       "text": "IEC 61508-4-2010 术语和定义",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61508-4-2010",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61508-4-2010",
+      "authority_ref": "IEC 61508-4-2010",
       "version": "2010",
       "title": "术语和定义",
       "scope": "—",
@@ -46304,12 +46860,13 @@
       "entity_type": "standard",
       "text": "IEC 61508-5-2010 SIL 测定方法示例",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61508-5-2010",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61508-5-2010",
+      "authority_ref": "IEC 61508-5-2010",
       "version": "2010",
       "title": "SIL 测定方法示例",
       "scope": "风险图、HAZOP、FMEA",
@@ -46415,12 +46972,13 @@
       "entity_type": "standard",
       "text": "IEC 61508-6-2010 第6部分：应用指南（PFD/PFH 计算与 DC）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61508-6-2010",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61508-6-2010",
+      "authority_ref": "IEC 61508-6-2010",
       "version": "2010",
       "title": "第6部分：应用指南（PFD/PFH 计算与 DC）",
       "scope": "计算方法",
@@ -46526,12 +47084,13 @@
       "entity_type": "standard",
       "text": "IEC 61508-7-2010 技术与措施概述",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61508-7-2010",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61508-7-2010",
+      "authority_ref": "IEC 61508-7-2010",
       "version": "2010",
       "title": "技术与措施概述",
       "scope": "—",
@@ -46637,12 +47196,13 @@
       "entity_type": "standard",
       "text": "IEC 61511-2016 过程工业领域 SIS 的功能安全",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61511-2016",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61511-2016",
+      "authority_ref": "IEC 61511-2016",
       "version": "2016",
       "title": "过程工业领域 SIS 的功能安全",
       "scope": "流程工业",
@@ -46748,12 +47308,13 @@
       "entity_type": "standard",
       "text": "ISO 13849-1-2023 安全相关控制系统安全部件",
       "confidence": null,
-      "source": null,
+      "source": "ISO 13849-1-2023",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "ISO 13849-1-2023",
+      "authority_ref": "ISO 13849-1-2023",
       "version": "2023",
       "title": "安全相关控制系统安全部件",
       "scope": "PL a~e、Cat.B~4、MTTFd、DC、CCF",
@@ -46859,12 +47420,13 @@
       "entity_type": "standard",
       "text": "IEC 62061-2021 机械安全 机械电气/电子/可编程系统",
       "confidence": null,
-      "source": null,
+      "source": "IEC 62061-2021",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 62061-2021",
+      "authority_ref": "IEC 62061-2021",
       "version": "2021",
       "title": "机械安全 机械电气/电子/可编程系统",
       "scope": "SIL 1~3",
@@ -46970,12 +47532,13 @@
       "entity_type": "standard",
       "text": "IEC 62443-4-1-2018 安全生命周期",
       "confidence": null,
-      "source": null,
+      "source": "IEC 62443-4-1-2018",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 62443-4-1-2018",
+      "authority_ref": "IEC 62443-4-1-2018",
       "version": "2018",
       "title": "安全生命周期",
       "scope": "生命周期",
@@ -47081,12 +47644,13 @@
       "entity_type": "standard",
       "text": "EN 50156-2016 锅炉与压力容器安全 PLC",
       "confidence": null,
-      "source": null,
+      "source": "EN 50156-2016",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "EN 50156-2016",
+      "authority_ref": "EN 50156-2016",
       "version": "2016",
       "title": "锅炉与压力容器安全 PLC",
       "scope": "—",
@@ -47192,12 +47756,13 @@
       "entity_type": "standard",
       "text": "ISO 12100-2010 机械安全 风险评估与减小",
       "confidence": null,
-      "source": null,
+      "source": "ISO 12100-2010",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "ISO 12100-2010",
+      "authority_ref": "ISO 12100-2010",
       "version": "2010",
       "title": "机械安全 风险评估与减小",
       "scope": "风险评估",
@@ -47303,12 +47868,13 @@
       "entity_type": "standard",
       "text": "IEC 61010-1-2017 测量、控制和实验室用电气设备安全要求",
       "confidence": null,
-      "source": null,
+      "source": "IEC 61010-1-2017",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 61010-1-2017",
+      "authority_ref": "IEC 61010-1-2017",
       "version": "2017",
       "title": "测量、控制和实验室用电气设备安全要求",
       "scope": "实验室电源",
@@ -47414,12 +47980,13 @@
       "entity_type": "standard",
       "text": "JEDEC JESD22-A104 温度循环 TC",
       "confidence": null,
-      "source": null,
+      "source": "JEDEC JESD22-A104",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "JEDEC JESD22-A104",
+      "authority_ref": "JEDEC JESD22-A104",
       "title": "温度循环 TC",
       "scope": "焊点疲劳",
       "bindings": "F_N.4.7、G.13",
@@ -47509,12 +48076,13 @@
       "entity_type": "standard",
       "text": "JEDEC JESD22-A101 稳态热阻测定",
       "confidence": null,
-      "source": null,
+      "source": "JEDEC JESD22-A101",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "JEDEC JESD22-A101",
+      "authority_ref": "JEDEC JESD22-A101",
       "title": "稳态热阻测定",
       "scope": "R_θjc",
       "bindings": "F_N.1.2",
@@ -47604,12 +48172,13 @@
       "entity_type": "standard",
       "text": "JEDEC JESD22-A108 湿热",
       "confidence": null,
-      "source": null,
+      "source": "JEDEC JESD22-A108",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "JEDEC JESD22-A108",
+      "authority_ref": "JEDEC JESD22-A108",
       "title": "湿热",
       "scope": "—",
       "bindings": "G.13",
@@ -47699,12 +48268,13 @@
       "entity_type": "standard",
       "text": "JEDEC JESD22-A107 温度循环（替代/补充）",
       "confidence": null,
-      "source": null,
+      "source": "JEDEC JESD22-A107",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "JEDEC JESD22-A107",
+      "authority_ref": "JEDEC JESD22-A107",
       "title": "温度循环（替代/补充）",
       "scope": "—",
       "bindings": "G.13",
@@ -47794,12 +48364,13 @@
       "entity_type": "standard",
       "text": "JEDEC JESD3 功率器件 SOA 测试方法",
       "confidence": null,
-      "source": null,
+      "source": "JEDEC JESD3",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "JEDEC JESD3",
+      "authority_ref": "JEDEC JESD3",
       "title": "功率器件 SOA 测试方法",
       "scope": "SOA",
       "bindings": "F_L.4.2、G.30",
@@ -47889,12 +48460,13 @@
       "entity_type": "standard",
       "text": "JEDEC JESD24 失效分析",
       "confidence": null,
-      "source": null,
+      "source": "JEDEC JESD24",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "JEDEC JESD24",
+      "authority_ref": "JEDEC JESD24",
       "title": "失效分析",
       "scope": "FMEDA 支撑",
       "bindings": "F_N.7",
@@ -47984,12 +48556,13 @@
       "entity_type": "standard",
       "text": "JEDEC JESD47 集成电路可靠性试验",
       "confidence": null,
-      "source": null,
+      "source": "JEDEC JESD47",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "JEDEC JESD47",
+      "authority_ref": "JEDEC JESD47",
       "title": "集成电路可靠性试验",
       "scope": "—",
       "bindings": "—",
@@ -48079,12 +48652,13 @@
       "entity_type": "standard",
       "text": "MIL-STD-883 微电子器件试验方法",
       "confidence": null,
-      "source": null,
+      "source": "MIL-STD-883",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "MIL-STD-883",
+      "authority_ref": "MIL-STD-883",
       "title": "微电子器件试验方法",
       "scope": "筛选/验收",
       "bindings": "Burn-in",
@@ -48174,12 +48748,13 @@
       "entity_type": "standard",
       "text": "AEC-Q101 汽车级器件资格鉴定",
       "confidence": null,
-      "source": null,
+      "source": "AEC-Q101",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "AEC-Q101",
+      "authority_ref": "AEC-Q101",
       "title": "汽车级器件资格鉴定",
       "scope": "车规（若适用）",
       "bindings": "P1",
@@ -48269,12 +48844,13 @@
       "entity_type": "standard",
       "text": "IPC-2221 通用电子元器件织装设计标准",
       "confidence": null,
-      "source": null,
+      "source": "IPC-2221",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IPC-2221",
+      "authority_ref": "IPC-2221",
       "title": "通用电子元器件织装设计标准",
       "scope": "降额准则",
       "bindings": "P1、F_N.3",
@@ -48364,12 +48940,13 @@
       "entity_type": "standard",
       "text": "IEC 60077 电阻器/电容器降额（铁路应用）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60077",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60077",
+      "authority_ref": "IEC 60077",
       "title": "电阻器/电容器降额（铁路应用）",
       "scope": "降额",
       "bindings": "P1",
@@ -48459,12 +49036,13 @@
       "entity_type": "standard",
       "text": "IEC 62340 电子设备环境条件",
       "confidence": null,
-      "source": null,
+      "source": "IEC 62340",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 62340",
+      "authority_ref": "IEC 62340",
       "title": "电子设备环境条件",
       "scope": "降额",
       "bindings": "P1",
@@ -48554,12 +49132,13 @@
       "entity_type": "standard",
       "text": "MIL-HDBK-217F-1991 可靠性预测：电子设备",
       "confidence": null,
-      "source": null,
+      "source": "MIL-HDBK-217F-1991",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "MIL-HDBK-217F-1991",
+      "authority_ref": "MIL-HDBK-217F-1991",
       "version": "1991",
       "title": "可靠性预测：电子设备",
       "scope": "七因子失效率模型",
@@ -48665,12 +49244,13 @@
       "entity_type": "standard",
       "text": "GJB/Z 299C-2003 （中国国军标）电子设备可靠性预计",
       "confidence": null,
-      "source": null,
+      "source": "GJB/Z 299C-2003",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "GJB/Z 299C-2003",
+      "authority_ref": "GJB/Z 299C-2003",
       "version": "2003",
       "title": "（中国国军标）电子设备可靠性预计",
       "scope": "中国军品",
@@ -48776,12 +49356,13 @@
       "entity_type": "standard",
       "text": "IEC 62380-2004 （旧）可靠性数据与 RFD 2000",
       "confidence": null,
-      "source": null,
+      "source": "IEC 62380-2004",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 62380-2004",
+      "authority_ref": "IEC 62380-2004",
       "version": "2004",
       "title": "（旧）可靠性数据与 RFD 2000",
       "scope": "旧版",
@@ -48887,12 +49468,13 @@
       "entity_type": "standard",
       "text": "IEEE 802.3 以太网",
       "confidence": null,
-      "source": null,
+      "source": "IEEE 802.3",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEEE 802.3",
+      "authority_ref": "IEEE 802.3",
       "title": "以太网",
       "scope": "物理层",
       "bindings": "G.14",
@@ -48982,12 +49564,13 @@
       "entity_type": "standard",
       "text": "IEEE 1588-2019 网络测量与控制系统精密时钟同步协议（PTP）",
       "confidence": null,
-      "source": null,
+      "source": "IEEE 1588-2019",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEEE 1588-2019",
+      "authority_ref": "IEEE 1588-2019",
       "version": "2019",
       "title": "网络测量与控制系统精密时钟同步协议（PTP）",
       "scope": "PTP 精度",
@@ -49093,12 +49676,13 @@
       "entity_type": "standard",
       "text": "IEC 60068-2-1 冷（低温工作）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60068-2-1",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60068-2-1",
+      "authority_ref": "IEC 60068-2-1",
       "title": "冷（低温工作）",
       "scope": "G.13",
       "citation_status": "UNVERIFIED",
@@ -49172,12 +49756,13 @@
       "entity_type": "standard",
       "text": "IEC 60068-2-2 干热（高温工作）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60068-2-2",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60068-2-2",
+      "authority_ref": "IEC 60068-2-2",
       "title": "干热（高温工作）",
       "scope": "G.13",
       "citation_status": "UNVERIFIED",
@@ -49251,12 +49836,13 @@
       "entity_type": "standard",
       "text": "IEC 60068-2-30 循环湿热",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60068-2-30",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60068-2-30",
+      "authority_ref": "IEC 60068-2-30",
       "title": "循环湿热",
       "scope": "G.13",
       "citation_status": "UNVERIFIED",
@@ -49330,12 +49916,13 @@
       "entity_type": "standard",
       "text": "IEC 60068-2-78 恒定湿热",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60068-2-78",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60068-2-78",
+      "authority_ref": "IEC 60068-2-78",
       "title": "恒定湿热",
       "scope": "G.13",
       "citation_status": "UNVERIFIED",
@@ -49409,12 +49996,13 @@
       "entity_type": "standard",
       "text": "IEC 60068-2-11 盐雾",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60068-2-11",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60068-2-11",
+      "authority_ref": "IEC 60068-2-11",
       "title": "盐雾",
       "scope": "G.13、G.25",
       "citation_status": "UNVERIFIED",
@@ -49488,12 +50076,13 @@
       "entity_type": "standard",
       "text": "IEC 60068-2-64 随机振动",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60068-2-64",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60068-2-64",
+      "authority_ref": "IEC 60068-2-64",
       "title": "随机振动",
       "scope": "G.13",
       "citation_status": "UNVERIFIED",
@@ -49567,12 +50156,13 @@
       "entity_type": "standard",
       "text": "IEC 60068-2-52 循环盐雾",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60068-2-52",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60068-2-52",
+      "authority_ref": "IEC 60068-2-52",
       "title": "循环盐雾",
       "scope": "G.25",
       "citation_status": "UNVERIFIED",
@@ -49646,12 +50236,13 @@
       "entity_type": "standard",
       "text": "IEC 60721-3-1/3-2 环境条件分类（气候/生物）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60721-3-1/3-2",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60721-3-1/3-2",
+      "authority_ref": "IEC 60721-3-1/3-2",
       "title": "环境条件分类（气候/生物）",
       "scope": "G.24",
       "citation_status": "UNVERIFIED",
@@ -49725,12 +50316,13 @@
       "entity_type": "standard",
       "text": "IEC 60068-2-82 霉菌",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60068-2-82",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60068-2-82",
+      "authority_ref": "IEC 60068-2-82",
       "title": "霉菌",
       "scope": "G.25（三防验证）",
       "citation_status": "UNVERIFIED",
@@ -49804,12 +50396,13 @@
       "entity_type": "standard",
       "text": "MIL-STD-810 环境工程试验方法",
       "confidence": null,
-      "source": null,
+      "source": "MIL-STD-810",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "MIL-STD-810",
+      "authority_ref": "MIL-STD-810",
       "title": "环境工程试验方法",
       "scope": "G.13、G.24",
       "citation_status": "UNVERIFIED",
@@ -49883,12 +50476,13 @@
       "entity_type": "standard",
       "text": "MIL-STD-461F-2008 电磁干扰/敏感度要求（国防）",
       "confidence": null,
-      "source": null,
+      "source": "MIL-STD-461F-2008",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "MIL-STD-461F-2008",
+      "authority_ref": "MIL-STD-461F-2008",
       "version": "2008",
       "title": "电磁干扰/敏感度要求（国防）",
       "scope": "EMC（若适用）",
@@ -49978,12 +50572,13 @@
       "entity_type": "standard",
       "text": "IEC 62506 加速试验方法",
       "confidence": null,
-      "source": null,
+      "source": "IEC 62506",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 62506",
+      "authority_ref": "IEC 62506",
       "title": "加速试验方法",
       "scope": "F_N.4",
       "citation_status": "UNVERIFIED",
@@ -50057,12 +50652,13 @@
       "entity_type": "standard",
       "text": "ISO 17025-2017 检测和校准实验室能力的通用要求",
       "confidence": null,
-      "source": null,
+      "source": "ISO 17025-2017",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "ISO 17025-2017",
+      "authority_ref": "ISO 17025-2017",
       "version": "2017",
       "title": "检测和校准实验室能力的通用要求",
       "scope": "实验室资质",
@@ -50152,12 +50748,13 @@
       "entity_type": "standard",
       "text": "ISO 9001-2015 质量管理体系",
       "confidence": null,
-      "source": null,
+      "source": "ISO 9001-2015",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "ISO 9001-2015",
+      "authority_ref": "ISO 9001-2015",
       "version": "2015",
       "title": "质量管理体系",
       "scope": "体系",
@@ -50247,12 +50844,13 @@
       "entity_type": "standard",
       "text": "ISO 14001-2015 环境管理体系",
       "confidence": null,
-      "source": null,
+      "source": "ISO 14001-2015",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "ISO 14001-2015",
+      "authority_ref": "ISO 14001-2015",
       "version": "2015",
       "title": "环境管理体系",
       "scope": "体系",
@@ -50342,12 +50940,13 @@
       "entity_type": "standard",
       "text": "IEC 60359 数字测量仪器（术语与性能）",
       "confidence": null,
-      "source": null,
+      "source": "IEC 60359",
       "section": null,
       "metadata": {
         "authority_kind": "unverified"
       },
       "standard_id": "IEC 60359",
+      "authority_ref": "IEC 60359",
       "title": "数字测量仪器（术语与性能）",
       "scope": "精度表达",
       "citation_status": "UNVERIFIED",

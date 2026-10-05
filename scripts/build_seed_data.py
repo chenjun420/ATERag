@@ -708,6 +708,16 @@ def extract_standards(lines: list[str]) -> list[dict[str, Any]]:
                 "properties": _props(
                     {
                         "standard_id": full,
+                        # ``authority_ref`` 回填**它自己的标准号**: 标准条目的
+                        # 身份就是标准号。不回填的后果不是「少个字段」——
+                        # ``ConflictDetector.detect_value_conflicts`` 缺 ``source``
+                        # 时把 document 记成 ``"unknown"``, 于是它给出的
+                        # 「采用更权威的来源」没有任何依据可循, 而调用方看不出
+                        # 这个建议是空转的。124 条标准里 109 条因此是「无出处」。
+                        #
+                        # 只回填**身份**, 不改 ``citation_status``: 条目读自方案表,
+                        # 读到不等于现行有效 —— 那是 corrections.yaml 的职责。
+                        "authority_ref": full,
                         "version": version,
                         "title": title,
                         "scope": scope,
@@ -966,16 +976,27 @@ def apply_corrections(
     def _authority_of(entry: dict[str, Any]) -> tuple[str, str | None]:
         """决定这条修正的**权威依据**类型与出处。
 
-        - 有 ``standard_ref`` -> ``standard``, 出处是标准号
+        - 有 ``standard_ref`` **且它真的是标准号** -> ``standard``, 出处是标准号
         - 显式给了 ``authority_kind`` (``book`` / ``industry``) -> 用它, 出处取
           ``authority_ref`` 或 ``source`` 原文
         - 都没给 -> ``industry``: 只查到了业界来源(行业术语表/通行叫法/厂商规格书)
 
         ``unverified`` **不能**作为修正的默认: 修正本身就是「已查证并改过」,
         没有依据的修正应该在读取时被跳过(见下面的 source/checked 检查)。
+
+        ``standard_ref`` 必须真的含标准号 —— 这条守卫是被实测逼出来的:
+        9 条电子电源术语把 ``standard_ref`` 写成 ``3.66 reverse voltage
+        protection``, 也就是**某出版物内部的条号 + 术语正文**。旧实现只判
+        非空, 于是这 9 条被标成 ``authority_kind=standard`` 且
+        ``authority_ref="3.66 reverse voltage protection"`` ——
+        声称「有标准号依据」而实际一个标准号都没有, 条号还塞进了要求标准号的字段。
+        下游拿它当认证依据会查不到任何东西, 而记录本身「看起来完全正常」。
+        判不出标准号时退回 ``industry``, 出处用 ``source`` 原文(出版物名),
+        条号归 ``clause``。
         """
-        if entry.get("standard_ref"):
-            return "standard", entry["standard_ref"]
+        sref = entry.get("standard_ref")
+        if sref and _STD_ID_RE.search(str(sref)):
+            return "standard", sref
         kind = entry.get("authority_kind") or "industry"
         return kind, entry.get("authority_ref") or entry.get("source")
 
@@ -1231,7 +1252,18 @@ def apply_corrections(
         # 「对齐标准」在这里的落点是**记录标准正名与条号**, 不是替换掉通称。
         industry = fam.get("industry_term") or fam.get("synonym") or fam["standard_term"]
         standard_term = fam["standard_term"]
-        ref = fam.get("clause", "")
+        # ``authority_ref`` 必须是**标准号**, 条号归 ``clause``。
+        # 早先一版写成 ``ref = fam.get("clause", "")``, 于是 31 条遥信/遥测/遥控
+        # 的 ``authority_ref`` 是 "2.1.3" 这样的条号, 而真实标准号
+        # (``GB/Z 14429-2005``, 就在同一条的 ``source`` 里) 从未被使用。
+        # 后果是这批数据声称「有标准依据」却查不到标准 —— 条号在要求标准号的字段里,
+        # 而 ``clause`` 字段是空的。标准号取不到就退回 ``industry`` 并**不写**
+        # ``authority_ref``: 留一个条号冒充标准号, 比承认「只有出版物出处」更糟。
+        std_ids = _STD_ID_RE.findall(str(fam.get("source") or ""))
+        std_id = std_ids[0] if std_ids else None
+        clause = fam.get("clause") or None
+        kind = "standard" if std_id else "industry"
+        ref = std_id or fam.get("source")
         for cid in fam.get("concepts") or ():
             target = by_id.get(cid)
             if target is None:
@@ -1242,14 +1274,23 @@ def apply_corrections(
             target["properties"]["zh"] = f"{industry}·{old}" if old else industry
             target["properties"]["telemetry_family"] = fam["family"]
             target["properties"]["standard_term"] = standard_term
+            if clause:
+                target["properties"]["clause"] = clause
             # **同义词全部记录**, 两种叫法都要能被检索命中。
             # 早先只留 `standard_term` 一个字段, 于是搜「遥信」找不到标着
             # 「远程信号」的那条 —— 命中率的损失是隐形的, 因为检索照样返回结果,
             # 只是少了一部分。
             target["properties"]["synonyms"] = [industry, standard_term]
-            src = authority_ref(ref, kind="standard", confidence=fam.get("confidence"))
-            target["properties"]["authority_kind"] = "standard"
-            target["properties"]["authority_ref"] = ref
+            src = authority_ref(ref, kind=kind, confidence=fam.get("confidence"))
+            # 与 _do 同口径: 把查证日期与可核对出处**写进 metadata**。少了这两项,
+            # ``test_clause_numbers_only_where_a_source_was_read`` 这类「给了条号就得
+            # 有核对点」的守卫就查不出这批 —— 守卫静默通过, 而这批的出处实际只在
+            # ``corrections_applied`` 里, 不在记录自身。
+            src["metadata"]["checked"] = fam["checked"]
+            src["metadata"]["correction_source"] = fam["source"]
+            target["properties"]["authority_kind"] = kind
+            if std_id:
+                target["properties"]["authority_ref"] = ref
             for key in ("zh", "telemetry_family", "standard_term", "synonyms"):
                 target["properties"].setdefault("provenance", {})[key] = {
                     "property_name": key, "value": target["properties"][key], "sources": [src]
@@ -1257,7 +1298,8 @@ def apply_corrections(
             applied.append({
                 "kind": "power_concept", "id": cid, "matched": cid,
                 "before": {"zh": old},
-                "after": {"zh": target["properties"]["zh"]}, "authority_kind": "standard", "authority_ref": ref,
+                "after": {"zh": target["properties"]["zh"]},
+                "authority_kind": kind, "authority_ref": ref, "clause": clause,
                 "source": fam["source"], "checked": fam["checked"],
                 "confidence": fam.get("confidence"),
             })
