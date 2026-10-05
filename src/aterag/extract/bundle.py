@@ -59,6 +59,25 @@ class ClauseModel(BaseModel):
     cond_fingerprint: str = Field("", max_length=64)
 
 
+class LimitVariant(BaseModel):
+    """分档限值: 同一指标在某个工况档下才成立的替代区间。
+
+    规格书常把替代区间写在备注里而只在表格列给基准值(如「输入电压<176Vac,
+    过流点 8.1A~18A」而表格是 12~18A)。``when`` 记该区间成立所依赖的维度取值,
+    由场景展开时解析成具体档位; ``guard`` 保留原文条件式供追溯。
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    min: float | None = None
+    max: float | None = None
+    unit: str = Field("", max_length=32)
+    guard: dict[str, Any] = Field(
+        default_factory=dict,
+        description="原文条件式: dimension/op/value/source_text",
+    )
+
+
 class LimitModel(BaseModel):
     """一条限值。min/typ/max 均可缺 —— 单边限值是规格书常见形态。"""
 
@@ -70,6 +89,10 @@ class LimitModel(BaseModel):
     typ: float | None = None
     max: float | None = None
     unit: str = Field("", max_length=32)
+    variants: list[LimitVariant] = Field(
+        default_factory=list,
+        description="分档替代限值(备注里的条件式 + 区间); 无则为空",
+    )
 
 
 class ScenarioModel(BaseModel):
@@ -83,6 +106,13 @@ class ScenarioModel(BaseModel):
     rail: str = Field("", max_length=32)
     bindings: dict[str, str] = Field(default_factory=dict)
     derived: dict[str, float] = Field(default_factory=dict)
+    limits: dict[str, Any] = Field(
+        default_factory=dict,
+        description="本场景适用的限值; 分档限值场景已解析成具体档位, 无分档则同需求基准值",
+    )
+    limit_basis: str = Field(
+        "", max_length=200, description="命中分档限值时的原文依据; 空=用的是基准值"
+    )
     basis: str = Field("", max_length=200)
     source: str = Field("spec", max_length=32)
 
@@ -277,6 +307,31 @@ def clause_to_model(c: Any) -> ClauseModel:
     )
 
 
+def _limit_variants(cond: Any) -> list[LimitVariant]:
+    """收集备注里的分档限值(带 guard 的子句)。
+
+    guard 是解析期无法独立判定的条件式 —— 它指向哪个工况档取决于另一条需求
+    给出的档位边界, 所以此处原样带出, 由场景展开时结合 bindings 解析。
+    """
+    out: list[LimitVariant] = []
+    for cl in (*getattr(cond, "input_conditions", ()), *getattr(cond, "output_conditions", ())):
+        v = getattr(cl, "value", None)
+        if not isinstance(v, Mapping):
+            continue
+        guard = v.get("guard")
+        if not isinstance(guard, Mapping):
+            continue
+        out.append(
+            LimitVariant(
+                min=v.get("value"),
+                max=v.get("value2"),
+                unit=str(v.get("unit", "") or ""),
+                guard=dict(guard),
+            )
+        )
+    return out
+
+
 def requirement_to_model(
     cond: Any,
     scenarios: Sequence[Any] = (),
@@ -295,6 +350,7 @@ def requirement_to_model(
         typ=limits_src.get("typ"),
         max=limits_src.get("max"),
         unit=unit,
+        variants=_limit_variants(cond),
     )
     scen_models = [
         ScenarioModel(
@@ -304,6 +360,8 @@ def requirement_to_model(
             rail=s.rail,
             bindings=dict(s.bindings),
             derived=dict(s.derived),
+            limits=dict(getattr(s, "limits", {}) or {}),
+            limit_basis=getattr(s, "limit_basis", "") or "",
             basis=s.basis or "",
             source=s.source,
         )

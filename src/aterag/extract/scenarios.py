@@ -831,6 +831,14 @@ class Scenario:
     name: str = ""
     bindings: dict[str, str] = field(default_factory=dict)
     derived: dict[str, float] = field(default_factory=dict)
+    #: 本场景适用的限值。多数场景等于需求的基准限值; 但同一指标在不同工况档下
+    #: 可以有不同动作区间(规格书把替代区间写在备注里, 如 SR-1309
+    #: "输入电压<176Vac, 过流点8.1A~18A"), 那一档必须用自己的值, 否则产测会
+    #: 拿基准值(如 12A)去测低压段, 永远测不到该档的下边界。
+    #: 与 derived 同理: 展开时算好挂在场景上, 下游不必再解一遍条件式。
+    limits: dict[str, Any] = field(default_factory=dict)
+    #: 命中替代限值时的原文依据(溯源)。空=用的是基准限值。
+    limit_basis: str = ""
     basis: str = ""
     source: str = "spec"  # spec=规格书分档 | derived=按功率档推导
 
@@ -844,9 +852,76 @@ class Scenario:
             "name": self.name,
             "bindings": self.bindings,
             "derived": self.derived,
+            "limits": self.limits,
+            "limit_basis": self.limit_basis,
             "basis": self.basis,
             "source": self.source,
         }
+
+
+#: 维度取值里的区间写法, 例 "90~176Vac" / "110.5~220V"
+_RANGE_TEXT_RE = re.compile(r"(-?\d+(?:\.\d+)?)\s*[~～]\s*(-?\d+(?:\.\d+)?)")
+_GUARD_EPS = 1e-9
+
+
+def _guard_holds(guard: Mapping[str, Any], bindings: Mapping[str, str]) -> bool:
+    """备注里的条件式是否被本场景的维度取值覆盖。
+
+    条件式是原文表述(如「输入电压<176Vac」), 维度取值是档位文本(如「90~176Vac」),
+    两者来源不同, 只能在此处对上。判定规则: 该档位**整体**落在条件式描述的区间内
+    才算命中 —— 条件式说的是"低于某阈值时用另一个限值", 若档位跨在阈值两侧就
+    说不清该用哪个, 此时不命中(宁可用基准值, 也不猜)。
+
+    取「整体落入」而非「边界相交」是有意的: 档位边界常与阈值重合(90~176 的上界
+    正是 176), 边界相交会让两个相邻档同时命中, 基准值就永远用不上了。
+    """
+    dim = str(guard.get("dimension") or "")
+    op = str(guard.get("op") or "")
+    thr = guard.get("value")
+    bound = bindings.get(dim) if dim else None
+    if not dim or not bound or isinstance(thr, bool) or not isinstance(thr, (int, float)):
+        return False
+    m = _RANGE_TEXT_RE.search(bound)
+    if not m:
+        return False
+    lo, hi = float(m.group(1)), float(m.group(2))
+    if lo > hi:
+        lo, hi = hi, lo
+    t = float(thr)
+    if op in {"<", "<=", "≤"}:
+        return hi <= t + _GUARD_EPS
+    if op in {">", ">=", "≥"}:
+        return lo >= t - _GUARD_EPS
+    return False
+
+
+def resolve_scenario_limits(
+    cond: TestCondition, bindings: Mapping[str, str]
+) -> tuple[dict[str, Any], str]:
+    """本场景适用的限值。返回 (limits, 原文依据); 依据为空表示用的是基准限值。
+
+    基准限值来自表格的最小值/典型值/最大值列, 它对应默认工况档。备注里的
+    「条件式 + 区间」是**分档替代值**: 命中就覆盖对应端点, 未命中的端点保留
+    基准 —— 规格书常只改一端(如低压段只降下限 12A->8.1A, 上限 18A 两档相同)。
+    """
+    base = dict(cond.limits or {})
+    out = dict(base)
+    basis = ""
+    for cl in (*cond.input_conditions, *cond.output_conditions):
+        v = cl.value if isinstance(cl.value, Mapping) else None
+        if not v:
+            continue
+        guard = v.get("guard")
+        if not isinstance(guard, Mapping) or not _guard_holds(guard, bindings):
+            continue
+        for key, val in (("min", v.get("value")), ("max", v.get("value2"))):
+            if val is not None:
+                out[key] = val
+        if v.get("unit"):
+            out["unit"] = v["unit"]
+        basis = str(guard.get("source_text") or "")
+        break
+    return out, basis
 
 
 @dataclass(frozen=True, slots=True)
@@ -1233,6 +1308,8 @@ def expand_scenarios(
         multi_counts = {pool[0].key: len(pool) for pool in pools if pool}
         # 无任何维度取值可用时, 每条需求一个基线场景(不拆)
         if not pools:
+            # 无维度取值 -> 无分档条件式可判, 限值取基准值
+            scen_limits, scen_basis = resolve_scenario_limits(c, {})
             res.scenarios.append(
                 Scenario(
                     # 必须含轨与行限定词: 同一编号可能有多行(如 SR-1100 标称输入
@@ -1246,6 +1323,8 @@ def expand_scenarios(
                     title=c.title,
                     rail=c.rail,
                     name=derive_scenario_name(c, rules.naming, c.rail),
+                    limits=scen_limits,
+                    limit_basis=scen_basis,
                     basis="no_dimension_split",
                     source="spec",
                 )
@@ -1257,6 +1336,9 @@ def expand_scenarios(
         # 保证同一 (需求, 轨) 下 seq 递增顺序可复现。
         for combo in _combos(pools):
             binding = {v.key: v.text for v in combo}
+            # 分档限值: 同一指标的判据可能随工况档变化(备注里的"条件式 + 区间"),
+            # 必须按本组合的绑定解析, 否则各档共用基准值。
+            scen_limits, scen_basis = resolve_scenario_limits(c, binding)
             # tier 取值决定功率档与轨级推导: 只认 carrier=tier 维度给出的档位,
             # 其余维度只绑定工况, 不影响功率分配。
             tier = _tier_of(combo, tiers)
@@ -1278,6 +1360,8 @@ def expand_scenarios(
                             title=c.title,
                             rail=rail,
                             bindings=binding,
+                            limits=scen_limits,
+                            limit_basis=scen_basis,
                             name=derive_scenario_name(
                                 c, rules.naming, rail, _combo_load(combo), combo, multi_counts
                             ),
@@ -1307,6 +1391,8 @@ def expand_scenarios(
                             title=c.title,
                             rail=rail,
                             bindings=binding,
+                            limits=scen_limits,
+                            limit_basis=scen_basis,
                             derived={rail: d[rail]},
                             name=derive_scenario_name(
                                 c, rules.naming, rail, _combo_load(combo), combo, multi_counts
@@ -1337,6 +1423,8 @@ def expand_scenarios(
                         title=c.title,
                         rail="",
                         bindings=binding,
+                        limits=scen_limits,
+                        limit_basis=scen_basis,
                         name=derive_scenario_name(
                             c, rules.naming, "", _combo_load(combo), combo, multi_counts
                         ),

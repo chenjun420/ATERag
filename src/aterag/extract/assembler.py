@@ -315,6 +315,24 @@ def _capture_value(rule: PatternRule, m: re.Match[str]) -> dict[str, Any] | None
         raw = m.group(1) if m.re.groups else ""
         if raw:
             out["op"] = _OP_MAP.get(raw, raw)
+    if c.get("guard_dimension"):
+        # 「条件式 + 替代限值」形态: 该限值只在某工况档下成立, 其余档用表格列的
+        # 基准限值。规格书写的是「输入电压<176Vac, 过流点 8.1A~18A」, 而档位
+        # 取值来自另一条需求(SR-1204 的功率分档), 两者要到场景展开时才对得上 ——
+        # 故此处只留原文条件式的阈值与方向, 不在这里猜它指哪个档。
+        gd = int(c.get("guard_group") or 0)
+        if gd and gd <= (m.re.groups or 0):
+            raw = m.group(gd)
+            try:
+                gv: Any = float(raw)
+            except (TypeError, ValueError):
+                gv = raw
+            out["guard"] = {
+                "dimension": str(c["guard_dimension"]),
+                "op": str(c.get("guard_op", "")),
+                "value": gv,
+                "source_text": _clean_text(m.group(0)),
+            }
     return out
 
 

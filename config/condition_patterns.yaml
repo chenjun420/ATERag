@@ -203,6 +203,21 @@ rules:
     kind: power_event
     pattern: '输入上电到[^，。\n]{0,30}'
 
+  # ---------- 输出: 分档限值(条件式 + 替代区间) ----------
+  # 同一指标在不同工况档下有不同的动作区间, 而替代区间只写在备注里, 表格的
+  # 最小值/最大值列给的是基准档(高压段)的值。不解析它, 低压段就会沿用基准值 ——
+  # 规格书写「输入电压<176Vac, 过流点 8.1A~18A」, 而 12A 的动作点其实只在
+  # >=176Vac 成立, 产测按 12A 设激励就永远测不到低压段的下边界。
+  #
+  # guard_dimension 指向承载该条件的工况维度(见 scenario_rules.yaml 的 dimensions),
+  # 由场景展开时用已解析的档位取值对上 —— 备注里的「<176Vac」是原文表述, 档位
+  # 边界来自 SR-1204 的功率分档, 二者来源不同, 不能在解析时互相假设。
+  - id: limit_under_input_vac
+    role: output
+    kind: protection_action
+    pattern: '输入电压\s*[≤<]\s*(\d+(?:\.\d+)?)\s*Vac\s*[，,]\s*[^，。；\n]{0,12}?(\d+(?:\.\d+)?)\s*[A-Za-z]+\s*[~～]\s*(\d+(?:\.\d+)?)\s*[A-Za-z]+'
+    capture: {group: 2, group2: 3, guard_dimension: ac_input_tier, guard_group: 1, guard_op: '<'}
+
   # ---------- 输出: 信号与测量 ----------
   - id: output_signal_state
     role: output
