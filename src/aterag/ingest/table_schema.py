@@ -134,6 +134,15 @@ def infer_roles(header: Sequence[str], rows: Sequence[Sequence[str]] = ()) -> li
 _RAIL_RE = re.compile(r"^-?\d+(?:\.\d+)?V(?:dc)?$", re.IGNORECASE)
 _HASNO_RE = re.compile(r"^(有|无)$")
 _UNIT_LIKE_RE = re.compile(r"^[A-Za-z%/℃μΩ.·]+$")
+# 输出轨名: 必须是**不带千分位、不带 Vdc 后缀**的电压。绝缘试验电压
+# (安规表22 的 "4000Vdc") 同样匹配 _RAIL_RE, 但它不是输出通道 —— 判据是量级与
+# 写法: 输出轨写作 -54V / 3.45V / 12V, 而绝缘电压必带 Vdc 后缀且常是四位数。
+_RAIL_NAME_RE = re.compile(r"^[+-]?\d{1,3}(?:\.\d+)?V$", re.IGNORECASE)
+
+
+def is_rail_name(v: Any) -> bool:
+    """该值是否是输出轨名 (而非任意电压量值)。"""
+    return bool(_RAIL_NAME_RE.match(_clean_cell(str(v or ""))))
 
 
 def _positional(mapped: Mapping[int, str], cells: Sequence[str]) -> dict[str, str]:

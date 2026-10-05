@@ -25,6 +25,7 @@ from aterag.ingest.table_schema import (
     DEFAULT_SCHEMA_PATH,
     SchemaRegistry,
     TableSchema,
+    is_rail_name,
     load_registry,
 )
 
@@ -34,7 +35,7 @@ _RANGE = re.compile(r"^([+-]?\d+(?:\.\d+)?)\s*[~～]\s*([+-]?\d+(?:\.\d+)?)$")
 # 需要转成 float 的规范字段; 其余字段按原样字符串携带
 _NUMERIC_FIELDS = frozenset({"min", "typ", "max", "current_rating"})
 # Requirement 实体的稳定字段契约: 缺失也要补 None/"", 下游可无脑取值
-_REQUIREMENT_DEFAULTS = ("rail", "unit", "priority", "notes", "exists")
+_REQUIREMENT_DEFAULTS = ("rail", "channel_no", "unit", "priority", "notes", "exists")
 _REQUIREMENT_NUM_DEFAULTS = ("min", "typ", "max")
 
 # 同一需求编号常有多行 (多档位/多电压轨/长期短期/多试验点), 只用 req_id+rail
@@ -219,12 +220,23 @@ def extract_from_blocks(
 
     # 同一 (章节, 需求编号) 的出现序号: 多档位行需要它来生成唯一 eid
     seq_counter: dict[tuple[str, str], int] = {}
+    # 输出通道编号: 按**表格内出现顺序**编号, 与轨名无关 —— 换产品若 12V 排在
+    # -54V 之前, 它就是输出1通道。作用域限于单张表: 各表覆盖的指标不同,
+    # 跨表累计会让编号随章节顺序漂移。
+    channel_counter: dict[tuple[int, str, str], dict[str, int]] = {}
+    table_seq = 0
 
     for b in blocks:
         for table in b.tables:
             if not table:
                 continue
             det = reg.detect(table[0], table[1:])
+            # 通道编号只在**复合列且子列确为轨名**时才有意义: 表头重复列名才
+            # 声明了"条目名由子列组成", 而那一子列还须是轨名写法。
+            # 只看重复列名不够 —— 安规表22 表头也有重复的「等级」列, 其中间列是
+            # 绝缘试验电压(4000Vdc), 会凭空多出 CH1/CH2/CH3 三路不存在的输出通道。
+            header = [_clean(c) for c in table[0]]
+            has_subcol = bool(header) and len(header) != len(set(header))
             if not det.produces_entities:
                 # 未映射 / 元数据表: 行仍保留在 blocks.jsonl (无损底座),
                 # 缺口由 scripts/table_schema_report.py 显式列出
@@ -240,6 +252,12 @@ def extract_from_blocks(
                 "model_id": model_id,
                 "parent_headings": b.parent_headings,
             }
+            # 键用 (表序号, 章节, 表头) 而非 id(table): table 是 list, 临时对象回收后
+            # id() 会被下一个对象复用, 两张不同的表就会共享通道计数器 ——
+            # 结果是第二张表从上一张表的通道数继续编, CH1 凭空消失。
+            table_seq += 1
+            tkey = (table_seq, b.section_path, "|".join(header))
+            table_channels = channel_counter.setdefault(tkey, {})
             for cells in table[1:]:
                 row = reg.map_row(det.schema, table[0], cells)
                 if not row:
@@ -247,6 +265,20 @@ def extract_from_blocks(
                 key = (b.section_path, row.get("req_id", ""))
                 seq = seq_counter.get(key, 0)
                 seq_counter[key] = seq + 1
+                # 通道编号按该轨在本表内首次出现的次序给定。无轨行(整机级要求,
+                # 如 SR-1204 输出功率 / SR-1210 整机效率)不占通道号 —— 它适用于
+                # 全部输出轨, 编号它会让"第N通道"这个概念凭空多出不存在的一路。
+                rail = _clean(row.get("rail", ""))
+                if has_subcol and not is_rail_name(rail):
+                    # 子列不是轨名写法(如绝缘试验电压 4000Vdc): 该列不是输出通道,
+                    # 不能据此编号 —— 否则会凭空造出不存在的输出路数。
+                    rail = ""
+                if has_subcol and rail and rail not in table_channels:
+                    table_channels[rail] = len(table_channels) + 1
+                if has_subcol and rail:
+                    row["channel_no"] = str(table_channels[rail])
+                else:
+                    row.pop("channel_no", None)
                 builder(
                     BuildContext(row=row, schema=det.schema, block=b, base=base, seq=seq),
                     add,

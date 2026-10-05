@@ -37,6 +37,10 @@ fields:
   - requirement_text
   - standard
   - rail
+  # 输出通道编号: 按表格内行序映射, 与轨名解耦(换产品若 12V 排在 -54V 前,
+  # 它就是输出1通道)。不进 eid —— eid 稳定性优先, 规格书增删通道会让 eid 变化,
+  # 已审注记随之失效重审, 代价过高。
+  - channel_no
   - signal_name
   - signal_req
   - range_text
