@@ -5,8 +5,6 @@ description = "产测智能体系统 - 规格书驱动 RAG 服务 (MCP)"
 # 开发机 3.13 / 板卡 (Debian 12 aarch64) 3.11 均可用; 依赖全部支持 >=3.10
 requires-python = ">=3.11,<3.14"
 dependencies = [
-    # RAG 引擎 (>=1.5.6: Smart Heading / MetadataFilter / workspace)
-    "lightrag-hku>=1.5.6",
     # Apache AGE 图存储适配。只用到两个符号:
     #   semantica.kg.KnowledgeGraph          —— 规则图的 entities/relationships 容器
     #   semantica.graph_store.ApacheAgeStore  —— over AGE 的 Cypher 执行器
@@ -31,9 +29,10 @@ dependencies = [
     # 之前它只在 venv 里(不在 pyproject 也不在 uv.lock), `uv sync --frozen`
     # 会直接把它卸掉——而这个脚本是维护那张真实规则图的唯一入口。
     "psycopg2-binary>=2.9",
-    # asyncpg / pgvector: 本仓库代码从不 import, 但 lightrag 的
-    # kg/postgres_impl.py(= vector_storage="PGVectorStorage" 的实现)在模块级
-    # `import asyncpg` 并调用 `from pgvector.asyncpg import register_vector`。
+    # asyncpg / pgvector: 本仓库代码不 import, 但 pgvector 的注册钩子
+    # (`from pgvector.asyncpg import register_vector`) 需要 asyncpg 运行时,
+    # 而 hybrid.py 用 pgvector 的 SQL 运算符(<=>)与 to_regclass 探测维度,
+    # 不装 pgvector 时 ensure_vector_schema 会直接失败。
     # 审计时按「无 import」判为未使用是错的, 记录在此以免下次再犯。
     "asyncpg>=0.30",
     "pgvector>=0.5.0",
@@ -55,7 +54,7 @@ dependencies = [
     "uvicorn>=0.27",
     # scripts/board_ssh.py 板卡运维脚本用 paramiko
     "paramiko>=3.4",
-    # ingest/pipeline.py 模块级 import numpy (lightrag/semantica 都会传递带入,
+    # ingest/pipeline.py 模块级 import numpy (semantica 会传递带入,
     # 但直接 import 就该直接声明)
     "numpy>=1.26",
     # ---- W0 存储底座新增 ----
@@ -147,7 +146,7 @@ python_version = "3.11"
 # 退役进度由本文件的 exclude 列表体现 —— 列表变短就是进度, 反向指标。
 files = ["src/aterag/storage",  "src/aterag/reasoning"]
 strict = true
-# 第三方库无类型标注。semantica / pyshacl / ortools / lightrag 均属此类。
+# 第三方库无类型标注。semantica / pyshacl / ortools 均属此类。
 # 注意: 这会让这些库的调用失去类型检查, 是有意的取舍 —— 补 stubs 的收益
 # 低于把它们隔离到 adapter 层(§18.2 的做法), 后者才是正解。
 [[tool.mypy.overrides]]
@@ -155,7 +154,6 @@ module = [
     "semantica.*",
     "pyshacl.*",
     "ortools.*",
-    "lightrag.*",
     "pgvector.*",
     "asyncpg.*",
     "qdrant_client.*",

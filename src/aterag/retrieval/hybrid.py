@@ -1,19 +1,37 @@
-"""检索融合层: pgvector + BM25 + RRF (ADR-014 W0, 替换 Qdrant 主检索路径)。
+"""检索融合层: pgvector + BM25 + RRF。**这是全系统唯一的检索实现。**
 
-## 为什么不直接用 LightRAG 的 mix 模式
+## 为什么是 pgvector + BM25 两路
 
-LightRAG 1.5.7 的 ``mix`` 模式**不含 BM25**。查源码 ``lightrag/operate.py``:
-``mix`` 做的是三次**向量**检索再做 round-robin 合并 ——
-``_get_node_data(ll_keywords, ..., entities_vdb)`` +
-``_get_edge_data(hl_keywords, ..., relationships_vdb)`` +
-``_get_vector_context(query, chunks_vdb)``。
-LLM 先抽出 ``ll_keywords``/``hl_keywords``, 但那些 keyword 拿去**做向量查询**,
-不走倒排/全文索引; 整包 lightrag 里 ``bm25``/``ts_rank``/``plainto_tsquery``
-零命中。
+中文规格书里 ``SR-1203``、``-54V``、``11.1A`` 这类**精确标识符**靠向量
+相似度命不中, 必须有 BM25 那一路兜底; 而要跨 workspace 三层
+(``[model, _domain_{type}, _common]``)做联合检索与元数据硬过滤, 又需要能
+按 ``workspace_id IN (...)`` 下推到存储层的引擎。两条路都齐了, 再用 RRF
+按名次融合, 是满足这两条要求的最小组合。
 
-所以 mix 全程是向量相似度。而中文规格书里 ``SR-1203``、``-54V``、``11.1A``
-这类**精确标识符**靠向量命不中 —— 必须有 BM25 那一路。ADR-014 决策 2 要求的
-「pgvector + BM25 + RRF」不是重复建设。
+## 决策依据存档 (LightRAG mix 模式的实测结论)
+
+LightRAG 已从依赖中移除(它只用于入库时的实体关系抽取, 而那条路的产物
+无人查询 —— 检索全程走本模块)。移除前实测过它的 ``mix`` 模式, 结论记在这里
+以免将来重新评估时重踩:
+
+* **不含 BM25**: ``mix`` 做的是三次**向量**检索再做 round-robin 合并 ——
+  ``_get_node_data(ll_keywords, ..., entities_vdb)`` +
+  ``_get_edge_data(hl_keywords, ..., relationships_vdb)`` +
+  ``_get_vector_context(query, chunks_vdb)``。LLM 先抽出
+  ``ll_keywords``/``hl_keywords``, 但那些 keyword 拿去**做向量查询**, 不走
+  倒排/全文索引; 整包 lightrag 里 ``bm25``/``ts_rank``/``plainto_tsquery``
+  零命中。
+* **一个进程只服务一个 workspace**: ``LightRAG.workspace`` 是 dataclass
+  字段, 构造时冻结; ``LIGHTRAG-WORKSPACE`` 请求头只在 ``/health`` 被消费
+  (``lightrag_server.py`` 里 ``get_workspace_from_request`` 的唯一调用点在
+  ``get_status`` 内), 而 ``/query`` 用的 ``rag`` 是闭包捕获的单一实例。
+  拿不到跨三层 workspace 的联合检索。
+* **PG 后端的 workspace 是进程级环境变量**: ``postgres_impl.py`` 里
+  ``os.environ["POSTGRES_WORKSPACE"]`` 优先于构造参数(日志原文:
+  ``overriding '<self.workspace>/<self.namespace>'``), 所以同进程内多实例
+  会互相覆盖。
+
+三条合起来: 满足产测检索要求的只有本模块这条自研路径。
 
 ## 融合形态与 rag/service.py 保持一致
 

@@ -1,7 +1,9 @@
-"""摄取管线: 规格书 -> 单一 PostgreSQL 底座 (LightRAG 图谱 / pgvector 预过滤 / pg_textsearch BM25).
+"""摄取管线: 规格书 -> 单一 PostgreSQL 底座 (pgvector 预过滤 / pg_textsearch BM25).
 
-- ingest-spec: 型号文档 -> {model_id} workspace + pgvector/BM25
+- ingest-spec: 型号文档 -> {model_id} workspace + pgvector/BM25 + aterag_entities
 - build-domain: 领域知识 -> _domain_{type} workspace (只读共享)
+
+实体到本体节点的映射在 ``aterag.kg.entities``; 本模块只管落库与向量索引。
 """
 
 from __future__ import annotations
@@ -280,126 +282,6 @@ def blocks_to_chunks(blocks: list[Block], workspace_id: str, layer: str) -> list
     return chunks
 
 
-# ---------------- LightRAG 接线 ----------------
-def build_lightrag(
-    settings: Settings,
-    workspace: str,
-    embed: EmbeddingClient,
-    llm: LLMClient,
-    dim: int,
-):
-    import os
-
-    from lightrag import LightRAG
-    from lightrag.utils import EmbeddingFunc
-
-    # 守卫: workspace 必须已归一化。LightRAG merge 阶段以 {graph_name} 不带引号拼接 AGE
-    # 标识符, PostgreSQL 会把大写折叠成小写, 导致图谱写入失败但 KV/向量层已落库 ——
-    # 表现为"入库 status=failed 但分块/实体向量残留"。此处直接失败, 不产生半份脏数据。
-    if workspace != lrag_workspace(workspace):
-        raise ValueError(
-            f"LightRAG workspace 未归一化: {workspace!r} -> 应为 {lrag_workspace(workspace)!r}; "
-            f"必须先经 lrag_workspace() 归一化 (全小写, 非字母数字转下划线)"
-        )
-
-    # LightRAG PG 后端从 os.environ 读取连接配置
-    os.environ.setdefault("POSTGRES_HOST", _host_from_dsn(settings.postgres_dsn))
-    os.environ.setdefault("POSTGRES_PORT", "5432")
-    os.environ.setdefault("POSTGRES_USER", _user_from_dsn(settings.postgres_dsn))
-    os.environ.setdefault("POSTGRES_PASSWORD", _pass_from_dsn(settings.postgres_dsn))
-    os.environ.setdefault("POSTGRES_DATABASE", _db_from_dsn(settings.postgres_dsn))
-    os.environ["POSTGRES_WORKSPACE"] = workspace
-
-    async def _embed_func(texts: list[str]) -> list[list[float]]:
-        import numpy as np
-
-        vecs = await embed.embed(texts)
-        return np.array(vecs, dtype=np.float32)  # LightRAG 校验要求 numpy 数组
-
-    async def _llm_func(prompt, system_prompt=None, **kwargs):
-        msgs = []
-        if system_prompt:
-            msgs.append({"role": "system", "content": system_prompt})
-        msgs.append({"role": "user", "content": prompt})
-        return await llm.chat(msgs, max_tokens=kwargs.get("max_tokens"))
-
-    return LightRAG(
-        working_dir=str(Path(settings.domain_rules_dir).parent / "rag_storage"),
-        workspace=workspace,
-        kv_storage="PGKVStorage",
-        vector_storage="PGVectorStorage",
-        graph_storage="PGGraphStorage",
-        doc_status_storage="PGDocStatusStorage",
-        embedding_func=EmbeddingFunc(
-            embedding_dim=dim, func=_embed_func, model_name=settings.embed_model
-        ),
-        llm_model_func=_llm_func,
-        llm_model_name=settings.llm_model,
-    )
-
-
-_DSN_RE = re.compile(r"postgresql://([^:]+):([^@]+)@([^:/]+)(?::(\d+))?/([^?]+)")
-
-
-def lrag_workspace(name: str) -> str:
-    """LightRAG workspace 归一化: 全小写 (AGE merge 阶段 schema 限定不带引号,
-    PostgreSQL 会折叠大写标识符导致 graph 表查不到)。"""
-    return re.sub(r"[^a-z0-9_]", "_", name.lower())
-
-
-def _user_from_dsn(dsn: str) -> str:
-    m = _DSN_RE.match(dsn)
-    return m.group(1) if m else "postgres"
-
-
-def _pass_from_dsn(dsn: str) -> str:
-    m = _DSN_RE.match(dsn)
-    return m.group(2) if m else ""
-
-
-def _host_from_dsn(dsn: str) -> str:
-    m = _DSN_RE.match(dsn)
-    return m.group(3) if m else "localhost"
-
-
-def _db_from_dsn(dsn: str) -> str:
-    m = _DSN_RE.match(dsn)
-    return m.group(5) if m else "power_specs"
-
-
-def entities_to_custom_kg(entities: list, model_id: str) -> dict:
-    """本体实体 -> LightRAG custom_kg (确定性图谱注入, 免 LLM 抽取)。"""
-
-    def node(e):
-        return {
-            "id": f"{e.etype}:{e.eid}",
-            "entity_type": e.etype,
-            "entity_name": e.eid,
-            "content": json.dumps(e.props, ensure_ascii=False),
-            "source_id": e.props.get("req_id", "") or e.eid,
-            "metadata": {
-                "section_path": e.props.get("section_path", ""),
-                "model_id": e.props.get("model_id", model_id),
-            },
-        }
-
-    nodes = [node(e) for e in entities]
-    edges = []
-    for e in entities:
-        if e.etype == "Product":
-            continue
-        edges.append(
-            {
-                "source": f"Product:{model_id}",
-                "target": f"{e.etype}:{e.eid}",
-                "relationship": "has" if e.etype != "Product" else "self",
-                "weight": 1.0,
-                "source_id": e.eid,
-            }
-        )
-    return {"entities": nodes, "edges": edges, "triplets": []}
-
-
 # ---------------- 入口流程 ----------------
 async def ingest_spec(
     doc_path: str,
@@ -448,15 +330,6 @@ async def ingest_spec(
     vecs = await embed.embed([c["content"] for c in chunks])
     _index_chunks(settings, model_id, chunks, vecs, replace=False)
 
-    # LightRAG: 确定性实体注入 + 原文入库 (型号 workspace, 归一化小写)
-    rag = build_lightrag(settings, lrag_workspace(model_id), embed, llm, dim)
-    await rag.initialize_storages()
-    try:
-        await rag.ainsert_custom_kg(entities_to_custom_kg(entities, model_id))
-        await rag.ainsert(text)
-    finally:
-        await rag.finalize_storages()
-
     return {
         "model_id": model_id,
         "domain": domain,
@@ -490,16 +363,6 @@ async def build_domain(
 
     workspace = registry.domain_workspace(domain)
     dim = embed.dimension or await embed.probe_dimension()
-    # 叙述性文档才进 LightRAG (LLM 抽取); 规则 YAML 走结构化通道, 避免 LLM 对代码块抽取产生噪音
-    if narrative_docs:
-        rag = build_lightrag(settings, lrag_workspace(workspace), embed, llm, dim)
-        await rag.initialize_storages()
-        try:
-            for d in narrative_docs:
-                await rag.ainsert(d)
-        finally:
-            await rag.finalize_storages()
-
     # 规则 YAML: 每条规则一个 chunk (细粒度检索); 叙述 MD: 整篇一个 chunk
     delete_workspace_chunks(settings.postgres_dsn, workspace)
     blocks: list[Block] = []

@@ -1,19 +1,23 @@
 """RAG 检索服务: 三层 workspace 装配 + 双引擎检索 + 引用溯源.
 
-路由策略:
-  带章节/类别/优先级过滤 -> pgvector 预过滤向量检索 + PG BM25 -> RRF 融合
-  无过滤                -> 向量+BM25 融合 + LightRAG mix (图导航) 补充
-隔离: workspace 三层 [model, _domain_{type}, _common]; 未注册型号 fail-closed。
+检索路径: pgvector 预过滤向量检索 + PG BM25 -> RRF 融合, 一次查询跨
+workspace 三层 [model, _domain_{type}, _common]。未注册型号 fail-closed。
 
-**LightRAG mix 那路不含 BM25**: 它是 entities VDB + relationships VDB +
-chunks VDB 三次**向量**检索做 round-robin 合并(见 lightrag/operate.py)。
-所以 chunk 层的 BM25 这一路必须自己留着 —— 中文规格书的精确标识符
-(``SR-1203`` / ``-54V`` / ``11.1A``)靠向量命不中。
+**为什么是自研的两路而不是单一向量检索**
+----------------------------------------
+中文规格书的精确标识符(``SR-1203`` / ``-54V`` / ``11.1A``)靠向量命不中,
+必须留一路 BM25 兜底; 而要跨三个 workspace 做联合检索与元数据硬过滤, 又
+不能用只服务单 workspace 的现成引擎(实测 LightRAG 1.5.7 的 mix 模式是
+entities VDB + relationships VDB + chunks VDB 三次**向量**检索做 round-robin
+合并, 不含 BM25, 且一个进程只服务一个 workspace)。故 chunk 层的 pgvector +
+BM25 + RRF 自己留着 —— 细节见 ``retrieval/hybrid.py`` 的模块 docstring。
+
+图谱导航曾由 LightRAG mix 承担, 现已随该依赖一并移除; 需要实体关系维度时
+由 ``aterag.kg.entities`` 的抽取结果进 Semantica 图谱承担。
 """
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 
 from aterag.config import Settings
@@ -57,7 +61,6 @@ class RagService:
         # legacy Qdrant 客户端**惰性**构造: 模块级 import 就是 ADR-014:37 禁止的
         # 破损态(板卡上没有 Qdrant, 留着会让 import 期就炸)。
         self._qdrant = None
-        self._lightrag_cache: dict[str, object] = {}
 
     def _qdrant_client(self):
         if self._qdrant is None:
@@ -93,7 +96,6 @@ class RagService:
         category: str | None = None,
         priority: str | None = None,
         top_k: int = 8,
-        use_graph: bool = True,
     ) -> dict:
         resolved = self.resolve(query, model_id)
         ws_layers = self.workspaces(resolved.model_id)
@@ -154,10 +156,6 @@ class RagService:
             for h in fused
         ]
 
-        graph_results: list[dict] = []
-        if use_graph and not section_path:
-            graph_results = await self._graph_search(resolved.model_id, query, top_k)
-
         return {
             "model_id": resolved.model_id,
             "domain": resolved.domain,
@@ -169,143 +167,7 @@ class RagService:
                 "priority": priority,
             },
             "results": results,
-            "graph_results": graph_results,
         }
-
-    async def _graph_search(self, model_id: str, query: str, top_k: int) -> list[dict]:
-        """LightRAG mix 模式 (图+向量), 仅型号 workspace。
-
-        only_need_context=True 返回的是整段检索上下文 (实体 + 关系 + 文档块 + 引用表,
-        实测可达 40K+ 字符), 必须按段落解析成独立引用块, 不能整段截断 —— 否则真正的
-        命中块会落在截断线之外, 图检索退化为无信息片段。
-        """
-        try:
-            from lightrag import QueryParam
-
-            rag = self._get_lightrag(model_id)
-            await rag.initialize_storages()  # 惰性初始化 (graph_name 依赖 workspace)
-            result = await rag.aquery(
-                query, param=QueryParam(mode="mix", top_k=top_k, only_need_context=True)
-            )
-            # only_need_context=True 返回检索上下文 (不调 LLM 生成), 解析为引用片段
-            if isinstance(result, dict):
-                chunks = result.get("chunks", {}).get("chunks", [])
-                return [
-                    {
-                        "content": c.get("content", ""),
-                        "source": "graph-mix",
-                        "layer": "model",
-                    }
-                    for c in chunks[:top_k]
-                    if c.get("content")
-                ]
-            return self._parse_graph_context(str(result), top_k)
-        except Exception as e:  # noqa: BLE001  # 图检索失败不阻塞主检索
-            return [
-                {
-                    "content": f"(graph retrieval unavailable: {e})",
-                    "source": "graph-mix",
-                    "layer": "model",
-                }
-            ]
-
-    @staticmethod
-    def _parse_graph_context(context: str, top_k: int) -> list[dict]:
-        """把 LightRAG 检索上下文拆成可引用的独立块。
-
-        上下文结构 (LightRAG mix, only_need_context):
-            Knowledge Graph Data (Entity):      ```json [...]```
-            Knowledge Graph Data (Relationship): ```json [...]```
-            Document Chunks:                    ```json [{"reference_id","content"}, ...]```
-            Reference Document List:            ```...```
-        优先取 Document Chunks (真正的规格书原文), 其次取关系, 最后才退回截断的原文。
-        """
-
-        def _section(header_keyword: str) -> list[dict]:
-            """取 header 关键字之后第一个 ```json 块并解析为 dict 列表。
-
-            LightRAG 输出的是 NDJSON (每行一个 JSON 对象) 而非 JSON 数组, 因此先整体
-            json.loads, 失败则退回 raw_decode 逐个读取连续 JSON 值。
-            """
-            idx = context.find(header_keyword)
-            if idx < 0:
-                return []
-            fence = context.find("```json", idx)
-            if fence < 0:
-                return []
-            end = context.find("```", fence + 7)
-            if end < 0:
-                end = len(context)
-            raw = context[fence + 7 : end]
-
-            def _as_list(data: object) -> list[dict]:
-                if isinstance(data, list):
-                    return [d for d in data if isinstance(d, dict)]
-                return [data] if isinstance(data, dict) else []
-
-            try:
-                return _as_list(json.loads(raw))
-            except json.JSONDecodeError:
-                pass
-            out: list[dict] = []
-            pos = 0
-            while pos < len(raw):
-                nl = raw.find("\n", pos)
-                if nl < 0:
-                    break
-                line = raw[pos:nl].strip()
-                pos = nl + 1
-                if not line:
-                    continue
-                try:
-                    out.extend(_as_list(json.loads(line)))
-                except json.JSONDecodeError:
-                    continue  # 非 JSON 行 (表头/说明) 跳过
-            return out
-
-        out: list[dict] = [
-            {"content": c.get("content", ""), "source": "graph-mix", "layer": "model"}
-            for c in _section("Document Chunks")
-            if c.get("content")
-        ]
-        if not out:
-            out = [
-                {
-                    "content": f"{e.get('entity', '')} ({e.get('type', '')}): {e.get('description', '')}",
-                    "source": "graph-mix-entity",
-                    "layer": "model",
-                }
-                for e in _section("Knowledge Graph Data (Entity)")
-                if e.get("entity")
-            ]
-        if not out:
-            out = [
-                {
-                    "content": f"{e.get('source', '')} -[{e.get('keywords', '')}]-> {e.get('target', '')}",
-                    "source": "graph-mix-relation",
-                    "layer": "model",
-                }
-                for e in _section("Knowledge Graph Data (Relationship)")
-            ]
-        if not out:
-            # 兜底: 仍要给引用内容, 但显式标注为未解析, 便于上层识别
-            out = [{"content": context[:2000], "source": "graph-mix-raw", "layer": "model"}]
-        return out[:top_k]
-
-    def _get_lightrag(self, model_id: str):
-        from aterag.ingest.pipeline import build_lightrag
-
-        if model_id not in self._lightrag_cache:
-            from aterag.ingest.pipeline import lrag_workspace
-
-            self._lightrag_cache[model_id] = build_lightrag(
-                self.settings,
-                lrag_workspace(model_id),
-                self.embed,
-                _get_llm(self.settings),
-                self.embed.dimension,
-            )
-        return self._lightrag_cache[model_id]
 
     # ---------- 实体查询 (PG 直查, 供 query_parameters 精确取值) ----------
     def query_entities(
