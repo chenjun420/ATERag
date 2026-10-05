@@ -219,7 +219,12 @@ checks.append(
 # 该列表整体失配 -> 落进 sorted() 按字母序兜底 -> 主/辅轨颠倒 -> 算出的电流连
 # 符号都会错(实测 -48V/12V 型号得 12V=-46.667A)且不报错。
 # 轨序现在按额定功耗 U*I_rated 自动排, 与轨名无关, 故这些字段须彻底消失。
-from aterag.extract.scenarios import ScenarioRules, Tier, _derive_load  # noqa: E402
+from aterag.extract.scenarios import (  # noqa: E402
+    ScenarioRules,
+    Tier,
+    _derive_load,
+    parse_tiers,
+)
 
 _scen_yaml = Path("config/scenario_rules.yaml").read_text(encoding="utf-8")
 # 只看非注释行: 注释里记着"原先此处声明过 priority_rails"是有意的历史说明,
@@ -282,6 +287,41 @@ for _name, _rated, _volts, _want_main in [
         )
     except Exception as _e:  # noqa: BLE001
         checks.append((f"轨序自动排定 {_name}", False, repr(_e)))
+
+# ---------- 6. 档位解析不得依赖标题字面量 ----------
+# 原先按 title == "输出功率" 精确比对。换型号若写"额定输出总功率"或英文
+# "Total Output Power", 档位解析归零, 而轨级推导随之静默失效 —— 场景退回
+# 按额定电流判, 低压段击穿功率档。故改判单位(W) + 标题模式(功率|Power)。
+from aterag.extract.models import TestCondition as _Cond  # noqa: E402
+
+_tier_cases = [
+    ("PA601 原文", "输出功率", "W", "90~176Vac: 400W; 176~286Vac: 600W", 2),
+    ("换写法 额定输出总功率", "额定输出总功率", "W", "90~176Vac: 400W", 1),
+    ("英文标题 Total Output Power", "Total Output Power", "W", "90~176Vac: 400W", 1),
+    ("直流 Vdc", "输出功率", "W", "90~176Vdc: 400W", 1),
+    ("无后缀 V", "输出功率", "W", "90~176V: 400W", 1),
+    ("小数电压", "输出功率", "W", "110.5~220V: 500W", 1),
+    ("小写 w", "输出功率", "W", "90~176Vac: 400w", 1),
+]
+for _cname, _title, _unit, _notes, _want in _tier_cases:
+    _got = parse_tiers(_rules, [_Cond(req_id="SR-X", title=_title, section_path="4.3.2", notes=_notes, limits={"max": 600.0, "unit": _unit}, unit=_unit)])
+    checks.append(
+        (f"档位解析 {_cname}", len(_got) == _want, f"解析出 {len(_got)} 档, 期望 {_want}")
+    )
+_not_power = _Cond(
+    req_id="SR-Y", title="输出电压", section_path="4.3.2",
+    notes="90~176Vac: 400W", limits={"max": 55.0, "unit": "V"}, unit="V",
+)
+checks.append(
+    ("档位解析-非功率条目不误判", not parse_tiers(_rules, [_not_power]), "输出电压(V)未被当成功率条目")
+)
+checks.append(
+    (
+        "scenario_rules.yaml 无 from_requirement_title",
+        "from_requirement_title" not in _scen_active,
+        "改由 from_unit_pattern + from_title_pattern 判定",
+    )
+)
 
 print()
 for label, ok, detail in checks:

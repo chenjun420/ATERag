@@ -255,7 +255,12 @@ class ScenarioRules:
     dimensions: tuple[DimensionSpec, ...] = ()
     tier_pattern: str = ""
     tier_from_notes: bool = True
-    tier_from_requirement_title: str = ""
+    #: 档位来源条目的判定: 单位模式 + 标题模式。
+    #: 不按标题**字面量**比对 —— 型号可能写"额定输出总功率"或英文
+    #: "Total Output Power", 字面量一变档位解析就归零, 而推导随之静默失效
+    #: (场景退回按额定电流判, 低压段击穿功率档)。
+    tier_from_unit_pattern: str = ""
+    tier_from_title_pattern: str = ""
     derivations: tuple[LoadDerivation, ...] = ()
     dimension_order: tuple[str, ...] = ()
     sort_ascending: bool = True
@@ -295,7 +300,8 @@ class ScenarioRules:
             ),
             tier_pattern=str(parse.get("pattern", "")),
             tier_from_notes=bool(parse.get("from_notes", True)),
-            tier_from_requirement_title=str(parse.get("from_requirement_title", "")),
+            tier_from_unit_pattern=str(parse.get("from_unit_pattern", "")),
+            tier_from_title_pattern=str(parse.get("from_title_pattern", "")),
             derivations=tuple(
                 LoadDerivation(
                     id=str(x.get("id", "")),
@@ -797,10 +803,20 @@ def parse_tiers(rules: ScenarioRules, conditions: Sequence[TestCondition]) -> li
     if not rules.tier_pattern:
         return []
     rx = re.compile(rules.tier_pattern)
+    unit_rx = re.compile(rules.tier_from_unit_pattern) if rules.tier_from_unit_pattern else None
+    title_rx = re.compile(rules.tier_from_title_pattern) if rules.tier_from_title_pattern else None
     out: list[Tier] = []
     seen: set[tuple[float, float, float]] = set()
     for c in conditions:
-        if rules.tier_from_requirement_title and c.title != rules.tier_from_requirement_title:
+        # 档位声明在"整机总功率"那条需求上(PA601 SR-1204 输出功率, 无轨名)。
+        # 判据用单位 W + 标题含"功率"两个模式, 任一命中即认定 —— 按标题
+        # 字面量比对会在换写法时静默失配, 档位归零而推导随之失效。
+        if unit_rx is not None:
+            lim = c.limits or {}
+            unit = str(lim.get("unit") or c.unit or "")
+            if not (unit_rx.search(unit) or (title_rx is not None and title_rx.search(c.title))):
+                continue
+        elif title_rx is not None and not title_rx.search(c.title):
             continue
         if not rules.tier_from_notes or not c.notes:
             continue
