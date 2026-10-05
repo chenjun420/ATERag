@@ -1300,6 +1300,158 @@ def apply_corrections(
     return entities, applied
 
 
+# =========================================================================
+# 移除不可执行的设计侧知识
+# =========================================================================
+#
+# 判据: **输入能不能绑到本系统的数据上**。
+#
+# 留下的是输入来自「型号规格量」或「实测采样」的那批 —— 也就是产测程序会
+# 真的调用的计算。删掉的是输入只可能来自**电路拓扑参数**的那批。
+#
+# 为什么按这个判据删, 而不是贴个 ``design_side`` 标签留着:
+# 留着的话, LLM 检索到它就会尝试绑定, 绑不上, 然后要么喂 0(造假数据),
+# 要么报一堆「输入不存在」的错。删除之后「已接受 ⟺ 可执行」成为不变式,
+# 代码里也不需要任何 ``design_side`` 特例分支。
+#
+# 判据是**可执行性**, 与来源字段无关 —— 所以这批删除不受来源审计结果影响。
+EXECUTABLE_DOMAINS = frozenset(
+    {
+        "E",  # 电工基础: 欧姆定律等。23 条全部带量纲
+        "S",  # 输入电流 / 交流有效值
+        "L",  # 告警裕度 / 保护阈值序关系
+        "N",  # 热阻 / 热网络 —— 温升测试直接用
+        "R",  # 交叉调整率
+        "M",  # 测量不确定度 / 协议
+        "Q",  # 均流 / 下垂特性 —— 成品可测
+        "H",  # 仪器匹配
+    }
+)
+EXECUTABLE_W_SUBGROUPS = frozenset(
+    {
+        "W.3",  # 傅里叶 —— 对采样数据做纹波/谐波分析
+        "W.9",  # THD / THD+N / SINAD —— 成品实测项
+        "W.11",  # RMS / 整流均值 —— 直接对采样数组算
+        "W.12",  # 可靠性分布 —— 由现场数据估 MTBF
+    }
+)
+
+#: 落在被删域里、但**成品可测**因而豁免的判据模板。
+#:
+#: 这些不是计算式, 是**测量判据**或**限值表**: 加载阶跃测相位裕度比 45°、
+#: 测 V_IL/V_IH 比规格、查谐波限值表。它们进产测执行序列, 只是没有 ``expr``。
+EXEMPT_FROM_PRUNE = frozenset(
+    {
+        "F_K.3_PHASE_MARGIN",
+        "F_K.8_1_MEASUREMENT_PM",
+        "F_K.3_GAIN_MARGIN",
+        "F_K.8_2_MEASUREMENT_GM",
+        "F_K.3.3_SETTLING_TIME",
+        "F_W.6.1_LOGIC_THRESHOLD",
+        "F_J.10.3_IEC61000_3_2_LIMIT",
+    }
+)
+
+#: 抽不出 ``expr`` 的记录里, 可能藏着上表的符号引用。拼起来做一次词边界匹配。
+_TEXT_FIELDS = ("expr", "text", "statement", "derivation", "note")
+
+_SYMBOL_ID_RE = re.compile(r"^sym::(.+)$")
+_W_SUBGROUP_RE = re.compile(r"^F_W\.(\d+)")
+
+
+def _is_executable_formula(e: dict[str, Any]) -> bool:
+    """这条公式的输入能不能绑到型号数据或实测采样上。"""
+    if e["id"] in EXEMPT_FROM_PRUNE:
+        return True
+    domain = str(e.get("properties", {}).get("domain") or "")
+    if domain in EXECUTABLE_DOMAINS:
+        return True
+    if domain == "W":
+        m = _W_SUBGROUP_RE.match(e["id"])
+        return bool(m) and f"W.{m.group(1)}" in EXECUTABLE_W_SUBGROUPS
+    return False
+
+
+def prune_non_executable(
+    entities: list[dict[str, Any]], rels: list[dict[str, Any]]
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, int]]:
+    """剔除不可执行的设计侧知识, 并连带清理由此产生的孤立项。
+
+    返回 ``(存活实体, 存活关系, 分类计数)``。
+
+    顺序有讲究, 不可调换:
+
+    1. **先删公式** —— 它是唯一决定「这个符号还有没有人用」的依据。
+    2. **再删符号** —— 只删「在存活记录里一个字都搜不到」的。这比「只被待删
+       公式引用」更保守: 概念正文、关系属性里出现的符号也会被认作在用。
+       顺带把**本来就悬空**的符号一起清了(实测 44 条), 它们是既有缺陷,
+       不是这次删除造成的 —— 留着会让「符号都有引用」这个不变量永远不成立。
+    3. **再删关系** —— 端点必须两边都在存活集合里。
+    4. **最后删公理/定理** —— ``formula_refs`` 全部指向已删公式的才删。
+       引用为空的不动: 「没有引用」不等于「引用失效」。
+    """
+    def props_of(e: dict[str, Any]) -> dict[str, Any]:
+        return e.get("properties") or {}
+
+    kept_entities = [
+        e
+        for e in entities
+        if e.get("type") != "formula" or _is_executable_formula(e)
+    ]
+    dropped_formula_ids = {e["id"] for e in entities} - {e["id"] for e in kept_entities}
+
+    haystack = " " + " ".join(
+        str(props_of(e).get(f) or "")
+        for e in kept_entities
+        for f in _TEXT_FIELDS
+    ) + " "
+
+    def symbol_in_use(sym_id: str) -> bool:
+        name = _SYMBOL_ID_RE.match(sym_id)
+        if not name:
+            return True
+        return bool(
+            re.search(
+                r"(?<![A-Za-z0-9_])" + re.escape(name.group(1)) + r"(?![A-Za-z0-9_])",
+                haystack,
+            )
+        )
+
+    kept_entities = [
+        e
+        for e in kept_entities
+        if e.get("type") != "symbol" or symbol_in_use(e["id"])
+    ]
+    dropped_symbol_ids = {e["id"] for e in entities} - {e["id"] for e in kept_entities} - dropped_formula_ids
+
+    def axiom_refs_gone(e: dict[str, Any]) -> bool:
+        refs = props_of(e).get("formula_refs") or []
+        return bool(refs) and all(r in dropped_formula_ids for r in refs)
+
+    kept_entities = [
+        e
+        for e in kept_entities
+        if e.get("type") not in ("axiom", "theorem") or not axiom_refs_gone(e)
+    ]
+    dropped_axiom_ids = {e["id"] for e in entities} - {e["id"] for e in kept_entities} - dropped_formula_ids - dropped_symbol_ids
+
+    # 关系过滤**必须在公理删除之后**: ``has_theorem`` 的源端是公理, 若先算
+    # ``alive`` 再删公理, 指向被删公理的边会留下来变成悬空边(实测 4 条)。
+    alive = {e["id"] for e in kept_entities}
+    kept_rels = [r for r in rels if r["source"] in alive and r["target"] in alive]
+    dropped_rel_ids = {(r["source"], r["target"]) for r in rels} - {
+        (r["source"], r["target"]) for r in kept_rels
+    }
+
+    stats = {
+        "formula": len(dropped_formula_ids),
+        "symbol": len(dropped_symbol_ids),
+        "relationship": len(dropped_rel_ids),
+        "axiom_theorem": len(dropped_axiom_ids),
+    }
+    return kept_entities, kept_rels, stats
+
+
 def to_seed_records(
     entities: list[dict[str, Any]], relationships: list[dict[str, Any]]
 ) -> list[dict[str, Any]]:
@@ -1404,7 +1556,18 @@ def main() -> int:
 
     entities = list(deduped.values())
     entities, corrections_applied = apply_corrections(entities, corrections)
+
+    # 剔除不可执行的设计侧知识。必须在 build_relationships **之前**:
+    # 关系由存活实体重建, 指向已删公式的边就不会被造出来。
     rels = build_relationships(entities) + axiom_rels
+    before_e, before_r = len(entities), len(rels)
+    entities, rels, prune_stats = prune_non_executable(entities, rels)
+    print(
+        f"  [剪枝] 剔除不可执行知识: 公式 {prune_stats['formula']} / "
+        f"符号 {prune_stats['symbol']} / 关系 {prune_stats['relationship']} / "
+        f"公理定理 {prune_stats['axiom_theorem']} "
+        f"(实体 {before_e}->{len(entities)}, 关系 {before_r}->{len(rels)})"
+    )
     payload = {
         "schema_version": 1,
         "provenance": {
