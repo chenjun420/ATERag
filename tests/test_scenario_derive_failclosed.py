@@ -55,12 +55,12 @@ def test_disjoint_rails_raises(rules: ScenarioRules) -> None:
 
 
 def test_error_message_reports_available_rails(rules: ScenarioRules) -> None:
-    """报错须带出配置轨名与实际可用轨, 否则换型号时无从判断该改哪一侧。"""
+    """报错须带出实际可用轨与电压, 否则换型号时无从判断该改哪一侧。"""
     with pytest.raises(ValueError) as exc:
         _derive_load(rules, [], {"-12V": 25.0}, {"3.3V": 3.3})
     msg = str(exc.value)
-    assert "priority_rails=" in msg
     assert "available_rated=" in msg
+    assert "available_volts=" in msg
 
 
 def test_available_rail_still_derives(rules: ScenarioRules) -> None:

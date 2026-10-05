@@ -244,7 +244,6 @@ class LoadDerivation:
     id: str
     basis: str
     formula: str
-    priority_rails: tuple[str, ...] = ()
     tolerance: float = 1e-3
     regression_golden: tuple[Mapping[str, Any], ...] = ()
 
@@ -302,7 +301,6 @@ class ScenarioRules:
                     id=str(x.get("id", "")),
                     basis=str(x.get("basis", "")),
                     formula=str(x.get("formula", "")),
-                    priority_rails=tuple(str(r) for r in (x.get("priority_rails") or ())),
                     tolerance=float(x.get("tolerance", 1e-3)),
                     regression_golden=tuple(x.get("regression_golden") or ()),
                 )
@@ -881,29 +879,37 @@ def _derive_load(
 
     返回 {(min,max,power) -> {rail: current}}。
 
-    推导顺序由配置里的 priority_rails 决定, 语义是"先满足的轨先分配":
-      * 中间轨按其额定电流取值, 功耗计入 P_aux(它要先吃掉一部分功率);
-      * 最后一轨吃剩余功率 (P - P_aux) / U。
-    这样 400W 档下 3.45V 轨先取 0.1A(=0.345W), 主轨得 (400-0.345)/54=7.401A,
-    与需求方已确认的口径一致; 顺序反了就会算出 400/54=7.407A 而偏 6mA。
-    顺序属规则的一部分(会改变结论), 故由配置声明而非代码固定。
+    轨序按各轨额定功耗 (U*I_rated) 升序自动排定, 语义是"先满足的轨先分配":
+      * 靠前的轨按其额定电流取值, 功耗计入 P_aux(它要先吃掉一部分功率);
+      * 最后一轨 (额定功耗最大者, 即主轨) 吃剩余功率 (P - P_aux) / U。
+    这样 400W 档下 3.45V 轨 (0.345W) 先取 0.1A, 主轨 (599.4W) 得
+    (400-0.345)/54=7.401A, 与需求方已确认的口径一致; 顺序反了会算出
+    400/54=7.407A 而偏 6mA。排序依据是功耗大小而非轨名, 故换型号自动成立。
     """
     out: dict[tuple[float, float, float], dict[str, float]] = {}
     der = next((d for d in rules.derivations if d.formula), None)
     if der is None:
         return out
-    order = [r for r in der.priority_rails if r in rated_a and r in volts]
-    if not order:
-        order = sorted(r for r in rated_a if r in volts)
+    # 末轨吃剩余功率, 故轨序必须让"额定功耗最大者"排在末位 (主轨)。
+    # 排序依据额定功耗 U*I_rated —— 这是数据驱动、与产品无关的语义:
+    # 哪条轨在满载时吃掉的功率最多, 它就是受功率档封顶的那条。
+    #
+    # 早先靠配置里的 priority_rails (PA601 的 ["3.45V","-54V"]) 声明, 换轨名后
+    # 该列表整体失配 -> 落进 sorted() 按字母序兜底 -> 主轨/辅轨可能颠倒 ->
+    # 算出的电流符号都可能是负的(实测 -48V/12V 型号得 12V=-46.667A), 而全程
+    # 不报错。字母序与功耗毫无关系, 拿它兜底等于随机选主轨。
+    order = sorted(
+        (r for r in rated_a if r in volts),
+        key=lambda r: (rated_a[r] * volts[r], r),
+    )
     if not order:
         # fail-closed: 推导要按轨分配功率, 却没有可用轨时不能静默返回空 ——
         # 空结果会让调用方以为"该档无需推导", 于是场景直接拿额定电流当判据。
         # 额定 11.1A 只在 >=176Vac 成立, 按它设低压段负载会击穿 400W 功率档。
         raise ValueError(
             "轨级负载推导无可用轨 (rated/voltage 均缺失), 无法确定吃剩余功率的轨; "
-            "检查规格书是否给出带轨名的输出电流行, 或 load_derivation.priority_rails "
-            f"是否与实际轨名匹配: priority_rails={list(der.priority_rails)} "
-            f"available_rated={sorted(rated_a)}"
+            "检查规格书是否给出带轨名的输出电流行(须同时有输出电流语义与轨电压): "
+            f"available_rated={sorted(rated_a)} available_volts={sorted(volts)}"
         )
     for t in tiers:
         currents: dict[str, float] = {}

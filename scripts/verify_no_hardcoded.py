@@ -214,6 +214,75 @@ checks.append(
     ("engine.py 无 confidence 默认 1.0", 'rule.get("confidence", 1.0)' not in ensrc, "已清除")
 )
 
+# ---------- 5. 场景规则不含 PA601 轨名绑定 (轨序须按功耗自动排定) ----------
+# 背景: load_derivation 曾声明 priority_rails: ["3.45V", "-54V"]。换轨名的型号
+# 该列表整体失配 -> 落进 sorted() 按字母序兜底 -> 主/辅轨颠倒 -> 算出的电流连
+# 符号都会错(实测 -48V/12V 型号得 12V=-46.667A)且不报错。
+# 轨序现在按额定功耗 U*I_rated 自动排, 与轨名无关, 故这些字段须彻底消失。
+from aterag.extract.scenarios import ScenarioRules, Tier, _derive_load  # noqa: E402
+
+_scen_yaml = Path("config/scenario_rules.yaml").read_text(encoding="utf-8")
+# 只看非注释行: 注释里记着"原先此处声明过 priority_rails"是有意的历史说明,
+# 删掉反而丢失修复依据。
+_scen_active = "\n".join(
+    ln for ln in _scen_yaml.splitlines() if not ln.lstrip().startswith("#")
+)
+checks.append(
+    (
+        "scenario_rules.yaml 无 priority_rails 字段",
+        "priority_rails" not in _scen_active,
+        "轨序按额定功耗自动排定",
+    )
+)
+for _field in ("priority_rails",):
+    _hits = [
+        f"{p}:{i + 1}"
+        for p in Path("src").rglob("*.py")
+        for i, ln in enumerate(p.read_text(encoding="utf-8").splitlines())
+        if _field in ln and not ln.lstrip().startswith("#")
+    ]
+    checks.append(
+        (
+            f"代码中无 {_field} 字段引用",
+            not _hits,
+            f"发现 {_hits[:3]}" if _hits else "已清除",
+        )
+    )
+
+# 轨序正确性: 跨型号验证主轨由功耗决定, 且结果恒为非负、不超额定。
+# 字母序陷阱用例: "-5V"(150W) 与 "-48V"(384W), 按字母序 -48V 排前会被选去吃
+# 剩余功率, 得出 5V 轨承担主轨的荒谬结果。
+_rules = ScenarioRules.load("config/scenario_rules.yaml")
+_tiers = [Tier(90.0, 176.0, 400.0, ""), Tier(176.0, 286.0, 600.0, "")]
+for _name, _rated, _volts, _want_main in [
+    ("PA601 -54V/3.45V", {"-54V": 11.1, "3.45V": 0.1}, {"-54V": 54.0, "3.45V": 3.45}, "-54V"),
+    ("换轨名 -48V/12V", {"-48V": 20.0, "12V": 2.0}, {"-48V": 48.0, "12V": 12.0}, "-48V"),
+    ("换轨名 -12V/+5V", {"-12V": 25.0, "5V": 3.0}, {"-12V": 12.0, "5V": 5.0}, "-12V"),
+    ("字母序陷阱 -5V/-48V", {"-5V": 30.0, "-48V": 8.0}, {"-5V": 5.0, "-48V": 48.0}, "-48V"),
+    ("单轨 12V", {"12V": 25.0}, {"12V": 12.0}, "12V"),
+]:
+    try:
+        _d = _derive_load(_rules, _tiers, _rated, _volts)
+        # 主轨 = 推导电流与额定不同的那条; 它必须等于功耗最大者
+        _main = [
+            r
+            for r, c in _d[(90.0, 176.0, 400.0)].items()
+            if abs(c - _rated[r]) > 1e-3
+        ]
+        _bad = [
+            (r, c) for _v in _d.values() for r, c in _v.items() if c < 0 or c > _rated[r] + 1e-3
+        ]
+        checks.append(
+            (
+                f"轨序自动排定 {_name}",
+                _main in ([], [_want_main]) and not _bad,
+                f"受封顶轨={_main} 期望={_want_main}"
+                + (f" 越界={_bad}" if _bad else ""),
+            )
+        )
+    except Exception as _e:  # noqa: BLE001
+        checks.append((f"轨序自动排定 {_name}", False, repr(_e)))
+
 print()
 for label, ok, detail in checks:
     print(f"  [{'PASS' if ok else 'FAIL'}] {label:38s} {detail}")
