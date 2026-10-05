@@ -101,6 +101,32 @@ naming:
   # 产测人员看不懂, 反而比不给名字更糟。故命中输入侧前缀时只输出前缀。
   input_only_no_subject: true
 
+  # ---- 工况维度进场景名 ----
+  # 为什么必须把工况写进名字: 同一条需求在不同工况档下会展开成多个场景,
+  # 判据可能差很多 —— SR-1203 输出电流在 90~176Vac 档封顶 7.401A, 在
+  # 176~286Vac 档是额定 11.1A, 相差 50%。若两个场景同名, 产测按名字执行
+  # 必然有一个测点用错限值, 且没有任何报错。
+  #
+  # key 必须是 dimensions[].key (代码侧会校验), 这里不新造维度标识。
+  # {text} 取规格书原文解析出的取值, 代码不构造该字符串, 也不含任何档位数字。
+  #
+  # only_when_multiple: 缺省 true —— 只在该维度对本需求取到多个值时才渲染。
+  # 单值维度(如仅一个温度档)加了是噪声, 且会让本已可读的名字变长。
+  #
+  # load 不在此列: 它走 load_levels 前缀机制(20%载 / 满载), 在此再声明会
+  # 渲染出"20%载20%载效率"这种重复名字。
+  dimension_labels:
+    - {id: dl_tier, key: ac_input_tier, pattern: "输入{text}"}
+    - {id: dl_temp, key: temp_window, pattern: "{text}"}
+    - {id: dl_dip_depth, key: dip_depth, pattern: "跌落至{text}"}
+    - {id: dl_dip_dur, key: dip_duration, pattern: "{text}"}
+    - {id: dl_ut, key: ut_level, pattern: "{text}"}
+
+  # 补完维度标签后若仍有重名, 追加 "_2"/"_3" 保证名字全局唯一。
+  # 只保证唯一, 不解决语义重名(如 18 条不同需求都叫"信号状态")——
+  # 语义重名要靠 dimension_labels 与被测对象名去治。
+  dedupe_names: true
+
   # ---- 场景名模板 ----
   # 场景名 = 前缀 + 被测对象 (+ 轨), 例 "满载输出电流@3.45V"
   scenario_name: "{prefix}{subject}{rail_suffix}"

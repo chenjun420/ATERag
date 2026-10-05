@@ -22,7 +22,7 @@ import ast
 import operator
 import re
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -47,6 +47,8 @@ _LIMIT_KEYS = ("min", "typ", "max")
 
 #: 名称模板可用的渲染上下文 (键固定, 避免模板引用不存在变量)。
 _NAME_CTX = frozenset({"value_g", "min_g", "max_g", "value", "rail", "unit"})
+#: 工况维度标签模板可用的占位符。text = 规格书原文解析出的取值文本。
+_DIM_LABEL_CTX = frozenset({"text", "key"})
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,6 +67,33 @@ class NamingRule:
 
 
 @dataclass(frozen=True, slots=True)
+class DimensionLabel:
+    """把一个工况维度的取值渲染进场景名 (声明在 scenario_rules.yaml)。
+
+    为什么必须有这一层: 场景名是产测人员唯一的辨识依据, 而同一条需求在不同
+    工况档下会展开成多个场景 —— SR-1203 输出电流在 90~176Vac 下可拉到 7.401A,
+    在 176~286Vac 下是 11.1A, 两者相差 50%。若名字里不带档位, 产测按名字
+    执行必然有一个测点用错判据, 且不报错。
+
+    key 是维度标识 (对应 dimensions[].key), 措辞与模板全在配置里 ——
+    "输入{text}" 是产测行业对电压档的通用叫法, 属文档认知而非代码逻辑,
+    焊进代码等于把这一套叫法固定在本实现。
+
+    {text} 取 DimensionValue.text, 即规格书原文解析结果 ("90~176Vac")。
+    代码不构造这个字符串, 也不在代码里出现任何档位数字。
+    """
+
+    id: str
+    key: str
+    pattern: str
+    #: 只在该维度于本需求取到多个值时才渲染 (单值维度加了是噪声)
+    only_when_multiple: bool = True
+
+    def render(self, value: "DimensionValue") -> str:
+        return self.pattern.format(text=value.text, key=value.key)
+
+
+@dataclass(frozen=True, slots=True)
 class NamingBook:
     """条件命名规则集 (声明在 scenario_rules.yaml 的 naming 段)。
 
@@ -78,12 +107,18 @@ class NamingBook:
     load_levels_absolute: tuple[NamingRule, ...] = ()
     input_levels: tuple[NamingRule, ...] = ()
     duty_levels: tuple[NamingRule, ...] = ()
+    #: 工况维度 -> 场景名标签 (见 DimensionLabel)。维度 key 不在代码里出现,
+    #: 全部由配置声明; 未在此声明的维度不进名字 (如 load 走前缀机制)。
+    dimension_labels: tuple[DimensionLabel, ...] = ()
     scenario_name: str = "{prefix}{subject}{rail_suffix}"
     rail_suffix_pattern: str = "@{rail}"
     #: 输入侧条目命中输入前缀时只输出前缀, 不拼接输出对象
     input_only_no_subject: bool = True
     #: 负载档命名要求单位为百分比 (见 config 注释: 速率类 load 不可当百分比)
     load_levels_require_unit_percent: bool = True
+    #: 补完维度标签后仍重名时追加序号, 保证场景名全局唯一 (产测辨识依据)。
+    #: 只保证唯一, 不解决语义重名 —— 语义重名靠 dimension_labels 治。
+    dedupe_names: bool = True
 
     @classmethod
     def from_doc(cls, doc: Mapping[str, Any]) -> NamingBook:
@@ -106,10 +141,20 @@ class NamingBook:
             load_levels_absolute=rules("load_levels_absolute"),
             input_levels=rules("input_levels"),
             duty_levels=rules("duty_levels"),
+            dimension_labels=tuple(
+                DimensionLabel(
+                    id=str(x.get("id", "")),
+                    key=str(x.get("key", "")),
+                    pattern=str(x.get("pattern", "")),
+                    only_when_multiple=bool(x.get("only_when_multiple", True)),
+                )
+                for x in (n.get("dimension_labels") or [])
+            ),
             scenario_name=str(n.get("scenario_name", "{prefix}{subject}{rail_suffix}")),
             rail_suffix_pattern=str(n.get("rail_suffix_pattern", "@{rail}")),
             input_only_no_subject=bool(n.get("input_only_no_subject", True)),
             load_levels_require_unit_percent=bool(n.get("load_levels_require_unit_percent", True)),
+            dedupe_names=bool(n.get("dedupe_names", True)),
         )
 
     def validate(self) -> None:
@@ -137,6 +182,29 @@ class NamingBook:
                 bad.append(f"naming.subjects[{r.id}] 的 when 为空 (会匹配所有需求)")
             if not r.name and not r.name_pattern:
                 bad.append(f"naming.subjects[{r.id}] 既无 name 也无 name_pattern")
+        seen_keys: dict[str, str] = {}
+        for d in self.dimension_labels:
+            if not d.id:
+                bad.append("存在无 id 的 dimension_labels 条目")
+            if not d.key:
+                bad.append(f"naming.dimension_labels[{d.id}] 缺 key (维度标识)")
+            elif d.key in seen_keys:
+                # 同一维度配两个标签 -> 名字里会重复出现同一工况, 如
+                # "输入90~176Vac输入90~176Vac"。必须当场拒绝。
+                bad.append(
+                    f"naming.dimension_labels 的 key={d.key} 重复声明 "
+                    f"(已由 [{seen_keys[d.key]}] 覆盖)"
+                )
+            else:
+                seen_keys[d.key] = d.id
+            if not d.pattern:
+                bad.append(f"naming.dimension_labels[{d.id}] 缺 pattern (不渲染等于没配)")
+            for token in re.findall(r"\{([a-z_]+)\}", d.pattern):
+                if token not in _DIM_LABEL_CTX:
+                    bad.append(
+                        f"naming.dimension_labels[{d.id}] 使用了未知占位符 {{{token}}} "
+                        f"(可用: {sorted(_DIM_LABEL_CTX)})"
+                    )
         if bad:
             raise ValueError("条件命名规则不自洽: " + "; ".join(bad))
 
@@ -350,6 +418,18 @@ class ScenarioRules:
                 re.compile(t)
             except re.error as e:
                 bad.append(f"tiers.parse.pattern 正则非法: {e}")
+        # 命名标签引用的维度必须已声明 —— 否则标签永远不会被渲染, 配置看着
+        # 齐全但场景名里没有工况, 正是"同名不同判据"的成因。
+        # 这里只查"未声明"; "未列入 dimension_order" 由 expand_scenarios 先报,
+        # 以便那个更具体的配置错误不被本条盖住(既有契约: dimension_order 的
+        # 报错必须优先于其它校验)。
+        declared = {d.key for d in self.dimensions}
+        for dl in self.naming.dimension_labels:
+            if dl.key not in declared:
+                bad.append(
+                    f"naming.dimension_labels[{dl.id}] 引用了未声明的维度 {dl.key} "
+                    f"(已声明: {sorted(declared)})"
+                )
         for dv in self.derivations:
             if not dv.formula:
                 bad.append(f"load_derivation[{dv.id}] 缺 formula")
@@ -559,8 +639,10 @@ def derive_scenario_name(
     naming: NamingBook,
     rail: str = "",
     load_level: str = "",
+    combo: Sequence[DimensionValue] = (),
+    multi_counts: Mapping[str, int] | None = None,
 ) -> str:
-    """场景名 = 条件名 + 轨后缀 (同一条需求在不同轨上是不同的测点)。
+    """场景名 = 条件名 + 轨后缀 + 工况标签 (同一条需求在不同工况下是不同的测点)。
 
     load_level 是本场景绑定的负载档, 取自维度解析结果。它必须参与命名, 而不
     只能靠 condition 的 load 子句: 有些行的负载档**只存在于 notes** 而没有
@@ -570,14 +652,34 @@ def derive_scenario_name(
 
     只在子句命名**没有**给出负载前缀时补前缀, 否则会重复 —— "20%最大输出负载"
     这档子句已命名成"20%载效率", 再补一次就成了"20载20%载效率"。
+
+    combo 是本场景绑定的全部维度取值。逐条按 naming.dimension_labels 渲染成
+    标签附在轨后缀之后 —— 这是"同名场景靠名字即可分辨"的唯一依据: SR-1203
+    输出电流在两个电压档下分别是 7.401A 和 11.1A, 判据差 50% 而名字必须不同。
+
+    multi_counts 是各维度在本需求内的取值数。只有取值数 > 1 的维度才渲染标签
+    (单值维度加上是噪声, 且会让本已可读的名字变长)。
     """
     base = derive_condition_name(cond, naming)
     label = _load_label(load_level)
     if label and not base.startswith(label):
         base = f"{label}{base}" if base else label
-    if not rail:
-        return base
-    return f"{base}{naming.rail_suffix_pattern.format(rail=rail)}"
+    if rail:
+        base = f"{base}{naming.rail_suffix_pattern.format(rail=rail)}"
+    tags: list[str] = []
+    counts = multi_counts or {}
+    for dl in naming.dimension_labels:
+        for v in combo:
+            if v.key != dl.key:
+                continue
+            if dl.only_when_multiple and counts.get(v.key, 1) < 2:
+                continue
+            tag = dl.render(v)
+            if tag and tag not in tags:
+                tags.append(tag)
+    if tags:
+        base = f"{base}[{'; '.join(tags)}]"
+    return base
 
 
 def _combo_load(combo: Sequence[DimensionValue]) -> str:
@@ -1057,6 +1159,9 @@ def expand_scenarios(
                 vals = parse_condition_dimensions(spec, c)
             if vals:
                 pools.append(vals)
+        # 各维度在本需求内的取值数 —— 命名只给"取到多个值"的维度加标签。
+        # 单值维度(如某需求只有一个温度档)加标签是噪声。
+        multi_counts = {pool[0].key: len(pool) for pool in pools if pool}
         # 无任何维度取值可用时, 每条需求一个基线场景(不拆)
         if not pools:
             res.scenarios.append(
@@ -1104,7 +1209,9 @@ def expand_scenarios(
                             title=c.title,
                             rail=rail,
                             bindings=binding,
-                            name=derive_scenario_name(c, rules.naming, rail, _combo_load(combo)),
+                            name=derive_scenario_name(
+                                c, rules.naming, rail, _combo_load(combo), combo, multi_counts
+                            ),
                             basis=(f"tier_bound:{tier.power_w:g}W" if tier else "dimension_split"),
                             source="spec",
                         )
@@ -1132,7 +1239,9 @@ def expand_scenarios(
                             rail=rail,
                             bindings=binding,
                             derived={rail: d[rail]},
-                            name=derive_scenario_name(c, rules.naming, rail, _combo_load(combo)),
+                            name=derive_scenario_name(
+                                c, rules.naming, rail, _combo_load(combo), combo, multi_counts
+                            ),
                             basis=(
                                 f"tier_power_capped:{tier.power_w:g}W" if tier else "dimension_split"
                             ),
@@ -1159,7 +1268,9 @@ def expand_scenarios(
                         title=c.title,
                         rail="",
                         bindings=binding,
-                        name=derive_scenario_name(c, rules.naming, "", _combo_load(combo)),
+                        name=derive_scenario_name(
+                            c, rules.naming, "", _combo_load(combo), combo, multi_counts
+                        ),
                         basis=(f"tier_power_capped:{tier.power_w:g}W" if tier else "dimension_split"),
                         source="spec",
                     )
@@ -1168,7 +1279,40 @@ def expand_scenarios(
         # 该需求的下一行从当前序号继续, 保证 (req_id, seq) 全局唯一
         seq_by_req[c.req_id] = seq
     _assert_unique(res.scenarios)
+    if rules.naming.dedupe_names:
+        _dedupe_names(res.scenarios)
     return res
+
+
+def _dedupe_names(scenarios: list[Scenario]) -> None:
+    """场景名全局唯一 —— 产测人员靠名字分辨测点, 重名等于让人瞎测。
+
+    只保证唯一, 不解决语义重名: 补齐顺序与 scenario_id 一致(按需求与序号),
+    所以同一个名字的第 2 个场景拿 "_2" 时, 其 (req_id, seq) 不变 —— 用例编号
+    稳定, 只是名字带了区分后缀。
+
+    真正的语义重名 (如 18 条不同需求都叫"信号状态") 只能靠
+    naming.dimension_labels 与被测对象名去治; 这里只是最后一道闸, 保证
+    "按名字执行"这件事不会因为重名而指向错误判据。
+    """
+    if not scenarios:
+        return
+    seen: dict[str, int] = {}
+    # 稳定化: 覆盖写 dataclass(frozen) 需重建, 按 (req_id, seq) 顺序处理
+    ordered = sorted(scenarios, key=lambda s: (s.req_id, s.seq))
+    repl: dict[int, str] = {}
+    for s in ordered:
+        n = seen.get(s.name, 0) + 1
+        seen[s.name] = n
+        if n == 1:
+            continue
+        repl[id(s)] = f"{s.name}_{n}"
+    if not repl:
+        return
+    for i, s in enumerate(scenarios):
+        new = repl.get(id(s))
+        if new is not None:
+            scenarios[i] = replace(s, name=new)
 
 
 def _assert_unique(scenarios: Sequence[Scenario]) -> None:
