@@ -45,6 +45,14 @@ naming:
     - {id: out_current, when: {kinds: [output_current]}, name: 输出电流}
     - {id: out_power, when: {kinds: [output_power]}, name: 输出功率}
     - {id: out_ripple, when: {kinds: [ripple]}, name: 峰峰值杂音电压}
+    # ---- 时序类 ----
+    # 量纲 (ms/s/us) 无法区分这几种时序测量, 它们都只能落在 kind=timing 上,
+    # 因此被测对象必须由条目名区分 —— 否则「掉电延时功能」会被命名成
+    # 「动态响应时间」, 产测照名字去测动态响应, 而真正的掉电延时没测。
+    # 顺序即优先级: 越具体的越靠前, 兜底的 out_timing 在最后。
+    - {id: out_timing_holdup, when: {kinds: [timing], title_pattern: '掉电延时|保持时间|后备时间'}, name: 掉电延时}
+    - {id: out_timing_startup, when: {kinds: [timing], title_pattern: '开机[^,，]*延[迟时]|上电[^,，]*延[迟时]|启动[^,，]*延[迟时]'}, name: 开机输出延迟}
+    - {id: out_timing_settle, when: {kinds: [timing], title_pattern: '上升时间|下降时间|建立时间'}, name: 上升时间}
     - {id: out_timing, when: {kinds: [timing]}, name: 动态响应时间}
     - {id: out_efficiency, when: {kinds: [efficiency]}, name: 效率}
     - {id: out_metric, when: {kinds: [output_metric]}, name: 输出量}
