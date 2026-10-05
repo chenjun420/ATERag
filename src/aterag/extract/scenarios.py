@@ -1,4 +1,4 @@
-"""条件场景拆分 (A7) —— 把一条需求展开成多个可执行测试场景。
+﻿"""条件场景拆分 (A7) —— 把一条需求展开成多个可执行测试场景。
 
 为什么
 ----
@@ -554,12 +554,59 @@ def derive_condition_name(cond: TestCondition, naming: NamingBook) -> str:
     return f"{prefix}{subject}"
 
 
-def derive_scenario_name(cond: TestCondition, naming: NamingBook, rail: str = "") -> str:
-    """场景名 = 条件名 + 轨后缀 (同一条需求在不同轨上是不同的测点)。"""
+def derive_scenario_name(
+    cond: TestCondition,
+    naming: NamingBook,
+    rail: str = "",
+    load_level: str = "",
+) -> str:
+    """场景名 = 条件名 + 轨后缀 (同一条需求在不同轨上是不同的测点)。
+
+    load_level 是本场景绑定的负载档, 取自维度解析结果。它必须参与命名, 而不
+    只能靠 condition 的 load 子句: 有些行的负载档**只存在于 notes** 而没有
+    对应的子句值 —— PA601 SR-1210 第三行写"最大输出负载测试"而典型值是 93,
+    子句里没有百分比。命名若只看子句, 这一档就会退回前缀兜底, 被命名成
+    "输入最小值"这种完全无关的名字, 产测人员看到后无从知道该测哪个负载点。
+
+    只在子句命名**没有**给出负载前缀时补前缀, 否则会重复 —— "20%最大输出负载"
+    这档子句已命名成"20%载效率", 再补一次就成了"20载20%载效率"。
+    """
     base = derive_condition_name(cond, naming)
+    label = _load_label(load_level)
+    if label and not base.startswith(label):
+        base = f"{label}{base}" if base else label
     if not rail:
         return base
     return f"{base}{naming.rail_suffix_pattern.format(rail=rail)}"
+
+
+def _combo_load(combo: Sequence[DimensionValue]) -> str:
+    """从维度取值组合里取出负载档文本 (供场景命名)。
+
+    只认 load 维度, 且只取**静态档形态**: 变化序列(25%->50%->25%)不该折成一个
+    百分比前缀 —— 那会让 200us 恢复时间的场景被命名成"50%载动态响应时间",
+    而实际必须按 25→50→25 的路径执行。序列档另由 levels 提供。
+    """
+    for v in combo:
+        if v.key == "load" and not v.levels:
+            return v.text
+    return ""
+
+
+def _load_label(level_text: str) -> str:
+    """负载档取值 -> 产测可读前缀 (数值全部来自规格书, 不臆造)。
+
+    "20%最大输出负载" -> "20%载";  "50%负载" -> "50%载";
+    "最大输出负载测试" -> "满载" (无数值时按满载表述, 与行业叫法一致)。
+    """
+    t = level_text.strip()
+    m = re.match(r"^(\d+(?:\.\d+)?)\s*%", t)
+    if m:
+        f = float(m.group(1))
+        return f"{int(f) if f.is_integer() else f'{f:g}'}%载"
+    if "最大" in t:
+        return "满载"
+    return ""
 
 
 def _formula_vars(expr: str) -> set[str]:
@@ -1057,7 +1104,7 @@ def expand_scenarios(
                             title=c.title,
                             rail=rail,
                             bindings=binding,
-                            name=derive_scenario_name(c, rules.naming, rail),
+                            name=derive_scenario_name(c, rules.naming, rail, _combo_load(combo)),
                             basis=(f"tier_bound:{tier.power_w:g}W" if tier else "dimension_split"),
                             source="spec",
                         )
@@ -1085,7 +1132,7 @@ def expand_scenarios(
                             rail=rail,
                             bindings=binding,
                             derived={rail: d[rail]},
-                            name=derive_scenario_name(c, rules.naming, rail),
+                            name=derive_scenario_name(c, rules.naming, rail, _combo_load(combo)),
                             basis=(
                                 f"tier_power_capped:{tier.power_w:g}W" if tier else "dimension_split"
                             ),
@@ -1112,7 +1159,7 @@ def expand_scenarios(
                         title=c.title,
                         rail="",
                         bindings=binding,
-                        name=derive_scenario_name(c, rules.naming, ""),
+                        name=derive_scenario_name(c, rules.naming, "", _combo_load(combo)),
                         basis=(f"tier_power_capped:{tier.power_w:g}W" if tier else "dimension_split"),
                         source="spec",
                     )
