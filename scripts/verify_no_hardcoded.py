@@ -323,6 +323,62 @@ checks.append(
     )
 )
 
+# ---------- 7. 派生电流判据不得看量纲 (kind 是唯一依据) ----------
+# 背景: _is_load_bearing 与 _rated_currents 曾用 "限值单位是 A" 作 fallback。
+# 保护动作阈值的单位也是 A, 于是被一起收进来 —— PA601 的 SR-1309 过流动作区间
+# 是 12~18A, 却被挂上 SR-1203 的派生值 7.401A, 落在动作区间之下。产测照它设
+# 负载不触发保护, 保护功能测不出来却显示通过。
+from aterag.extract.models import ConditionClause as _Cl  # noqa: E402
+from aterag.extract.scenarios import _is_load_bearing, _rated_currents  # noqa: E402
+
+
+def _cond(kind: str, unit: str, role: str, rail: str, mx: float | None) -> _Cond:
+    lim: dict[str, object] = {"unit": unit, "rail": rail}
+    if mx is not None:
+        lim["max"] = mx
+    return _Cond(
+        req_id="SR-K",
+        title="示例",
+        section_path="4.3.2",
+        rail=rail,
+        role=role,
+        limits=lim,
+        output_conditions=[_Cl(kind=kind, text="x", role="output")],
+    )
+
+
+# 单位为 A 但语义是保护动作 -> 不得判成输出电流类, 也不得进额定表
+_prot = _cond("protection_action", "A", "protection_response", "-54V", 18.0)
+checks.append(
+    ("派生判据-保护动作不认电流量纲", not _is_load_bearing(_prot), "kind=protection_action")
+)
+checks.append(
+    (
+        "额定表-保护动作点不入表",
+        "-54V" not in _rated_currents([_prot]),
+        "否则 -54V 额定被记成 18A 而非 11.1A, 封顶基准错一个量级",
+    )
+)
+# 真正的输出电流仍须保留 (不能修过头)
+_oc = _cond("output_current", "A", "output_spec", "-54V", 11.1)
+checks.append(("派生判据-输出电流仍成立", _is_load_bearing(_oc), "kind=output_current"))
+checks.append(
+    (
+        "额定表-输出电流入表",
+        _rated_currents([_oc]).get("-54V") == 11.1,
+        "输出电流必须仍取额定值",
+    )
+)
+# 无 output_current 子句时, 任何单位都不该判成输出电流类 (纯量纲不得放行)
+for _u in ("A", "mA", "W", "V"):
+    checks.append(
+        (
+            f"派生判据-仅 {_u} 量纲不放行",
+            not _is_load_bearing(_cond("signal_state", _u, "output_spec", "-54V", 1.0)),
+            "无量纲信号类不得挂派生电流",
+        )
+    )
+
 print()
 for label, ok, detail in checks:
     print(f"  [{'PASS' if ok else 'FAIL'}] {label:38s} {detail}")
