@@ -73,11 +73,15 @@ class FakeConn:
         self.rows_by_kind = rows_by_kind or {}
         self.deleted = 0
         self.closed = False
+        #: ``transaction()`` 被调用的次数。读路径必须为 0 —— 真 PG 上那等于
+        #: 一个 idle in transaction 的后端, 会挡住后续写入(实测过)。
+        self.tx_started = 0
 
     def cursor(self) -> FakeCursor:
         return FakeCursor(self)
 
     def transaction(self) -> FakeTxn:
+        self.tx_started += 1
         return FakeTxn()
 
     def close(self) -> None:
@@ -151,6 +155,52 @@ def storage(conn: FakeConn) -> PGProvenanceStorage:
 # ---------------------------------------------------------------- 契约
 
 
+class TestNoTransactionLeak:
+    """读路径**不得**留下打开的事务。
+
+    实测故障(板卡): 查一次谱系之后, 后端停在 ``idle in transaction / ClientRead``,
+    紧接着的写入卡在 ``wait=Lock/transactionid`` 直到超时。根因是 psycopg3 在
+    非 autocommit 模式下第一条语句就隐式开事务, 而读方法没有 commit。
+
+    这里断言连接是 autocommit 的 —— 那是唯一能保证「只读方法不留事务」的地方
+    (逐个读方法包 ``conn.transaction()`` 也能修, 但那让每个 SELECT 都多两次
+    往返, 而读是这条路径上的主要操作)。
+    """
+
+    def test_connect_factory_defaults_to_autocommit(self) -> None:
+        import inspect
+
+        from aterag.provenance.pg_storage import _psycopg_connect
+
+        src = inspect.getsource(_psycopg_connect)
+        assert "autocommit=True" in src, "连接没开 autocommit, 读方法会泄漏事务"
+
+    def test_read_methods_do_not_open_a_transaction(self, conn: FakeConn) -> None:
+        """读方法不得调用 ``conn.transaction()``。
+
+        写路径(``store`` / ``clear``)必须调用 —— 咨询锁要在事务内。
+        """
+        st = PGProvenanceStorage("dsn", connect_factory=lambda d: conn)
+        st.retrieve("X")
+        st.retrieve_all()
+        st.get_chain_head()
+        st.trace_lineage("X")
+        assert not conn.tx_started, "读路径开了事务 -> 会 idle in transaction -> 挡住写入"
+
+    def test_count_does_not_open_a_transaction(self) -> None:
+        """``count()`` 单独跑一次(上面的用例里它会因为假连接没有行而抛)。"""
+        conn = FakeConn({"count(*)": [(7,)]})
+        st = PGProvenanceStorage("dsn", connect_factory=lambda d: conn)
+        assert st.count() == 7
+        assert not conn.tx_started, "count() 开了事务"
+
+    def test_write_methods_do_open_a_transaction(self) -> None:
+        """反向: 写路径必须开事务, 否则咨询锁在事务外取等于没取。"""
+        conn = FakeConn()
+        PGProvenanceStorage("dsn", connect_factory=lambda d: conn).store(_entry("X"))
+        assert conn.tx_started == 1, "store() 没开事务, 咨询锁会落在事务外"
+
+
 class TestFieldMapping:
     def test_mapping_is_bijective_over_dataclass_fields(self) -> None:
         """列名与字段名**双向**完全一致。
@@ -176,6 +226,38 @@ class TestFieldMapping:
         body = ddl.split("CREATE TABLE", 1)[1]
         for _f, col in _FIELDS:
             assert re.search(rf"\b{re.escape(col)}\b", body), f"迁移里没有列 {col}"
+
+    def test_entity_id_is_unique_in_the_ddl(self) -> None:
+        """``entity_id`` 必须 UNIQUE —— 这是「同实体是替换而不是追加」的前提。
+
+        没有它, ``ON CONFLICT (entity_id)`` 无处可冲突, 重复装载就会留下两行,
+        sequence_id 不再是连续的 {1..N}, 而 ``verify_chain()`` 明确按
+        「sequence_id == 前驱+1」判定 —— 症状是一条看不懂的 chain_break。
+        """
+        import re
+        from pathlib import Path
+
+        ddl = Path("alembic/versions/0003_l0_provenance.py").read_text(encoding="utf-8")
+        assert re.search(r"entity_id\s+TEXT NOT NULL UNIQUE", ddl), \
+            "entity_id 缺 UNIQUE 约束"
+
+    def test_sequence_id_index_is_not_unique(self) -> None:
+        """``sequence_id`` **不能**有唯一约束。
+
+        上游归档路径(``track_entity`` 的 versioning / ``invalidate()``)会写一行
+        ``entity_id='X:v:<ts>'`` 的历史, 并**故意复用同一个 sequence_id** ——
+        上游注释原文: "archival relabels always preserve their existing
+        sequence_id rather than consuming a new one"。给它加唯一索引会让合法的
+        归档写入直接失败(板卡实测: 重复键违反 uq_provenance_sequence)。
+        """
+        import re
+        from pathlib import Path
+
+        ddl = Path("alembic/versions/0003_l0_provenance.py").read_text(encoding="utf-8")
+        assert not re.search(r"UNIQUE[^,)]*\bsequence_id\b", ddl), \
+            "sequence_id 被加了唯一约束, 会堵死归档路径"
+        assert re.search(r"CREATE INDEX (IF NOT EXISTS )?idx_prov_sequence", ddl), \
+            "缺 sequence_id 的普通索引(链头查询要用)"
 
 
 class TestStorageContract:
@@ -244,6 +326,43 @@ class TestInsert:
         assert json.loads(params["meta"]) == {"a": 1}
         assert params["used_entities"] == ["X", "Y"]
         assert params["informed_by_activities"] == ["act1"]
+
+    def test_store_is_an_upsert_on_entity_id(
+        self, storage: PGProvenanceStorage, conn: FakeConn
+    ) -> None:
+        """同一 entity_id 必须**替换**, 不是追加。
+
+        上游以 entity_id 为主键(``compute_checksum`` 注释: "entity_id is the
+        storage primary key"), ``store()`` 对已存在的 entity_id 做替换。纯 INSERT
+        会让同一实体装载两次后留下两行, sequence_id 不再是连续的 {1..N}, 而
+        ``verify_chain()`` 严格按「sequence_id == 前驱+1」判定 —— 症状是一条
+        看不懂的 chain_break。板卡实测过这个失败。
+        """
+        storage.store(_entry("X"))
+        sql, _p = conn.inserts()[0]
+        assert "on conflict (entity_id) do update" in sql
+
+    def test_upsert_updates_everything_except_the_key(
+        self, storage: PGProvenanceStorage, conn: FakeConn
+    ) -> None:
+        """``DO NOTHING`` 会把旧值永久留下。
+
+        同一实体重新装载时出处/置信度可能已变(种子重跑、修正表更新),
+        ``DO NOTHING`` 让「当前这条是从哪来的」变成过期的, 而那正是谱系表
+        存在的理由。所以除主键外全部列都要更新。
+        """
+        storage.store(_entry("X"))
+        sql, _p = conn.inserts()[0]
+        tail = sql.split("do update set", 1)[1]
+        # 词边界匹配: ``parent_entity_id`` 里含子串 ``entity_id``, 用 in 判会误报
+        import re
+
+        assigned = set(re.findall(r"(\w+)\s*=\s*excluded\.", tail))
+        for _f, col in _FIELDS:
+            if col == "entity_id":
+                assert col not in assigned, "不能更新主键本身"
+            else:
+                assert col in assigned, f"UPSERT 没更新 {col}"
 
     def test_takes_the_advisory_lock_in_the_same_transaction(
         self, storage: PGProvenanceStorage, conn: FakeConn

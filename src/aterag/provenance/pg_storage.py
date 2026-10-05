@@ -179,6 +179,9 @@ class PGProvenanceStorage(ProvenanceStorage):
 
         锁取在**事务内**: ``pg_advisory_xact_lock`` 随事务结束自动释放, 所以
         「先加锁再开事务」等于没加。
+
+        读路径**不走这里** —— 它们靠连接级的 ``autocommit=True``(见
+        :func:`_psycopg_connect`), 所以不会留下打开的事务。
         """
         conn = self._conn()
         with conn.transaction():
@@ -213,19 +216,44 @@ class PGProvenanceStorage(ProvenanceStorage):
             self._store_with_conn(conn, entry)
 
     def _store_with_conn(self, conn: Any, entry: ProvenanceEntry) -> None:
-        """把一条 entry 插入谱系表。
+        """把一条 entry 写入谱系表 —— **同一 entity_id 是替换, 不是追加**。
+
+        这是与上游存储对齐的关键一处, 也是本层最初踩的坑。上游以
+        ``entity_id`` 为主键(``compute_checksum`` 的注释原文: "entity_id is
+        the storage primary key"), ``store()`` 对已存在的 entity_id 做替换。
+        用纯 INSERT 替��的话, 同一个实体被装载两次就会留下两行:
+
+            第一次装载  -> 行 A (entity_id=X, sequence_id=1042)
+            第二次装载  -> 归档行 (entity_id='X:v:<ts>', sequence_id=1042)  # 设计如此
+                        -> 行 B (entity_id=X, sequence_id=1043)            # 应该是替换 A
+
+        板卡实测: 这样会多出一行, ``{sequence_id}`` 不再是连续的 ``{1..N}``,
+        而 ``verify_chain()`` 严格检查 ``sequence_id == 前驱 + 1`` 且明确声明
+        「archival relabels 总是保留原 sequence_id, 所以现存 sequence_id 集合
+        恒等于 {1..N}」—— 于是它把同号的第二行判成 chain_break。
+
+        对照组证明这是本层的问题而不是上游的: 同一份装载灌进上游自带的
+        ``InMemoryStorage`` 与 ``SQLiteStorage`` 都是 ``valid=True / 0 断``。
 
         ``checksum`` / ``sequence_id`` / ``previous_checksum`` 由
         ``ProvenanceManager._save_entry`` 算好后带进来, 这里**不重算** ——
-        重算会让它与 manager 内部的哈希对不上, 而 ``verify_chain()`` 是拿
-        manager 那份做比对的。
+        重算会与 manager 内部的哈希对不上, 而 ``verify_chain()`` 拿的是
+        manager 那份做比对。
         """
         params = {col: _to_param(entry, fld) for fld, col in _FIELDS}
         cols = ", ".join(_COLUMNS)
         marks = ", ".join(f"%({c})s" for c in _COLUMNS)
+        # ON CONFLICT (entity_id) DO UPDATE: 替换除主键外的全部列。
+        # 不用 DO NOTHING —— 同一实体重新装载时出处/置信度可能已变(种子重跑、
+        # 修正表更新), DO NOTHING 会把旧值永久留下, 而谱系的价值就在于
+        # 「当前这条是从哪来的」是准的。
+        updates = ", ".join(
+            f"{c} = EXCLUDED.{c}" for c in _COLUMNS if c != "entity_id"
+        )
         with conn.cursor() as cur:
             cur.execute(
-                f"INSERT INTO {self._table} ({cols}) VALUES ({marks})",  # noqa: S608
+                f"INSERT INTO {self._table} ({cols}) VALUES ({marks}) "  # noqa: S608
+                f"ON CONFLICT (entity_id) DO UPDATE SET {updates}",
                 params,
             )
 
@@ -348,9 +376,28 @@ class PGProvenanceStorage(ProvenanceStorage):
 
 
 def _psycopg_connect(dsn: str) -> Any:
+    """建一条 **autocommit** 连接。
+
+    ``autocommit=True`` 不是偷懒, 是修一个实测出来的严重问题: psycopg3 在
+    非 autocommit 模式下**第一条语句就隐式开事务, 且永不自 commit** ——
+    除非你显式用 ``conn.transaction()`` 或 ``conn.commit()``。
+
+    本模块的读方法(``retrieve`` / ``retrieve_all`` / ``trace_lineage`` /
+    ``get_chain_head`` / ``count``)都只做 SELECT, 原来直接用缓存连接发语句,
+    于是**每个读都留下一个打开的事务**。板卡上实测的后果:
+
+        backend A: idle in transaction   (ClientRead)   <- 某个 SELECT 之后没提交
+        backend B: active, wait=Lock/transactionid     <- 写入被它挡住
+
+    即「查一次谱系」就能让后续写入无限等待, 而且 A 持有的 MVCC 快照会一直
+    累积(bloat)。这不会自己暴露成报错, 只表现为「偶发卡住」。
+
+    写路径不受影响: ``transaction()`` 在 autocommit 连接上会显式发
+    BEGIN/COMMIT, 咨询锁也仍在事务内(见 :meth:`PGProvenanceStorage.transaction`)。
+    """
     import psycopg
 
-    return psycopg.connect(dsn)
+    return psycopg.connect(dsn, autocommit=True)
 
 
 def _parents_of(entry: ProvenanceEntry) -> Sequence[str | None]:

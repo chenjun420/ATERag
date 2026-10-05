@@ -71,8 +71,15 @@ def upgrade() -> None:
         f"""
         CREATE TABLE {L0_SCHEMA}.provenance (
             prov_id           BIGSERIAL PRIMARY KEY,
-            -- Semantica 的 entity_id 是 str, 见模块 docstring 的理由
-            entity_id         TEXT NOT NULL,
+            -- Semantica 的 entity_id 是 str, 见模块 docstring 的理由。
+            --
+            -- **UNIQUE 而不是主键**: 上游的存储就是以 entity_id 为主键的
+            -- (integrity.compute_checksum 的注释原文: "entity_id is the storage
+            -- primary key"), ``store()`` 对同一 entity_id 是**替换**而不是追加。
+            -- 本迁移保留 ``prov_id`` 这个代理键, 因为 ``get_chain_head`` 需要
+            -- 一个单调的写入序来做平票裁决(同号归档行必须确定性地取到最近
+            -- 写入的那一行)—— 那个语义需要「插入序」, 而不是「实体序」。
+            entity_id         TEXT NOT NULL UNIQUE,
             entity_type       TEXT NOT NULL,
             activity_id       TEXT NOT NULL,
             agent_id          TEXT NOT NULL DEFAULT 'semantica',
