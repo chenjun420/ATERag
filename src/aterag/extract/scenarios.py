@@ -690,6 +690,16 @@ def _derive_load(
     order = [r for r in der.priority_rails if r in rated_a and r in volts]
     if not order:
         order = sorted(r for r in rated_a if r in volts)
+    if not order:
+        # fail-closed: 推导要按轨分配功率, 却没有可用轨时不能静默返回空 ——
+        # 空结果会让调用方以为"该档无需推导", 于是场景直接拿额定电流当判据。
+        # 额定 11.1A 只在 >=176Vac 成立, 按它设低压段负载会击穿 400W 功率档。
+        raise ValueError(
+            "轨级负载推导无可用轨 (rated/voltage 均缺失), 无法确定吃剩余功率的轨; "
+            "检查规格书是否给出带轨名的输出电流行, 或 load_derivation.priority_rails "
+            f"是否与实际轨名匹配: priority_rails={list(der.priority_rails)} "
+            f"available_rated={sorted(rated_a)}"
+        )
     for t in tiers:
         currents: dict[str, float] = {}
         p_aux = 0.0
