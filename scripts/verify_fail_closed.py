@@ -20,7 +20,7 @@ import urllib.request
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-HOST = os.getenv("BOARD_SSH_HOST", "192.168.5.24")
+HOST = os.getenv("BOARD_SSH_HOST", "192.168.5.25")
 BASE = f"http://{HOST}:8080/mcp"
 SID: str | None = None
 _ID = 0

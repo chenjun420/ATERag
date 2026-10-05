@@ -1,4 +1,4 @@
-# ATERag 存储栈 - 192.168.5.24 (Debian 12 ARM64, Podman rootful)
+# ATERag 存储栈 - 192.168.5.25 (Debian 12 ARM64, Podman rootful)
 # 组件: PostgreSQL 17 (pgvector + Apache AGE + pg_textsearch + zhparser) + Qdrant
 # 用法: 在板上 cd ~/aterag && sudo podman-compose up -d --build
 name: aterag-storage

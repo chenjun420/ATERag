@@ -23,7 +23,7 @@
 | 脏 workspace 清理 | `scripts/board_clean_lrag.py` | ✅ 已执行 |
 | 测试夹具 (第二型号) | `tests/fixtures/PN1000-48A 迷你规格书.md` | ✅ 已导入 |
 
-## 存储栈 (192.168.5.24, 原生安装)
+## 存储栈 (192.168.5.25, 原生安装)
 
 - PostgreSQL 17.11 + pgvector + Apache AGE 1.7.0 + pg_textsearch 1.4.0 + zhparser/SCWS
 - Qdrant v1.19.1 (aarch64-musl 静态二进制 + systemd)
@@ -72,7 +72,7 @@
 | Semantica 语义图回读 (节点数/公式边/约束边/溯源) | **5/5** |
 | 新增规则 MCP 端到端 (calculate 10 项) | **10/10** |
 
-## 全链路部署 (192.168.5.24)
+## 全链路部署 (192.168.5.25)
 
 一键编排: `python scripts/deploy_board.py` → **6/6 PASS**
 

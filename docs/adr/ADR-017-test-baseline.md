@@ -38,7 +38,7 @@
    （`verify_conditions.py`、`verify_bundle.py`、`verify_scenarios.py`、
    `verify_no_hardcoded.py`、`rules_selftest.py`、`validate_configs.py`）
    逐个迁入 `tests/`，每迁一个删一个原脚本。依赖远端板卡
-   （`192.168.5.24`）的保留为 `-m integration`，默认不跑。
+   （`192.168.5.25`）的保留为 `-m integration`，默认不跑。
 
 ## 理由
 
@@ -64,5 +64,5 @@
   - 远端板卡依赖的集成测试默认不跑，CI 上看不到。
     需另设 nightly 任务，否则「默认不跑」会变成「从不跑」。
 - 后续需要做的:
-  - 新增 nightly CI 任务跑 `-m integration`，连 `192.168.5.24` 的板卡。
+  - 新增 nightly CI 任务跑 `-m integration`，连 `192.168.5.25` 的板卡。
   - W7 阶段把 `fail_under` 从 80 提到 85，并同步 ATEStudio。

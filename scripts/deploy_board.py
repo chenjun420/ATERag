@@ -1,4 +1,4 @@
-"""全链路部署到板卡 192.168.5.24: 预检 -> 双型号规格书 -> 领域库 LightRAG -> Semantica 语义图.
+"""全链路部署到板卡 192.168.5.25: 预检 -> 双型号规格书 -> 领域库 LightRAG -> Semantica 语义图.
 
 用法: $env:PYTHONIOENCODING='utf-8'; .venv\\Scripts\\python.exe scripts\\deploy_board.py
 """

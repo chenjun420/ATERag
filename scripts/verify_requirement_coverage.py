@@ -66,7 +66,7 @@ def check(name: str, ok: bool, detail: str = "") -> None:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mcp", default="", help="板卡 MCP 地址 (如 http://192.168.5.24:8080/mcp)")
+    ap.add_argument("--mcp", default="", help="板卡 MCP 地址 (如 http://192.168.5.25:8080/mcp)")
     ap.add_argument("--mcp-stats", default="", help="直接给一段 MCP 返回的 JSON 文件, 跳过网络")
     args = ap.parse_args()
 

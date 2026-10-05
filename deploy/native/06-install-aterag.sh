@@ -1,6 +1,6 @@
 #!/bin/bash
 # ATERag 板卡应用层部署: Python 3.13 (uv 预编译) + venv + 依赖 + systemd 常驻
-# 目标机: 192.168.5.24 (Debian 12 ARM64)
+# 目标机: 192.168.5.25 (Debian 12 ARM64)
 # 前置: Step 1~5 已完成 (PostgreSQL 17 + AGE/vector/pg_textsearch/zhparser + Qdrant)
 # 用法: sudo -i  然后  bash /opt/aterag/native/06-install-aterag.sh
 set -euxo pipefail

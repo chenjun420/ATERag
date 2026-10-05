@@ -25,7 +25,7 @@ import urllib.request
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-HOST = os.getenv("BOARD_MCP_HOST", "192.168.5.24")
+HOST = os.getenv("BOARD_MCP_HOST", "192.168.5.25")
 PORT = os.getenv("BOARD_MCP_PORT", "8080")
 URL = f"http://{HOST}:{PORT}/mcp"
 INPUT_VAC = 110.0

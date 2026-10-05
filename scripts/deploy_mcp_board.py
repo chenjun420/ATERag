@@ -20,7 +20,7 @@ import paramiko
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-HOST = os.getenv("BOARD_SSH_HOST", "192.168.5.24")
+HOST = os.getenv("BOARD_SSH_HOST", "192.168.5.25")
 USER = os.environ.get("BOARD_SSH_USER", "")
 PWD = os.getenv("BOARD_SSH_PASSWORD", "")
 APP_DIR = "/opt/aterag"
@@ -54,7 +54,7 @@ EXCLUDE_DIRS = {"__pycache__", ".pytest_cache", ".ruff_cache"}
 def board_env(local_env: str) -> str:
     """生成板卡侧 .env: 密钥沿用开发机, 存储端点改指本机回环.
 
-    MCP 服务现在跑在板卡上, 再用 192.168.5.24 自指没有必要且依赖网卡地址;
+    MCP 服务现在跑在板卡上, 再用 192.168.5.25 自指没有必要且依赖网卡地址;
     统一改 127.0.0.1 更快也更抗 IP 变更。
     """
     txt = open(local_env, encoding="utf-8").read()

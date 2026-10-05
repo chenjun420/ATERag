@@ -23,7 +23,7 @@ MCP 客户端 (需求/用例/代码/参数 Agent)
 │   ├─ 多步推导链 (缺失输入自动派生)              │
 │   └─ 决策溯源 (前提逐条标注 layer)             │
 ├─────────────────────────────────────────────┤
-│ 存储: 192.168.5.24                            │
+│ 存储: 192.168.5.25                            │
 │   PG17 (vector/AGE/pg_textsearch/zhparser)    │
 │   Qdrant v1.19.1 (workspace is_tenant 索引)   │
 ├─────────────────────────────────────────────┤
@@ -53,7 +53,7 @@ uv sync
 # 2. 配置
 cp .env.example .env   # 填入 API Key (Key 禁止提交 git)
 
-# 3. 部署存储栈 (192.168.5.24, 见 deploy/native/README)
+# 3. 部署存储栈 (192.168.5.25, 见 deploy/native/README)
 # ... 一次性执行 01~05 脚本
 
 # 4. 初始化 Qdrant (维度自动探测, 当前 1024)
@@ -72,7 +72,7 @@ python scripts/validate_pa601.py
 python scripts/extract_test_conditions.py -m PA601-D54A --brief
 
 # MCP Server 现已常驻板卡 (systemd), 开发机无需再手工启动
-# 远程验证: $env:MCP_BASE='http://192.168.5.24:8080/mcp'; python scripts/mcp_e2e.py
+# 远程验证: $env:MCP_BASE='http://192.168.5.25:8080/mcp'; python scripts/mcp_e2e.py
 ```
 
 ## 新产品规格书上传与处理
@@ -93,7 +93,7 @@ sudo systemctl restart aterag-mcp     # 改代码/改 registry.yaml 后重启
 tail -f /var/log/aterag/mcp.err       # 日志
 ```
 
-## 一键部署 / 一键验证 (板卡 192.168.5.24)
+## 一键部署 / 一键验证 (板卡 192.168.5.25)
 
 ```bash
 python scripts/deploy_board.py    # 全链路部署: 预检->Qdrant->双型号->Semantica->LightRAG

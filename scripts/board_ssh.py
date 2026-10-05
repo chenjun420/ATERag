@@ -22,7 +22,7 @@ import paramiko
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-HOST = os.getenv("BOARD_SSH_HOST", "192.168.5.24")
+HOST = os.getenv("BOARD_SSH_HOST", "192.168.5.25")
 USER = os.environ.get("BOARD_SSH_USER", "")
 PWD = os.getenv("BOARD_SSH_PASSWORD", "")
 

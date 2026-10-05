@@ -1,6 +1,6 @@
 #!/bin/bash
 # ATERag 板卡原生部署 Step 1: PGDG 仓库 + PostgreSQL 17 + pgvector + 编译依赖
-# 目标: Debian 12 ARM64 (192.168.5.24), 内核高度裁剪, 必须原生安装 (禁容器)
+# 目标: Debian 12 ARM64 (192.168.5.25), 内核高度裁剪, 必须原生安装 (禁容器)
 set -euo pipefail
 
 sudo apt-get update

@@ -24,7 +24,7 @@ WORKSPACE_FIELD = "workspace_id"
 
 
 def main() -> int:
-    url = os.getenv("QDRANT_URL", "http://192.168.5.24:6333")
+    url = os.getenv("QDRANT_URL", "http://192.168.5.25:6333")
     client = QdrantClient(url=url, timeout=30)
 
     existing = {c.name for c in client.get_collections().collections}

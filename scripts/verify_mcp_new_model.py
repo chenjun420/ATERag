@@ -12,7 +12,7 @@ import urllib.request
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-HOST = os.getenv("BOARD_SSH_HOST", "192.168.5.24")
+HOST = os.getenv("BOARD_SSH_HOST", "192.168.5.25")
 BASE = f"http://{HOST}:8080/mcp"
 MODEL = sys.argv[1] if len(sys.argv) > 1 else "PN2000-24A"
 # 该型号独有探针 (来自其规格书: 过流 22~30A, 遥测 1501, 信号 PWOK)
