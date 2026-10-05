@@ -66,6 +66,19 @@ class Settings(BaseSettings):
     semantica_enabled: bool = False
     semantica_graph: str = "power_rules"
 
+    # ---- HTTP 门面 (Semantica Explorer + ATERag 自身 REST) ----
+    explorer_host: str = "0.0.0.0"
+    explorer_port: int = 8090
+    #: 整个 HTTP 面(``/aterag/*`` 与 Explorer 的 ``/api/*``)共用的 API key,
+    #: 请求头 ``X-API-Key``。
+    #:
+    #: **不设默认值, 留空即 fail-closed**: Explorer 的 ``/api/*`` 会返回 503
+    #: 并在启动日志里说明原因, 而不是默默开匿名。上游 Semantica 明确提供了
+    #: ``SEMANTICA_ALLOW_ANONYMOUS=true`` 这个逃生口, 本项目**不启用**它 ——
+    #: 那类「开发用的匿名开关」在生产环境活下来的概率远高于被关掉的概率,
+    #: 与 ``workbench/api.py:28`` 对 ``ATERAG_WORKBENCH_TOKEN`` 的同一条纪律。
+    explorer_api_key: str = ""
+
     @property
     def llm_api_key_masked(self) -> str:
         return (self.llm_api_key[:6] + "...") if self.llm_api_key else "(empty)"

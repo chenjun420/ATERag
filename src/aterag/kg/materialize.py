@@ -32,11 +32,14 @@ edge_id, weight, family_id, metadata, ...)``。
 from __future__ import annotations
 
 import json
+import logging
 import sys
 from collections.abc import Iterable, Mapping
 from typing import Any
 
 sys.stdout.reconfigure(encoding="utf-8")
+
+logger = logging.getLogger(__name__)
 
 
 def build_context_graph(records: Iterable[Mapping[str, Any]],
@@ -50,6 +53,21 @@ def build_context_graph(records: Iterable[Mapping[str, Any]],
     ``target_id`` 是关系)。这正是 ``build_seed_data.to_seed_records`` 产出的
     形状, 也是 ``SeedDataManager.create_foundation_graph`` 读形状, 所以同一份
     JSON 能同时喂给三者, 不需要中间格式转换。
+
+    **两类关系记录不建成本地边**
+    ----------------------------
+    1. ``external: true`` 的记录(实测 24 条 ``has_unit_kind`` -> ``qudt:*``)。
+       生成器在 ``build_seed_data.py:930`` 写死了这个语义: 「指向**外部本体**,
+       不是本图节点 —— 用 IRI 形式, 不伪造本地 id」。所以 ``qudt:PotentialDifference``
+       是 IRI 引用, 库里没有也不该有对应节点。建边就会得到 24 条指向虚空的边,
+       Explorer 里点开是空页。这里把它们折进**源节点的 metadata**
+       (``external_refs``), 信息不丢, 图内部保持自洽。
+    2. ``source_id == target_id`` 的自环(实测 10 条 ``std::X defined_by std::X``,
+       ``clause`` 就是标准号本身)。一条 ``defined_by`` 指向自己不含任何信息 ——
+       那是 ``standards_add`` 逐条发关系时落下的产物, 不是语义。丢弃并计数。
+
+    目标不在节点集里的边同样丢弃并计数: 留着会让 Explorer 的邻接查询返回
+    一个点开没有任何信息的节点, 比没有这条边更糟。
     """
     from semantica.context import ContextGraph
 
@@ -57,11 +75,25 @@ def build_context_graph(records: Iterable[Mapping[str, Any]],
 
     nodes: list[dict[str, Any]] = []
     edges: list[dict[str, Any]] = []
+    # 源节点 id -> {外部 IRI: 本体名}。要在 add_nodes 之后合并, 因为关系记录
+    # 可能先于对应实体出现(种子的 records 数组不保证实体在前)。
+    external_refs: dict[str, dict[str, str]] = {}
+    n_external = n_selfloop = n_dangling = 0
+    node_ids: set[str] = set()
 
     for rec in records:
         src = rec.get("source_id")
         tgt = rec.get("target_id")
         if src and tgt:
+            if rec.get("external") is True:
+                n_external += 1
+                external_refs.setdefault(str(src), {})[str(tgt)] = str(
+                    rec.get("ontology") or ""
+                )
+                continue
+            if str(src) == str(tgt):
+                n_selfloop += 1
+                continue
             edges.append(
                 {
                     "source_id": str(src),
@@ -74,11 +106,13 @@ def build_context_graph(records: Iterable[Mapping[str, Any]],
         node_id = rec.get("id")
         if not node_id:
             continue
+        nid = str(node_id)
+        node_ids.add(nid)
         nodes.append(
             {
-                "id": str(node_id),
+                "id": nid,
                 "type": str(rec.get("entity_type") or "entity"),
-                "content": str(rec.get("text") or rec.get("name") or node_id),
+                "content": str(rec.get("text") or rec.get("name") or nid),
                 "metadata": {
                     **_provenance_of(rec),
                     "authority_kind": (rec.get("metadata") or {}).get(
@@ -88,9 +122,32 @@ def build_context_graph(records: Iterable[Mapping[str, Any]],
             }
         )
 
+    kept: list[dict[str, Any]] = []
+    for e in edges:
+        if e["source_id"] in node_ids and e["target_id"] in node_ids:
+            kept.append(e)
+        else:
+            n_dangling += 1
+    if n_external or n_selfloop or n_dangling:
+        logger.info(
+            "关系记录取舍: 外部本体引用 %d 条(折进节点 metadata, 不建边) / "
+            "自环 %d 条(丢弃) / 目标不存在 %d 条(丢弃)",
+            n_external, n_selfloop, n_dangling,
+        )
+
+    for n in nodes:
+        refs = external_refs.get(n["id"])
+        if refs:
+            n["metadata"]["external_refs"] = refs
+
     graph.add_nodes(nodes)
-    graph.add_edges(edges)
-    return graph, len(nodes), len(edges)
+    graph.add_edges(kept)
+    # 返回**图里实际的**数量, 不是传进来的数量。两者会不等: ContextGraph 按
+    # (source, target) 去重边(实测种子有 1 组重复的 ``A-4 -> thm::T3``),
+    # 而重复节点 id 也只留一个。返回传入值会让调用方以为「传了 76 条就有
+    # 76 条边」, 于是 76 与 75 的差成了无法解释的谜团 —— 而这正是本项目
+    # 反复吃亏的那类「不报错的偏差」。
+    return graph, len(graph.nodes), len(graph.edges)
 
 
 def _provenance_of(rec: Mapping[str, Any]) -> dict[str, Any]:

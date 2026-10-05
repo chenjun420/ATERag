@@ -209,9 +209,9 @@ def save_chunk_vectors(dsn: str, rows: list[dict], vectors: list[Sequence[float]
                 INSERT INTO aterag_chunks
                     (chunk_key, workspace_id, layer, section_path, heading, category,
                      priority, rail, req_id, content, embedding)
-                VALUES (%s, %(workspace_id)s, %(layer)s, %(section_path)s, %(heading)s,
-                        %(category)s, %(priority)s, %(rail)s, %(req_id)s, %(content)s,
-                        %s::vector)
+                VALUES (%(chunk_key)s, %(workspace_id)s, %(layer)s, %(section_path)s,
+                        %(heading)s, %(category)s, %(priority)s, %(rail)s, %(req_id)s,
+                        %(content)s, %(embedding)s::vector)
                 ON CONFLICT (chunk_key) DO UPDATE SET
                     layer       = EXCLUDED.layer,
                     section_path= EXCLUDED.section_path,
@@ -223,8 +223,12 @@ def save_chunk_vectors(dsn: str, rows: list[dict], vectors: list[Sequence[float]
                     content     = EXCLUDED.content,
                     embedding   = EXCLUDED.embedding
                 """,
-                {**r, "chunk_key": key},
-                (_vec_literal(v),),
+                # 全部命名占位符。原实现混用 ``%s::vector``(位置) 与
+                # ``%(name)s``(命名) 并试图同时传 dict 与 tuple, 报
+                # "Connection.execute() takes from 2 to 3 positional arguments but 4
+                # were given" —— psycopg 只接受一个参数序列。向量按 pgvector 的
+                # 字面量形式(``[1,2,3]``)传, 配 ``::vector`` 转型。
+                {**r, "chunk_key": key, "embedding": _vec_literal(v)},
             )
         conn.commit()
     return len(rows)
