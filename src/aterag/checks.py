@@ -1,6 +1,19 @@
-"""启动自检 (fail-fast): PG 扩展、Qdrant、LLM、Embedding 全量验证.
+"""启动自检 (fail-fast): PG 扩展、检索后端、LLM、Embedding 全量验证.
 
 禁止本地降级 —— 任一依赖失败即拒绝启动, 并输出可执行的诊断信息。
+
+**Qdrant 只在它是检索后端时才检查**
+--------------------------------------
+实测(板卡 192.168.5.25): Qdrant 根本没部署(6333 关闭), 而
+``retrieval_backend`` 默认已是 ``pgvector``(ADR-014 W0 把 Qdrant 移出默认
+路径, 检索走 ``retrieval/hybrid.py`` 的 pgvector + BM25 + RRF)。原先这里
+无条件检查 Qdrant, 于是 ``health`` tool 在板卡上**恒返回** ``ok: false``。
+
+一个恒失败的健康检查比没有健康检查更糟: 它会被忽略, 于是**真的**故障
+(PG 连不上、LLM 挂了)也跟着一起被忽略。所以按后端开关 —— 默认路径改为查
+``_check_pgvector``: chunk 表在不在、向量列在不在、有多少行带向量。
+只查「``vector`` 扩展装着」是不够的: 表没建或列缺失时检索会**静默返回空
+结果**, 扩展全绿而功能不可用。
 """
 
 from __future__ import annotations
@@ -25,7 +38,11 @@ class CheckResult:
 async def run_all_checks(settings: Settings) -> list[CheckResult]:
     results: list[CheckResult] = []
     results.append(_check_postgres(settings))
-    results.extend(await _check_qdrant(settings))
+    if settings.retrieval_backend == "qdrant":
+        results.extend(await _check_qdrant(settings))
+    else:
+        # 默认后端是 pgvector, 所以查的是它 —— 而不是查一个根本没部署的 Qdrant。
+        results.append(_check_pgvector(settings))
     results.extend(await _check_llm(settings))
     results.extend(await _check_embedding(settings))
     return results
@@ -63,6 +80,63 @@ def _check_postgres(settings: Settings) -> CheckResult:
             )
     except Exception as e:  # noqa: BLE001
         return CheckResult("postgres", False, f"connect failed: {e}")
+
+
+def _check_pgvector(settings: Settings) -> CheckResult:
+    """默认检索后端的自检: chunk 表 + 向量列 + 倒排索引。
+
+    为什么不只看扩展在不在: ``vector`` 扩展装着但 ``aterag_chunks`` 没建,
+    或者建了但没有 BM25 用的 ``tsv`` 列, 检索都会**静默返回空结果** ——
+    扩展检查全绿而功能不可用, 是最难查的一类故障。
+
+    维度不在这里查: 向量列的维度由 ``hybrid.ensure_vector_schema`` 按嵌入
+    模型探测后建表, 不同模型的维度不同, 硬编码一个值会在换模型时误报。
+    """
+    try:
+        with psycopg.connect(settings.postgres_dsn, connect_timeout=10) as conn:
+            cols = {
+                r[0]
+                for r in conn.execute(
+                    """
+                    SELECT column_name FROM information_schema.columns
+                    WHERE table_schema = 'public' AND table_name = 'aterag_chunks'
+                    """
+                ).fetchall()
+            }
+            if not cols:
+                return CheckResult(
+                    "pgvector",
+                    False,
+                    "public.aterag_chunks 不存在 —— 检索会静默返回空结果。"
+                    "先跑 ingest_spec 或 build_domain 灌一次数据",
+                )
+            missing = {"embedding", "workspace_id", "content"} - cols
+            if missing:
+                return CheckResult(
+                    "pgvector", False, f"aterag_chunks 缺列 {sorted(missing)}"
+                )
+            n_vec = conn.execute(
+                "SELECT count(*) FROM public.aterag_chunks WHERE embedding IS NOT NULL"
+            ).fetchone()[0]
+            n_all = conn.execute("SELECT count(*) FROM public.aterag_chunks").fetchone()[0]
+            n_ent = conn.execute(
+                "SELECT count(*) FROM public.aterag_entities"
+            ).fetchone()[0]
+            idx = [
+                r[0]
+                for r in conn.execute(
+                    "SELECT indexname FROM pg_indexes "
+                    "WHERE schemaname = 'public' AND tablename = 'aterag_chunks'"
+                ).fetchall()
+            ]
+            return CheckResult(
+                "pgvector",
+                True,
+                f"chunks={n_all} (带向量 {n_vec}); entities={n_ent}; "
+                f"indexes={sorted(idx) or '无'}",
+            )
+    except Exception as e:  # noqa: BLE001
+        return CheckResult("pgvector", False, f"connect failed: {e}")
 
 
 async def _check_qdrant(settings: Settings) -> list[CheckResult]:
