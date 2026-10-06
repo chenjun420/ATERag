@@ -19,6 +19,32 @@ PY_MIN_MINOR=11
 log() { printf '\n>>> %s\n' "$*"; }
 die() { printf '\n!! %s\n' "$*" >&2; exit 1; }
 
+# ---- 配置读取: 单一事实来源 = 应用自己 ----------------------------------------
+# 为什么不写 `grep -E '^KEY=' .env`: 那是在 shell 里**再实现一遍** .env 解析,
+# 而应用用的是 pydantic-settings。实测两者对同一份文件的答案不同 ——
+# 板卡 .env 43 行里 39 行是 CRLF, `grep|cut` 取 DOMAIN_RULES_DIR 得到
+# 'domain_rules\r'(hexdump 实锤), pydantic-settings 得到 'domain_rules' 且无残留 CR。
+# 同一配置两个值 -> 拼出的路径多一个回车 -> 目录不存在 -> 安装 die。
+#
+# 当时 EMBED_DIM 那条断言没炸, 只因为它恰好落在 4 个 LF 行里 —— 巧合, 不是正确。
+# 配置读取一律走这个函数; stderr 不吞, ValidationError 的原文直接给操作者看。
+app_setting() {  # app_setting <字段名> -> 打印该配置的值
+    # 必须 cd $APP_DIR: pydantic-settings 按 **CWD** 找 .env, 而 .env 与 src/
+    # 都在 $APP_DIR 下(与 alembic 步骤同一个理由)。
+    ( cd "$APP_DIR" && "$VENV/bin/python" -c '
+import sys
+
+sys.path.insert(0, "src")
+from aterag.config import get_settings
+
+field = sys.argv[1]
+value = getattr(get_settings(), field, None)
+if value is None:
+    raise SystemExit(f"配置里没有字段 {field}")
+print(value)
+' "$1" )
+}
+
 [ -f "$BUNDLE_DIR/MANIFEST.sha256" ] || die "这不是包目录(缺 MANIFEST.sha256): $BUNDLE_DIR"
 [ -d "$BUNDLE_DIR/wheelhouse" ] || die "缺 wheelhouse: $BUNDLE_DIR/wheelhouse"
 [ -d "$BUNDLE_DIR/app" ] || die "缺 app/: $BUNDLE_DIR/app"
@@ -95,7 +121,7 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 # EMBED_DIM 缺省会让嵌入落到服务端原生维度(实测 2048)而 pgvector 上限 2000,
 # 表现是「装完检索变差」而不是启动失败 —— 所以在写库之前就断言。
-EMBED_DIM_GOT="$(grep -E '^EMBED_DIM=' "$ENV_FILE" | tail -1 | cut -d= -f2 || true)"
+EMBED_DIM_GOT="$(app_setting embed_dim)" || die "读 EMBED_DIM 失败: 应用解析不了 $ENV_FILE(看上面 pydantic 的报错)"
 [ "$EMBED_DIM_GOT" = "1024" ] || die "EMBED_DIM 必须是 1024(ADR-013), 当前='${EMBED_DIM_GOT:-<未设置>}'"
 
 chown -R "$SERVICE_USER:$SERVICE_USER" "$APP_DIR"
@@ -117,8 +143,8 @@ log "6/7 领域知识: 装载要外网, 这里只核对前置条件并与库对�
 # 这里只做离线能确定的两件事:
 #   1. 规则源文件在不在 —— 缺文件的话联网那天必然失败, 现在就该报
 #   2. 与库对账 _domain_power 条数, 并把补装载命令原样打出来
-RULES_DIR="$(grep -E '^DOMAIN_RULES_DIR=' "$ENV_FILE" | tail -1 | cut -d= -f2- || true)"
-RULES_DIR="${RULES_DIR:-domain_rules}"
+RULES_DIR="$(app_setting domain_rules_dir)" || die "读 domain_rules_dir 失败: 应用解析不了 $ENV_FILE"
+[ -n "$RULES_DIR" ] || die "domain_rules_dir 取到空值"
 if [ -d "$APP_DIR/$RULES_DIR/power" ]; then
     N_RULES=$(find "$APP_DIR/$RULES_DIR/power" -name '*.yaml' | wc -l | tr -d ' ')
     echo "  [ok] 规则源在位: $RULES_DIR/power ($N_RULES 个 .yaml)"
