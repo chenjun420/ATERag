@@ -767,6 +767,264 @@ def extract_errata(lines: list[str]) -> list[dict[str, Any]]:
     return out
 
 
+#: **公理 -> 规则的人工裁定结果**(方案 §4.7)。
+#:
+#: 替换掉方案 md 里的 ``R*/P*`` 编号 —— 那些记号**一个都解析不到**, 而公理
+#: ``rules`` 字段过去根本不在门禁的 :data:`REF_FIELDS` 里, 所以这些悬空引用
+#: 从来没被报出来过(「没有消费者的死数据」, 不是「已登记的引用」)。
+#:
+#: **映射依据**(红线 5: 方案 md 只是方案, 不是确切来源):
+#: 只有 ``domain_rules/power/rules.yaml`` 里每条规则自己的 ``statement`` +
+#: ``source``。每条 ``basis`` 必须能回答「**哪条规则的哪句话**实现了这个公理」。
+#: ``R*/P*`` 编号仅作假设生成器, 不作依据。
+#:
+#: **为什么必须人工裁定**(不是「懒得自动化」): 种子里零层级结构 —— 关系只有
+#: ``defined_by`` / ``has_theorem`` / ``applies_to_rule`` 三种, ``is_a`` /
+#: ``subClassOf`` / ``parent`` 一条都没有, ``power_concept`` 全是孤立叶子。
+#: subsumption 闭包是空集, 本体推理无法自动判定公理的适用范围。顺序是
+#: 「先有层级(人工裁定) -> 再有推理(确定性代码)」, 不可颠倒。
+#:
+#: **14 条的结论**: 3 条强映射 + 1 条近似 + 1 条公式有规则无 +
+#: 1 条按政策挡住的门禁 + 1 条排除(热力学) + **7 条 no_executable_counterpart**。
+#:
+#: ``status`` 取值:
+#:
+#: - ``mapped``: 规则库里确实有可判定判据承接
+#: - ``approximation``: 有承接, 但**不是同一个物理量**(必须写 ``approximation``)
+#: - ``formula_without_rule``: 公式在库, 规则库里无一条实现它
+#: - ``no_executable_counterpart``: 找不到可执行对应(**必须写为什么**, 不接受光秃秃的「无」)
+#: - ``gate_blocked_by_policy``: 门禁机制完备, 但被门禁的表按红线 4 不灌数据
+#: - ``excluded``: 已裁决移出范围
+AXIOM_RULE_IMPLEMENTATION: dict[str, dict[str, object]] = {
+    "A-1": {
+        "rules": ["K-PWR-124", "K-PWR-125"],
+        "status": "approximation",
+        "approximation": (
+            "功率叠加形式, 非节点电流守恒。KCL 是 ΣI = 0(节点电流), 而 "
+            "K-PWR-124/125 判的是各路功率之和 vs 声明总功率 —— 功率叠加只是"
+            "KCL 在「各路同电压」下的推论。不当作等同。"
+        ),
+        "basis": (
+            "K-PWR-124 statement 明写「多路输出功率守恒自检 (**KCL 的可判定"
+            "形式**)」; 其 source 明写「依据 **KCL** 与功率叠加」。"
+            "K-PWR-125 给同一残差加了功率预算允差判据。"
+        ),
+        "rejected": (
+            "K-PWR-121 是 P_out ≤ P_in 的功率平衡(属 A-3), 与 A-1 的多路"
+            "自洽不是同一件事。"
+        ),
+    },
+    "A-2": {
+        "rules": [],
+        "status": "no_executable_counterpart",
+        "no_counterpart_reason": (
+            "KVL(回路电压代数和为零)需要**网表拓扑** —— 节点与回路的连接关系。"
+            "当前数据模型只有扁平属性(``build_ttl`` 只产 `ps:t a ps:C ; ps:k v .`), "
+            "没有拓扑, 所以这不是「没找到候选」而是**原理上不可判定**。"
+        ),
+    },
+    "A-3": {
+        "rules": ["K-PWR-121", "K-PWR-002", "K-PWR-124"],
+        "status": "mapped",
+        "basis": (
+            "K-PWR-121 statement「功率平衡自检: 任意工况下 P_out ≤ P_in"
+            "(效率 ≤100%), 若实测 P_out > P_in 即为数据采集/判读错误」; "
+            "其 source 明写「**能量守恒**」。K-PWR-002 给出损耗定义式 "
+            "Loss = Pin − Pout, K-PWR-124/125 给出多路分解下的同一守恒。"
+        ),
+    },
+    "A-4": {
+        "rules": [],
+        "status": "no_executable_counterpart",
+        "no_counterpart_reason": (
+            "伏秒平衡(导通伏秒 = 关断伏秒 × N)在规则库里**不存在**。"
+            "唯一沾边的 K-PWR-115 是保持时间的电容 sizing「C ≥ 2·P_out·t_hold / "
+            "(η·(V₁² − V_end²))」, 判据是**储能电压平方**, 与电感磁通平衡"
+            "是不同物理。原方案 md 把 K-PWR-101 当候选也是错的 —— 那是"
+            "**电容**电荷平衡, 属 A-5。"
+        ),
+    },
+    "A-5": {
+        "rules": ["K-PWR-101", "K-PWR-103", "K-PWR-115"],
+        "status": "mapped",
+        "basis": (
+            "K-PWR-101 statement「降压变换器输出纹波 = 电容纹波 "
+            "ΔV_cap = ΔI_L/(8·f_sw·C_out) + ESR 纹波」, 即 ΔQ = ΔI_L/f_sw "
+            "再由 C = ΔQ/ΔV 展开, 正是电容电荷平衡。K-PWR-103 约束纹波电流"
+            "额定值(超出则电容自热), K-PWR-115 约束维持该电荷所需的储能电容。"
+        ),
+    },
+    "A-6": {
+        "rules": [],
+        "status": "no_executable_counterpart",
+        "no_counterpart_reason": (
+            "对偶(戴维南 <-> 诺顿)是**数学构造技巧**, 不是可判定的物理约束 —— "
+            "它不对应任何一条能拿实测值判真假的产测判据。原 ``rules`` 本就为空。"
+        ),
+    },
+    "A-7": {
+        "rules": [],
+        "status": "no_executable_counterpart",
+        "no_counterpart_reason": (
+            "唯一候选 K-TLM-112 里的「地址唯一性」是 **RS485 协议层地址去重**"
+            "(句中同句还有帧校验通过率、CAN 误码率), 与数学上的唯一性定理"
+            "(解的存在与唯一, 如非线性方程多解判别)不是一回事。"
+        ),
+    },
+    "A-8": {
+        "rules": [],
+        "status": "formula_without_rule",
+        "no_counterpart_reason": (
+            "公式在库、规则库里无一条实现它: F_W.9.1_THD 给出 "
+            "THD = √(Σ_{n≥2} X_n²)/X_1, 而规则库检索不到任何计算 THD 的判据。"
+            "唯一提到谐波的 K-MSR-102 是 ADC 均方根量化噪声 "
+            "(LSB/√12), 谐波在那里只是「采样时钟与信号成谐波关系会放大噪声」"
+            "的前提条件, 不是 THD 判据。补规则须先回标准原文核限值(A23)。"
+        ),
+    },
+    "A-9": {
+        "rules": ["K-TLM-102"],
+        "status": "mapped",
+        "basis": (
+            "K-TLM-102 statement「遥测采样与带宽判据: 采样率须覆盖被测信号最高"
+            "频率分量(开关纹波频率 f_sw 的 10 倍以上)或经等效低通滤波后再采样, "
+            "否则高频纹波混叠为低频虚假读数」, 与 F_M.1_SAMPLING 的 "
+            "f_s ≥ k·f_max (k = 5~10) 直接对应, 且给出了混叠这个失效后果。"
+        ),
+    },
+    "A-10": {
+        "rules": [],
+        "status": "no_executable_counterpart",
+        "no_counterpart_reason": (
+            "帕塞瓦尔定理是**信号域**的能量守恒(时域能量 = 频域能量之和), 与 "
+            "A-3 的**电路域**能量守恒(P_out ≤ P_in)用途不同。而信号域在规则库"
+            "里一条规则都没有(见 A-8), 所以本条无处承接。"
+        ),
+    },
+    "A-11": {
+        "rules": [],
+        "status": "gate_blocked_by_policy",
+        "no_counterpart_reason": (
+            "量纲齐次公理是**全部公式的前置门禁**, 而门禁机制四件套全在"
+            "(CHECK cardinality(dimension_vec)=7 + 索引 idx_formula_dim_ok + "
+            "函数 assert_formula_dimension_ok + 触发器 "
+            "trg_formula_embedding_dimension_ok, 迁移已跑到 0003_l0_provenance), "
+            "**被门禁的表 l0_term.formula 是 0 行**。按红线 4(不接受副本漂移/"
+            "双源)该表不灌种子数据 —— 所以这不是「坏了」, 是**被政策挡住**。"
+            "结论按红线 14 记: 该表须有显式的「是否灌数据」标注, 否则审计会读成"
+            "「量纲门禁已实现」。"
+        ),
+    },
+    "A-12": {
+        "rules": [],
+        "status": "excluded",
+        "excluded_reason": "thermodynamics",
+        "no_counterpart_reason": (
+            "「第二定律」若指电路的诺顿定理, 对应定理应是戴维南/诺顿那条; 但它挂的"
+            "是卡诺, 且 formula_refs 指向损耗预算(热阻)公式 —— 两条独立证据都"
+            "指向热力学第二定律。热力学已整体移出范围(2026-10), 本条随之排除。"
+        ),
+    },
+    "A-13": {
+        "rules": [],
+        "status": "no_executable_counterpart",
+        "no_counterpart_reason": (
+            "集总参数法是**建模前提**(把分布参数电路当集总元件), 不是可判定的"
+            "物理约束 —— 它不对应任何实测判据, 违反它表现为模型不准, 而模型"
+            "准不准没有判据。"
+        ),
+    },
+    "A-14": {
+        "rules": [],
+        "status": "no_executable_counterpart",
+        "no_counterpart_reason": (
+            "周期稳态是**分析前提**, 当前所有纹波/效率规则都默认它成立, 却"
+            "没有一条**检验**它。K-LOOP-001 只给出交越频率上界 fC < fSW/2, "
+            "并**不声明**「已处于周期稳态」这个假设。要检验它需要一类"
+            "「稳态判据」规则(例如连续两周期波形偏差), 规则库里不存在。"
+        ),
+    },
+    "A-15": {
+        "rules": [],
+        "status": "no_executable_counterpart",
+        "no_counterpart_reason": (
+            "无源性是**系统级频响性质**, 判它需要阻抗/频响数据, 而数据模型里"
+            "没有阻抗实体。原方案 md 引的两个候选在**当前**规则库里都不是"
+            "无源性判据 —— K-PWR-113 是并联均流(±5% 电流分配), K-SAF-104 是 "
+            "Y 电容漏电流反推容值, 都不是拓扑无源性。"
+        ),
+    },
+}
+
+
+def _apply_axiom_rule_adjudication(
+    axioms: dict[str, dict[str, Any]], rels: list[dict[str, Any]]
+) -> list[str]:
+    """把 :data:`AXIOM_RULE_IMPLEMENTATION` 的裁定落到公理实体上。
+
+    覆写 ``rules`` 字段(原值是方案 md 的 ``R*/P*`` 裸记号, 一个都解析不到),
+    写 ``status`` 与逐条理由, 并建 ``applies_to_rule`` 边。
+
+    **边指向 ``rule:K-*`` 而不是种子节点**: 种子不复制规则正文 —— 复制一份就是
+    红线 4 的双源, 而规则会改、种子不会跟着改, 漂移只是时间问题。边按外部
+    目标处理(与既有 ``qudt:`` 边同款), 解析交给门禁去 ``rules.yaml`` 核。
+    """
+    unmatched: list[str] = []
+    for aid, adj in AXIOM_RULE_IMPLEMENTATION.items():
+        node = axioms.get(aid)
+        if node is None:
+            unmatched.append(aid)
+            continue
+        props = node["properties"]
+        props["rules"] = list(adj["rules"])  # type: ignore[arg-type]
+        props["status"] = adj["status"]
+        props["rule_adjudication"] = {
+            "decided": "2026-10",
+            "basis": "domain_rules/power/rules.yaml 的 statement + source",
+            "note": "方案 md 的 R*/P* 编号只作假设生成器, 不作依据(红线 5)",
+            "basis_detail": adj.get("basis", ""),
+            "candidates_rejected": adj.get("rejected", ""),
+        }
+        if adj.get("approximation"):
+            props["approximation"] = adj["approximation"]
+        if adj.get("excluded_reason"):
+            props["excluded_reason"] = adj["excluded_reason"]
+        if adj.get("no_counterpart_reason"):
+            props["no_counterpart_reason"] = adj["no_counterpart_reason"]
+        _sync_provenance(props, "rules", props["rules"])
+        # **这里不建 ``applies_to_rule`` 边**, 与方案 §4.7 的原提案不同, 理由:
+        # 该节的验收写「两端都是真实节点」, 而规则节点只存在于 rules.yaml ——
+        # 要让边有真实另一端就得把规则正文复制成种子实体, 那是红线 4 的双源;
+        # 而 ``rule:K-*`` 这种外部目标会被 :func:`prune_non_executable` 的
+        # 双端存活过滤整条丢掉(既有 ``qudt:`` 边也是这么消失的)。两条路都堵,
+        # 所以公理->规则的**唯一表达是 ``rules`` 属性**, 解析交给门禁去
+        # rules.yaml 核 —— 一处表达, 不可能漂移。
+    return unmatched
+
+
+#: **引导源里没有、但编号序列要求存在的公理**。
+#:
+#: A-11 量纲齐次公理在方案 md 的公理表里**没有行**, 所以 :func:`extract_axioms`
+#: 抽不到它 —— 编号从 A-10 直接跳到 A-12。留这个缺口的后果是审计读到
+#: 「A-1~A-15 全覆盖」时会以为量纲齐次也在库里, 而它恰恰是**全部公式的前置
+#: 门禁**(方案原文「用途: 全部(前置校验)」)。
+#:
+#: **存在的依据只有方案 md 的原始标签**(§4.7 明确: 方案 md 可用于确定原始标签
+#: 与定位, 不是实质依据 —— 红线 5)。实质内容是**物理量纲齐次性**这个公认事实,
+#: 不依赖任何标准条款, 所以不需要出处, 也不该编一个。
+#:
+#: 它的 ``status`` 是 :data:`AXIOM_RULE_IMPLEMENTATION` 里那条
+#: ``gate_blocked_by_policy`` —— 门禁机制四件套全在而 ``l0_term.formula`` 0 行,
+#: 按红线 4 该表不灌种子数据, 所以门禁是被政策挡住而不是坏了。
+_EXTRA_AXIOMS: tuple[dict[str, Any], ...] = (
+    {
+        "id": "A-11",
+        "name": "量纲齐次公理",
+        "text": "任何物理等式, 两侧的量纲必须相同(齐次性); 所有经验系数、比例常数必须携带量纲",
+    },
+)
+
+
 _AXIOM_ROW = re.compile(
     r"^\|\s*(?P<axiom_id>A-\d+)\s+(?P<axiom>[^|]+?)\s*\|"
     r"\s*(?P<theorem>T\d+[^|]*?)\s*\|"
@@ -856,8 +1114,13 @@ def extract_axioms(lines: list[str]) -> tuple[list[dict[str, Any]], list[dict[st
             },
         )
         props = node["properties"]
+        new_theorem = False
         for key, cell in (
-            ("theorems", [tid]),
+            # **定理记号必须带 thm:: 前缀** —— 定理节点 id 就是
+            # ``thm::T1``, 而这里原来存裸号 ``T1``, 于是同一个定理在边
+            # (``thm::T1``)与属性(``T1``)里是两个字符串。查引用时两个都要
+            # 认, 漏一个就是漏检。
+            ("theorems", [f"thm::{tid}"]),
             ("rules", _split_refs(m.group("rules"))),
             ("tests", _split_refs(m.group("tests"))),
             ("formula_refs", _split_refs(m.group("formula_refs"))),
@@ -865,6 +1128,8 @@ def extract_axioms(lines: list[str]) -> tuple[list[dict[str, Any]], list[dict[st
             for token in cell:
                 if token not in props[key]:
                     props[key].append(token)
+                    if key == "theorems":
+                        new_theorem = True
         theorems.setdefault(
             tid,
             {
@@ -875,7 +1140,42 @@ def extract_axioms(lines: list[str]) -> tuple[list[dict[str, Any]], list[dict[st
                 "properties": _props({"theorem_id": tid}, "bootstrap_section", i),
             },
         )
-        rels.append({"source": aid, "target": f"thm::{tid}", "type": "has_theorem", "properties": {}})
+        # **边跟属性一样要去重**: 属性层有 ``not in`` 守卫而这里原来没有,
+        # 同一对 (公理, 定理) 出现在两行时就会建两条一模一样的边。
+        # 下游 ContextGraph 按 (source, target) 去重, 于是图上少一条、
+        # 边表多一条 —— 对不上账, 而这种差异常年被当成「图构建有 bug」。
+        if new_theorem:
+            rels.append(
+                {"source": aid, "target": f"thm::{tid}", "type": "has_theorem", "properties": {}}
+            )
+
+    # 公理 -> 规则的人工裁定落库(见 :data:`AXIOM_RULE_IMPLEMENTATION`)。
+    # 补引导源里缺失的公理(见 :data:`_EXTRA_AXIOMS`)。A-11 没有对应定理节点
+    # —— 它本身就是门禁, 不挂定理。
+    for extra in _EXTRA_AXIOMS:
+        if extra["id"] in axioms:
+            continue
+        axioms[extra["id"]] = {
+            "id": extra["id"],
+            "name": extra["name"],
+            "type": "axiom",
+            "text": extra["text"],
+            "properties": _props(
+                {
+                    "label": extra["name"],
+                    "theorems": [],
+                    "rules": [],
+                    "tests": [],
+                    "formula_refs": [],
+                },
+                "bootstrap_section",
+                None,
+            ),
+        }
+
+    unmatched = _apply_axiom_rule_adjudication(axioms, rels)
+    if unmatched:
+        print(f"  [警告] 公理裁定表里的 {unmatched} 在本库找不到对应公理, 已跳过")
     return list(axioms.values()) + list(theorems.values()), rels
 
 
@@ -999,8 +1299,13 @@ def build_relationships(entities: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     "properties": {"external": True, "ontology": "QUDT"},
                 }
             )
-        for ref in props.get("formula_refs") or ():
-            add(eid, ref, "applies_to_formula")
+        # **不为 formula_refs 建边**: 它已经是属性层的引用, 再建一条
+        # ``applies_to_formula`` 边就是同一语义两处表达(红线 4 双源)。
+        # 实测 3 条边与 3 条 formula_refs **完全一致** —— 边是属性的镜像,
+        # 删掉边不丢信息, 留着则两边迟早漂移(且谁也说不清以哪个为准)。
+        #
+        # 公理的规则引用走 ``applies_to_rule``(见 :func:`extract_axioms`),
+        # 指向**规则库**而非种子 —— 种子不复制规则正文, 也是红线 4。
         for aid in props.get("axiom_refs") or ():
             add(eid, aid, "derived_from_axiom")
     return rels

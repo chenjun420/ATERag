@@ -10,7 +10,7 @@
   config/doc_profiles.yaml          档案/剔除词/章节先验
   config/condition_patterns.yaml   条件类型封闭词表 + 规则自洽性
   data/annotations/*.yaml           人工注记 (运行时数据, 缺失属正常)
-  registry.yaml                     产品注册表
+  data/registry.yaml                产品注册表
   domain_rules/*/rules.yaml         领域规则
 
 用法: .venv\\Scripts\\python.exe scripts/validate_configs.py
@@ -35,7 +35,7 @@ CONFIG_GLOBS = (
     "config/*.yaml",
     "data/annotations/*.yaml",
     "domain_rules/*/rules.yaml",
-    "registry.yaml",
+    "data/registry.yaml",
 )
 
 
@@ -175,16 +175,18 @@ def main() -> int:
     else:
         problems.append("缺少 config/test_methods.yaml")
 
-    reg_path = Path("registry.yaml")
+    # 注册表在 {data/}, 不在仓库根 —— d5ab36b 把它移进 data/ 时漏改这里,
+    # 于是本脚本恒报「缺少 registry.yaml」并退出 1, 而 CI 第 32 行跑的就是它。
+    reg_path = Path("data/registry.yaml")
     if reg_path.exists():
         reg = yaml.safe_load(reg_path.read_text(encoding="utf-8")) or {}
         prods = reg.get("products") or {}
         print(f"  {PASS} 注册表: {len(prods)} 个型号")
         for mid, p in prods.items():
             if not p.get("domain"):
-                problems.append(f"registry.yaml: 型号 {mid} 缺 domain")
+                problems.append(f"data/registry.yaml: 型号 {mid} 缺 domain")
     else:
-        problems.append("缺少 registry.yaml")
+        problems.append("缺少 data/registry.yaml")
 
     for p in problems:
         print(f"  {FAIL} {p}")

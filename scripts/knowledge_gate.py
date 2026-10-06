@@ -37,7 +37,42 @@ from typing import Any
 #: 声明式引用字段: 这些字段里的值**必须**是本记录集里存在的 id。
 #: 显式声明而不是靠猜 —— 猜出来的引用集列漏了就成了误报源, 而误报会
 #: 让门禁被忽略。
-REF_FIELDS = ("formula_refs", "axiom_refs", "source_id", "target_id")
+#: - ``rules``: 公理 -> 规则。**解析到 ``rules.yaml``, 不解析到种子** ——
+#:   把规则正文复制成种子实体就是红线 4 的双源, 而规则会改、种子不会跟着改。
+#:   过去不在这里, 所以公理 ``rules`` 里 11 个 ``R*/P*`` 裸记号(方案 md 的
+#:   编号, 一个都解析不到)从来没人报过 —— 不是「已登记的引用」, 是没人看的字段。
+#: - ``theorems``: 公理 -> 定理, 解析到本库 ``thm::T*`` 节点。字段值已统一带
+#:   ``thm::`` 前缀(生成器 ``extract_axioms``), 与 ``has_theorem`` 边的 target
+#:   同一形态 —— 以前是裸 ``T1``, 边与属性是两个字符串, 查引用要认两种写法,
+#:   漏一种就是漏检。
+REF_FIELDS = ("formula_refs", "axiom_refs", "rules", "theorems", "source_id", "target_id")
+
+#: 公理 ``rules`` 字段里 ``K-*`` 记号的解析目标: **规则库**, 不是种子。
+_RULE_IDS: frozenset[str] | None = None
+
+
+def load_rule_ids(rules_glob: str = "domain_rules/*/rules.yaml") -> frozenset[str]:
+    """规则库里的 ``K-*`` id(带缓存)。
+
+    刻意**不**在门禁里缓存一份规则正文 —— 只缓存 id 集合, 且每次进程只读一次。
+    读不到规则目录时返回空集: 那时 ``K-*`` 全部解析不到, 门禁会**报错而不是
+    静默放过**, 与红线 11「依赖缺失即报错」同性质。
+    """
+    global _RULE_IDS
+    if _RULE_IDS is not None:
+        return _RULE_IDS
+    import glob
+
+    import yaml
+
+    ids: set[str] = set()
+    for path in sorted(glob.glob(rules_glob)):
+        data = yaml.safe_load(Path(path).read_text(encoding="utf-8")) or {}
+        for rule in data.get("rules") or []:
+            if isinstance(rule, dict) and rule.get("id"):
+                ids.add(str(rule["id"]))
+    _RULE_IDS = frozenset(ids)
+    return _RULE_IDS
 
 #: 本库 id 命名空间形态(用于「值形似 id」的通用扫描)。
 #: 推导自真实 id 集合(有测试钉)。有了这个式子, 将来新增字段(比如某个
@@ -176,7 +211,18 @@ def check_ids(records: list[dict[str, Any]], report: GateReport) -> set[str]:
 
 
 def check_refs(records: list[dict[str, Any]], ids: set[str], report: GateReport) -> None:
-    """声明字段里的引用必须解析得到。"""
+    """声明字段里的引用必须解析得到。
+
+    **两个命名空间, 两套解析目标**:
+
+    - ``thm::T*`` / ``F_*`` / ``sym::*`` 等 -> 本记录集的 id
+    - ``K-*`` -> ``rules.yaml`` 的规则 id(见 :data:`REF_FIELDS`)
+
+    分开是因为把规则复制进种子就是红线 4 的双源, 而公理确实需要指向可执行规则。
+    报错信息会写明解析到哪一步失败, 否则「解析不到」分不清是种子缺节点还是
+    规则库里没有这条规则 —— 而这两种错的修法完全不同。
+    """
+    rule_ids = load_rule_ids()
     for rec in records:
         rid = str(rec.get("id") or f"<no-id:{rec.get('entity_type')}>")
         for fld in REF_FIELDS:
@@ -185,10 +231,15 @@ def check_refs(records: list[dict[str, Any]], ids: set[str], report: GateReport)
                 continue
             refs = val if isinstance(val, list) else [val]
             for ref in refs:
-                if str(ref) not in ids:
-                    report.add(
-                        "ref_resolves", "ERROR", rid, f"{fld} -> {ref} 解析不到"
-                    )
+                ref = str(ref)
+                if ref in ids:
+                    continue
+                if ref in rule_ids:
+                    continue
+                where = "种子无此节点" if not ref.startswith("K-") else "规则库无此规则"
+                report.add(
+                    "ref_resolves", "ERROR", rid, f"{fld} -> {ref} 解析不到({where})"
+                )
 
 
 #: 明确不是「指向本记录集 id」的字段, 附理由。通用扫描(WARN)跳过它们:
@@ -201,8 +252,25 @@ def check_refs(records: list[dict[str, Any]], ids: set[str], report: GateReport)
 #: - `standard_id` / `theorem_id`: 外部编号(`IEC 60664-1-2020` /
 #:   `T1`), 不指向本库节点。
 #: - `qudt_ref`: 外部本体(QUDT)的类名。
+#: - ``approximation`` / ``no_counterpart_reason`` / ``excluded_reason`` /
+#:   ``rule_adjudication``: 公理裁定理由, **散文**。它们会提到别的 id(比如
+#:   「原方案把 K-PWR-101 当候选也是错的 —— 那是电容电荷平衡, 属 A-5」),
+#:   但那是**叙述里的提及**, 不是引用: 值形态是自由中文, 不是 id 列表。
+#:   当引用查会让通用扫描把每条理由都报一遍。
 EXTERNAL_FIELDS = frozenset(
-    {"text", "statement", "definition", "note", "standard_id", "theorem_id", "qudt_ref"}
+    {
+        "text",
+        "statement",
+        "definition",
+        "note",
+        "standard_id",
+        "theorem_id",
+        "qudt_ref",
+        "approximation",
+        "no_counterpart_reason",
+        "excluded_reason",
+        "rule_adjudication",
+    }
 )
 
 

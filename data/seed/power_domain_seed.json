@@ -48537,12 +48537,12 @@
       },
       "label": "KCL",
       "theorems": [
-        "T1",
-        "T10"
+        "thm::T1",
+        "thm::T10"
       ],
       "rules": [
-        "R5",
-        "R1"
+        "K-PWR-124",
+        "K-PWR-125"
       ],
       "tests": [
         "G.26",
@@ -48569,8 +48569,8 @@
         "theorems": {
           "property_name": "theorems",
           "value": [
-            "T1",
-            "T10"
+            "thm::T1",
+            "thm::T10"
           ],
           "sources": [
             {
@@ -48587,8 +48587,8 @@
         "rules": {
           "property_name": "rules",
           "value": [
-            "R5",
-            "R1"
+            "K-PWR-124",
+            "K-PWR-125"
           ],
           "sources": [
             {
@@ -48635,7 +48635,16 @@
             }
           ]
         }
-      }
+      },
+      "status": "approximation",
+      "rule_adjudication": {
+        "decided": "2026-10",
+        "basis": "domain_rules/power/rules.yaml 的 statement + source",
+        "note": "方案 md 的 R*/P* 编号只作假设生成器, 不作依据(红线 5)",
+        "basis_detail": "K-PWR-124 statement 明写「多路输出功率守恒自检 (**KCL 的可判定形式**)」; 其 source 明写「依据 **KCL** 与功率叠加」。K-PWR-125 给同一残差加了功率预算允差判据。",
+        "candidates_rejected": "K-PWR-121 是 P_out ≤ P_in 的功率平衡(属 A-3), 与 A-1 的多路自洽不是同一件事。"
+      },
+      "approximation": "功率叠加形式, 非节点电流守恒。KCL 是 ΣI = 0(节点电流), 而 K-PWR-124/125 判的是各路功率之和 vs 声明总功率 —— 功率叠加只是KCL 在「各路同电压」下的推论。不当作等同。"
     },
     {
       "id": "A-2",
@@ -48650,13 +48659,10 @@
       },
       "label": "KVL",
       "theorems": [
-        "T3",
-        "T4"
+        "thm::T3",
+        "thm::T4"
       ],
-      "rules": [
-        "R6",
-        "R10"
-      ],
+      "rules": [],
       "tests": [
         "G.7",
         "G.30"
@@ -48682,8 +48688,8 @@
         "theorems": {
           "property_name": "theorems",
           "value": [
-            "T3",
-            "T4"
+            "thm::T3",
+            "thm::T4"
           ],
           "sources": [
             {
@@ -48699,10 +48705,7 @@
         },
         "rules": {
           "property_name": "rules",
-          "value": [
-            "R6",
-            "R10"
-          ],
+          "value": [],
           "sources": [
             {
               "document": "",
@@ -48748,7 +48751,16 @@
             }
           ]
         }
-      }
+      },
+      "status": "no_executable_counterpart",
+      "rule_adjudication": {
+        "decided": "2026-10",
+        "basis": "domain_rules/power/rules.yaml 的 statement + source",
+        "note": "方案 md 的 R*/P* 编号只作假设生成器, 不作依据(红线 5)",
+        "basis_detail": "",
+        "candidates_rejected": ""
+      },
+      "no_counterpart_reason": "KVL(回路电压代数和为零)需要**网表拓扑** —— 节点与回路的连接关系。当前数据模型只有扁平属性(``build_ttl`` 只产 `ps:t a ps:C ; ps:k v .`), 没有拓扑, 所以这不是「没找到候选」而是**原理上不可判定**。"
     },
     {
       "id": "A-3",
@@ -48763,10 +48775,12 @@
       },
       "label": "能量守恒",
       "theorems": [
-        "T7"
+        "thm::T7"
       ],
       "rules": [
-        "R5"
+        "K-PWR-121",
+        "K-PWR-002",
+        "K-PWR-124"
       ],
       "tests": [
         "G.26"
@@ -48792,7 +48806,7 @@
         "theorems": {
           "property_name": "theorems",
           "value": [
-            "T7"
+            "thm::T7"
           ],
           "sources": [
             {
@@ -48809,7 +48823,9 @@
         "rules": {
           "property_name": "rules",
           "value": [
-            "R5"
+            "K-PWR-121",
+            "K-PWR-002",
+            "K-PWR-124"
           ],
           "sources": [
             {
@@ -48855,6 +48871,14 @@
             }
           ]
         }
+      },
+      "status": "mapped",
+      "rule_adjudication": {
+        "decided": "2026-10",
+        "basis": "domain_rules/power/rules.yaml 的 statement + source",
+        "note": "方案 md 的 R*/P* 编号只作假设生成器, 不作依据(红线 5)",
+        "basis_detail": "K-PWR-121 statement「功率平衡自检: 任意工况下 P_out ≤ P_in(效率 ≤100%), 若实测 P_out > P_in 即为数据采集/判读错误」; 其 source 明写「**能量守恒**」。K-PWR-002 给出损耗定义式 Loss = Pin − Pout, K-PWR-124/125 给出多路分解下的同一守恒。",
+        "candidates_rejected": ""
       }
     },
     {
@@ -48870,12 +48894,9 @@
       },
       "label": "电感伏秒",
       "theorems": [
-        "T3"
+        "thm::T3"
       ],
-      "rules": [
-        "R2",
-        "R8"
-      ],
+      "rules": [],
       "tests": [
         "G.3"
       ],
@@ -48900,7 +48921,7 @@
         "theorems": {
           "property_name": "theorems",
           "value": [
-            "T3"
+            "thm::T3"
           ],
           "sources": [
             {
@@ -48916,10 +48937,7 @@
         },
         "rules": {
           "property_name": "rules",
-          "value": [
-            "R2",
-            "R8"
-          ],
+          "value": [],
           "sources": [
             {
               "document": "",
@@ -48964,7 +48982,16 @@
             }
           ]
         }
-      }
+      },
+      "status": "no_executable_counterpart",
+      "rule_adjudication": {
+        "decided": "2026-10",
+        "basis": "domain_rules/power/rules.yaml 的 statement + source",
+        "note": "方案 md 的 R*/P* 编号只作假设生成器, 不作依据(红线 5)",
+        "basis_detail": "",
+        "candidates_rejected": ""
+      },
+      "no_counterpart_reason": "伏秒平衡(导通伏秒 = 关断伏秒 × N)在规则库里**不存在**。唯一沾边的 K-PWR-115 是保持时间的电容 sizing「C ≥ 2·P_out·t_hold / (η·(V₁² − V_end²))」, 判据是**储能电压平方**, 与电感磁通平衡是不同物理。原方案 md 把 K-PWR-101 当候选也是错的 —— 那是**电容**电荷平衡, 属 A-5。"
     },
     {
       "id": "A-5",
@@ -48979,12 +49006,13 @@
       },
       "label": "电容电荷",
       "theorems": [
-        "T3",
-        "T23"
+        "thm::T3",
+        "thm::T23"
       ],
       "rules": [
-        "R8",
-        "P3"
+        "K-PWR-101",
+        "K-PWR-103",
+        "K-PWR-115"
       ],
       "tests": [
         "G.3",
@@ -49011,8 +49039,8 @@
         "theorems": {
           "property_name": "theorems",
           "value": [
-            "T3",
-            "T23"
+            "thm::T3",
+            "thm::T23"
           ],
           "sources": [
             {
@@ -49029,8 +49057,9 @@
         "rules": {
           "property_name": "rules",
           "value": [
-            "R8",
-            "P3"
+            "K-PWR-101",
+            "K-PWR-103",
+            "K-PWR-115"
           ],
           "sources": [
             {
@@ -49077,6 +49106,14 @@
             }
           ]
         }
+      },
+      "status": "mapped",
+      "rule_adjudication": {
+        "decided": "2026-10",
+        "basis": "domain_rules/power/rules.yaml 的 statement + source",
+        "note": "方案 md 的 R*/P* 编号只作假设生成器, 不作依据(红线 5)",
+        "basis_detail": "K-PWR-101 statement「降压变换器输出纹波 = 电容纹波 ΔV_cap = ΔI_L/(8·f_sw·C_out) + ESR 纹波」, 即 ΔQ = ΔI_L/f_sw 再由 C = ΔQ/ΔV 展开, 正是电容电荷平衡。K-PWR-103 约束纹波电流额定值(超出则电容自热), K-PWR-115 约束维持该电荷所需的储能电容。",
+        "candidates_rejected": ""
       }
     },
     {
@@ -49092,7 +49129,7 @@
       },
       "label": "对偶",
       "theorems": [
-        "T2"
+        "thm::T2"
       ],
       "rules": [],
       "tests": [
@@ -49119,7 +49156,7 @@
         "theorems": {
           "property_name": "theorems",
           "value": [
-            "T2"
+            "thm::T2"
           ],
           "sources": [
             {
@@ -49180,7 +49217,16 @@
             }
           ]
         }
-      }
+      },
+      "status": "no_executable_counterpart",
+      "rule_adjudication": {
+        "decided": "2026-10",
+        "basis": "domain_rules/power/rules.yaml 的 statement + source",
+        "note": "方案 md 的 R*/P* 编号只作假设生成器, 不作依据(红线 5)",
+        "basis_detail": "",
+        "candidates_rejected": ""
+      },
+      "no_counterpart_reason": "对偶(戴维南 <-> 诺顿)是**数学构造技巧**, 不是可判定的物理约束 —— 它不对应任何一条能拿实测值判真假的产测判据。原 ``rules`` 本就为空。"
     },
     {
       "id": "A-7",
@@ -49195,12 +49241,10 @@
       },
       "label": "唯一性",
       "theorems": [
-        "T20",
-        "T21"
+        "thm::T20",
+        "thm::T21"
       ],
-      "rules": [
-        "P3"
-      ],
+      "rules": [],
       "tests": [
         "G.28"
       ],
@@ -49227,8 +49271,8 @@
         "theorems": {
           "property_name": "theorems",
           "value": [
-            "T20",
-            "T21"
+            "thm::T20",
+            "thm::T21"
           ],
           "sources": [
             {
@@ -49244,9 +49288,7 @@
         },
         "rules": {
           "property_name": "rules",
-          "value": [
-            "P3"
-          ],
+          "value": [],
           "sources": [
             {
               "document": "",
@@ -49293,7 +49335,16 @@
             }
           ]
         }
-      }
+      },
+      "status": "no_executable_counterpart",
+      "rule_adjudication": {
+        "decided": "2026-10",
+        "basis": "domain_rules/power/rules.yaml 的 statement + source",
+        "note": "方案 md 的 R*/P* 编号只作假设生成器, 不作依据(红线 5)",
+        "basis_detail": "",
+        "candidates_rejected": ""
+      },
+      "no_counterpart_reason": "唯一候选 K-TLM-112 里的「地址唯一性」是 **RS485 协议层地址去重**(句中同句还有帧校验通过率、CAN 误码率), 与数学上的唯一性定理(解的存在与唯一, 如非线性方程多解判别)不是一回事。"
     },
     {
       "id": "A-8",
@@ -49308,11 +49359,9 @@
       },
       "label": "傅里叶",
       "theorems": [
-        "T12"
+        "thm::T12"
       ],
-      "rules": [
-        "R8"
-      ],
+      "rules": [],
       "tests": [
         "G.3",
         "G.5"
@@ -49340,7 +49389,7 @@
         "theorems": {
           "property_name": "theorems",
           "value": [
-            "T12"
+            "thm::T12"
           ],
           "sources": [
             {
@@ -49356,9 +49405,7 @@
         },
         "rules": {
           "property_name": "rules",
-          "value": [
-            "R8"
-          ],
+          "value": [],
           "sources": [
             {
               "document": "",
@@ -49406,7 +49453,16 @@
             }
           ]
         }
-      }
+      },
+      "status": "formula_without_rule",
+      "rule_adjudication": {
+        "decided": "2026-10",
+        "basis": "domain_rules/power/rules.yaml 的 statement + source",
+        "note": "方案 md 的 R*/P* 编号只作假设生成器, 不作依据(红线 5)",
+        "basis_detail": "",
+        "candidates_rejected": ""
+      },
+      "no_counterpart_reason": "公式在库、规则库里无一条实现它: F_W.9.1_THD 给出 THD = √(Σ_{n≥2} X_n²)/X_1, 而规则库检索不到任何计算 THD 的判据。唯一提到谐波的 K-MSR-102 是 ADC 均方根量化噪声 (LSB/√12), 谐波在那里只是「采样时钟与信号成谐波关系会放大噪声」的前提条件, 不是 THD 判据。补规则须先回标准原文核限值(A23)。"
     },
     {
       "id": "A-9",
@@ -49421,11 +49477,10 @@
       },
       "label": "采样定理",
       "theorems": [
-        "T19"
+        "thm::T19"
       ],
       "rules": [
-        "R8",
-        "R14"
+        "K-TLM-102"
       ],
       "tests": [
         "G.34"
@@ -49453,7 +49508,7 @@
         "theorems": {
           "property_name": "theorems",
           "value": [
-            "T19"
+            "thm::T19"
           ],
           "sources": [
             {
@@ -49470,8 +49525,7 @@
         "rules": {
           "property_name": "rules",
           "value": [
-            "R8",
-            "R14"
+            "K-TLM-102"
           ],
           "sources": [
             {
@@ -49519,6 +49573,14 @@
             }
           ]
         }
+      },
+      "status": "mapped",
+      "rule_adjudication": {
+        "decided": "2026-10",
+        "basis": "domain_rules/power/rules.yaml 的 statement + source",
+        "note": "方案 md 的 R*/P* 编号只作假设生成器, 不作依据(红线 5)",
+        "basis_detail": "K-TLM-102 statement「遥测采样与带宽判据: 采样率须覆盖被测信号最高频率分量(开关纹波频率 f_sw 的 10 倍以上)或经等效低通滤波后再采样, 否则高频纹波混叠为低频虚假读数」, 与 F_M.1_SAMPLING 的 f_s ≥ k·f_max (k = 5~10) 直接对应, 且给出了混叠这个失效后果。",
+        "candidates_rejected": ""
       }
     },
     {
@@ -49534,11 +49596,9 @@
       },
       "label": "帕塞瓦尔本征",
       "theorems": [
-        "T12"
+        "thm::T12"
       ],
-      "rules": [
-        "R14"
-      ],
+      "rules": [],
       "tests": [
         "G.3",
         "G.34"
@@ -49564,7 +49624,7 @@
         "theorems": {
           "property_name": "theorems",
           "value": [
-            "T12"
+            "thm::T12"
           ],
           "sources": [
             {
@@ -49580,9 +49640,7 @@
         },
         "rules": {
           "property_name": "rules",
-          "value": [
-            "R14"
-          ],
+          "value": [],
           "sources": [
             {
               "document": "",
@@ -49628,7 +49686,16 @@
             }
           ]
         }
-      }
+      },
+      "status": "no_executable_counterpart",
+      "rule_adjudication": {
+        "decided": "2026-10",
+        "basis": "domain_rules/power/rules.yaml 的 statement + source",
+        "note": "方案 md 的 R*/P* 编号只作假设生成器, 不作依据(红线 5)",
+        "basis_detail": "",
+        "candidates_rejected": ""
+      },
+      "no_counterpart_reason": "帕塞瓦尔定理是**信号域**的能量守恒(时域能量 = 频域能量之和), 与 A-3 的**电路域**能量守恒(P_out ≤ P_in)用途不同。而信号域在规则库里一条规则都没有(见 A-8), 所以本条无处承接。"
     },
     {
       "id": "A-12",
@@ -49643,11 +49710,9 @@
       },
       "label": "第二定律",
       "theorems": [
-        "T13"
+        "thm::T13"
       ],
-      "rules": [
-        "P1"
-      ],
+      "rules": [],
       "tests": [
         "G.5"
       ],
@@ -49672,7 +49737,7 @@
         "theorems": {
           "property_name": "theorems",
           "value": [
-            "T13"
+            "thm::T13"
           ],
           "sources": [
             {
@@ -49688,9 +49753,7 @@
         },
         "rules": {
           "property_name": "rules",
-          "value": [
-            "P1"
-          ],
+          "value": [],
           "sources": [
             {
               "document": "",
@@ -49735,7 +49798,17 @@
             }
           ]
         }
-      }
+      },
+      "status": "excluded",
+      "rule_adjudication": {
+        "decided": "2026-10",
+        "basis": "domain_rules/power/rules.yaml 的 statement + source",
+        "note": "方案 md 的 R*/P* 编号只作假设生成器, 不作依据(红线 5)",
+        "basis_detail": "",
+        "candidates_rejected": ""
+      },
+      "excluded_reason": "thermodynamics",
+      "no_counterpart_reason": "「第二定律」若指电路的诺顿定理, 对应定理应是戴维南/诺顿那条; 但它挂的是卡诺, 且 formula_refs 指向损耗预算(热阻)公式 —— 两条独立证据都指向热力学第二定律。热力学已整体移出范围(2026-10), 本条随之排除。"
     },
     {
       "id": "A-13",
@@ -49750,11 +49823,9 @@
       },
       "label": "集总参数",
       "theorems": [
-        "T18"
+        "thm::T18"
       ],
-      "rules": [
-        "R4"
-      ],
+      "rules": [],
       "tests": [
         "G.29"
       ],
@@ -49779,7 +49850,7 @@
         "theorems": {
           "property_name": "theorems",
           "value": [
-            "T18"
+            "thm::T18"
           ],
           "sources": [
             {
@@ -49795,9 +49866,7 @@
         },
         "rules": {
           "property_name": "rules",
-          "value": [
-            "R4"
-          ],
+          "value": [],
           "sources": [
             {
               "document": "",
@@ -49842,7 +49911,16 @@
             }
           ]
         }
-      }
+      },
+      "status": "no_executable_counterpart",
+      "rule_adjudication": {
+        "decided": "2026-10",
+        "basis": "domain_rules/power/rules.yaml 的 statement + source",
+        "note": "方案 md 的 R*/P* 编号只作假设生成器, 不作依据(红线 5)",
+        "basis_detail": "",
+        "candidates_rejected": ""
+      },
+      "no_counterpart_reason": "集总参数法是**建模前提**(把分布参数电路当集总元件), 不是可判定的物理约束 —— 它不对应任何实测判据, 违反它表现为模型不准, 而模型准不准没有判据。"
     },
     {
       "id": "A-14",
@@ -49857,11 +49935,9 @@
       },
       "label": "周期稳态",
       "theorems": [
-        "T3"
+        "thm::T3"
       ],
-      "rules": [
-        "R6"
-      ],
+      "rules": [],
       "tests": [
         "G.2",
         "G.4"
@@ -49887,7 +49963,7 @@
         "theorems": {
           "property_name": "theorems",
           "value": [
-            "T3"
+            "thm::T3"
           ],
           "sources": [
             {
@@ -49903,9 +49979,7 @@
         },
         "rules": {
           "property_name": "rules",
-          "value": [
-            "R6"
-          ],
+          "value": [],
           "sources": [
             {
               "document": "",
@@ -49951,7 +50025,16 @@
             }
           ]
         }
-      }
+      },
+      "status": "no_executable_counterpart",
+      "rule_adjudication": {
+        "decided": "2026-10",
+        "basis": "domain_rules/power/rules.yaml 的 statement + source",
+        "note": "方案 md 的 R*/P* 编号只作假设生成器, 不作依据(红线 5)",
+        "basis_detail": "",
+        "candidates_rejected": ""
+      },
+      "no_counterpart_reason": "周期稳态是**分析前提**, 当前所有纹波/效率规则都默认它成立, 却没有一条**检验**它。K-LOOP-001 只给出交越频率上界 fC < fSW/2, 并**不声明**「已处于周期稳态」这个假设。要检验它需要一类「稳态判据」规则(例如连续两周期波形偏差), 规则库里不存在。"
     },
     {
       "id": "A-15",
@@ -49966,13 +50049,10 @@
       },
       "label": "因果无源",
       "theorems": [
-        "T21",
-        "T25"
+        "thm::T21",
+        "thm::T25"
       ],
-      "rules": [
-        "P3",
-        "P7"
-      ],
+      "rules": [],
       "tests": [
         "G.28",
         "G.29"
@@ -49998,8 +50078,8 @@
         "theorems": {
           "property_name": "theorems",
           "value": [
-            "T21",
-            "T25"
+            "thm::T21",
+            "thm::T25"
           ],
           "sources": [
             {
@@ -50015,10 +50095,7 @@
         },
         "rules": {
           "property_name": "rules",
-          "value": [
-            "P3",
-            "P7"
-          ],
+          "value": [],
           "sources": [
             {
               "document": "",
@@ -50064,7 +50141,120 @@
             }
           ]
         }
-      }
+      },
+      "status": "no_executable_counterpart",
+      "rule_adjudication": {
+        "decided": "2026-10",
+        "basis": "domain_rules/power/rules.yaml 的 statement + source",
+        "note": "方案 md 的 R*/P* 编号只作假设生成器, 不作依据(红线 5)",
+        "basis_detail": "",
+        "candidates_rejected": ""
+      },
+      "no_counterpart_reason": "无源性是**系统级频响性质**, 判它需要阻抗/频响数据, 而数据模型里没有阻抗实体。原方案 md 引的两个候选在**当前**规则库里都不是无源性判据 —— K-PWR-113 是并联均流(±5% 电流分配), K-SAF-104 是 Y 电容漏电流反推容值, 都不是拓扑无源性。"
+    },
+    {
+      "id": "A-11",
+      "name": "量纲齐次公理",
+      "entity_type": "axiom",
+      "text": "任何物理等式, 两侧的量纲必须相同(齐次性); 所有经验系数、比例常数必须携带量纲",
+      "confidence": null,
+      "source": null,
+      "section": null,
+      "metadata": {
+        "authority_kind": "unverified"
+      },
+      "label": "量纲齐次公理",
+      "theorems": [],
+      "rules": [],
+      "tests": [],
+      "formula_refs": [],
+      "authority_kind": "unverified",
+      "provenance": {
+        "label": {
+          "property_name": "label",
+          "value": "量纲齐次公理",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": null,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
+        "theorems": {
+          "property_name": "theorems",
+          "value": [],
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": null,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
+        "rules": {
+          "property_name": "rules",
+          "value": [],
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": null,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
+        "tests": {
+          "property_name": "tests",
+          "value": [],
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": null,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
+        "formula_refs": {
+          "property_name": "formula_refs",
+          "value": [],
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": null,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        }
+      },
+      "status": "gate_blocked_by_policy",
+      "rule_adjudication": {
+        "decided": "2026-10",
+        "basis": "domain_rules/power/rules.yaml 的 statement + source",
+        "note": "方案 md 的 R*/P* 编号只作假设生成器, 不作依据(红线 5)",
+        "basis_detail": "",
+        "candidates_rejected": ""
+      },
+      "no_counterpart_reason": "量纲齐次公理是**全部公式的前置门禁**, 而门禁机制四件套全在(CHECK cardinality(dimension_vec)=7 + 索引 idx_formula_dim_ok + 函数 assert_formula_dimension_ok + 触发器 trg_formula_embedding_dimension_ok, 迁移已跑到 0003_l0_provenance), **被门禁的表 l0_term.formula 是 0 行**。按红线 4(不接受副本漂移/双源)该表不灌种子数据 —— 所以这不是「坏了」, 是**被政策挡住**。结论按红线 14 记: 该表须有显式的「是否灌数据」标注, 否则审计会读成「量纲门禁已实现」。"
     },
     {
       "id": "thm::T1",
@@ -56769,24 +56959,6 @@
       "clause": "YD/T 637-2024"
     },
     {
-      "source_id": "A-7",
-      "target_id": "F_K.3_PHASE_MARGIN",
-      "relationship_type": "applies_to_formula",
-      "confidence": null
-    },
-    {
-      "source_id": "A-8",
-      "target_id": "F_W.9.1_THD",
-      "relationship_type": "applies_to_formula",
-      "confidence": null
-    },
-    {
-      "source_id": "A-9",
-      "target_id": "F_M.1_SAMPLING",
-      "relationship_type": "applies_to_formula",
-      "confidence": null
-    },
-    {
       "source_id": "A-1",
       "target_id": "thm::T1",
       "relationship_type": "has_theorem",
@@ -56813,12 +56985,6 @@
     {
       "source_id": "A-3",
       "target_id": "thm::T7",
-      "relationship_type": "has_theorem",
-      "confidence": null
-    },
-    {
-      "source_id": "A-4",
-      "target_id": "thm::T3",
       "relationship_type": "has_theorem",
       "confidence": null
     },
