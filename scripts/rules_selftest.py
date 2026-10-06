@@ -183,6 +183,11 @@ PS_PROP = {
     # 低线输入降额 (K-PWR-123): shape 查 ratedPowerW / lineDeratedPowerW
     "rated_power_w": "ratedPowerW",
     "line_derated_power_w": "lineDeratedPowerW",
+    # 多路输出功率守恒 (K-PWR-124/125): shape 查 railPowerDeviationW / railPowerBudgetToleranceW
+    "rail_power_sum_w": "railPowerSumW",
+    "declared_total_output_power_w": "declaredTotalOutputPowerW",
+    "rail_power_deviation_w": "railPowerDeviationW",
+    "rail_power_budget_tolerance_w": "railPowerBudgetToleranceW",
 }
 SCOPE_CLASS = {
     "probe": "Probe",
@@ -258,6 +263,7 @@ CLASS_OVERRIDE = {
     "K-CTL-101": "AlarmSpec",
     "K-CTL-102": "DigitalOutput",
     "K-CTL-104": "CurrentSharingSpec",
+    "K-PWR-125": "MultiRailOutput",
 }
 # 规则级属性名覆盖 (同一 given key 在不同 shape 下对应不同属性)
 PROP_OVERRIDE = {

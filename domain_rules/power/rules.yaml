@@ -2824,3 +2824,251 @@ rules:
       airflow_improvement_factor: 1.2
     expect:
       junction_temp_c: 56.0
+- id: K-MSR-001
+  statement: '量具测量能力指数 Cm = 公差 / (不确定度倍数 × 标准测量不确定度): ISO/TR 14253-6:2012 术语 3.8 定义 Cm = T/(4·u_m) 且明确倍数取 4, 即被测公差至少应为标准不确定度的 4 倍以上。须注意与 ANSI/NCSLI Z540.3 的 TUR = TL/U (公差/扩展不确定度) 约定不同: TUR = Cm × 覆盖因子, 两者不可混用; 公差、倍数与不确定度须取同一被测量同一工况的值, 不得跨工况交叉引用'
+  category: accuracy
+  scope: measurement
+  derive:
+    output: measurement_capability_index
+    expr: tolerance / (uncertainty_multiple * standard_uncertainty)
+    inputs:
+    - tolerance
+    - uncertainty_multiple
+    - standard_uncertainty
+  variables:
+    tolerance: 与被测量同单位(公差带宽度 T)
+    uncertainty_multiple: 无量纲; ISO 14253-6 取 4
+    standard_uncertainty: 与被测量同单位(u_m)
+    measurement_capability_index: 无量纲, 越大测量能力越强
+  source:
+    name: ISO/TR 14253-6:2012 Generalized decision rules 术语 3.8 measurement capability index Cm = T/(4·u_m), 倍数取 4; ANSI/NCSLI Z540.3-2006 Handbook 给出 TUR = TL/U 的另一约定 [国际标准计量文件]
+    url: https://cdn.standards.iteh.ai/samples/60161/03c2e6dc74ba4b30882121a9f4e26dfe/ISO-TR-14253-6-2012.pdf
+    retrieved: '2026-10-06'
+  confidence: 0.85
+  test:
+    given:
+      tolerance: 0.5
+      uncertainty_multiple: 4
+      standard_uncertainty: 0.05
+    expect:
+      measurement_capability_index: 2.5
+- id: K-MSR-002
+  statement: '扩展测量不确定度 U = 包含因子 k × 合成标准测量不确定度 u_c: ISO 14253-1:2017 术语 3.16/3.17 定义, ISO 14253-1:2017 与 EURachem QUAM 均指出常用 k=2 (约 95% 置信), 相对标准不确定度低于约 15~20% 时 可按正态分布取 k=2。k 须显式给出, 不得隐含为 2'
+  category: accuracy
+  scope: measurement
+  derive:
+    output: expanded_uncertainty
+    expr: coverage_factor * combined_standard_uncertainty
+    inputs:
+    - coverage_factor
+    - combined_standard_uncertainty
+  variables:
+    coverage_factor: 无量纲; 常用 2 (约95%置信)
+    combined_standard_uncertainty: 与被测量同单位(u_c)
+    expanded_uncertainty: 与被测量同单位(U)
+  source:
+    name: ISO 14253-1:2017 术语 3.15 合成标准测量不确定度/3.16 扩展测量不确定度/3.17 包含因子; EURachem MUC2021 Quantifying Uncertainty in Measurement 4.3 与附录 A (k=2 约95%, 1.64 对应95%, 2.33 对应99%) [国际标准计量文件]
+    url: https://www.eurachem.org/images/stories/Guides/pdf/MUC2021_P1_EN.pdf
+    retrieved: '2026-10-06'
+  confidence: 0.85
+  test:
+    given:
+      coverage_factor: 2
+      combined_standard_uncertainty: 0.05
+    expect:
+      expanded_uncertainty: 0.1
+- id: K-MSR-101
+  statement: ADC 量化步长 1 LSB = 满量程输入范围 / 2^位数; 理想 N 位 ADC 的最大量化误差为 ±0.5 LSB, 量化误差等效为峰峰值 q 的非相关锯齿波, 故均方根量化噪声 = q/√12 (即 q/(2√3))。产测按 LSB 判定分辨率时须用被测信号的实际跨度, 不得直接用满量程
+  category: measurement
+  scope: measurement
+  derive:
+    output: adc_lsb
+    expr: full_scale / (2 ** bits)
+    inputs:
+    - full_scale
+    - bits
+  variables:
+    full_scale: 满量程输入范围(FS)
+    bits: 位数(N, 无量纲)
+    adc_lsb: 与 full_scale 同单位
+  source:
+    name: Analog Devices MT-229 Taking the Mystery out of the Infamous Formula SNR=6.02N+1.76dB (Eq.3 1LSB=q=FS/2^N, Eq.7 rms 量化误差=q/(2*sqrt(3))); Analog Devices MT-001 量化噪声模型 (最大误差 ±1/2 LSB, rms=q/sqrt(12)) [厂商技术教程]
+    url: https://www.analog.com/media/en/training-seminars/tutorials/MT-229.pdf
+    retrieved: '2026-10-06'
+  confidence: 0.85
+  test:
+    given:
+      full_scale: 2.5
+      bits: 12
+    expect:
+      adc_lsb: 0.0006103515625
+- id: K-MSR-102
+  statement: 'ADC 均方根量化噪声 = LSB / √12: 量化噪声 rms 只在量化误差与输入不相关时成立; 若采样时钟与被测信号 成谐波关系, 噪声能量会集中到信号各次谐波上而不再近似白噪声, 此时不得用 q/√12 判读频谱底噪。 频谱测量须先确认相干性'
+  category: measurement
+  scope: measurement
+  derive:
+    output: quantization_noise_rms
+    expr: lsb / sqrt(12)
+    inputs:
+    - lsb
+  variables:
+    lsb: 量化步长(1 LSB)
+    quantization_noise_rms: 与 lsb 同单位
+  source:
+    name: Analog Devices MT-001 Taking the Mystery out of the Infamous Formula SNR=6.02N+1.76dB (量化噪声近似高斯、rms=q/sqrt(12) 且近似均匀分布于 dc~fs/2; 并明确指出采样时钟与信号谐波相关时 噪声集中于谐波、相关系数改变但 rms 仍约 q/sqrt(12); 含 12 位 80MSPS 4096 点 FFT 实例) [厂商技术教程]
+    url: https://www.analog.com/media/en/training-seminars/tutorials/MT-001.pdf
+    retrieved: '2026-10-06'
+  confidence: 0.85
+  test:
+    given:
+      lsb: 0.0006103515625
+    expect:
+      quantization_noise_rms: 0.00017619331945484186
+- id: K-MSR-103
+  statement: '采样孔径抖动引起的采样电压误差 = 2π · f_in · t_a · A: 孔径抖动(采样时刻的逐次变动)对交流输入 产生的 rms 电压误差随输入频率与信号幅度线性增长。抖动造成的 SNR 上限与转换器位数无关 —— 位数再高也不能弥补时钟抖动。产测判读高频小信号时须先用低频点扣除量化噪声与 DNL 再解算 t_a'
+  category: measurement
+  scope: measurement
+  derive:
+    output: aperture_jitter_error
+    expr: 2 * pi * input_frequency * aperture_jitter * input_amplitude
+    inputs:
+    - input_frequency
+    - aperture_jitter
+    - input_amplitude
+  variables:
+    input_frequency: Hz(f, 模拟输入频率)
+    aperture_jitter: s(t_a, rms 孔径抖动)
+    input_amplitude: 与误差同单位(A, 输入正弦峰值)
+    aperture_jitter_error: 与 input_amplitude 同单位(V rms)
+  source:
+    name: 'Analog Devices AN-501 Aperture Uncertainty and ADC System Performance (Eq.4 err_a = 2*pi*f*t_a*A; 并给出抖动限制的 SNR 与分辨率无关: 250MHz 输入下 1ps 抖动即把 SNR 限到 56dB, 14 位转换器同样如此; Eq.5/Eq.6 抖动与量化、DNL、热噪声叠加; Eq.7/Eq.8 由高低频两次测量分离 t_a 与 composite DNL) [厂商应用笔记]'
+    url: https://www.analog.com/media/en/technical-documentation/application-notes/AN-501.pdf
+    retrieved: '2026-10-06'
+  confidence: 0.85
+  test:
+    given:
+      input_frequency: 2000000.0
+      aperture_jitter: 1.0e-12
+      input_amplitude: 1.0
+    expect:
+      aperture_jitter_error: 1.2566370614359172e-05
+- id: K-MSR-104
+  statement: '有效位数 ENOB = (SNR_dB − 1.76) / 6.02: 由理想 N 位转换器理论 SNR = 6.02N + 1.76dB 反解。该式仅在量化误差与输入不相关、且 SNR 在 dc~fs/2 全 Nyquist 带宽内积分时成立; 若只对关心的 带宽 BW 做数字滤波, 须另加处理增益修正, 否则 ENOB 会被高估'
+  category: measurement
+  scope: measurement
+  derive:
+    output: enob_from_snr
+    expr: (snr_db - 1.76) / 6.02
+    inputs:
+    - snr_db
+  variables:
+    snr_db: dB(全 Nyquist 带宽内测得)
+    enob_from_snr: 位(无量纲)
+  source:
+    name: 'Analog Devices MT-001 Eq.9 SNR = 6.02N + 1.76dB (并给出处理增益修正 Eq.10: 只对 BW 做数字滤波时 须计入 process gain); Analog Devices MT-200 Applications Engineering Notebook (SNR=6.02*ENOB+1.76dB, 100MHz 满量程输入下 14 位 ENOB 要求 rms 抖动 ≤ 125fs) [厂商技术教程]'
+    url: https://www.analog.com/media/en/training-seminars/tutorials/MT-200.pdf
+    retrieved: '2026-10-06'
+  confidence: 0.85
+  test:
+    given:
+      snr_db: 74.0
+    expect:
+      enob_from_snr: 12.0
+- id: K-SHR-001
+  statement: '下垂(droop)均流法的两机电流差与均流误差: ΔI = ΔV_SET / ΔV_SLOPE, 相对均流误差 ε = ΔV_SET / (ΔV_SLOPE × I_RATED)。均流精度由输出电压设定精度与下垂斜率共同决定 —— 下垂量取大可改善均流但牺牲负载调整率, 二者不可兼得; 且输出电压设定精度须在全温度与全时间范围 内稳定。多机并联时任意两机之间的均流误差不超过按两机算出的误差上限。 引用均流判据时须同时给出 ΔV_SET、ΔV_SLOPE 与 I_RATED, 不得只给 ±5% 结论'
+  category: current-sharing
+  scope: current-sharing
+  derive:
+    output: current_share_error
+    expr: setpoint_mismatch / (droop_slope * rated_current)
+    inputs:
+    - setpoint_mismatch
+    - droop_slope
+    - rated_current
+  variables:
+    setpoint_mismatch: V(ΔV_SET, 两机空载输出电压设定值之差)
+    droop_slope: V/A(ΔV_SLOPE, 单机负载线斜率 = 下垂电阻)
+    rated_current: A(I_RATED, 单机额定电流)
+    current_share_error: 无量纲(ε, 相对单机额定电流的偏差比例)
+  source:
+    name: 'Vox Power DOC-APN-006-02 VCCS300 Droop Mode Current Sharing Application Note (Eq.1 ΔI_OP=ΔV_SET/ΔV_SLOPE; Eq.2 ε_IOP=ΔI_OP/I_RATED; Eq.3 ε_IOP=ΔV_SET/(ΔV_SLOPE*I_RATED); 并给产测数据算例: ΔV_SET=±0.01·V_NOM、ΔV_SLOPE=±0.025·V_NOM/I_RATED 时 ε=±40%, 而 25°C 两倍标准差的实际 ΔV_SET=±0.003·V_NOM 时 ε=±12%; 明确多机并联时任意两机误差不超过两机算例) [厂商应用笔记]'
+    url: https://www.vox-power.com/wp-content/uploads/VCCS300/DOC-APN-006-VCCS300-Droop-Mode-Current-Sharing.pdf
+    retrieved: '2026-10-06'
+  confidence: 0.85
+  test:
+    given:
+      setpoint_mismatch: 0.165
+      droop_slope: 0.11
+      rated_current: 5.0
+    expect:
+      current_share_error: 0.3
+- id: K-SHR-002
+  statement: '并联均流判据不得只引用结论: 均流偏差限值须与下垂斜率、输出电压设定精度一并声明。 IEEE PELS 实测分析给出量化关系: 输出电压调节范围 ±5% 而设定精度 ±1% 时满载均流误差可达 33.3%, 要把满载均流误差压到 10% 以内, 输出电压设定精度须优于 ±0.35%。故 ±5% 均流这一常见结论 只在设定精度与下垂量同时满足时才成立'
+  category: current-sharing
+  scope: current-sharing
+  derive:
+    output: required_setpoint_accuracy
+    expr: current_share_error_limit * droop_slope * rated_current
+    inputs:
+    - current_share_error_limit
+    - droop_slope
+    - rated_current
+  variables:
+    current_share_error_limit: 无量纲(目标均流误差上限)
+    droop_slope: V/A
+    rated_current: A
+    required_setpoint_accuracy: V(允许的最大设定值偏差)
+  source:
+    name: Analysis, Design and Performance Evaluation of Droop Current-Sharing Method (IEEE PELS, 6.3) (满载均流误差由输出电压设定精度与下垂范围决定; ±5% 调节范围配 ±1% 设定精度时均流误差 33.3%; 要达到 10% 均流精度, 设定精度须优于 ±0.35%; 设定精度须在全温度与全时间范围稳定) [同行评审论文]
+    url: https://u.dianyuan.com/bbs/u/68/1897031217942258.pdf
+    retrieved: '2026-10-06'
+  confidence: 0.8
+  test:
+    given:
+      current_share_error_limit: 0.1
+      droop_slope: 0.11
+      rated_current: 5.0
+    expect:
+      required_setpoint_accuracy: 0.05500000000000001
+- id: K-PWR-124
+  statement: '多路输出功率守恒自检 (KCL 的可判定形式): 守恒残差 = 各路实测功率之和 − 声明总输出功率, 残差为 0 表示 各路数据自洽。与 K-PWR-121 的功率平衡自检同类, 抓的是规格书抽取错误(漏抽某路、通道错接、 把总功率重复记到每路、或某路取了不同工况的值)。注意: 各路功率的求和由数据产出方完成, 本规则只算残差 —— 图数据为扁平属性, 不含各路从节点'
+  category: power
+  scope: dc-dc-test
+  derive:
+    output: rail_power_deviation_w
+    expr: rail_power_sum_w - declared_total_output_power_w
+    inputs:
+    - rail_power_sum_w
+    - declared_total_output_power_w
+  variables:
+    rail_power_sum_w: W(各路实测功率之和)
+    declared_total_output_power_w: W(声明总输出功率)
+    rail_power_deviation_w: W(守恒残差; 0 = 自洽)
+  source:
+    name: 基尔霍夫电流定律在多路输出上的可判定形式 —— 节点功率守恒残差, 与 K-PWR-121 功率平衡自检同一类数据可信度前置校验 [项目自定, 依据 KCL 与功率叠加]
+    url: local://kcl-rail-power-sum
+    retrieved: '2026-10-06'
+  confidence: 0.85
+  test:
+    given:
+      rail_power_sum_w: 640.0
+      declared_total_output_power_w: 600.0
+    expect:
+      rail_power_deviation_w: 40.0
+- id: K-PWR-125
+  statement: '多路输出功率守恒判定: 守恒残差绝对值不得超过声明的功率预算允差。超差即为数据不可信 (各路之和与声明总输出来自不同工况、某路漏抽、或把总功率重复计入各路), 须重新取数, 不得据此判产品不合格。单路输出不适用本条'
+  category: power
+  scope: dc-dc-test
+  constraint:
+    shape: "@prefix sh: <http://www.w3.org/ns/shacl#> .\n@prefix ps: <https://aterag.example.org/power#> .\nps:RailPowerConservationShape a sh:NodeShape ;\n    sh:targetClass ps:MultiRailOutput ;\n    sh:sparql [\n        sh:message \"多路输出功率不守恒: 各路功率之和与声明总输出相差 {?dev}W, 超过允差 {?tol}W, 属规格书抽取或通道归属错误, 须重取数据而非判为产品异常\" ;\n        sh:select \"\"\"\n            SELECT $this ?dev ?tol WHERE {\n                $this ps:railPowerDeviationW ?dev .\n                $this ps:railPowerBudgetToleranceW ?tol .\n                FILTER (ABS(?dev) > ?tol)\n            }\n        \"\"\" ;\n    ] .\n"
+  source:
+    name: 基尔霍夫电流定律在多路输出上的可判定形式 —— 功率守恒残差判定 (残差由 K-PWR-124 算出) [项目自定, 依据 KCL 与功率叠加]
+    url: local://kcl-rail-power-conservation
+    retrieved: '2026-10-06'
+  confidence: 0.85
+  test:
+    given:
+      rail_power_deviation_w: 40.0
+      rail_power_budget_tolerance_w: 5.0
+    expect:
+      violation: true
