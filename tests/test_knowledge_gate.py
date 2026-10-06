@@ -94,6 +94,17 @@ class TestSeverityCalibration:
         assert _errors(rep) == []
         assert any(f.severity == "INFO" and f.check == "orphan_records" for f in rep.findings)
 
+    def test_top_graded_confidence_is_warning(self) -> None:
+        """顶格 1.0 不阻断但必须被点名。
+
+        本项目因顶格栽过三次: 上游 ``track_entity`` 缺省 1.0、
+        ``ReasoningStep`` 缺省 1.0、知识侧「项目约定 = 1.0」把约定显示成
+        已验证的外部事实。所以顶格要显式、要有人看见。
+        """
+        rep = kg.run_gate([_rec(confidence=1.0)])
+        assert _errors(rep) == []
+        assert any(f.check == "confidence_top_graded" for f in _warns(rep))
+
     def test_clause_shape_is_warning(self) -> None:
         rep = kg.run_gate(
             [_rec(authority_kind="standard", authority_ref="GB/T 1-2020", clause="GB/T 1-2020")]
@@ -166,6 +177,28 @@ class TestRealSeed:
         ids = {str(r["id"]) for r in recs if r.get("id")}
         found = set(kg.discover_reference_fields(recs, ids))
         assert found == {"bindings", "upstream", "scope"}, found
+
+    def test_load_conventions_have_locatable_authority(self) -> None:
+        """工况比例是**项目约定**, 出处落在 corrections.yaml 的约定记录段。
+
+        之前 11 条里 9 条 authority_ref 为空(在知识门里算「无出处」), 另
+        两条把 authority_kind 标成 ``industry`` 且 confidence 顶格 1.0 ——
+        会让下游以为有行业标准背书。断言的是「类别与出处落点」, 不是具体
+        字串, 免得约定记录挪位置就红。
+        """
+        recs = self._records()
+        loads = [
+            r
+            for r in recs
+            if r.get("entity_type") in ("load_condition", "load_ratio") and r.get("id")
+        ]
+        assert len(loads) == 11
+        for r in loads:
+            kind = (r.get("metadata") or {}).get("authority_kind")
+            assert kind == "project_defined", (r["id"], kind)
+            assert r.get("authority_ref"), r["id"]
+            # 顶格已被纠正为约定档
+            assert r.get("confidence") in (None, 0.5), (r["id"], r.get("confidence"))
 
     def test_gate_cli_exit_zero_on_real_seed(self) -> None:
         assert kg.main(["--seed", str(SEED)]) == 0

@@ -879,6 +879,16 @@ def extract_axioms(lines: list[str]) -> tuple[list[dict[str, Any]], list[dict[st
     return list(axioms.values()) + list(theorems.values()), rels
 
 
+#: 工况比例约定的出处落点。项目自定义的可信度 0.5(与
+#: `CREDIBILITY_BY_AUTHORITY` 的 `project_defined` 同档): 约定
+#: 不需要外部查证, 但**不能顶格** —— 顶格 1.0 会让下游把「本项目
+#: 的约定」显示成「已验证的外部事实」。`corrections.yaml` 里两条
+#: `load_conditions` 修正(半载/xx%载)当初写的正是
+#: `confidence: 1.0`, 且 authority_kind 落成 `industry`, 一并纠正。
+LOAD_CONVENTION_SOURCE = "data/seed/corrections.yaml#load_conditions"
+LOAD_CONVENTION_CONFIDENCE = 0.5
+
+
 def extract_load_conditions() -> list[dict[str, Any]]:
     """工况限定词 -> ``load_condition``。比例见 :data:`LOAD_CONDITIONS`。
 
@@ -909,6 +919,9 @@ def extract_load_conditions() -> list[dict[str, Any]]:
                     },
                     "convention",
                     None,
+                    authority_kind="project_defined",
+                    authority=LOAD_CONVENTION_SOURCE,
+                    confidence=LOAD_CONVENTION_CONFIDENCE,
                 ),
             }
         )
@@ -925,6 +938,14 @@ def extract_load_conditions() -> list[dict[str, Any]]:
                         {"load": _load_key(item["en"]), "ratio": item["ratio"]},
                         "convention",
                         None,
+                        authority_kind="project_defined",
+                        # 出处 = 约定本身的落点: corrections.yaml 的
+                        # load_conditions 段(git 版本化、可复核)。之前留
+                        # None, 于是这 17 条在知识门里算「无出处」; 说
+                        # 它们「无出处」也不准确: 项目约定是有出处的,
+                        # 出处就是项目自己的约定记录。
+                        authority=LOAD_CONVENTION_SOURCE,
+                        confidence=LOAD_CONVENTION_CONFIDENCE,
                     ),
                 }
             )

@@ -2778,18 +2778,22 @@
         "before": {
           "ratio": 0.5,
           "derivation": null,
+          "authority_kind": "project_defined",
+          "authority_ref": "data/seed/corrections.yaml#load_conditions",
           "confidence": null
         },
         "after": {
           "ratio": 0.5,
           "derivation": "满载 × 50%",
-          "confidence": 1.0
+          "authority_kind": "project_defined",
+          "authority_ref": "data/seed/corrections.yaml#load_conditions",
+          "confidence": 0.5
         },
-        "authority_kind": "industry",
-        "authority_ref": "用户给定定义(2026-10-04 会话确认)",
-        "source": "用户给定定义(2026-10-04 会话确认)",
+        "authority_kind": "project_defined",
+        "authority_ref": "data/seed/corrections.yaml#load_conditions",
+        "source": "项目约定(本段记录, 2026-10-04 会话确认)",
         "checked": "2026-10-04",
-        "confidence": 1.0
+        "confidence": 0.5
       },
       {
         "kind": "load_condition",
@@ -2797,17 +2801,21 @@
         "matched": "load::xx%载",
         "before": {
           "derivation": null,
+          "authority_kind": "project_defined",
+          "authority_ref": "data/seed/corrections.yaml#load_conditions",
           "confidence": null
         },
         "after": {
           "derivation": "满载 × xx%",
-          "confidence": 1.0
+          "authority_kind": "project_defined",
+          "authority_ref": "data/seed/corrections.yaml#load_conditions",
+          "confidence": 0.5
         },
-        "authority_kind": "industry",
-        "authority_ref": "用户给定定义(2026-10-04 会话确认)",
-        "source": "用户给定定义(2026-10-04 会话确认)",
+        "authority_kind": "project_defined",
+        "authority_ref": "data/seed/corrections.yaml#load_conditions",
+        "source": "项目约定(本段记录, 2026-10-04 会话确认)",
         "checked": "2026-10-04",
-        "confidence": 1.0
+        "confidence": 0.5
       }
     ]
   },
@@ -53242,7 +53250,7 @@
       "entity_type": "load_condition",
       "text": "满载 full load: ratio=1.0",
       "confidence": null,
-      "source": null,
+      "source": "data/seed/corrections.yaml#load_conditions",
       "section": null,
       "metadata": {
         "authority_kind": "project_defined"
@@ -53252,16 +53260,17 @@
       "kind": "load",
       "note": "归一化基准。任何 xx%载 都相对它折算。",
       "authority_kind": "project_defined",
+      "authority_ref": "data/seed/corrections.yaml#load_conditions",
       "provenance": {
         "en": {
           "property_name": "en",
           "value": "full load",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53273,10 +53282,10 @@
           "value": 1.0,
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53288,10 +53297,10 @@
           "value": "load",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53303,10 +53312,10 @@
           "value": "归一化基准。任何 xx%载 都相对它折算。",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53321,7 +53330,7 @@
       "entity_type": "load_ratio",
       "text": "满载 是满载的 100%",
       "confidence": null,
-      "source": null,
+      "source": "data/seed/corrections.yaml#load_conditions",
       "section": null,
       "metadata": {
         "authority_kind": "project_defined"
@@ -53329,16 +53338,17 @@
       "load": "full_load",
       "ratio": 1.0,
       "authority_kind": "project_defined",
+      "authority_ref": "data/seed/corrections.yaml#load_conditions",
       "provenance": {
         "load": {
           "property_name": "load",
           "value": "full_load",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53350,10 +53360,10 @@
           "value": 1.0,
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53367,27 +53377,28 @@
       "name": "半载",
       "entity_type": "load_condition",
       "text": "半载 half load: ratio=0.5",
-      "confidence": 1.0,
-      "source": "用户给定定义(2026-10-04 会话确认)",
+      "confidence": 0.5,
+      "source": "data/seed/corrections.yaml#load_conditions",
       "section": null,
       "metadata": {
-        "authority_kind": "industry"
+        "authority_kind": "project_defined"
       },
       "en": "half load",
       "ratio": 0.5,
       "kind": "load",
       "note": "= 50%载 = 满载 × 50%。",
-      "authority_kind": "industry",
+      "authority_kind": "project_defined",
+      "authority_ref": "data/seed/corrections.yaml#load_conditions",
       "provenance": {
         "en": {
           "property_name": "en",
           "value": "half load",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53399,14 +53410,14 @@
           "value": 0.5,
           "sources": [
             {
-              "document": "用户给定定义(2026-10-04 会话确认)",
-              "section": "用户给定定义(2026-10-04 会话确认)",
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": 1.0,
+              "confidence": 0.5,
               "metadata": {
-                "authority_kind": "industry",
+                "authority_kind": "project_defined",
                 "checked": "2026-10-04",
-                "correction_source": "用户给定定义(2026-10-04 会话确认)"
+                "correction_source": "项目约定(本段记录, 2026-10-04 会话确认)"
               }
             }
           ]
@@ -53416,10 +53427,10 @@
           "value": "load",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53431,10 +53442,10 @@
           "value": "= 50%载 = 满载 × 50%。",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53446,38 +53457,71 @@
           "value": "满载 × 50%",
           "sources": [
             {
-              "document": "用户给定定义(2026-10-04 会话确认)",
-              "section": "用户给定定义(2026-10-04 会话确认)",
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": 1.0,
+              "confidence": 0.5,
               "metadata": {
-                "authority_kind": "industry",
+                "authority_kind": "project_defined",
                 "checked": "2026-10-04",
-                "correction_source": "用户给定定义(2026-10-04 会话确认)"
+                "correction_source": "项目约定(本段记录, 2026-10-04 会话确认)"
+              }
+            }
+          ]
+        },
+        "authority_kind": {
+          "property_name": "authority_kind",
+          "value": "project_defined",
+          "sources": [
+            {
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "project_defined",
+                "checked": "2026-10-04",
+                "correction_source": "项目约定(本段记录, 2026-10-04 会话确认)"
+              }
+            }
+          ]
+        },
+        "authority_ref": {
+          "property_name": "authority_ref",
+          "value": "data/seed/corrections.yaml#load_conditions",
+          "sources": [
+            {
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "project_defined",
+                "checked": "2026-10-04",
+                "correction_source": "项目约定(本段记录, 2026-10-04 会话确认)"
               }
             }
           ]
         },
         "confidence": {
           "property_name": "confidence",
-          "value": 1.0,
+          "value": 0.5,
           "sources": [
             {
-              "document": "用户给定定义(2026-10-04 会话确认)",
-              "section": "用户给定定义(2026-10-04 会话确认)",
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": 1.0,
+              "confidence": 0.5,
               "metadata": {
-                "authority_kind": "industry",
+                "authority_kind": "project_defined",
                 "checked": "2026-10-04",
-                "correction_source": "用户给定定义(2026-10-04 会话确认)"
+                "correction_source": "项目约定(本段记录, 2026-10-04 会话确认)"
               }
             }
           ]
         }
       },
-      "derivation": "满载 × 50%",
-      "authority_ref": "用户给定定义(2026-10-04 会话确认)"
+      "derivation": "满载 × 50%"
     },
     {
       "id": "loadratio::half_load",
@@ -53485,7 +53529,7 @@
       "entity_type": "load_ratio",
       "text": "半载 是满载的 50%",
       "confidence": null,
-      "source": null,
+      "source": "data/seed/corrections.yaml#load_conditions",
       "section": null,
       "metadata": {
         "authority_kind": "project_defined"
@@ -53493,16 +53537,17 @@
       "load": "half_load",
       "ratio": 0.5,
       "authority_kind": "project_defined",
+      "authority_ref": "data/seed/corrections.yaml#load_conditions",
       "provenance": {
         "load": {
           "property_name": "load",
           "value": "half_load",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53514,10 +53559,10 @@
           "value": 0.5,
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53532,7 +53577,7 @@
       "entity_type": "load_condition",
       "text": "空载 no load: ratio=0.0",
       "confidence": null,
-      "source": null,
+      "source": "data/seed/corrections.yaml#load_conditions",
       "section": null,
       "metadata": {
         "authority_kind": "project_defined"
@@ -53542,16 +53587,17 @@
       "kind": "load",
       "note": "输出为 0。「空载」不等于「轻载」: 空载下常降频, 损耗模型不适用同一套参数。",
       "authority_kind": "project_defined",
+      "authority_ref": "data/seed/corrections.yaml#load_conditions",
       "provenance": {
         "en": {
           "property_name": "en",
           "value": "no load",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53563,10 +53609,10 @@
           "value": 0.0,
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53578,10 +53624,10 @@
           "value": "load",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53593,10 +53639,10 @@
           "value": "输出为 0。「空载」不等于「轻载」: 空载下常降频, 损耗模型不适用同一套参数。",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53611,7 +53657,7 @@
       "entity_type": "load_ratio",
       "text": "空载 是满载的 0%",
       "confidence": null,
-      "source": null,
+      "source": "data/seed/corrections.yaml#load_conditions",
       "section": null,
       "metadata": {
         "authority_kind": "project_defined"
@@ -53619,16 +53665,17 @@
       "load": "no_load",
       "ratio": 0.0,
       "authority_kind": "project_defined",
+      "authority_ref": "data/seed/corrections.yaml#load_conditions",
       "provenance": {
         "load": {
           "property_name": "load",
           "value": "no_load",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53640,10 +53687,10 @@
           "value": 0.0,
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53658,7 +53705,7 @@
       "entity_type": "load_condition",
       "text": "最小载 minimum load: ratio=None",
       "confidence": null,
-      "source": null,
+      "source": "data/seed/corrections.yaml#load_conditions",
       "section": null,
       "metadata": {
         "authority_kind": "project_defined"
@@ -53667,16 +53714,17 @@
       "kind": "load",
       "note": "比例待确认: 最小稳定负载由具体拓扑决定, 不是常数。收录但不给比例 —— 编一个数会让规则在错误工况上运行且不报错。",
       "authority_kind": "project_defined",
+      "authority_ref": "data/seed/corrections.yaml#load_conditions",
       "provenance": {
         "en": {
           "property_name": "en",
           "value": "minimum load",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53688,10 +53736,10 @@
           "value": "load",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53703,10 +53751,10 @@
           "value": "比例待确认: 最小稳定负载由具体拓扑决定, 不是常数。收录但不给比例 —— 编一个数会让规则在错误工况上运行且不报错。",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53721,7 +53769,7 @@
       "entity_type": "load_condition",
       "text": "额定 rated: ratio=None",
       "confidence": null,
-      "source": null,
+      "source": "data/seed/corrections.yaml#load_conditions",
       "section": null,
       "metadata": {
         "authority_kind": "project_defined"
@@ -53730,16 +53778,17 @@
       "kind": "rating",
       "note": "保证工作点/保证极限。与「标称」不同, 不可互换。不给比例。",
       "authority_kind": "project_defined",
+      "authority_ref": "data/seed/corrections.yaml#load_conditions",
       "provenance": {
         "en": {
           "property_name": "en",
           "value": "rated",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53751,10 +53800,10 @@
           "value": "rating",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53766,10 +53815,10 @@
           "value": "保证工作点/保证极限。与「标称」不同, 不可互换。不给比例。",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53784,7 +53833,7 @@
       "entity_type": "load_condition",
       "text": "标称 nominal: ratio=None",
       "confidence": null,
-      "source": null,
+      "source": "data/seed/corrections.yaml#load_conditions",
       "section": null,
       "metadata": {
         "authority_kind": "project_defined"
@@ -53793,16 +53842,17 @@
       "kind": "nominal",
       "note": "常规取整的代表值, 无保证含义。不给比例。",
       "authority_kind": "project_defined",
+      "authority_ref": "data/seed/corrections.yaml#load_conditions",
       "provenance": {
         "en": {
           "property_name": "en",
           "value": "nominal",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53814,10 +53864,10 @@
           "value": "nominal",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53829,10 +53879,10 @@
           "value": "常规取整的代表值, 无保证含义。不给比例。",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53847,7 +53897,7 @@
       "entity_type": "load_condition",
       "text": "最大额定 absolute maximum rating: ratio=None",
       "confidence": null,
-      "source": null,
+      "source": "data/seed/corrections.yaml#load_conditions",
       "section": null,
       "metadata": {
         "authority_kind": "project_defined"
@@ -53856,16 +53906,17 @@
       "kind": "rating",
       "note": "超过即可能损坏的绝对上限, 与「额定工作值」不是一回事。",
       "authority_kind": "project_defined",
+      "authority_ref": "data/seed/corrections.yaml#load_conditions",
       "provenance": {
         "en": {
           "property_name": "en",
           "value": "absolute maximum rating",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53877,10 +53928,10 @@
           "value": "rating",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53892,10 +53943,10 @@
           "value": "超过即可能损坏的绝对上限, 与「额定工作值」不是一回事。",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53909,27 +53960,28 @@
       "name": "xx%载",
       "entity_type": "load_condition",
       "text": "xx%载 fraction load: ratio=None",
-      "confidence": 1.0,
-      "source": "用户给定定义(2026-10-04 会话确认)",
+      "confidence": 0.5,
+      "source": "data/seed/corrections.yaml#load_conditions",
       "section": null,
       "metadata": {
-        "authority_kind": "industry"
+        "authority_kind": "project_defined"
       },
       "en": "fraction load",
       "kind": "load",
       "pattern": "^(\\d+(?:\\.\\d+)?)\\s*%\\s*载$",
       "note": "**按模式求值, 不是固定值**: xx%载 = 满载 × xx%。例 30%载 -> 0.30。ratio 刻意为 null —— 它是待求量, 不是常量; 给出 1.0 之类的值会让推理把任意百分比都当成满载。整串锚定以免把 P_load 的 load 误认成工况词。",
-      "authority_kind": "industry",
+      "authority_kind": "project_defined",
+      "authority_ref": "data/seed/corrections.yaml#load_conditions",
       "provenance": {
         "en": {
           "property_name": "en",
           "value": "fraction load",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53941,10 +53993,10 @@
           "value": "load",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53956,10 +54008,10 @@
           "value": "^(\\d+(?:\\.\\d+)?)\\s*%\\s*载$",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53971,10 +54023,10 @@
           "value": "**按模式求值, 不是固定值**: xx%载 = 满载 × xx%。例 30%载 -> 0.30。ratio 刻意为 null —— 它是待求量, 不是常量; 给出 1.0 之类的值会让推理把任意百分比都当成满载。整串锚定以免把 P_load 的 load 误认成工况词。",
           "sources": [
             {
-              "document": "",
-              "section": null,
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": null,
+              "confidence": 0.5,
               "metadata": {
                 "authority_kind": "project_defined"
               }
@@ -53986,38 +54038,71 @@
           "value": "满载 × xx%",
           "sources": [
             {
-              "document": "用户给定定义(2026-10-04 会话确认)",
-              "section": "用户给定定义(2026-10-04 会话确认)",
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": 1.0,
+              "confidence": 0.5,
               "metadata": {
-                "authority_kind": "industry",
+                "authority_kind": "project_defined",
                 "checked": "2026-10-04",
-                "correction_source": "用户给定定义(2026-10-04 会话确认)"
+                "correction_source": "项目约定(本段记录, 2026-10-04 会话确认)"
+              }
+            }
+          ]
+        },
+        "authority_kind": {
+          "property_name": "authority_kind",
+          "value": "project_defined",
+          "sources": [
+            {
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "project_defined",
+                "checked": "2026-10-04",
+                "correction_source": "项目约定(本段记录, 2026-10-04 会话确认)"
+              }
+            }
+          ]
+        },
+        "authority_ref": {
+          "property_name": "authority_ref",
+          "value": "data/seed/corrections.yaml#load_conditions",
+          "sources": [
+            {
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "project_defined",
+                "checked": "2026-10-04",
+                "correction_source": "项目约定(本段记录, 2026-10-04 会话确认)"
               }
             }
           ]
         },
         "confidence": {
           "property_name": "confidence",
-          "value": 1.0,
+          "value": 0.5,
           "sources": [
             {
-              "document": "用户给定定义(2026-10-04 会话确认)",
-              "section": "用户给定定义(2026-10-04 会话确认)",
+              "document": "data/seed/corrections.yaml#load_conditions",
+              "section": "data/seed/corrections.yaml#load_conditions",
               "line": null,
-              "confidence": 1.0,
+              "confidence": 0.5,
               "metadata": {
-                "authority_kind": "industry",
+                "authority_kind": "project_defined",
                 "checked": "2026-10-04",
-                "correction_source": "用户给定定义(2026-10-04 会话确认)"
+                "correction_source": "项目约定(本段记录, 2026-10-04 会话确认)"
               }
             }
           ]
         }
       },
-      "derivation": "满载 × xx%",
-      "authority_ref": "用户给定定义(2026-10-04 会话确认)"
+      "derivation": "满载 × xx%"
     },
     {
       "id": "std::GB 4943.1-2022",

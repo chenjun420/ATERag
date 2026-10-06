@@ -233,6 +233,18 @@ def check_authority_shape(records: list[dict[str, Any]], report: GateReport) -> 
                 report.add("confidence_range", "ERROR", rid, f"confidence 非数值: {conf!r}")
             elif not 0.0 <= float(conf) <= 1.0:
                 report.add("confidence_range", "ERROR", rid, f"confidence 越界: {conf}")
+            elif float(conf) == 1.0:
+                # 顶格不是错, 但**需要理由**。本项目已两次因顶格出问题:
+                # 上游 ``track_entity`` 缺省 1.0、``ReasoningStep`` 缺省
+                # 1.0; 知识侧也见过「项目约定 = 1.0」把约定显示成已验证的
+                # 外部事实。所以顶格必须显式, 且要说清为什么。
+                report.add(
+                    "confidence_top_graded",
+                    "WARN",
+                    rid,
+                    "confidence=1.0 顶格: 若确有理由请在 note 里写明, "
+                    "否则按实际依据降档(项目约定 0.5 / 无出处 0.2)",
+                )
 
 
 def check_reportables(records: list[dict[str, Any]], ids: set[str], report: GateReport) -> None:

@@ -333,18 +333,27 @@ concepts:
   confidence: 0.9
   note: "过温保护属温度类元件, 标准 3.10 的过/欠电压说明不直接适用; 但「复归系数=返回电压/启动电压」这一定义式对任何保护型元件通用。**与「回差」(HYSTERESIS)是两个不同的量**: 本条是比值, 回差是差值。方案 md 原本给本条加了别名「OCP回差/OVP回差/OTP回差」, 已按标准删除 —— 比值与差值互换会让保护整定算错。YD/T 1817-2017 的「保护点及回差」用的才是差值语义。**另注意** GB/T 14598.127-2013 3.6「返回时间 disengaging time」与 3.7「复归时间 reset time」是两个不同词条(起始触发点不同: 前者从「输入激励量产生能引起返回的规定变化」起算, 后者从「特性量发生变化」起算), 勿并。zh 保留业界通行的「返回系数」以便检索, 标准正名存 standard_term, 两套名字都在 synonyms 里。"
 load_conditions:
+# authority_kind 定 project_defined(不是 industry): 「半载 = 满载×50%」是
+# **本项目的约定**, 不是业界通行术语 —— 标成 industry 会让下游以为有个
+# 行业标准背书。confidence 也不再顶格 1.0: 项目约定在同一量纲里是 0.5
+# (与 CREDIBILITY_BY_AUTHORITY 的 project_defined 一致)。顶格 1.0 的实际
+# 后果是「本项目的约定」在查询端显示成「已验证的外部事实」。
 - id: 半载
   ratio: 0.5
   derivation: 满载 × 50%
-  source: 用户给定定义(2026-10-04 会话确认)
+  authority_kind: project_defined
+  authority_ref: data/seed/corrections.yaml#load_conditions
+  source: 项目约定(本段记录, 2026-10-04 会话确认)
   checked: '2026-10-04'
-  confidence: 1.0
-  note: 这条 confidence 是 1.0, 因为它**不是外部知识**而是本项目对工况词的约定定义, 出处就是本文件本身。约定不需要外部查证, 需要的是写下来让所有人用同一个。
+  confidence: 0.5
+  note: 约定定义, 不需要外部查证; 需要的是写下来让所有人用同一个。
 - id: xx%载
   derivation: 满载 × xx%
-  source: 用户给定定义(2026-10-04 会话确认)
+  authority_kind: project_defined
+  authority_ref: data/seed/corrections.yaml#load_conditions
+  source: 项目约定(本段记录, 2026-10-04 会话确认)
   checked: '2026-10-04'
-  confidence: 1.0
+  confidence: 0.5
   note: 模式 `^(\d+(?:\.\d+)?)\s*%\s*载$`, 整串锚定以免误吃 P_load 的 load。
 symbols:
 - standard_ref: GB/T 2900.74-2008
