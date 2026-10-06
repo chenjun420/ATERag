@@ -41,7 +41,11 @@ echo "锁定包数: $(grep -c '^[a-zA-Z]' "$BUNDLE/requirements.lock" || true)"
 
 # ---------------------------------------------------------------- wheelhouse
 log "下载 aarch64 wheelhouse (仅二进制, 之后安装全程 --no-index)"
-uv venv --seed /tmp/wheelenv >/dev/null 2>&1
+# 在 /tmp 建 venv, **不要** cd $APP_DIR 再建: uv 在项目目录下会顺手去写
+# uv.lock, 而 /opt/aterag 归 aterag、脚本有时以别的身份跑, 实测就是
+# 「uv venv 报 Permission denied /opt/aterag/uv.lock」把整段打断。
+# 依赖锁的导出(uv export)必须在项目目录里做, 那是只读操作, 没问题。
+( cd /tmp && uv venv --seed /tmp/wheelenv >/dev/null )
 /tmp/wheelenv/bin/python -m pip install --quiet --upgrade pip >/dev/null 2>&1 || true
 mkdir -p "$BUNDLE/wheelhouse"
 # --only-binary :all: 是硬要求: 离线安装时现场编 C 扩展必然失败, 与其
