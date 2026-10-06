@@ -55,13 +55,17 @@ def _run(cmd: list[str]) -> str | None:
     return out.stdout.strip() or None
 
 
-def facts() -> dict[str, Any]:
+def facts(index_url: str = "") -> dict[str, Any]:
     """版本事实。**只报事实, 不做判断**。"""
     info: dict[str, Any] = {
         "built_at_utc": datetime.now(UTC).isoformat(),
         "python": sys.version.split()[0],
         "platform": platform.platform(),
         "machine": platform.machine(),
+        # 轮子是从哪个源取的。清单保证「文件没被改过」, 不保证「当初从哪
+        # 拿的」—— 后者是排障时第一个要看的线索, 所以必须记下来, 不能靠
+        # 回忆构建命令来还原。
+        "wheelhouse_index_url": index_url or None,
     }
     # 包里带的解释器是「运行时事实」, 装到目标机上要能对上, 所以记下来。
     for name, mod in (("semantica", "semantica"), ("psycopg", "psycopg")):
@@ -94,6 +98,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--git-sha", default="unknown", help="源码 commit")
     ap.add_argument("--out-manifest", default="")
     ap.add_argument("--out-checksums", default="")
+    ap.add_argument("--index-url", default="", help="轮子实际取自哪个源(排障线索)")
     args = ap.parse_args(argv)
 
     root = Path(args.root).resolve()
@@ -107,7 +112,7 @@ def main(argv: list[str] | None = None) -> int:
     manifest = {
         "schema": 1,
         "git_sha": args.git_sha,
-        "facts": facts(),
+        "facts": facts(args.index_url),
         "file_count": len(files),
         "total_bytes": sum(f["size"] for f in files.values()),
         "files": files,

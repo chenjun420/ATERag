@@ -14,7 +14,8 @@
 aterag-offline-<时间戳>-<git-sha>/
   MANIFEST.json        # 每个文件的 sha256 + 版本事实(给人和程序读)
   MANIFEST.sha256      # 同一份摘要, 给 sha256sum -c 读(不依赖包里的代码)
-  requirements.lock    # uv.lock 导出的精确版本
+  requirements.lock    # uv.lock 导出的精确版本, **每条都带 sha256**
+  INDEX_USED           # 轮子实际取自哪个源(排障第一线索)
   wheelhouse/          # aarch64 轮子(仅二进制, --only-binary :all:)
   app/                 # 源码树(不含 .env / .venv)
   install.sh           # 离线安装, 七步各自对应一种「装到一半才发现不对」
@@ -26,6 +27,30 @@ aterag-offline-<时间戳>-<git-sha>/
 `sha256sum` 不依赖 python、不依赖包里的任何代码。只有 JSON 清单的话,
 校验就得先能跑起包里的代码, 那是循环论证。
 
+## 下载为什么走镜像, 而完整性仍由仓库担保
+
+板卡实测(2026-10-06): 直连 `files.pythonhosted.org` 时**索引页 2.3 MB/s,
+但轮子文件本身只有 7~23 kB/s** —— 索引快、文件慢是这个链路的实况。
+227 MB 的 wheelhouse 跑了两个多小时没下完, 而且日志停在
+`Downloading <当前包>` 那一行, **看上去像网络慢, 实际是龟速**。
+
+清华 tuna 镜像托管的是文件本身, 实测 20~29 MB/s: 227 MB / 116 个轮子
+**90 秒**下完。所以 `make_bundle.sh` 默认走镜像。
+
+**换源不等于把包内容交给镜像。** `requirements.lock` 里每条依赖都带
+uv.lock 的 sha256, 下载走 `pip download --require-hashes`, 逐个校验。
+实测把一个已下载的轮子尾部追加 15 字节再让它装, pip 报
+`THESE PACKAGES DO NOT MATCH THE HASHES` 并以 rc=1 退出。
+镜像只提供带宽, 内容对不对由仓库里已审过的锁说了算。
+
+`make_bundle.sh` 在导出后有一道断言: 锁里没有 sha256 就**拒绝组装**。
+不带 hash 的锁从第三方源取包, 那不是校验, 是信任 —— 这条要在组装阶段
+响亮地坏掉, 而不是悄悄降级成无校验下载。
+
+阿里云镜像也快(ortools 27.6 MB 实测 12 MB/s), 但**缺** psycopg-binary
+与 scikit-learn 的 aarch64 轮子 —— 镜像覆盖度不是想当然的, 所以不进
+默认列表。取包源用 `PYPI_INDEX` 覆盖, 缺轮子时 pip 会报出来。
+
 ## 怎么产出
 
 在**板卡上**组装(轮子必须是 aarch64; 开发机是 Windows x86_64, 交叉编译
@@ -34,6 +59,7 @@ aterag-offline-<时间戳>-<git-sha>/
 ```sh
 cd /opt/aterag
 bash scripts/offline/make_bundle.sh <git-sha>
+# 可选: PYPI_INDEX=https://pypi.org/simple bash scripts/offline/make_bundle.sh <sha>
 ```
 
 产物 `/opt/aterag-bundle/aterag-offline-<时间戳>-<sha>.tar.gz` 及同名 `.sha256`。
@@ -54,7 +80,7 @@ bash verify.sh
 |---|---|
 | 1 `sha256sum -c` | 包损坏时在装任何东西之前发现 |
 | 2 解释器版本 | 缺 CPython ≥ 3.11 时报清楚要什么 |
-| 3 `--no-index` 装依赖 | 断网环境唯一的合法装法 |
+| 3 `--no-index` 装依赖 | 断网环境唯一的合法装法; 锁里的 sha256 在这一步再校验一次 |
 | 4 应用文件 + `.env` 断言 | `EMBED_DIM` 缺省会让嵌入落到服务端原生维度(实测 2048)而 pgvector 上限 2000, 表现是「装完检索变差」而不是启动失败 |
 | 5 `alembic upgrade head` | schema 先于数据 |
 | 6 知识装载 + 对账 | 「装上了但没生效」 |
@@ -64,6 +90,10 @@ bash verify.sh
 
 - **wheelhouse 只覆盖当前平台**: aarch64/debian12。换架构要重新组装 ——
   跨架构轮子不能通用, 这不是缺陷是物理事实。
+- **轮子数少于锁定包数是正常的**: 锁里有 `sys_platform == 'win32'`、
+  `python_full_version >= '3.12'` 这类条目, 在本平台被环境标记筛掉。
+  板卡实测 锁定 126 / 实得 116。`make_bundle.sh` 只断言「一个轮子都没拿到
+  就拒绝继续」, 不去断言两者相等 —— 那会把平台的正常筛除当成故障。
 - **`.env` 不入包**: 里面有 API key。`install.sh` 在缺 `.env` 时从
   `.env.example` 生成一份并**停下**要求填密钥, 不带着空密钥往下装。
 - **`make_bundle.sh` 需要一次网络**: 下载轮子那一步。装的过程不需要。

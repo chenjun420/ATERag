@@ -46,6 +46,10 @@ EOF
 
 # ---------------------------------------------------------------- 3 依赖
 log "3/7 依赖 (--no-index, 离线)"
+# --require-hashes 是显式写的, 不是靠「锁文件里恰好带了 hash 所以 pip 隐式
+# 启用」: 这一步的判据是 uv.lock 的 sha256, 隐式触发意味着哪天锁的导出
+# 少了 hash, 这里会**静默降级**成无校验安装 —— 而离线环境正是最该断言的
+# 地方。显式写出来, 少了 hash 就当场报错。
 VENV="$APP_DIR/.venv"
 if [ ! -x "$VENV/bin/python" ]; then
     "$PY" -m venv "$VENV" || die "建 venv 失败"
@@ -53,11 +57,12 @@ fi
 if command -v uv >/dev/null; then
     # uv 在目标机上不一定有, 有就用(快); 没有走 pip, 两者都 --no-index。
     uv pip install --python "$VENV/bin/python" --offline --no-index \
+        --require-hashes \
         --find-links "$BUNDLE_DIR/wheelhouse" \
         -r "$BUNDLE_DIR/requirements.lock"
 else
     "$VENV/bin/python" -m ensurepip --upgrade >/dev/null 2>&1 || true
-    "$VENV/bin/python" -m pip install --no-index \
+    "$VENV/bin/python" -m pip install --no-index --require-hashes \
         --find-links "$BUNDLE_DIR/wheelhouse" \
         -r "$BUNDLE_DIR/requirements.lock"
 fi
