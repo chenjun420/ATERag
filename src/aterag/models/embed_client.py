@@ -58,12 +58,27 @@ class _DashScopeBackend:
         )
         resp.raise_for_status()
         data = resp.json()["output"]["embeddings"]
-        # 按 text_index 恢复原始顺序
+        # 顺序键有两个名字: 实测 ``qwen3.7-text-embedding`` 返回 ``text_index``,
+        # 而 ``qwen3.7-text-embedding-flash`` 只返回 ``index`` —— 同一供应商的
+        # 两个模型响应形状不一致。写死 ``text_index`` 时 flash 版直接
+        # ``KeyError: 'text_index'``, 而 KeyError 出现在 4 次重试的包装里,
+        # 表现为「embedding batch failed」, 看不出是响应形状问题。
+        #
+        # 两个键都缺时**不能**回退成「按返回顺序用」: 顺序错掉不会报错, 只会让
+        # 每条 chunk 的向量对应到别人的文本 —— 而检索看起来完全正常。
         out: list[list[float] | None] = [None] * len(data)
         for item in data:
-            out[item["text_index"]] = item["embedding"]
+            key = "text_index" if "text_index" in item else "index"
+            if key not in item:
+                raise ValueError(
+                    f"dashscope embedding: 响应缺顺序键 (text_index/index), got {sorted(item)}"
+                )
+            out[item[key]] = item["embedding"]
         if any(v is None for v in out):
-            raise ValueError("dashscope embedding: incomplete response ordering")
+            raise ValueError(
+                f"dashscope embedding: 响应不完整, 期望 {len(data)} 条, "
+                f"实到 {sum(1 for v in out if v is not None)} 条"
+            )
         return [v for v in out if v is not None]
 
 
