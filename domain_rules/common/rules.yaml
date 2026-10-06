@@ -13,5 +13,14 @@ rules:
       name: SI unit prefixes (BIPM)
       url: https://www.bipm.org/en/measurement-units
       retrieved: 2026-09-29
+    # 顶格 1.0 的理由(知识门把 confidence==1.0 列为 WARN, 要求写明为什么):
+    # SI 前缀是**定义式**事实 —— k=10^3 / m=10^-3 由 BIPM SI  Brochure
+    # 唯一确定, 没有竞争来源, 也没有「实测值可能偏」这回事。confidence 的
+    # 语义是「**出处**可不可信」(见 rules.yaml 头注), 不是「公式对不对」,
+    # 而这里出处就是定义本身, 所以顶格是断言而不是缺省。
+    #
+    # 如果哪天这条规则开始吃**非 SI** 的倍数(比如 dBm 的 10^(dBm/10)),
+    # 这个理由立刻不成立, 必须降档 —— 那时它是一条工程约定, 不是定义。
+    note: "SI 前缀是定义式事实(BIPM 为唯一来源), 顶格可采信; 改成非 SI 倍数即失效"
     confidence: 1.0
     test: {given: {value: 500, exponent: -3}, expect: {scaled: 0.5}}  # 500mV->0.5V

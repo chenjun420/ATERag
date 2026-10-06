@@ -40,11 +40,35 @@ from typing import Any
 REF_FIELDS = ("formula_refs", "axiom_refs", "source_id", "target_id")
 
 #: 本库 id 命名空间形态(用于「值形似 id」的通用扫描)。
-#: 推导自真实 id 集合: 750 条记录里 668 条带 id, 全部匹配此式(有测试钉)。
-#: 有了这个式子, 将来新增字段(比如某个 ``related_refs``)忘了在
-#: :data:`REF_FIELDS` 登记, 通用扫描仍能抓到它指不到目标 —— 声明式是
-#: 主动检查, 通用扫描是兜底。
-ID_NAMESPACE = re.compile(r"^(F_[A-Z]|A-\d|thm::|sym::|std::|load::|loadratio::|rel::)")
+#: 推导自真实 id 集合(有测试钉)。有了这个式子, 将来新增字段(比如某个
+#: ``related_refs``)忘了在 :data:`REF_FIELDS` 登记, 通用扫描仍能抓到它指不到
+#: 目标 —— 声明式是主动检查, 通用扫描是兜底。
+#:
+#: ``err::`` 是勘误号命名空间: 勘误 ``E-1`` 裸号与公式的章节号形态完全撞车
+#: (``A-1``/``F_E.1`` 都是章节记号), 加前缀就是把勘误从章节记号里分出来。
+ID_NAMESPACE = re.compile(
+    r"^(F_[A-Z]|A-\d|thm::|sym::|std::|err::|load::|loadratio::|rel::)"
+)
+
+#: 已登记的**裸名 id** 类型 —— 概念名直接当 id, 不带命名空间前缀。
+#:
+#: **刻意不进** :data:`ID_NAMESPACE`。裸大写名与自由文本里的缩写无法区分:
+#: ``BMS`` / ``RLS`` / ``Ta`` 既是合法同义词也是合法 id, 放进命名空间会让
+#: 通用扫描把同义词判成悬空引用, 一次刷几百条误报 —— 而一个误报几百条的
+#: 门禁等于没有门禁(本项目已经因为这个教训把 ``text`` 划进
+#: :data:`EXTERNAL_FIELDS`)。
+#:
+#: 改成**按类型登记**: 已知形态不点名, 但条数进 :attr:`GateReport.stats`,
+#: 新增第三类裸名 id 时条数会变, 门禁不会静默。已登记: 电力概念
+#: (154 条 power_concept 概念名 / 遥信遥测遥代码 / SR 字段名)。
+BARE_NAME_ID_TYPES = frozenset({"power_concept"})
+
+#: 复合引用串里的分隔符: ``bindings`` 装的是 ``"F_L.2.5、G.39"``(一条标准
+#: 定了两条: 公式在 G 章的条款里)。
+#:
+#: 不拆就会把整串当成一个值去比对, ``"F_L.2.5、G.39"`` 天然既不等于
+#: ``F_L.2.5`` 也不等于任何 id, 于是每条这样的值都报一次「解析不到」。
+REF_TOKEN_SPLIT = re.compile(r"[、,，/;；\s]+")
 
 #: 标准号形态: ``GB/T 17626.5-2019`` / ``IEC 60664-1-2020`` / ``GB/Z 14429-2005``。
 #: 用于「声明是 standard 却没给标准号」这类形态检查。
@@ -121,14 +145,33 @@ def check_ids(records: list[dict[str, Any]], report: GateReport) -> set[str]:
     for rid, n in seen.items():
         if n > 1:
             report.add("id_unique", "ERROR", rid, f"id 重复 {n} 次")
-    stray = [r for r in records if r.get("id") and not ID_NAMESPACE.match(str(r["id"]))]
-    for r in stray[:10]:
+
+    # 裸名 id(见 BARE_NAME_ID_TYPES)不计为「不匹配」, 但**必须计数**。
+    # 第一版这里只报前 10 条(`stray[:10]`), 实测真种子上有 161 条失配,
+    # 于是门禁显示 10 条、真实 161 条 —— 少报 151 条的「已登记形态」和
+    # 少报真问题在这里是同一种静默。报总数 + 样例, 不做静默截断。
+    named = [
+        str(r["id"])
+        for r in records
+        if r.get("id")
+        and not ID_NAMESPACE.match(str(r["id"]))
+        and str(r.get("entity_type")) not in BARE_NAME_ID_TYPES
+    ]
+    if named:
         report.add(
             "id_namespace",
             "WARN",
-            str(r.get("id")),
-            "id 不匹配本库命名空间形态(通用扫描的判据因此变弱)",
+            "-",
+            f"{len(named)} 条 id 不匹配命名空间形态(通用扫描的判据因此变弱); "
+            f"例: {sorted(set(named))[:5]}",
         )
+    report.stats["bare_name_ids"] = sum(
+        1
+        for r in records
+        if r.get("id")
+        and not ID_NAMESPACE.match(str(r["id"]))
+        and str(r.get("entity_type")) in BARE_NAME_ID_TYPES
+    )
     return set(seen)
 
 
@@ -163,6 +206,65 @@ EXTERNAL_FIELDS = frozenset(
 )
 
 
+def _ref_tokens(val: Any) -> list[str]:
+    """把一个字段值拆成待比对的记号。
+
+    列表值逐项拆; 单值先按 :data:`REF_TOKEN_SPLIT` 拆 —— ``bindings`` 装的
+    是 ``"F_L.2.5、G.39"``(一条标准定了两条), 不拆的话整串永远不等于任何
+    id, 每条这样的值都会报一次「解析不到」。
+    """
+    out: list[str] = []
+    for v in val if isinstance(val, list) else [val]:
+        if not isinstance(v, str):
+            continue
+        out.extend(t for t in REF_TOKEN_SPLIT.split(v) if t)
+    return out
+
+
+def _short_ref_candidates(token: str, ids: set[str]) -> list[str]:
+    """短记号 -> 全名候选。
+
+    方案 md 引用公式时只写章节号(``F_L.2.7``), 本库 id 带名字后缀
+    (``F_L.2.7_DEADBAND_MIN``)。这是**记法差异, 不是悬空引用**, 所以按
+    ``token + "_"`` 前缀找候选。**候选恰好 1 个才算解析得到**: 0 个是真
+    悬空(公式被剪掉了), 多个说明这条记号有歧义 —— 两种都不许蒙。
+    """
+    return sorted(i for i in ids if i.startswith(token + "_"))
+
+
+def _is_unresolved_token(tok: str, ids: set[str]) -> bool:
+    """记号是否**解析不到**。
+
+    短记号前缀命中 **0 个**是真悬空(公式被剪掉了), 命中 **多个**是记号有
+    歧义 —— 两种都算解析不到。写成「有候选就不算」会把歧义静默放过,
+    而挑一条蒙过去正是这个项目反复栽跟头的地方。
+    """
+    if tok in ids or not ID_NAMESPACE.match(tok):
+        return False
+    return len(_short_ref_candidates(tok, ids)) != 1
+
+
+def discover_unresolved_tokens(
+    records: list[dict[str, Any]], ids: set[str]
+) -> dict[str, list[str]]:
+    """哪些字段里出现了**解析不到的 id 记号**, 按字段列出**不同的**记号。
+
+    与 :func:`discover_reference_fields` 的区别只有一个: 这个给**人**看
+    (到底是哪几个记号指不到东西), 那个给测试做集合断言。
+    """
+    hits: dict[str, set[str]] = defaultdict(set)
+    for rec in records:
+        if _is_relation(rec):
+            continue
+        for fld, val in rec.items():
+            if fld == "id" or fld in EXTERNAL_FIELDS:
+                continue
+            for tok in _ref_tokens(val):
+                if _is_unresolved_token(tok, ids):
+                    hits[fld].add(tok)
+    return {fld: sorted(toks) for fld, toks in hits.items()}
+
+
 def discover_reference_fields(records: list[dict[str, Any]], ids: set[str]) -> dict[str, int]:
     """哪些字段里出现过**形似本库 id** 的值(按字段计数)。
 
@@ -181,8 +283,8 @@ def discover_reference_fields(records: list[dict[str, Any]], ids: set[str]) -> d
         for fld, val in rec.items():
             if fld == "id" or fld in EXTERNAL_FIELDS:
                 continue
-            for v in val if isinstance(val, list) else [val]:
-                if isinstance(v, str) and ID_NAMESPACE.match(v) and v not in ids:
+            for tok in _ref_tokens(val):
+                if _is_unresolved_token(tok, ids):
                     hits[fld] += 1
     return dict(hits)
 
@@ -195,8 +297,14 @@ def check_undeclared_id_tokens(records: list[dict[str, Any]], ids: set[str], rep
     `upstream` 记号里则可能是「方案用的旧编号体系」而不是缺陷(该记录
     待查)。定级一致会同时制造漏报和误报。
     """
-    for fld, n in sorted(discover_reference_fields(records, ids).items(), key=lambda kv: -kv[1]):
-        report.add("undeclared_ref", "WARN", fld, f"{n} 条 id 记号解析不到(未登记为引用字段)")
+    unresolved = discover_unresolved_tokens(records, ids)
+    for fld, toks in sorted(unresolved.items(), key=lambda kv: -len(kv[1])):
+        report.add(
+            "undeclared_ref",
+            "WARN",
+            fld,
+            f"{len(toks)} 种 id 记号解析不到(未登记为引用字段): {', '.join(toks[:12])}",
+        )
 
 
 def check_authority_shape(records: list[dict[str, Any]], report: GateReport) -> None:
@@ -262,12 +370,22 @@ def check_reportables(records: list[dict[str, Any]], ids: set[str], report: Gate
             no_auth[str(rec.get("entity_type"))] += 1
     for etype, n in sorted(no_auth.items(), key=lambda kv: -kv[1]):
         report.add("authority_present", "WARN", etype, f"{n} 条无 authority_ref 也无 source")
-    no_conf = sum(
-        1
-        for r in records
-        if not _is_relation(r) and r.get("confidence") is None
+    no_conf = [r for r in records if not _is_relation(r) and r.get("confidence") is None]
+    # 分两层报, 因为两层的**下一步动作不同**: 声明了 authority_kind 的,
+    # 可信度已经能从 ``CREDIBILITY_BY_AUTHORITY`` 推出, 只差这次断言本身
+    # 有没有查过; 连权威类型都没有的, 是连「该拿什么标准去查」都还不知道。
+    # 只报一个总数的话, 588 这个数字驱动不了任何补齐工作。
+    graded = sum(1 for r in no_conf if _authority_kind(r))
+    report.add(
+        "confidence_present",
+        "WARN",
+        "-",
+        f"{len(no_conf)} 条未标 confidence: 其中 {graded} 条已声明 authority_kind "
+        f"(可信度可由 CREDIBILITY_BY_AUTHORITY 推出), {len(no_conf) - graded} 条连权威类型都没有",
     )
-    report.add("confidence_present", "WARN", "-", f"{no_conf} 条未标 confidence")
+    by_type: dict[str, int] = Counter(str(r.get("entity_type")) for r in no_conf)
+    for etype, n in sorted(by_type.items(), key=lambda kv: -kv[1]):
+        report.add("confidence_present_by_type", "WARN", etype, f"{n} 条未标 confidence")
 
     mentioned: set[str] = set()
     for rec in records:
@@ -298,12 +416,17 @@ def run_gate(records: list[dict[str, Any]]) -> GateReport:
     check_authority_shape(records, report)
     check_reportables(records, ids, report)
     by_type = Counter(str(r.get("entity_type")) for r in records)
-    report.stats = {
-        "records": len(records),
-        "with_id": len(ids),
-        "by_type": dict(by_type),
-        "relations": sum(1 for r in records if _is_relation(r)),
-    }
+    # ``update`` 而不是赋值: :func:`check_ids` 已经往 stats 里放了
+    # ``bare_name_ids``, 赋值会把它抹掉 —— 而那条正是「已登记的裸名 id
+    # 有多少」的漂移指标。
+    report.stats.update(
+        {
+            "records": len(records),
+            "with_id": len(ids),
+            "by_type": dict(by_type),
+            "relations": sum(1 for r in records if _is_relation(r)),
+        }
+    )
     return report
 
 

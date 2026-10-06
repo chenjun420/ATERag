@@ -26875,9 +26875,6 @@
         "authority_kind": "unverified"
       },
       "expr": "η_max = P_out/(P_out + P_loss,max)",
-      "upstream": [
-        "F_J.9.7"
-      ],
       "domain": "N",
       "authority_kind": "unverified",
       "provenance": {
@@ -30645,7 +30642,6 @@
       "expr": "I_rms = I₁·sqrt(1 + THD_I²)",
       "declared_dimension": "[A]",
       "upstream": [
-        "F_J.10.2_THD",
         " T12"
       ],
       "domain": "S",
@@ -30743,9 +30739,6 @@
         "authority_kind": "unverified"
       },
       "expr": "PF = cosφ₁/sqrt(1+THD_I²)",
-      "upstream": [
-        "F_J.10.1"
-      ],
       "domain": "S",
       "authority_kind": "unverified",
       "provenance": {
@@ -30826,9 +30819,6 @@
       },
       "expr": "P_opt ≈ sqrt(P_fixed·R_load)",
       "declared_dimension": "[W]",
-      "upstream": [
-        "F_J.9.1"
-      ],
       "domain": "S",
       "authority_kind": "unverified",
       "provenance": {
@@ -36546,68 +36536,6 @@
       }
     },
     {
-      "id": "F_W.9.17_RMS_VS_PP",
-      "name": "F_W.9.17_RMS_VS_PP",
-      "entity_type": "formula",
-      "text": "F_W.9.17_RMS_VS_PP: 见 F_J.5_RIPPLE_RMS_TRI/SQ/SIN",
-      "confidence": null,
-      "source": null,
-      "section": "W.9.17",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "见 F_J.5_RIPPLE_RMS_TRI/SQ/SIN",
-      "domain": "W",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "W.9.17",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "见 F_J.5_RIPPLE_RMS_TRI/SQ/SIN",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "W",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
       "id": "F_W.9.18_ENBW",
       "name": "F_W.9.18_ENBW",
       "entity_type": "formula",
@@ -40867,7 +40795,7 @@
       "authority_ref": "CISPR 16-1-2",
       "title": "耦合/测量设备：传导骚扰测量",
       "scope": "LISN、接收机",
-      "bindings": "F_P.2.1、G.11",
+      "bindings": "G.11",
       "citation_status": "UNVERIFIED",
       "authority_kind": "unverified",
       "provenance": {
@@ -41060,7 +40988,7 @@
       "version": "2008",
       "title": "静电放电抗扰度",
       "scope": "ESD（接触/空气）",
-      "bindings": "R12、P7、G.11、F_P.5.1",
+      "bindings": "R12、P7、G.11",
       "citation_status": "UNVERIFIED",
       "authority_kind": "unverified",
       "provenance": {

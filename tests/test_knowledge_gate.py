@@ -129,6 +129,53 @@ class TestNoFalsePositives:
         assert _errors(rep) == []
         assert any(f.check == "undeclared_ref" and f.where == "bindings" for f in _warns(rep))
 
+    def test_compound_binding_is_split_before_matching(self) -> None:
+        """``bindings`` 一个值里塞了好几条(``"F_L.2.5、G.39"``)。
+
+        不拆就会把整串当一个值比, ``"F_L.2.5、G.39"`` 天然不等于任何 id ——
+        于是每条这样的值都报一次「解析不到」, 而真问题一个都看不见。
+        """
+        recs = [
+            _rec(id="F_L.2.5_RAILWAY_FUNCTIONAL_SAFETY", entity_type="formula"),
+            _rec(authority_kind="standard", authority_ref="GB/T 1-2020",
+                 bindings="F_L.2.5、G.39"),
+        ]
+        rep = kg.run_gate(recs)
+        assert [f for f in _warns(rep) if f.check == "undeclared_ref"] == []
+
+    def test_short_ref_resolves_by_unique_prefix(self) -> None:
+        """短记号(``F_L.2.7``)按前缀找到**唯一**全名就算解析得到。
+
+        方案 md 引用公式只写章节号, 本库 id 带名字后缀, 是记法差异。
+        """
+        recs = [
+            _rec(id="F_L.2.7_DEADBAND_MIN", entity_type="formula"),
+            _rec(authority_kind="standard", authority_ref="GB/T 1-2020", bindings="F_L.2.7"),
+        ]
+        assert not [f for f in _warns(kg.run_gate(recs)) if f.check == "undeclared_ref"]
+
+    def test_ambiguous_short_ref_is_still_reported(self) -> None:
+        """前缀命中多条 = 记号有歧义, **不许蒙一条**。"""
+        recs = [
+            _rec(id="F_L.2.7_DEADBAND_MIN", entity_type="formula"),
+            _rec(id="F_L.2.7_DEADBAND_MAX", entity_type="formula"),
+            _rec(authority_kind="standard", authority_ref="GB/T 1-2020", bindings="F_L.2.7"),
+        ]
+        warns = [f for f in _warns(kg.run_gate(recs)) if f.check == "undeclared_ref"]
+        assert warns and "F_L.2.7" in warns[0].detail
+
+    def test_unresolved_tokens_are_listed_not_just_counted(self) -> None:
+        """报**不同的记号**: 26 次里有一半是同一个记号被多条标准引用,
+        按次数看是 26 个问题, 按记号看是 8 个。"""
+        recs = [
+            _rec(authority_kind="standard", authority_ref="GB/T 1-2020", bindings="F_G.9"),
+            _rec(authority_kind="standard", authority_ref="GB/T 2-2020", bindings="F_G.9"),
+            _rec(authority_kind="standard", authority_ref="GB/T 3-2020", bindings="F_H.9"),
+        ]
+        warns = [f for f in _warns(kg.run_gate(recs)) if f.check == "undeclared_ref"]
+        assert len(warns) == 1
+        assert "2 种" in warns[0].detail, warns[0].detail
+
 
 class TestExitCode:
     def test_error_blocks(self) -> None:
@@ -149,22 +196,53 @@ class TestRealSeed:
         rep = kg.run_gate(self._records())
         assert _errors(rep) == [], [f.to_dict() for f in _errors(rep)][:5]
 
-    def test_ids_all_match_namespace_or_are_known_legacy(self) -> None:
-        """``ID_NAMESPACE`` 是通用扫描的判据 —— 如果大量 id 不匹配它, 判据
-        变弱, 至少要有人知道。``power_concept`` 的裸名 id 是历史形态。"""
+    def test_ids_all_match_namespace_or_are_registered_bare_names(self) -> None:
+        """``ID_NAMESPACE`` 是通用扫描的判据 —— 不匹配它的 id 只能是**已登记的
+        裸名形态**, 出现第三类就得有人重新审视判据。
+
+        勘误号曾经也在这张单子上(``err::`` 是后加的): ``E-1`` 裸号与公式的
+        章节记号形态完全撞车, 所以勘误加了前缀, 从裸名名单里移出去了。
+        剩下的裸名只有 ``power_concept``(概念名 / 遥信遥测遥代码 / SR 字段名
+        直接当 id)。
+        """
         recs = self._records()
-        ids = [str(r["id"]) for r in recs if r.get("id")]
-        unmatched = [i for i in ids if not kg.ID_NAMESPACE.match(i)]
-        assert unmatched, "预期存在历史形态的裸名 id; 若已全部规范化, 请更新门禁判据"
-        # 裸名 id 是 **power_concept 与 erratum 两类**的历史形态(概念名
-        # 直接当 id / 勘误号)。这两个类型是「已知的非命名空间类型」,
-        # 新增第三类不匹配时要有人重新审视判据 —— 所以断言列全了。
+        unmatched = {
+            str(r["id"]) for r in recs
+            if r.get("id") and not kg.ID_NAMESPACE.match(str(r["id"]))
+        }
+        assert unmatched, "预期存在已登记的裸名 id; 若已全部规范化, 请更新门禁判据"
         types = {
             str(r["entity_type"])
             for r in recs
-            if r.get("id") and str(r["id"]) in set(unmatched)
+            if r.get("id") and str(r["id"]) in unmatched
         }
-        assert types == {"power_concept", "erratum"}, types
+        assert types == kg.BARE_NAME_ID_TYPES, types
+        assert kg.BARE_NAME_ID_TYPES == frozenset({"power_concept"}), (
+            "裸名 id 名单变了: 新增类型要说明它为什么不能进 ID_NAMESPACE, "
+            "移出类型要说明它的 id 前缀是什么"
+        )
+
+    def test_id_namespace_warn_reports_the_whole_number(self) -> None:
+        """失配数**不许静默截断**。
+
+        第一版是 ``stray[:10]``, 真种子上有 161 条失配却只报 10 条 —— 少报
+        151 条已登记形态和少报真问题在这里是同一种静默。
+        """
+        recs = [_rec(id=f"BAD{i}", entity_type="axiom") for i in range(12)]
+        rep = kg.run_gate(recs)
+        warns = [f for f in _warns(rep) if f.check == "id_namespace"]
+        assert len(warns) == 1
+        assert "12 条" in warns[0].detail, warns[0].detail
+
+    def test_bare_name_ids_are_counted_in_stats(self) -> None:
+        """已登记的裸名 id 不点名, 但**要计数** —— 形态漂移要看得见。"""
+        rep = kg.run_gate([_rec(id="BMS", entity_type="power_concept"),
+                           _rec(id="BADFORM", entity_type="axiom")])
+        # 一条登记过的裸名 + 一条没登记的: 只有后者该被点名
+        assert rep.stats["bare_name_ids"] == 1
+        warns = [f for f in _warns(rep) if f.check == "id_namespace"]
+        assert len(warns) == 1 and "1 条" in warns[0].detail
+        assert "BADFORM" in warns[0].detail and "BMS" not in warns[0].detail
 
     def test_undeclared_reference_fields_are_known(self) -> None:
         """安全网: **新字段**里出现 id 记号会红 —— 逼一次显式决定。
@@ -199,6 +277,23 @@ class TestRealSeed:
             assert r.get("authority_ref"), r["id"]
             # 顶格已被纠正为约定档
             assert r.get("confidence") in (None, 0.5), (r["id"], r.get("confidence"))
+
+    def test_missing_confidence_is_split_by_whether_kind_is_declared(self) -> None:
+        """「没标 confidence」要分成两种报, 因为下一步动作不同。
+
+        声明了 ``authority_kind`` 的, 可信度已经能从
+        ``CREDIBILITY_BY_AUTHORITY`` 推出, 只差这次断言本身查没查过; 连权威
+        类型都没有的, 是连「该拿哪份标准去查」都还不知道。只报总数的话,
+        「588 条」这个数字驱动不了任何补齐工作。
+        """
+        rep = kg.run_gate([
+            _rec(id="a", authority_kind="unverified"),
+            _rec(id="b"),
+            _rec(id="c", confidence=0.5),
+        ])
+        detail = [f.detail for f in _warns(rep) if f.check == "confidence_present"][0]
+        assert "2 条未标 confidence" in detail, detail
+        assert "1 条已声明 authority_kind" in detail, detail
 
     def test_gate_cli_exit_zero_on_real_seed(self) -> None:
         assert kg.main(["--seed", str(SEED)]) == 0

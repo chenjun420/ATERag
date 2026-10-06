@@ -1454,10 +1454,30 @@ _SYMBOL_ID_RE = re.compile(r"^sym::(.+)$")
 _W_SUBGROUP_RE = re.compile(r"^F_W\.(\d+)")
 
 
+#: ``expr`` 以这些词开头 = 它不是表达式, 是**指向别的公式的引用**。
+#:
+#: 实测只中一条: ``F_W.9.17_RMS_VS_PP`` 的 ``expr`` 是
+#: ``"见 F_J.5_RIPPLE_RMS_TRI/SQ/SIN"`` —— 方案 md 自己也没给式子, 只说
+#: 「见那三条」。它落在 ``W.9`` 子组里所以躲过了按 domain 的剪枝, 结果是
+#: 一条**自称可执行却没有表达式**的公式留在库里, 而知识门的通用扫描会把
+#: 它正文里的记号判成悬空引用(实测 ``F_J.5_RIPPLE_RMS_TRI`` 解析不到 ——
+#: 真身 ``F_J.5_RIPPLE_RMS`` 存在, 但那条记号带的是变体后缀)。
+#:
+#: **不补式子**: 方案没写的式子, 补出来就是编的, 而编出来的式子会一路
+#: 流到 ``eval``。宁可这条知识不存在。
+_POINTER_EXPR_RE = re.compile(r"^\s*(见|参见|参照|详见|同上)")
+
+
 def _is_executable_formula(e: dict[str, Any]) -> bool:
-    """这条公式的输入能不能绑到型号数据或实测采样上。"""
+    """这条公式的输入能不能绑到型号数据或实测采样上。
+
+    判据是「能不能算」, 不是「有没有 id」: 没有表达式的公式算不出来, 所以
+    不算可执行。:data:`_POINTER_EXPR_RE` 那条是这里的第二道判据。
+    """
     if e["id"] in EXEMPT_FROM_PRUNE:
         return True
+    if _POINTER_EXPR_RE.match(str(e.get("properties", {}).get("expr") or "")):
+        return False
     domain = str(e.get("properties", {}).get("domain") or "")
     if domain in EXECUTABLE_DOMAINS:
         return True
@@ -1491,6 +1511,76 @@ def prune_dangling_refs(entities: list[dict[str, Any]]) -> dict[str, int]:
             if len(kept) != len(refs):
                 counts[field] += len(refs) - len(kept)
                 props[field] = kept
+    return counts
+
+
+#: 装「本库公式短记号」的注记字段。
+#:
+#: 标准与概念的注记写的是章节号(``bindings: "F_L.2.5、G.39"``), 本库公式 id
+#: 带名字后缀(``F_L.2.5_...``) —— 这是记法差异, 所以解析时按短记号找前缀。
+#: 值是**复合串**, 一个字段里既有本库记号(``F_L.5``)也有外部条款号
+#: (``G.39``, 属于另一份文件的章节体系), 只有前者归本门管。
+SHORT_REF_FIELDS = ("bindings", "upstream", "scope")
+
+#: 复合串里的分隔符, 与知识门 :data:`REF_TOKEN_SPLIT` 同源。
+_SHORT_REF_SPLIT_RE = re.compile(r"[、,，/;；\s]+")
+
+
+def _drop_short_refs(props: dict[str, Any], dropped: set[str]) -> dict[str, int]:
+    """把注记字段里指向**已剪掉公式**的短记号摘掉。
+
+    为什么公式剪掉了还要回头改注记: 留下的记号指向空处, 而
+    ``f767147`` 那次剪枝已经证明了后果 —— 5 条标准
+    (``IEC 61508-2-2010`` / ``CISPR 22-2008`` / ``IEC 61000-4-2-2008`` 等)
+    至今绑着 5 条已经不存在的公式(``F_L.5_*`` / ``F_P.2.1_LISN_IMPEDANCE``
+    / ``F_J.9.7_EFFICIENCY`` 等)。知识门查出来报 WARN 是对的, 但 WARN 不是
+    修复: 坏指针得从存储里消失, 和 :func:`prune_dangling_refs` 对
+    ``formula_refs`` 的处置是同一条纪律。
+
+    外部条款号(``G.39``)原样保留 —— 它不是本库 id, 解不开不是缺陷, 删掉
+    就把「这份标准覆盖了哪些章节」这条信息一起丢了。
+
+    返回摘除计数(按字段)。
+    """
+    counts: dict[str, int] = {}
+    for fld in SHORT_REF_FIELDS:
+        val = props.get(fld)
+        if not val:
+            continue
+        removed = 0
+        new_val: Any = val
+        if isinstance(val, str):
+            parts = _SHORT_REF_SPLIT_RE.split(val)
+            kept = []
+            for tok in parts:
+                hit = tok in dropped or any(
+                    d.startswith(tok + "_") for d in dropped
+                )
+                if hit and tok:
+                    removed += 1
+                elif tok:
+                    kept.append(tok)
+            if removed:
+                new_val = "、".join(kept)
+        else:
+            kept_list = []
+            for item in val:
+                tok = str(item)
+                hit = tok in dropped or any(
+                    d.startswith(tok + "_") for d in dropped
+                )
+                if hit:
+                    removed += 1
+                else:
+                    kept_list.append(item)
+            if removed:
+                new_val = kept_list
+        if removed:
+            counts[fld] = counts.get(fld, 0) + removed
+            if new_val:
+                props[fld] = new_val
+            else:
+                props.pop(fld, None)
     return counts
 
 
@@ -1546,6 +1636,8 @@ def prune_non_executable(
     ]
     dropped_symbol_ids = {e["id"] for e in entities} - {e["id"] for e in kept_entities} - dropped_formula_ids
 
+    stats_short_refs: dict[str, int] = {}
+
     def axiom_refs_gone(e: dict[str, Any]) -> bool:
         refs = props_of(e).get("formula_refs") or []
         return bool(refs) and all(r in dropped_formula_ids for r in refs)
@@ -1559,6 +1651,15 @@ def prune_non_executable(
         alive_refs = [r for r in refs if r not in dropped_formula_ids]
         if len(alive_refs) != len(refs):
             props_of(e)["formula_refs"] = alive_refs
+
+    # 注记字段(``bindings`` / ``upstream`` / ``scope``)里的短记号同理。
+    # **单独一个循环**: 上面那个 ``if not refs: continue`` 会跳过没有
+    # ``formula_refs`` 的记录, 而标准记录装的是 ``bindings`` / ``scope``,
+    # 根本不带 ``formula_refs`` —— 挂在那个循环里等于一次都没跑过。
+    for e in kept_entities:
+        short_dropped = _drop_short_refs(props_of(e), dropped_formula_ids)
+        for fld, n in short_dropped.items():
+            stats_short_refs[fld] = stats_short_refs.get(fld, 0) + n
 
     kept_entities = [
         e
@@ -1580,6 +1681,7 @@ def prune_non_executable(
         "symbol": len(dropped_symbol_ids),
         "relationship": len(dropped_rel_ids),
         "axiom_theorem": len(dropped_axiom_ids),
+        "short_ref": stats_short_refs,
     }
     return kept_entities, kept_rels, stats
 
@@ -1705,10 +1807,16 @@ def main() -> int:
             f"  [摘除] 属性里的悬空引用: {dangling['formula_refs']} 条 formula_refs + "
             f"{dangling['axiom_refs']} 条 axiom_refs 解析不到目标, 已摘除"
         )
+    short_ref_note = (
+        " / 注记短记号 "
+        + " ".join(f"{k} {v}" for k, v in sorted(prune_stats["short_ref"].items()))
+        if prune_stats["short_ref"]
+        else ""
+    )
     print(
         f"  [剪枝] 剔除不可执行知识: 公式 {prune_stats['formula']} / "
         f"符号 {prune_stats['symbol']} / 关系 {prune_stats['relationship']} / "
-        f"公理定理 {prune_stats['axiom_theorem']} "
+        f"公理定理 {prune_stats['axiom_theorem']}{short_ref_note} "
         f"(实体 {before_e}->{len(entities)}, 关系 {before_r}->{len(rels)})"
     )
     payload = {
