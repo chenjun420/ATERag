@@ -98,6 +98,12 @@ class DecisionRecorder:
             agent_id=self._agent,
             agent_type="software_agent",
             is_automated=True,
+            # **必须显式下发 confidence**: 上游 track_entity 的是
+            # ``kwargs.get("confidence", 1.0)`` —— 缺省会顶格成 1.0, 让
+            # 「出处可信度未标」在查询端显示成「已验证」。这正是红线里
+            # 「顶格缺省」的那类问题: rules.yaml 的 confidence 就是出处
+            # 可信度, None 表示未标注, 必须原样落下。
+            confidence=result.get("confidence"),
             activity_started_at_time=result.get("activity_started_at_time")
             or datetime_now_iso(),
             metadata=meta,
