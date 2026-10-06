@@ -17,6 +17,7 @@ from mcp.server.mcpserver import MCPServer
 
 from aterag.config import get_settings
 from aterag.inference import InferenceEngine
+from aterag.inference.decision_explain import explain
 from aterag.inference.decision_prov import DecisionRecorder
 from aterag.inference.decision_prov import get_decision_provenance as _query_decision_provenance
 from aterag.rag.service import RagService
@@ -338,6 +339,31 @@ async def get_decision_provenance(decision_id: str) -> str:
     if entry is None:
         return json.dumps({"error": "decision_not_found", "decision_id": decision_id}, ensure_ascii=False)
     return json.dumps(entry, ensure_ascii=False, default=str)
+
+
+@mcp.tool()
+async def explain_decision(decision_id: str) -> str:
+    """把一条决策谱系讲成人读的审计文本 (calculate 的解释侧)。
+
+    ``get_decision_provenance`` 给原始行; 这里给**推理路径**: 每个输入
+    数值 <- 它的 SR 条目、用的哪条规则、出处可信度多少。
+    """
+    try:
+        entry = _query_decision_provenance(settings.postgres_dsn, decision_id)
+    except Exception as e:  # noqa: BLE001
+        return json.dumps({"error": "provenance_query_failed", "message": str(e)}, ensure_ascii=False)
+    if entry is None:
+        return json.dumps({"error": "decision_not_found", "decision_id": decision_id}, ensure_ascii=False)
+    explanation, audit_text = explain(entry)
+    return json.dumps(
+        {
+            "decision_id": decision_id,
+            "audit_text": audit_text,
+            "explanation": explanation.__dict__,
+        },
+        ensure_ascii=False,
+        default=str,
+    )
 
 
 @mcp.tool()
