@@ -30,6 +30,12 @@ PORT = "8080"
 FILES = [
     ("src/aterag", "src/aterag"),
     ("domain_rules", "domain_rules"),
+    # 种子知识: 实体/关系/公理/定理/corrections_applied。**必须整目录部署** ——
+    # 板卡 KG 与 Explorer 都从 data/seed/power_domain_seed.json 读领域知识,
+    # 而 corrections.yaml 是 corrections_applied 的唯一来源(规格表里查证的
+    # 权威等级、废止关系、条款号都写在里面)。漏传的后果不是报错, 而是板卡上
+    # 知识层静默停留在上一次部署的版本 —— 实测过。
+    ("data/seed", "data/seed"),
     # 表结构档案: entity_extract 运行时唯一的表头语义来源, 缺失会直接抛
     # FileNotFoundError (而不是静默丢列), 故必须随代码一起部署
     # config/ 同时承载表结构档案与抽取档案 (表头语义/章节先验/剔除词/条件规则),
@@ -170,6 +176,43 @@ def main() -> int:
         if rc != 0:
             print("DEPLOY_MCP_BOARD FAIL (安装步骤)")
             return 1
+
+        print("\n>>> 灌领域知识库 (build_domain)")
+        # 这一步**不能省**。领域知识(116 条领域规则)与型号知识是两个 workspace:
+        #   _domain_power  领域规则 + 公式 + 来源, 供 search_cases 的 domain 层
+        #   PA601-D54A     型号规格数据
+        # 漏掉它不会报错, 只会让 `search_cases` 的 domain 层**恒空** ——
+        # 实测过: 未灌库时板卡 aterag_chunks 里 domain workspace 一条都没有,
+        # 而工具照常返回结果(只是没有领域知识), 看起来一切正常。
+        # build_domain 幂等(先清空该 workspace 再整批写), 重复执行安全。
+        rc = run(
+            cli,
+            "cd /opt/aterag && sudo -u aterag /opt/aterag/.venv/bin/python -c "
+            '"import asyncio,json,sys; sys.path.insert(0,\'/opt/aterag/src\'); '
+            "from aterag.config import get_settings; from aterag.registry import Registry; "
+            "from aterag.models import EmbeddingClient; "
+            "from aterag.ingest.pipeline import build_domain; "
+            "s=get_settings(); r=Registry.load(s); "
+            "print(json.dumps(asyncio.run(build_domain(\'power\', s, r, "
+            "EmbeddingClient(s), None)), ensure_ascii=False))\"",
+            timeout=900,
+            sudo=False,
+        )
+        print(f"    rc={rc}")
+        if rc != 0:
+            print("DEPLOY_MCP_BOARD WARN (领域库灌入失败; domain 层检索会恒空)")
+
+        print("\n>>> 领域库落地核对")
+        # 不看 build_domain 的返回值, 直接查库: 它返回 chunks 计数, 但真正要确认的是
+        # 这些 chunk 真的进了 domain workspace —— 中间隔了几层(分块/嵌入/写库),
+        # 任何一层静默失败都只表现为「检索结果少」。
+        run(
+            cli,
+            "sudo -u postgres psql -d power_specs -Atc "
+            '"select workspace_id || \' | layer=\' || layer || \' | n=\' || count(*) '
+            "from public.aterag_chunks group by 1,2 order by 1\"",
+            sudo=True,
+        )
 
         print("\n>>> 服务状态与健康")
         run(cli, "systemctl is-enabled aterag-mcp; systemctl is-active aterag-mcp", sudo=True)
