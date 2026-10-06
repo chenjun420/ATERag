@@ -2709,3 +2709,118 @@ rules:
       line_derated_power_w: 400
     expect:
       violation: true
+- id: K-LOOP-001
+  statement: '环路交越频率上界: 交越频率 fC 必须低于开关频率的一半 (fC < fSW/2); 环路注入测量的扫频上限同样不得超过 fSW/2, 否则 PWM 采样效应使读数失真。该比值是物理上限, 不是设计目标; 不同方案给出的 fC/fSW 设计比值不同, 须按具体方案取, 不得当通用常数'
+  category: control
+  scope: control
+  derive:
+    output: fc_max_hz
+    expr: switching_frequency_hz / crossover_ratio_divisor
+    inputs:
+      - switching_frequency_hz
+      - crossover_ratio_divisor
+  variables:
+    switching_frequency_hz: Hz
+    crossover_ratio_divisor: '无量纲; 上界取 2 (fC < fSW/2); 设计目标按方案取'
+    fc_max_hz: Hz
+  source:
+    name: 'onsemi TND6238 Control Loop Design and Easy Verification Method - 测量/环路最高频率须低于开关频率的一半; NXP AN4661 Designing the VCORE Compensation Network For The MC33907/MC33908 System
+      Basis Chips - the crossover frequency has to be less than half of the switching frequency (fSW)'
+    url: https://www.onsemi.com/download/white-papers/pdf/tnd6238-d.pdf
+    retrieved: 2026-10-06
+  confidence: 0.85
+  test:
+    given:
+      switching_frequency_hz: 100000
+      crossover_ratio_divisor: 2
+    expect:
+      fc_max_hz: 50000.0
+- id: K-LOOP-002
+  statement: '相位裕度余量判据: 实测相位裕度 PM 不得低于该型号规格书/方案给出的下限; 余量 = 实测 PM - 下限, 余量 ≥ 0 判通过。行业通行最小值 45 度 (Hartman/DesignCon 2002 明确 customary, onsemi TND352-D / NXP AN4661 / Microchip
+      AN1452 四家一致), 属工程惯例而非 GB/IEC 强条, 不得用行业惯例替代本型号规格书的下限'
+  category: control
+  scope: control
+  derive:
+    output: phase_margin_headroom_deg
+    expr: phase_margin_deg - phase_margin_min_deg
+    inputs:
+      - phase_margin_deg
+      - phase_margin_min_deg
+  variables:
+    phase_margin_deg: deg
+    phase_margin_min_deg: deg
+    phase_margin_headroom_deg: deg
+  source:
+    name: 'Hartman (DesignCon 2002) Overview/Comparison of Power Converter Stability Metrics - It is customary to mandate a minimum phase margin of 45 degrees
+      and a gain margin of 10 dB; onsemi TND352-D DC-DC Converters Feedback and Control - never accept a phase margin lower than 45 deg in worst case; NXP AN4661 - phase
+      margin is more than 45 deg; Microchip AN1452 - Phase margin must be greater than 45 deg'
+    url: http://electrical-integrity.com/Paper_download_files/DC17_PAPER_11_OverviewComparisonPowerConverterStability_Hartman.pdf
+    retrieved: 2026-10-06
+  confidence: 0.85
+  test:
+    given:
+      phase_margin_deg: 46.6
+      phase_margin_min_deg: 45
+    expect:
+      phase_margin_headroom_deg: 1.5999999999999943
+- id: K-LOOP-003
+  statement: '增益裕度余量判据: 实测增益裕度 GM 不得低于该型号规格书/方案给出的下限; 余量 = 实测 GM - 下限, 余量 ≥ 0 判通过。行业通行最小值 10 dB (Hartman/DesignCon 2002); 光耦 CTR 离散与结电容带来的
+      中频极点会额外压低相位, onsemi 建议最坏情况按 15 dB 量级留裕度'
+  category: control
+  scope: control
+  derive:
+    output: gain_margin_headroom_db
+    expr: gain_margin_db - gain_margin_min_db
+    inputs:
+      - gain_margin_db
+      - gain_margin_min_db
+  variables:
+    gain_margin_db: dB
+    gain_margin_min_db: dB
+    gain_margin_headroom_db: dB
+  source:
+    name: 'Hartman (DesignCon 2002) - It is customary to mandate a minimum phase margin of 45 degrees and a gain margin of 10 dB; onsemi
+      TND352-D - make sure the open-loop gain margin is better than 15 dB, 光耦 FOD817A 的 CTR 在 80~160% 间离散且有约 10~30nF 结电容引入中频极点'
+    url: https://www.onsemi.com/pub/Collateral/TND352-D.PDF
+    retrieved: 2026-10-06
+  confidence: 0.85
+  test:
+    given:
+      gain_margin_db: 13.9
+      gain_margin_min_db: 10
+    expect:
+      gain_margin_headroom_db: 3.9000000000000057
+- id: K-THM-101
+  statement: '冷却方式决定热阻取值: 数据手册给的 θJA 是 still air (自然对流) 值, 不得直接用于强制风冷工况的结温校核; 强制风冷须取该风速下的热阻, 或以风冷改善系数把自然对流热阻折算到风冷工况。同一器件 θJA
+      随风速显著变化, 结温判定的可信度取决于所引热阻对应的冷却方式与风速是否与实际工况一致'
+  category: thermal
+  scope: thermal
+  derive:
+    output: junction_temp_c
+    expr: ambient_temp_c + power_loss_w * thermal_resistance_c_per_w / airflow_improvement_factor
+    inputs:
+      - ambient_temp_c
+      - power_loss_w
+      - thermal_resistance_c_per_w
+      - airflow_improvement_factor
+  variables:
+    ambient_temp_c: degC
+    power_loss_w: W
+    thermal_resistance_c_per_w: degC/W
+    airflow_improvement_factor: '无量纲; 自然对流取 1; 强制风冷取该风速下热阻相对自然对流热阻的比值'
+    junction_temp_c: degC
+  source:
+    name: 'NXP AN2601 MSC8102/MSC8122/MSC8126 Thermal Management Design Guidelines - 结到环境热阻随风速变化 (自然对流 21.6 degC/W, 100/200/400 ft/min
+      分别 18.8/17.4/15.6; 0.5/1.0/1.5/2.0 m/s 下 9 器件满载 47/34/27/23 degC/W); Renesas TB379 Thermal Characterization of Packaged
+      Semiconductor Devices - 自然对流按 JESD51-2A (静止空气), 强制对流按 JESD51-6 (风洞, 100~600 LFM, 200 LFM 约合 1 m/s), 两者条件不同故 θJA 不可直接比较'
+    url: https://www.nxp.com/docs/en/application-note/AN2601.pdf
+    retrieved: 2026-10-06
+  confidence: 0.85
+  test:
+    given:
+      ambient_temp_c: 40
+      power_loss_w: 8
+      thermal_resistance_c_per_w: 2.4
+      airflow_improvement_factor: 1.2
+    expect:
+      junction_temp_c: 56.0
