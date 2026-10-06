@@ -52,6 +52,11 @@ class Derivation:
     domain_layer: str
     confidence: float | None  # None = 规则未标注可信度, 属未知, 不得默认顶格
     source: dict
+    # 审计链: 表达式输入名 -> 它在型号事实里的出处
+    # (``{"req_id", "section_path"}``)。调用方给的输入记 "(caller)"。
+    # 没有它, 推理谱系只能证明「用了哪条规则」, 证明不了「数值从哪个 SR 来」
+    # —— 后者才是产测追责要的那半条链。
+    input_sources: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -70,12 +75,25 @@ class DecisionTrace:
 
 
 class InferenceEngine:
-    def __init__(self, settings, domain: str, model_facts: dict | None = None):
-        """model_facts: 型号事实 (来自 PG 实体), 如 {'voltage': 54, 'current': 11.1}."""
+    def __init__(
+        self,
+        settings,
+        domain: str,
+        model_facts: dict | None = None,
+        decision_recorder: object | None = None,
+    ):
+        """model_facts: 型号事实 (来自 PG 实体), 如 {'voltage': 54, 'current': 11.1}.
+
+        decision_recorder: 可选的 ``DecisionRecorder``。给了它, ``calculate``
+        每次算完自动把推理链写进 ``l0_term.provenance``, 失败整体炸 ——
+        「算得出但不记录 = 没算」。不给就维持旧行为(只内存 trace), 那是
+        明确的降级选择, 不是缺省偷懒。
+        """
         self.rules, self.shapes = load_domain_rules(settings.domain_rules_dir, domain)
         self.domain = domain
         self.model_facts = model_facts or {}
         self.traces: list[DecisionTrace] = []
+        self._recorder = decision_recorder
 
     # ---------- 计算 ----------
     def calculate(self, formula_type: str, inputs: dict | None, rule_id: str | None = None) -> dict:
@@ -136,7 +154,7 @@ class InferenceEngine:
             confidence=rule.get("confidence"),
         )
         self.traces.append(trace)
-        return {
+        result = {
             "rule_id": rule["id"],
             "statement": rule.get("statement", ""),
             "output": derive.get("output", "result"),
@@ -148,7 +166,29 @@ class InferenceEngine:
             "confidence_unknown": derivation.confidence is None,
             "source": derivation.source,
             "decision_id": trace.decision_id,
+            "input_sources": self._input_sources(var_names),
         }
+        if self._recorder is not None:
+            # 失败 = calculate 整体失败: 推理不落谱系就不是一次完成的推理
+            result["provenance_entity_id"] = self._recorder.record(result)
+        return result
+
+    def _input_sources(self, var_names: list[str]) -> dict:
+        """每个表达式输入 -> 它在型号事实里的出处(§ _model_facts 的 `_provenance`)。
+
+        先查原名再查别名, 都查不到记 ``(caller)`` —— 输入是调用方给的,
+        不在型号事实里。这是**结论**而不是缺失。
+        """
+        prov = self.model_facts.get("_provenance") or {}
+        out: dict[str, object] = {}
+        for name in var_names:
+            info = prov.get(name)
+            if info is None:
+                alias = _INPUT_ALIASES.get(name, name)
+                if alias != name:
+                    info = prov.get(alias)
+            out[name] = dict(info) if info else "(caller)"
+        return out
 
     def _derive_input(self, name: str, depth: int, chain: set[str]) -> object:
         """解析输入: 型号事实优先, 否则找产出该输出的规则递归推导 (含别名桥接)。"""

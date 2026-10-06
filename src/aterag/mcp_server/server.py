@@ -17,12 +17,30 @@ from mcp.server.mcpserver import MCPServer
 
 from aterag.config import get_settings
 from aterag.inference import InferenceEngine
+from aterag.inference.decision_prov import DecisionRecorder
+from aterag.inference.decision_prov import get_decision_provenance as _query_decision_provenance
 from aterag.rag.service import RagService
 from aterag.registry import AmbiguousModel, Registry, UnknownModel
 
 settings = get_settings()
 registry = Registry.load(settings)
 _rag: RagService | None = None
+_decision_prov: DecisionRecorder | None = None
+
+
+def get_decision_recorder() -> DecisionRecorder:
+    """``calculate`` 的记账通道, 全局一份。
+
+    板卡实测教训: 读路径每次泄漏一个事务会让 PG 写入卡死在
+    ``wait=Lock/transactionid``。所以 manager 必须是**全局单例**, 而不是每条
+    calculate 一个 —— 它内部走 autocommit 连接, 单例复用是安全的。
+    """
+    global _decision_prov
+    if _decision_prov is None:
+        from aterag.provenance import build_manager
+
+        _decision_prov = DecisionRecorder(build_manager(settings.postgres_dsn))
+    return _decision_prov
 
 
 def get_rag() -> RagService:
@@ -286,7 +304,7 @@ async def calculate(
         # 无型号上下文: 仅共享规则 + 显式输入
         domain = "power"
         facts = {}
-    eng = InferenceEngine(settings, domain, model_facts=facts)
+    eng = InferenceEngine(settings, domain, model_facts=facts, decision_recorder=get_decision_recorder())
     try:
         result = eng.calculate(formula_type, inputs, rule_id or None)
     except (KeyError, ValueError) as e:
@@ -303,6 +321,23 @@ async def validate_constraints(data_graph: str) -> str:
     except Exception as e:  # noqa: BLE001
         return json.dumps({"error": "validation_failed", "message": str(e)}, ensure_ascii=False)
     return json.dumps(result, ensure_ascii=False)
+
+
+@mcp.tool()
+async def get_decision_provenance(decision_id: str) -> str:
+    """按 decision_id 查推理谱系 (calculate 决策的持久化审计).
+
+    calculate 每次都把推理链写进 ``l0_term.provenance``:
+    用了哪条规则 / 输入数值来自哪个 SR 条目 / 出处可信度多少。
+    进程重启后仍可查 —— 内存里的 explain() 只覆盖本进程。
+    """
+    try:
+        entry = _query_decision_provenance(settings.postgres_dsn, decision_id)
+    except Exception as e:  # noqa: BLE001
+        return json.dumps({"error": "provenance_query_failed", "message": str(e)}, ensure_ascii=False)
+    if entry is None:
+        return json.dumps({"error": "decision_not_found", "decision_id": decision_id}, ensure_ascii=False)
+    return json.dumps(entry, ensure_ascii=False, default=str)
 
 
 @mcp.tool()
@@ -409,7 +444,7 @@ async def get_fixture_spec(model_id: str, query: str = "探针选型 工装参�
         facts = _model_facts(model_id, required=("voltage", "current"))
     except FactUnavailable as e:
         return json.dumps(e.to_dict(), ensure_ascii=False)
-    eng = InferenceEngine(settings, registry.products[model_id].domain, model_facts=facts)
+    eng = InferenceEngine(settings, registry.products[model_id].domain, model_facts=facts, decision_recorder=get_decision_recorder())
     out: dict = {"model_id": model_id, "facts": facts}
     for ft, inp in (
         ("probe_selection", {"current": facts["current"]}),
@@ -471,7 +506,7 @@ async def optimize_process(
         facts = _model_facts(model_id, required=("current",))
     except FactUnavailable as e:
         return json.dumps(e.to_dict(), ensure_ascii=False)
-    eng = InferenceEngine(settings, registry.products[model_id].domain, model_facts=facts)
+    eng = InferenceEngine(settings, registry.products[model_id].domain, model_facts=facts, decision_recorder=get_decision_recorder())
     out: dict = {"model_id": model_id, "facts": facts}
     out["channel_count"] = _safe_calc(
         eng,
