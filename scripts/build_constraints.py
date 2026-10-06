@@ -1,4 +1,4 @@
-"""从种子 JSON 投影出 RDF(Turtle) 与 SHACL 约束(Turtle)。
+"""从种子 JSON 生成 SHACL 约束(Turtle) 与约束应用报告。
 
 为什么必须有这一层 —— 实测出来的:
 
@@ -6,16 +6,23 @@
     25C 应合规      conforms=True  violations=0
     无 rdf:type     conforms=True  violations=0   <- 约束形同虚设, 却报「通过」
 
-``sh:targetClass`` 要求**显式 rdf:type**。没有 RDF 投影, 约束一条都不会被应用,
-而报告是 ``conforms=True`` —— 这是最坏的一种失效:看起来通过了。
+``sh:targetClass`` 要求**显式 rdf:type**。数据侧不给类型, 约束一条都不会被应用,
+而报告是 ``conforms=True`` —— 这是最坏的一种失效:看起来通过了。所以那份报告
+不是走过场, 它是「约束到底有没有被套上」的判据。
 
-产出三个文件:
+产出两个文件:
 
-- ``data/seed/power_domain_seed.json``      种子记录(实体/关系/规则/事实/查询)
-- ``data/seed/power_domain.rdf.ttl``        RDF 投影, 带 rdf:type, 可喂 pyshacl
-- ``data/seed/power_domain_shapes.ttl``     SHACL 约束
+- ``data/seed/power_domain_shapes.ttl``   SHACL 约束(消费者:
+  ``tests/test_shacl_constraints.py`` 的反向验证 —— 注入违规数据确认拦得住)
+- ``data/seed/constraint_report.json``    哪些约束真的被应用了、违规多少条
 
-一并输出一份 ``constraint_report.json``: 哪些约束真的被应用了、违规多少条。
+**曾经还导一份 RDF 投影** ``power_domain.rdf.ttl``(7320 行, 带 rdf:type, 可喂
+pyshacl), 已删: **全库零消费者** —— 只有本脚本自己写、只有自己数三元组,
+``src/`` 与 ``tests/`` 没有一处读它。留着就是「只生成不消费」(方案 §B3),
+而它的 7320 行看起来像一份真实模型数据, 实际上只是种子的投影 —— 那正是
+「看起来有、实际没有」的形态。本脚本因此也不再依赖 rdflib。
+
+输入是 ``data/seed/power_domain_seed.json``(只读, 不改)。
 """
 
 from __future__ import annotations
@@ -24,22 +31,14 @@ import json
 import sys
 from collections import Counter
 from pathlib import Path
-from typing import Any
-from urllib.parse import quote
-
-from rdflib import Graph, Literal, Namespace, URIRef
 
 SEED = Path("data/seed/power_domain_seed.json")
-OUT_RDF = Path("data/seed/power_domain.rdf.ttl")
 OUT_SHAPES = Path("data/seed/power_domain_shapes.ttl")
 OUT_REPORT = Path("data/seed/constraint_report.json")
 
 NS = "http://aterag.local/power#"
 XSD = "http://www.w3.org/2001/XMLSchema#"
 
-EX = Namespace(NS)
-RDF = Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#")
-XSD_NS = Namespace(XSD)
 
 #: 实体类型 -> SHACL 里用的类名。**每种类型都必须有 rdf:type**, 否则
 #: ``sh:targetClass`` 匹配不到, 约束静默失效。
@@ -70,69 +69,6 @@ XSD_TYPES = {
     "version_year": "int",
 }
 
-
-def _uri(value: Any) -> URIRef | None:
-    """任意标识 -> URIRef。**交给 rdflib 做百分号编码。**
-
-    手写 Turtle 的转义靠不住: 标识里有 ``::``(``sym::R_θjc``)、``/``、空格、
-    中文, 每一种都会让解析器报错, 而报错位置离出错处很远。直接建图让 rdflib
-    序列化, 整类转义 bug 就消失了。
-    """
-    if value is None:
-        return None
-    return URIRef(NS + quote(str(value), safe="_-."))
-
-
-def _term(value: Any) -> Literal | URIRef | None:
-    """属性值 -> RDF 项。**类型推断不出来就当字符串** —— 猜错类型会让 SHACL 的
-    数值比较静默失效(比大小不成立却不报错), 那比写成字符串糟得多。"""
-    if value is None or isinstance(value, bool):
-        return None
-    if isinstance(value, int):
-        return Literal(value, datatype=XSD + "integer")
-    if isinstance(value, float):
-        return Literal(value, datatype=XSD + "decimal")
-    if isinstance(value, list):
-        return None  # 列表交给关系边表达, 不塞进字面量
-    if isinstance(value, str):
-        return Literal(value)
-    if isinstance(value, dict):
-        return None
-    return Literal(str(value))
-
-
-def project_rdf(data: dict[str, Any]) -> str:
-    """种子记录 -> Turtle。**每条记录都带 rdf:type** —— 这是约束能生效的前提,
-    缺了它 ``sh:targetClass`` 匹配不到任何节点, 报告会是 conforms=True。"""
-    g = Graph()
-    RDF_TYPE = URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
-    bind = (EX, RDF, XSD_NS)
-    g.bind(*bind)
-
-    for rec in data["records"]:
-        rid = rec.get("id")
-        if not rid:
-            continue
-        subject = _uri(str(rid))
-        cls = CLASS_OF_TYPE.get(rec.get("entity_type"))
-        if cls is None:
-            raise ValueError(f"未映射的 entity_type: {rec.get('entity_type')!r}")
-        g.add((subject, RDF_TYPE, EX[cls]))
-        for key, value in rec.items():
-            if key in ("id", "entity_type", "provenance", "text", "confidence", "source"):
-                continue
-            term = _term(value)
-            if term is not None:
-                g.add((subject, EX[key], term))
-
-    for rel in data["records"]:
-        src, tgt = rel.get("source_id"), rel.get("target_id")
-        if not (src and tgt):
-            continue
-        rtype = str(rel.get("relationship_type") or "related_to")
-        g.add((_uri(str(src)), EX[rtype], _uri(str(tgt))))
-
-    return g.serialize(format="turtle")
 
 def shapes() -> str:
     """SHACL 约束。
@@ -325,8 +261,7 @@ ex:CVCCOverlapShape a sh:NodeShape ;
 def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8")
     data = json.loads(SEED.read_text(encoding="utf-8"))
-    OUT_RDF.parent.mkdir(parents=True, exist_ok=True)
-    OUT_RDF.write_text(project_rdf(data), encoding="utf-8", newline="\n")
+    OUT_SHAPES.parent.mkdir(parents=True, exist_ok=True)
     OUT_SHAPES.write_text(shapes(), encoding="utf-8", newline="\n")
     types = Counter(
         CLASS_OF_TYPE.get(r.get("entity_type"), "Thing")
@@ -334,11 +269,17 @@ def main() -> int:
         if r.get("id")
     )
     report = {
-        "rdf_triples_estimate": sum(1 for line in OUT_RDF.read_text(encoding="utf-8").splitlines() if line.strip().endswith(".")),
         "shapes_count": OUT_SHAPES.read_text(encoding="utf-8").count("a sh:NodeShape"),
         "entity_type_to_class": dict(types),
     }
-    OUT_REPORT.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    # **必须给 newline="\\n"**: 不给的话 Windows 上 text 模式会把 \n 翻成 \r\n,
+    # 于是同一个种子在 Windows 与 Linux 上生成不同字节, 而这个文件是入库的
+    # 产物 —— diff 里出现纯行尾噪音, 也会掩盖真实改动。
+    OUT_REPORT.write_text(
+        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0
 
