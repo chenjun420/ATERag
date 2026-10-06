@@ -17,7 +17,7 @@ from mcp.server.mcpserver import MCPServer
 
 from aterag.config import get_settings
 from aterag.inference import InferenceEngine
-from aterag.inference.decision_explain import explain
+from aterag.inference.decision_explain import explain, to_json_dict
 from aterag.inference.decision_prov import DecisionRecorder
 from aterag.inference.decision_prov import get_decision_provenance as _query_decision_provenance
 from aterag.rag.service import RagService
@@ -359,7 +359,9 @@ async def explain_decision(decision_id: str) -> str:
         {
             "decision_id": decision_id,
             "audit_text": audit_text,
-            "explanation": explanation.__dict__,
+            # to_json_dict 而不是 __dict__: 后者会把推理路径序列化成一行
+            # Python repr(板上实测), 机器侧拿不到可解析的 JSON
+            "explanation": to_json_dict(explanation),
         },
         ensure_ascii=False,
         default=str,

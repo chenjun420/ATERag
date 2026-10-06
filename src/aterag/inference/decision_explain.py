@@ -114,7 +114,13 @@ def explain(entry: dict[str, Any]) -> tuple[Explanation, str]:
             step_id=f"premise_{i}",
             description=line,
             input_facts=[line],
-            metadata={"kind": "premise"},
+            # **前提步不给可信度**: 输入值的出处可信度我们没记(只记了
+            # req_id/section_path), 拿规则的 0.95 贴到每个输入上等于把
+            # 「规则出处可信」说成「这个 SR 值可信」。按本项目约定, 未知落
+            # 0.0 + 标记, 不顶格。补齐它需要型号侧也分档(见 conflicts
+            # 那片的 spec 分档悬案)。
+            confidence=0.0,
+            metadata={"kind": "premise", "credibility_unknown": True},
         )
         for i, line in enumerate(premises)
     ]
@@ -154,6 +160,56 @@ def explain(entry: dict[str, Any]) -> tuple[Explanation, str]:
         },
     )
     return explanation, render_audit(entry, explanation)
+
+
+def to_json_dict(explanation: Explanation) -> dict[str, Any]:
+    """``Explanation`` -> 纯 JSON 结构。
+
+    **不复用 ``explanation.__dict__``**: 板上实测那样做的后果是
+    ``json.dumps`` 遇到 ``ReasoningPath`` 对象走 ``default=str``, 整个
+    推理路径变成一行 Python repr 字符串发给了 MCP 客户端 —— 机器侧拿到
+    的是 ``"ReasoningPath(path_id=...)"`` 而不是可解析的 JSON, 而这个工具
+    的存在意义就是给机器读。显式逐字段铺平, 嵌套结构与 dataclass 一致。
+    """
+    path = explanation.reasoning_path
+    steps: list[dict[str, Any]] = []
+    for step in path.steps:
+        rule = step.rule_applied
+        steps.append(
+            {
+                "step_id": step.step_id,
+                "description": step.description,
+                "input_facts": list(step.input_facts),
+                "output_fact": step.output_fact,
+                "confidence": step.confidence,
+                "metadata": dict(step.metadata),
+                "rule_applied": (
+                    {
+                        "rule_id": rule.rule_id,
+                        "name": rule.name,
+                        "conclusion": rule.conclusion,
+                        "confidence": rule.confidence,
+                        "metadata": dict(rule.metadata),
+                    }
+                    if rule is not None
+                    else None
+                ),
+            }
+        )
+    return {
+        "explanation_id": explanation.explanation_id,
+        "explanation_type": explanation.explanation_type,
+        "conclusion": explanation.conclusion,
+        "metadata": dict(explanation.metadata),
+        "reasoning_path": {
+            "path_id": path.path_id,
+            "start_facts": list(path.start_facts),
+            "end_conclusion": path.end_conclusion,
+            "total_confidence": path.total_confidence,
+            "metadata": dict(path.metadata),
+            "steps": steps,
+        },
+    }
 
 
 def render_audit(entry: dict[str, Any], explanation: Explanation) -> str:

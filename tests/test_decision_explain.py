@@ -104,6 +104,25 @@ class TestNoTopGrading:
         assert exp.reasoning_path.total_confidence == 0.95
         assert "出处可信度 0.95" in text
 
+    def test_premise_steps_never_top_graded(self, entry: dict) -> None:
+        """**前提步的 confidence 也不是 1.0**。
+
+        板上实测踩到: ReasoningStep 的 confidence 缺省 1.0, 我只给规则步
+        下发了可信度, 前提步就留着缺省 —— MCP 客户端在 JSON 里读到
+        ``confidence: 1.0`` 会以为「这个输入值已验证」。输入值的出处可信度
+        我们没记(req_id 记了、可信度没记), 按约定落 0.0 + 未标注标记。
+        """
+        exp, _ = dx.explain(entry)
+        premises = [
+            s for s in exp.reasoning_path.steps if s.metadata.get("kind") == "premise"
+        ]
+        assert premises, "前提步应当存在"
+        for step in premises:
+            assert step.confidence == 0.0
+            assert step.metadata["credibility_unknown"] is True
+        # 规则步仍带真值
+        assert exp.reasoning_path.steps[-1].confidence == 0.95
+
 
 class TestMissingFields:
     def test_legacy_record_without_input_sources(self) -> None:
@@ -141,3 +160,34 @@ def test_audit_text_reads_as_audit(entry: dict) -> None:
     assert "结论 power = 599.4" in text
     # 规则出处给的是可核的标准平台地址
     assert "openstd.samr.gov.cn" in text
+
+
+class TestJsonSerialization:
+    def test_to_json_dict_is_plain_json(self, entry: dict) -> None:
+        """**板上课到的坑**: ``explanation.__dict__`` 里塞的是 dataclass 对象,
+        ``json.dumps`` 走 ``default=str`` 后整个推理路径变成一行 Python repr
+        发给 MCP 客户端 —— 机器侧拿到 ``"ReasoningPath(path_id=...)"``。
+        这里的断言: 不给 ``default`` 也能 dumps, 且没有 repr 残留。
+        """
+        import json
+
+        exp, _ = dx.explain(entry)
+        got = dx.to_json_dict(exp)
+        text = json.dumps(got, ensure_ascii=False)  # 故意不给 default=str
+        assert "ReasoningPath(" not in text and "ReasoningStep(" not in text
+        path = got["reasoning_path"]
+        assert path["end_conclusion"] == "power = 599.4"
+        assert path["total_confidence"] == 0.95
+        rule_step = path["steps"][-1]
+        assert rule_step["rule_applied"]["rule_id"] == "K-ELEC-001"
+        assert rule_step["output_fact"] == "power = 599.4"
+        # checksum 链得跟着进 JSON: 解释本身也是可追的
+        assert path["metadata"]["previous_checksum"] == "888ab95559eb2431"
+
+    def test_to_json_dict_roundtrip_types(self, entry: dict) -> None:
+        import json
+
+        exp, _ = dx.explain(entry)
+        got = json.loads(json.dumps(dx.to_json_dict(exp), ensure_ascii=False))
+        assert isinstance(got["reasoning_path"]["steps"], list)
+        assert got["reasoning_path"]["steps"][0]["confidence"] == 0.0
