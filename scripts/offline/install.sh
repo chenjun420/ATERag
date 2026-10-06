@@ -114,7 +114,12 @@ log "6/7 领域知识装载 + 落地核对"
 
 # ---------------------------------------------------------------- 7 systemd
 log "7/7 systemd 单元"
-if command -v systemctl >/dev/null; then
+# SYSTEMD_SKIP=1 用于**演练安装**: 在一台正跑着 aterag 的机器上验证离线包时,
+# 不能让演练去覆盖 /etc/systemd/system 里的单元并重启线上服务 —— 那会把
+# 「验证包」变成「炸掉在跑的东西」。跳过时明说跳过了, 不静默略过。
+if [ "${SYSTEMD_SKIP:-0}" = "1" ]; then
+    echo "  (SYSTEMD_SKIP=1: 不接管本机 systemd —— 演练模式)"
+elif command -v systemctl >/dev/null; then
     for unit in "$APP_DIR"/deploy/native/*.service; do
         [ -e "$unit" ] || continue
         cp "$unit" /etc/systemd/system/
