@@ -241,6 +241,26 @@ def main() -> int:
             sudo=False,
         )
 
+        print("\n>>> 知识门 (种子质量门禁, 在装依赖**之前**)")
+        # 门禁必须在装依赖之前: 门禁只需要 python3 + PyYAML(读 corrections),
+        # 而完整的 venv 要几分钟才装好。让一个「种子里引用解析不到」的问题
+        # 在装完 127 个包之后才报, 是把便宜的检查排在了昂贵的后面。
+        #
+        # 知识门只报 ERROR(引用解析不到 / id 重复 / standard 却没标准号 /
+        # confidence 越界), 非零退出即中止部署。WARN 只显示不拦 ——
+        # 「无出处」是知识层的合法状态, 逼着人编出处比留着它坏。
+        rc = run(
+            cli,
+            "cd /opt/aterag && python3 scripts/knowledge_gate.py "
+            "--seed data/seed/power_domain_seed.json",
+            timeout=120,
+            sudo=False,
+        )
+        print(f"    rc={rc}")
+        if rc != 0:
+            print("DEPLOY_MCP_BOARD FAIL (知识门未通过; 种子有引用/形态问题, 不往下装)")
+            return 1
+
         print("\n>>> 板卡 Step6 安装 (apt + uv + CPython3.13 + venv + 依赖 + systemd)")
         t0 = time.time()
         rc = run(cli, f"bash {APP_DIR}/native/06-install-aterag.sh", timeout=3000, sudo=True)

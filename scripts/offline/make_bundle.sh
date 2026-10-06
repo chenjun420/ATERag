@@ -45,7 +45,10 @@ log "下载 aarch64 wheelhouse (仅二进制, 之后安装全程 --no-index)"
 # uv.lock, 而 /opt/aterag 归 aterag、脚本有时以别的身份跑, 实测就是
 # 「uv venv 报 Permission denied /opt/aterag/uv.lock」把整段打断。
 # 依赖锁的导出(uv export)必须在项目目录里做, 那是只读操作, 没问题。
-( cd /tmp && uv venv --seed /tmp/wheelenv >/dev/null )
+# --clear 是必需的: 上一轮跑失败留下的 /tmp/wheelenv 会让 uv 直接报错退出
+# (「A virtual environment already exists」), 于是这一轮看起来在下载, 实际
+# 一步没走 —— 而日志停在「下载」那行, 看上去像网络慢。
+( cd /tmp && uv venv --seed --clear /tmp/wheelenv >/dev/null )
 /tmp/wheelenv/bin/python -m pip install --quiet --upgrade pip >/dev/null 2>&1 || true
 mkdir -p "$BUNDLE/wheelhouse"
 # --only-binary :all: 是硬要求: 离线安装时现场编 C 扩展必然失败, 与其
