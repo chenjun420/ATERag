@@ -1446,6 +1446,33 @@ def _is_executable_formula(e: dict[str, Any]) -> bool:
     return False
 
 
+def prune_dangling_refs(entities: list[dict[str, Any]]) -> dict[str, int]:
+    """摘掉属性里**解析不到目标**的 `formula_refs` / `axiom_refs`。
+
+    为什么单独一条不变式(而不是靠关系层丢): :func:uild_relationships
+    的 `add()` 早就把解析不了的引用静默丢掉了 —— 图看着是干净的, 于是
+    「属性里还留着 12 条坏指针」这件事没有任何地方会报错。不变式的意义
+    正是: **已知的坏引用必须从存储里消失, 而不是靠下游不读它**。
+    下次有公式被删或 id 改名, 这条会立刻摘掉并计数, 而不是等一年后有人
+    翻到属性字段才发现。
+
+    返回摘除计数(按字段)。
+    """
+    ids = {e["id"] for e in entities if e.get("id")}
+    counts = {"formula_refs": 0, "axiom_refs": 0}
+    for e in entities:
+        props = e.get("properties") or {}
+        for field in ("formula_refs", "axiom_refs"):
+            refs = props.get(field)
+            if not refs:
+                continue
+            kept = [r for r in refs if str(r) in ids]
+            if len(kept) != len(refs):
+                counts[field] += len(refs) - len(kept)
+                props[field] = kept
+    return counts
+
+
 def prune_non_executable(
     entities: list[dict[str, Any]], rels: list[dict[str, Any]]
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, int]]:
@@ -1646,6 +1673,17 @@ def main() -> int:
     rels = build_relationships(entities) + axiom_rels
     before_e, before_r = len(entities), len(rels)
     entities, rels, prune_stats = prune_non_executable(entities, rels)
+    # 属性里的悬空记号要单独摘。关系层早就在 build_relationships 的 add()
+    # 里静默丢弃了(所以图是干净的), 但实体属性 formula_refs / axiom_refs
+    # 仍留着解析不了的记号 —— 实测 12 条: 6 条是剪枝删掉公式后的遗留,
+    # 6 条是方案 md 里的 1990 年代短记号(F_E.1 这种)在本库 id 形态下
+    # 解析不了(F_E.1_OHM_LAW)。留着等于把已知坏掉的指针存进知识库。
+    dangling = prune_dangling_refs(entities)
+    if dangling:
+        print(
+            f"  [摘除] 属性里的悬空引用: {dangling['formula_refs']} 条 formula_refs + "
+            f"{dangling['axiom_refs']} 条 axiom_refs 解析不到目标, 已摘除"
+        )
     print(
         f"  [剪枝] 剔除不可执行知识: 公式 {prune_stats['formula']} / "
         f"符号 {prune_stats['symbol']} / 关系 {prune_stats['relationship']} / "

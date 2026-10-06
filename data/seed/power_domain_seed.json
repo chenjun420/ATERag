@@ -51255,10 +51255,7 @@
         "G.26",
         "G.2"
       ],
-      "formula_refs": [
-        "F_E.1",
-        "F_J.2"
-      ],
+      "formula_refs": [],
       "authority_kind": "unverified",
       "provenance": {
         "label": {
@@ -51374,10 +51371,7 @@
         "G.7",
         "G.30"
       ],
-      "formula_refs": [
-        "F_J.2",
-        "F_E.16"
-      ],
+      "formula_refs": [],
       "authority_kind": "unverified",
       "provenance": {
         "label": {
@@ -51490,9 +51484,7 @@
       "tests": [
         "G.26"
       ],
-      "formula_refs": [
-        "F_S.2"
-      ],
+      "formula_refs": [],
       "authority_kind": "unverified",
       "provenance": {
         "label": {
@@ -51602,9 +51594,7 @@
       "tests": [
         "G.3"
       ],
-      "formula_refs": [
-        "A-J.1"
-      ],
+      "formula_refs": [],
       "authority_kind": "unverified",
       "provenance": {
         "label": {
@@ -51719,9 +51709,7 @@
         "G.3",
         "G.28"
       ],
-      "formula_refs": [
-        "F_K.7_RHPZ_BW"
-      ],
+      "formula_refs": [],
       "authority_kind": "unverified",
       "provenance": {
         "label": {
@@ -51832,9 +51820,7 @@
       "tests": [
         "G.28"
       ],
-      "formula_refs": [
-        "F_W.4_IMPEDANCE_MATCH"
-      ],
+      "formula_refs": [],
       "authority_kind": "unverified",
       "provenance": {
         "label": {
@@ -51943,7 +51929,6 @@
         "G.28"
       ],
       "formula_refs": [
-        "F_K.8_ROUTH_HURWITZ",
         "F_K.3_PHASE_MARGIN"
       ],
       "authority_kind": "unverified",
@@ -52058,7 +52043,6 @@
         "G.5"
       ],
       "formula_refs": [
-        "F_J.5_RIPPLE_RMS",
         "F_W.9.1_THD"
       ],
       "authority_kind": "unverified",
@@ -52285,9 +52269,7 @@
         "G.3",
         "G.34"
       ],
-      "formula_refs": [
-        "F_M.2_RIPPLE_RMS_CONV"
-      ],
+      "formula_refs": [],
       "authority_kind": "unverified",
       "provenance": {
         "label": {
@@ -52508,9 +52490,7 @@
       "tests": [
         "G.29"
       ],
-      "formula_refs": [
-        "F_W.4_TRANSMISSION_LINE"
-      ],
+      "formula_refs": [],
       "authority_kind": "unverified",
       "provenance": {
         "label": {
