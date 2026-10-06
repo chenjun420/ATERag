@@ -26,6 +26,13 @@ PWD = os.getenv("BOARD_SSH_PASSWORD", "")
 APP_DIR = "/opt/aterag"
 PORT = "8080"
 
+#: 全系统嵌入维度, 由 ADR-013 定死(``halfvec``)。改这里等于改 ADR。
+#:
+#: 本地 `.env` 缺 ``EMBED_DIM`` 或值不等于它时, :func:`board_env` 直接 raise ——
+#: 让部署在写板卡 ``.env`` 之前就失败, 而不是在灌库时被 pgvector 的 2000 维
+#: 上限拦下(那时错���已经写进板卡了)。
+EMBED_DIM = 1024
+
 # (本地路径, 板卡远端相对路径)
 FILES = [
     ("src/aterag", "src/aterag"),
@@ -75,8 +82,55 @@ def board_env(local_env: str) -> str:
     txt = re.sub(r"^(MCP_PORT=).*$", rf"\g<1>{PORT}", txt, flags=re.MULTILINE)
     if "MCP_PORT=" not in txt:
         txt += f"\nMCP_HOST=0.0.0.0\nMCP_PORT={PORT}\n"
+
+    # ---- 嵌入服务: 三个键都**必须存在且显式** ------------------------------
+    #
+    # 为什么不能只靠「从开发机 .env 派生」: ``EMBED_DIM`` 缺失时不会报错, 而是
+    # 回落到**服务端原生维度** —— 实测 ``doubao-embedding-vision`` 原生 2048,
+    # 不传 ``dimensions`` 就是 2048。而 pgvector 的 HNSW 索引上限 2000 维, 于是
+    # 灌库时才炸:
+    #
+    #   ProgramLimitExceeded: column cannot have more than 2000 dimensions
+    #
+    # 而库里的列是 ``vector(1024)``(ADR-013 定死全系统 1024 维 halfvec)。
+    # 维度错配若没有这层兜底, 表现是「检索质量下降」而不是启动失败 ——
+    # ADR-013 明确把它列为要避免的「静默降质」。
+    #
+    # 所以这里断言 EMBED_DIM 存在且等于 1024, 不满足直接 raise: 让部署在**上传
+    # .env 之前**就失败, 而不是灌库时。
+    for key in ("EMBED_BASE", "EMBED_MODEL", "EMBED_API_KEY"):
+        # 取**最后一个非注释的非空**值, 而不是第一个。``.env`` 里同键出现多行是
+        # 真实会发生的(改配置时追加而非替换, 或从 ``.env.example`` 复制时带了
+        # 一行注释形态), 取第一个会读到被后面覆盖的那行。
+        vals = [
+            v.strip()
+            for v in re.findall(rf"(?m)^{key}=(.*)$", txt)
+            if v.strip()
+        ]
+        if not vals:
+            raise RuntimeError(
+                f"板卡 .env 缺 {key} —— 嵌入服务无法配置。"
+                "缺它不会报错, 而是回落到服务端默认行为, 失败点被推迟到灌库时。"
+            )
+
+    dim = re.search(r"(?m)^#?EMBED_DIM=(\d+)\s*$", txt)
+    if not dim:
+        raise RuntimeError(
+            "板卡 .env 缺 EMBED_DIM。缺它会回落到服务端原生维度(豆包 2048), "
+            "与 ADR-013 定的 1024 维(halfvec)冲突, 灌库时 pgvector 会报 "
+            "'more than 2000 dimensions'。"
+        )
+    if int(dim.group(1)) != EMBED_DIM:
+        raise RuntimeError(
+            f"板卡 .env 的 EMBED_DIM={dim.group(1)}, 应为 {EMBED_DIM}"
+            "(ADR-013: 全系统固定 1024 维)。改动需先开 ADR 推翻, 不要在脚本里加特例。"
+        )
+    # 去掉注释形态, 让「这个键存在」这件事在文件里看得见
+    txt = re.sub(r"(?m)^#(EMBED_DIM=)", r"\1", txt)
+
     return (
-        "# ATERag 板卡运行时配置 (由 scripts/deploy_mcp_board.py 生成, 存储端点=127.0.0.1)\n" + txt
+        "# ATERag 板卡运行时配置 (由 scripts/deploy_mcp_board.py 生成, "
+        "存储端点=127.0.0.1)\n" + txt
     )
 
 
@@ -166,8 +220,26 @@ def main() -> int:
             sftp.close()
         print(f"  共上传 {total + 1} 项")
 
-        # .env 含 API Key -> 600, 且必须属服务账号
-        run(cli, f"chmod 600 {APP_DIR}/.env; chmod +x {APP_DIR}/native/*.sh", sudo=True)
+        # .env 含 API Key -> 仅属主可读, 且必须属服务账号。
+        #
+        # 原为 ``chmod 600``。但服务以 ``User=aterag`` 跑而文件属主也是 aterag,
+        # 600 本身够用; 真正的问题是历史遗留的 750 —— 属组不匹配时读取直接
+        # ``PermissionError: [Errno 13] Permission denied: '.env'``(实测踩到)。
+        # 640 = 属主可读写、属组只读, 不开放给 world, 是配置文件该有的形态。
+        run(
+            cli,
+            f"chown aterag:aterag {APP_DIR}/.env; "
+            f"chmod 640 {APP_DIR}/.env; "
+            f"chmod +x {APP_DIR}/native/*.sh",
+            sudo=True,
+        )
+        # 读权限自检: 装完不验证, 等到第一次服务启动失败才发现, 根因却在权限上
+        run(
+            cli,
+            f"sudo -u aterag sh -c 'head -1 {APP_DIR}/.env >/dev/null' "
+            f"&& echo 'env 属主可读 OK' || echo 'env 读取失败(权限或属主)'",
+            sudo=False,
+        )
 
         print("\n>>> 板卡 Step6 安装 (apt + uv + CPython3.13 + venv + 依赖 + systemd)")
         t0 = time.time()
