@@ -98,11 +98,17 @@ class CredibilityOnlyConflictResolver:
     def resolve(
         self, conflict: Conflict, *, strategy: str | ResolutionStrategy | None = None
     ) -> ResolutionResult:
-        """消解一条冲突。红线在两个层次上钉死:
+        """消解一条冲突。红线在三个层次上钉死:
 
         1. ``strategy`` 给了非 None 就抛 —— 换策略的入口不存在;
         2. 任何来源未登记 / confidence 缺失 -> 不进上游(上游会拿
-           0.5 缺省参与加权), 转 manual_review。
+           0.5 缺省参与加权), 转 manual_review;
+        3. **加权平局 -> 转 manual_review**: 上游取
+           ``max(value_weights.items(), key=weight)``, 权重相等时 Python
+           的 ``max`` 返回**先遇到**的那个 —— 也就是「哪条记录排在前面
+           哪个赢」。同档来源(比如刚定为同级的国标与厂商规格书)相遇时
+           这就是纯遍历顺序决定胜负, 换句话说换一次输入顺序结论就变。
+           平局没有 credibility 依据可依, 所以转人审。
         """
         if strategy is not None and strategy != ONLY_STRATEGY:
             raise ValueError(
@@ -123,7 +129,22 @@ class CredibilityOnlyConflictResolver:
                 conflict,
                 f"来源记录缺 confidence(出处可信度未标注): 索引 {no_conf}",
             )
-        return self._resolver.resolve_conflict(conflict)  # -> CREDIBILITY_WEIGHTED
+        result = self._resolver.resolve_conflict(conflict)  # -> CREDIBILITY_WEIGHTED
+        if not result.resolved:
+            return result
+        # 平局探测: **行为探测而不是复制加权公式**。上游不暴露权重表,
+        # 自己按 ``confidence * credibility`` 重算一遍等于把上游的公式抄
+        # 第二份(上游一改就静默错)。改用「顺序敏感性」判据: 把
+        # 值与来源整体倒序再解一次, 结果变了就说明结论依赖顺序 ->
+        # 平局。上游公式怎么变这个判据都成立。
+        flipped = self._resolver.resolve_conflict(_reversed(conflict))
+        if flipped.resolved and _differs(result.resolved_value, flipped.resolved_value):
+            return self._manual_review(
+                conflict,
+                "credibility 加权平局: 倒序重解得到不同胜者, "
+                "说明胜负取决于来源顺序而非出处可信度, 转人审",
+            )
+        return result
 
     @staticmethod
     def _manual_review(conflict: Conflict, note: str) -> ResolutionResult:
@@ -136,6 +157,34 @@ class CredibilityOnlyConflictResolver:
             sources_used=[str(s.get("document", "unknown")) for s in conflict.sources],
             resolution_notes=note,
         )
+
+
+def _reversed(conflict: Conflict) -> Conflict:
+    """值与来源同步倒序的新 Conflict。
+
+    ``conflicting_values[i]`` 与 ``sources[i]`` 是配对的, 所以必须**同步**
+    倒序 —— 只倒一个会让人拿 A 的出处去称 B 的值, 那是伪造证据, 比平局
+    未被发现更糟。
+    """
+    return Conflict(
+        conflict_id=conflict.conflict_id,
+        conflict_type=conflict.conflict_type,
+        entity_id=conflict.entity_id,
+        property_name=conflict.property_name,
+        conflicting_values=list(reversed(conflict.conflicting_values)),
+        sources=list(reversed(conflict.sources)),
+        confidence=conflict.confidence,
+        severity=conflict.severity,
+        recommended_action=conflict.recommended_action,
+    )
+
+
+def _differs(a: Any, b: Any) -> bool:
+    """两个胜者是不是不同。用 ``str()`` 比而不是 ``!=``: 上游以
+    ``_hashable_key`` 归并值, 5 与 5.0 会被它当同一个键; 我们这里只判
+    「有没有换人」, 字符串形态不同就当换了 —— 宁可多转一次人审, 不可
+    漏掉一次顺序依赖。"""
+    return str(a) != str(b)
 
 
 def make_conflict(

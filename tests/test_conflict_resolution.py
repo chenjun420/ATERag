@@ -120,15 +120,15 @@ class TestFailClosed:
     def test_unknown_authority_kind_raises(self) -> None:
         """分级表外的 authority_kind 抛错, 不猜分值。
 
-        值得记的实测: 项目里 model 记录用的 ``authority_kind='spec'``
-        也不在种子分级表({standard, industry, project_defined,
-        unverified})里 —— 故意如此: 厂商规格书的档位尚未定案(能不能
-        第三方复核、复核到什么程度), 定案前这来源就进不了裁决门,
-        而不是先给个合适数字用起来。
+        真的表外例子: 厂商网页/百科类来源(`vendor_web`)。这类来源不是
+        没有可信度, 而是**没定过档** —— 定档是跨型号跨产品的判断, 不能由
+        某个调用点随手给。报错的去处是补 `CREDIBILITY_BY_AUTHORITY`
+        (一处改, 全库同量纲), 不是在本层铸个私下分值。(`spec` 曾是
+        表外 kind, 已定档 0.9, 见 TestTieGoesToReview。)
         """
         r = conf.CredibilityOnlyConflictResolver()
         with pytest.raises(conf.UnknownAuthorityKind, match="CREDIBILITY_BY_AUTHORITY"):
-            r.register_source("spec:PA601", authority_kind="spec")
+            r.register_source("vendor_web:x", authority_kind="vendor_web")
 
 
 class TestResolution:
@@ -160,6 +160,82 @@ class TestResolution:
         recs = _records(599.4, 599.4000001)
         got = conf.adjudicate("K-PWR-1", "p_out", recs)
         assert got.outcome == "unanimous"
+
+
+class TestTieGoesToReview:
+    def test_equal_credibility_is_a_tie_not_a_winner(self) -> None:
+        """**平局不是胜者**。国标 0.9 与厂商规格书 0.9(刚定为同级),
+        各自 confidence 也相同 -> 权重严格相等。
+
+        上游此时取 ``max()`` 的**先遇到**项, 即输入顺序决定胜负; 换个
+        顺序就换个赢家。这里断言: 倒序重解会换人 -> 转人审, 不猜。
+        """
+        recs = [
+            {
+                "value": 54.0,
+                "source_document": "GB/T 2900.1-2008",
+                "confidence": 0.95,
+                "authority_kind": "standard",
+            },
+            {
+                "value": 51.0,
+                "source_document": "spec:PA601-D54A",
+                "confidence": 0.95,
+                "authority_kind": "spec",
+            },
+        ]
+        got = conf.adjudicate("K-PWR-1", "v", recs)
+        assert got.outcome == "review", got.notes
+        assert got.value is None
+        assert "平局" in got.notes
+
+    def test_upstream_tie_is_order_dependent_documented(self) -> None:
+        """钉住上游现状: 权重相等时上游**确实**按输入顺序给答案。
+
+        与上一条配对: 那条证明本桥会拦住它, 这条证明它真是上游行为而不
+        是本桥的错觉。上游若改成稳定的择一, 这条会提醒更新注释。
+        """
+        from semantica.conflicts.conflict_detector import SourceTracker
+        from semantica.conflicts.conflict_resolver import ConflictResolver
+
+        tracker = SourceTracker()
+        for doc in ("A", "B"):
+            tracker.register_source(doc, "standard", credibility_score=0.9)
+        resolver = ConflictResolver(default_strategy="credibility_weighted")
+        resolver.set_source_tracker(tracker)
+        c = conf.make_conflict(
+            "E",
+            "v",
+            [54.0, 51.0],
+            [
+                {"document": "A", "confidence": 0.95},
+                {"document": "B", "confidence": 0.95},
+            ],
+        )
+        fwd = resolver.resolve_conflict(c)
+        bwd = resolver.resolve_conflict(
+            conf.make_conflict(
+                "E",
+                "v",
+                [51.0, 54.0],
+                [
+                    {"document": "B", "confidence": 0.95},
+                    {"document": "A", "confidence": 0.95},
+                ],
+            )
+        )
+        assert str(fwd.resolved_value) != str(bwd.resolved_value)
+
+    def test_spec_grade_is_registerable(self) -> None:
+        """厂商规格书有了档位(与国标同级), 能进裁决门。
+
+        之前的悬案: model 记录用 ``authority_kind='spec'``, 不在分级表
+        里, 门直接拒收。现在定档 0.9 —— 不降级(型号特定需求只它说话),
+        不升级(通用物理量的权威是国标)。
+        """
+        r = conf.CredibilityOnlyConflictResolver()
+        assert r.register_source("spec:PA601-D54A", authority_kind="spec") == 0.9
+        assert r.credibility_of("spec:PA601-D54A") == 0.9
 
 
 def resolved_note(notes: str) -> bool:
