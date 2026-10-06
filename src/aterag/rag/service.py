@@ -1,12 +1,12 @@
-"""RAG 检索服务: 三层 workspace 装配 + 双引擎检索 + 引用溯源.
+"""RAG 检索服务: 两层 workspace 装配 + 双引擎检索 + 引用溯源.
 
 检索路径: pgvector 预过滤向量检索 + PG BM25 -> RRF 融合, 一次查询跨
-workspace 三层 [model, _domain_{type}, _common]。未注册型号 fail-closed。
+workspace 两层 [model, _domain_{type}]。未注册型号 fail-closed。
 
 **为什么是自研的两路而不是单一向量检索**
 ----------------------------------------
 中文规格书的精确标识符(``SR-1203`` / ``-54V`` / ``11.1A``)靠向量命不中,
-必须留一路 BM25 兜底; 而要跨三个 workspace 做联合检索与元数据硬过滤, 又
+必须留一路 BM25 兜底; 而要跨两个 workspace 做联合检索与元数据硬过滤, 又
 不能用只服务单 workspace 的现成引擎(实测 LightRAG 1.5.7 的 mix 模式是
 entities VDB + relationships VDB + chunks VDB 三次**向量**检索做 round-robin
 合并, 不含 BM25, 且一个进程只服务一个 workspace)。故 chunk 层的 pgvector +
@@ -26,7 +26,7 @@ from aterag.models import EmbeddingClient
 from aterag.registry import Registry
 from aterag.retrieval import hybrid
 
-# 命中来源 workspace 未在注册表三层装配内 -> 显式标记, 不得混入 model/domain/common。
+# 命中来源 workspace 未在注册表两层装配内 -> 显式标记, 不得混入 model/domain。
 # 标成 "model" 会让未注册 workspace 的命中被当成型号事实, 污染溯源分层与隔离判断。
 UNREGISTERED_LAYER = "unregistered"
 
@@ -35,7 +35,7 @@ UNREGISTERED_LAYER = "unregistered"
 class SearchResult:
     content: str
     score: float
-    layer: str  # model | domain | common | unregistered
+    layer: str  # model | domain | unregistered
     workspace_id: str
     section_path: str
     heading: str
@@ -79,12 +79,11 @@ class RagService:
         return self.registry.resolve_query(query, model_id)
 
     def workspaces(self, model_id: str) -> list[tuple[str, str]]:
-        """[(workspace, layer), ...] 三层装配。"""
+        """[(workspace, layer), ...] 两层装配。"""
         entry = self.registry.products.get(model_id)
         layers = [(self.registry.model_workspace(model_id), "model")]
         if entry:
             layers.append((self.registry.domain_workspace(entry.domain), "domain"))
-        layers.append((self.registry.common_workspace, "common"))
         return layers
 
     # ---------- 检索 ----------

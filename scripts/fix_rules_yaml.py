@@ -52,12 +52,11 @@ def fix(path: Path) -> int:
 
 if __name__ == "__main__":
     total = 0
-    for p in [Path("domain_rules/power/rules.yaml"), Path("domain_rules/common/rules.yaml")]:
+    for p in [Path("domain_rules/power/rules.yaml")]:
         n = fix(p)
         print(f"{p}: fixed {n} lines")
         total += n
     import yaml
 
     yaml.safe_load(Path("domain_rules/power/rules.yaml").read_text(encoding="utf-8"))
-    yaml.safe_load(Path("domain_rules/common/rules.yaml").read_text(encoding="utf-8"))
     print("YAML_OK total_fixed =", total)

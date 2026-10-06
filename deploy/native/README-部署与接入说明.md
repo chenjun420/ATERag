@@ -109,9 +109,8 @@ python deploy/qdrant/init_tenant.py   # QDRANT_VECTOR_SIZE=<实测维度> (当�
 18. `.env` / `registry.yaml` / `domain_rules` / `rag_storage` 全部**相对 CWD** 解析。
     板卡上经 SSH 执行时 CWD 未必是应用根 → CLI 必须先 `os.chdir(APP_ROOT)`
 19. 域 workspace 是否建 AGE 图谱取决于**有无叙述层 (.md)**: 纯规则 YAML 的域
-    (如 common 仅 1 条 K-CMN-001) 只写业务表, 不建图谱, 属预期
-20. `registry.domains['common'].workspace` (`_domain_common`) **从不生效** ——
-    `domain_workspace('common')` 有特判返回 `_common`; 解析 workspace 必须走该方法而非直读字段
+ 只写业务表, 不建图谱, 属预期
+20. 解析 workspace 必须走 `domain_workspace(domain)`, 不能直读 `entry.workspace` 字段
 
 ## Step 6: MCP Server 板卡常驻 (应用层)
 

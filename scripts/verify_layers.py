@@ -1,4 +1,9 @@
-"""三层装配检索验证: model + domain + common (不依赖 LightRAG)."""
+"""两层装配检索验证: model + domain (不依赖 LightRAG).
+
+原为三层(model + domain + common)。2026-10 移除 common 层: `K-CMN-001`
+(SI 词头换算)已并入 `domain_rules/power/`, 所以「单位换算」现在应当从
+**域层**命中, 不再是独立第三层。
+"""
 
 import asyncio
 import sys
@@ -34,10 +39,12 @@ async def main():
     for h in dom_hits[:2]:
         print("  ", h["content"][:70].replace("\n", " "))
 
-    # 3) 共享层: 单位换算
+    # 3) 原共享层的用例并入域层: 单位换算现在从 _domain_power 命中
     r3 = await rag.search("单位换算 词头", "PA601-D54A", use_graph=False)
-    common_hits = [h for h in r3["results"] if h["layer"] == "common"]
-    print(f"[common] hits={len(common_hits)}")
+    dom_from_former_common = [h for h in r3["results"] if h["layer"] == "domain"]
+    print(f"[domain|formerly-common] hits={len(dom_from_former_common)}")
+    for h in dom_from_former_common[:2]:
+        print("  ", h["workspace_id"], h["content"][:70].replace("\n", " "))
 
     await embed.aclose()
 

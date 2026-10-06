@@ -1433,8 +1433,13 @@ EXECUTABLE_W_SUBGROUPS = frozenset(
 
 #: 落在被删域里、但**成品可测**因而豁免的判据模板。
 #:
-#: 这些不是计算式, 是**测量判据**或**限值表**: 加载阶跃测相位裕度比 45°、
-#: 测 V_IL/V_IH 比规格、查谐波限值表。它们进产测执行序列, 只是没有 ``expr``。
+#: 这些不是计算式, 是**测量判据**: 加载阶跃测相位裕度比 45°、
+#: 测 V_IL/V_IH 比规格。它们进产测执行序列, 只是没有 ``expr``。
+#:
+#: 原本还有一条 ``F_J.10.3_IEC61000_3_2_LIMIT``(谐波限值表, IEC 61000-3-2),
+#: 已移除 —— EMC 不在本项目范围内。该条在 V6.0 里的「表达式」列写的是
+#: 「**标准条文**(IEC 61000-3-2)」, 本身是一条指向标准条文的指针而非计算式,
+#: 且全库零引用, 移除无连带影响。J 域因此归零(该域仅此一条公式)。
 EXEMPT_FROM_PRUNE = frozenset(
     {
         "F_K.3_PHASE_MARGIN",
@@ -1443,7 +1448,6 @@ EXEMPT_FROM_PRUNE = frozenset(
         "F_K.8_2_MEASUREMENT_GM",
         "F_K.3.3_SETTLING_TIME",
         "F_W.6.1_LOGIC_THRESHOLD",
-        "F_J.10.3_IEC61000_3_2_LIMIT",
     }
 )
 
@@ -1468,12 +1472,117 @@ _W_SUBGROUP_RE = re.compile(r"^F_W\.(\d+)")
 _POINTER_EXPR_RE = re.compile(r"^\s*(见|参见|参照|详见|同上)")
 
 
+#: **明确移出范围的公式** —— 与「不可执行」无关, 是**范围决定**。
+#:
+#: 判据与上面两套不同: :data:`EXECUTABLE_DOMAINS` 答的是「这条能不能算」,
+#: 这里答的是「这条属不属于本项目要做的范围」。两者都导致公式不在库里,
+#: 但只有本表是**可以被质疑的范围决策** —— 有人问「为什么没有热阻公式」,
+#: 答案不是「算不出来」而是「散热不在范围内」。
+#:
+#: 热力学/散热(域 N 的 N.1、N.2 共 14 条)。实测这 14 条:
+#: - rules.yaml **零引用** —— 没有任何规则以它们为依据
+#: - 记录层**仅 1 条引用**: 公理 ``A-12`` 的 ``formula_refs`` 指向
+#:   ``F_N.2_LOSS_BUDGET``。而 ``A-12``(热力学第二定律, 挂 ``thm::T13`` 卡诺)
+#:   已因「热力学暂不设计」排除, 所以这条引用随之消失
+#: - 不整域删的原因: 域 N 里 N.3 是降额、N.4/N.5/N.6 是可靠性(失效分布、
+#:   Weibull、浴盆曲线、温度加速寿命)、N.7 是 FMEDA/PFH 功能安全 ——
+#: 它们与热力学同域但不同学科, 整域删会连带删掉这些
+#: - \F_N.5.3_CAP_RIPPLE_HEATING\ 经评估后一并移除: 电功率那半条
+#:   (\P = I_ripple,rms²·ESR\)已由 \K-PWR-005\ 电容 ESR 损耗完整覆盖, 是冗余;
+#:   温升那半条(\ΔT = P·R_θ\)只被已删除的 K-CAL-106 覆盖。移除后
+#:   \sym::R_θ\ 随之级联消失 —— 它只被这一条引用, 热力学符号清零
+OUT_OF_SCOPE_FORMULA_IDS = frozenset(
+    {
+        # N.1 热阻与热网络
+        "F_N.1_THERMAL_NETWORK",
+        "F_N.1.1_THERMAL_RESISTANCE",
+        "F_N.1.2_SINK_RESISTANCE_MAX",
+        "F_N.1.3_THERMAL_SERIES_PARALLEL",
+        "F_N.1.4_THERMAL_TRANSIENT",
+        "F_N.1.5_THERMAL_TAU",
+        "F_N.1.6_THERMAL_SETTLE",
+        "F_N.1.7_SOAK_TIME",
+        "F_N.1.8_CONVECTION_H",
+        "F_N.1.9_CONDUCTION_R",
+        "F_N.1.10_FAN_MATCH",
+        "F_N.1.11_RADIATION",
+        # N.2 损耗预算
+        "F_N.2_LOSS_BUDGET",
+        "F_N.2.1_THERMAL_EFFICIENCY_LIMIT",
+        # N.5 电容纹波发热(见上方移除理由)
+        "F_N.5.3_CAP_RIPPLE_HEATING",
+    }
+)
+
+
+#: **明确移出范围的非公式实体** —— 概念、标准。判据同
+#: :data:``OUT_OF_SCOPE_FORMULA_IDS``, 只是对象不是公式。
+#:
+#: - ``BMS``(电池管理系统)与 ``BATTERY_CAPACITY``(蓄电池容量): 电池管理
+#:   不在本项目范围(产测对象是电源产品本体)。实测这两条**零引用** ——
+#:   没有任何记录、关系或规则提到它们, 移除无连带影响。
+#:   注意 ``K-PROT-117``(输出反向电流/反灌保护)**保留**: 它的条件是
+#:   「带电池母线**或可并联应用**的产品」, 电池只是触发条件之一, 并联应用
+#:   那半是电源本体判据, 删了会丢掉真实的保护约束。
+#: - ``std::JEDEC JESD22-A101``(稳态热阻测定): 热力学已移出范围(见上),
+#:   这条标准是「稳态热阻」的测量方法标准。留着它等于留一个没有公式承接的
+#:   热力学标准条目 —— 审计会读成「热阻测定已覆盖」。
+OUT_OF_SCOPE_ENTITY_IDS = frozenset(
+    {
+        "BMS",
+        "BATTERY_CAPACITY",
+        "std::JEDEC JESD22-A101",
+    }
+)
+
+#: **已知无法解析的短记号**, 在注记字段(``bindings``/``upstream``)里出现就摘掉。
+#:
+#: 为什么需要显式列出来: 这些记号在方案 md 里是**手写简写**, 从来没有对应的
+#: 公式行 —— 生成器没解析到它们, 所以 :func:``_drop_short_refs`` 拿到的
+#: ``dropped_formula_ids`` 里也不含它们, 记号就一直留在库里指向空处。
+#: 知识门会报 ``undeclared_ref`` WARN, 但 WARN 不是修复。
+#:
+#: 逐条处置(都不是「漏解析」, 所以都不补公式):
+#:
+#: - ``F_L.5`` / ``F_L.6`` / ``F_N.7`` —— **章节指针**, 不是公式。它们的子公式
+#:   都在库里(``F_L.5.1``~``F_L.5.7`` 共 7 条、``F_L.6.1``、``F_N.7.1``/``F_N.7.2``),
+#:   V6.0 里写的是「见 ``F_L.5``」这种整节引用。改成指向某个具体子式会**丢范围**
+#:   —— 比如 IEC 61508-2 引 ``F_L.5`` 指的是整节功能安全(硬件/架构/DC/诊断措施),
+#:   不是那一条公式。
+#: - ``F_L.7.2`` —— V6.0 的公式表里这一行**本身没有表达式列**(只有名称/上游/
+#:   测试/依据)。补式子就是编(红线 2), 所以只摘记号。
+#: - ``F_L.8.3`` —— V6.0 有内容(``I_cu >= I_k,end,max``, 断路器分断能力), 但
+#:   判的是**上游配电断路器选型**, 不是被测电源; 引用方 IEC 60898-1/2、
+#:   IEC 60947-2 是 customer 侧的低压断路器标准。产测对象不含断路器。
+#: - ``F_P.4`` —— EMC 域(``F_P.4.1_DISTANCE_CORRECTION`` 场强距离修正、
+#:   ``F_P.4.2_DBV_CONVERSION`` dBuV 换算)。EMC 已移出范围, 不再补。
+#: - ``F_J.15`` —— EMC 域(域 J), 且该域**已无任何子公式**(J 域公式随 EMC
+#:   移出范围清零)。它出现在某公式的 ``upstream`` 列表里, 同样无处可解析。
+#: - ``F_N.4`` —— 章节指针, 与 ``F_N.7`` 同类。子公式
+#:   ``F_N.4.1``~``F_N.4.10``(失效分布 / MTBF / Weibull 等 10 条)都在库里,
+#:   引用方 ``std::IEC 62506``(加速试验方法)写的是整节。
+UNRESOLVABLE_REF_TOKENS = frozenset(
+    {
+        "F_L.5",
+        "F_L.6",
+        "F_L.7.2",
+        "F_L.8.3",
+        "F_N.7",
+        "F_P.4",
+        "F_J.15",
+        "F_N.4",
+    }
+)
+
+
 def _is_executable_formula(e: dict[str, Any]) -> bool:
     """这条公式的输入能不能绑到型号数据或实测采样上。
 
     判据是「能不能算」, 不是「有没有 id」: 没有表达式的公式算不出来, 所以
     不算可执行。:data:`_POINTER_EXPR_RE` 那条是这里的第二道判据。
     """
+    if e["id"] in OUT_OF_SCOPE_FORMULA_IDS:
+        return False
     if e["id"] in EXEMPT_FROM_PRUNE:
         return True
     if _POINTER_EXPR_RE.match(str(e.get("properties", {}).get("expr") or "")):
@@ -1485,6 +1594,24 @@ def _is_executable_formula(e: dict[str, Any]) -> bool:
         m = _W_SUBGROUP_RE.match(e["id"])
         return bool(m) and f"W.{m.group(1)}" in EXECUTABLE_W_SUBGROUPS
     return False
+
+
+def _sync_provenance(props: dict[str, Any], field: str, value: Any) -> None:
+    """把 provenance 镜像的值同步成存活字段的现值。
+
+    为什么必须同步: ``provenance`` 是**记录构造时**按值快照下来的
+    (``_record`` 里 ``{k: {"value": v, ...}} for k, v in out.items()``),
+    之后剪枝改的是 ``props[field]``, 镜像不会跟着变。后果是同一个字段
+    在两个地方说两件事 —— 实测 19 处(12 条公理的 ``formula_refs``、
+    4 条标准的 ``bindings``、3 条公式的 ``upstream``), 存活值已经清空而
+    provenance 还留着已删公式的 id。
+
+    这比悬空引用更坏: 悬空引用至少能看出「这里指向空处」, 而镜像不一致
+    是**看起来有依据**(provenance 有值)而**实际没有**(存活字段是空的)。
+    """
+    prov = props.get("provenance")
+    if isinstance(prov, dict) and isinstance(prov.get(field), dict):
+        prov[field]["value"] = value
 
 
 def prune_dangling_refs(entities: list[dict[str, Any]]) -> dict[str, int]:
@@ -1511,6 +1638,7 @@ def prune_dangling_refs(entities: list[dict[str, Any]]) -> dict[str, int]:
             if len(kept) != len(refs):
                 counts[field] += len(refs) - len(kept)
                 props[field] = kept
+                _sync_provenance(props, field, kept)
     return counts
 
 
@@ -1581,6 +1709,15 @@ def _drop_short_refs(props: dict[str, Any], dropped: set[str]) -> dict[str, int]
                 props[fld] = new_val
             else:
                 props.pop(fld, None)
+            # provenance 是构造时的值快照, 不同步就留下已删公式的 id(见
+            # :func:`_sync_provenance`)。字段整个被摘掉时镜像也要摘掉 ——
+            # 留着一条「空值也有出处」会被冲突检测当成第二个来源。
+            prov = props.get("provenance")
+            if isinstance(prov, dict) and fld in prov:
+                if new_val:
+                    prov[fld]["value"] = new_val
+                else:
+                    prov.pop(fld, None)
     return counts
 
 
@@ -1605,10 +1742,14 @@ def prune_non_executable(
     def props_of(e: dict[str, Any]) -> dict[str, Any]:
         return e.get("properties") or {}
 
+    # 范围排除**先于**可执行性判定: 被移出范围的实体不该再参与
+    # 「谁引用了谁」的分析, 否则已删公式留下的记号会把它也拖下水。
+    _out_of_scope = OUT_OF_SCOPE_ENTITY_IDS | OUT_OF_SCOPE_FORMULA_IDS
     kept_entities = [
         e
         for e in entities
-        if e.get("type") != "formula" or _is_executable_formula(e)
+        if e.get("id") not in _out_of_scope
+        and (e.get("type") != "formula" or _is_executable_formula(e))
     ]
     dropped_formula_ids = {e["id"] for e in entities} - {e["id"] for e in kept_entities}
 
@@ -1651,13 +1792,26 @@ def prune_non_executable(
         alive_refs = [r for r in refs if r not in dropped_formula_ids]
         if len(alive_refs) != len(refs):
             props_of(e)["formula_refs"] = alive_refs
+            # 同步 provenance 镜像(见 :func:`_sync_provenance`)。少了这一步,
+            # 后面 :func:`prune_dangling_refs` 会因 ``refs`` 已空而跳过, 于是
+            # 公理的存活引用清空了而 provenance 还指着已删公式。
+            _sync_provenance(props_of(e), "formula_refs", alive_refs)
 
     # 注记字段(``bindings`` / ``upstream`` / ``scope``)里的短记号同理。
+    # **必须并入已删符号**: 只并公式时会漏掉指向符号的记号 —— 实测
+    # ``std::JEDEC JESD22-A101`` 的 ``scope`` 是 ``'R_θjc'``, 而
+    # ``sym::R_θjc`` 随热力学公式一起被剪掉了, 记号却留在库里指向空处。
     # **单独一个循环**: 上面那个 ``if not refs: continue`` 会跳过没有
     # ``formula_refs`` 的记录, 而标准记录装的是 ``bindings`` / ``scope``,
     # 根本不带 ``formula_refs`` —— 挂在那个循环里等于一次都没跑过。
+    gone_refs = dropped_formula_ids | dropped_symbol_ids
+    # 符号的**短记号**也要放进去: ``dropped_symbol_ids`` 装的是
+    # ``sym::R_θjc``, 而注记字段里写的是 ``R_θjc`` —— 不去掉前缀就
+    # 匹配不上, 记号会留在库里指向空处。
+    gone_refs |= {i.split("::", 1)[1] for i in dropped_symbol_ids if i.startswith("sym::")}
+    gone_refs |= UNRESOLVABLE_REF_TOKENS
     for e in kept_entities:
-        short_dropped = _drop_short_refs(props_of(e), dropped_formula_ids)
+        short_dropped = _drop_short_refs(props_of(e), gone_refs)
         for fld, n in short_dropped.items():
             stats_short_refs[fld] = stats_short_refs.get(fld, 0) + n
 
@@ -1806,6 +1960,34 @@ def main() -> int:
         print(
             f"  [摘除] 属性里的悬空引用: {dangling['formula_refs']} 条 formula_refs + "
             f"{dangling['axiom_refs']} 条 axiom_refs 解析不到目标, 已摘除"
+        )
+
+    # 审计轨迹里**不许有悬空声明**。``corrections_applied`` 记的是「这条知识
+    # 被 corrections 建/改过」—— 目标实体已被范围排除删掉时, 那条记录就是
+    # 一句没有对象的声明, 而下游测试(``test_added_concepts_declare_the_standard_
+    # they_came_from``)按「声明即存在」查 ``by[a["id"]]``, 会直接 KeyError。
+    # 实测: 移除 BMS / BATTERY_CAPACITY 后各留下 1~2 条。
+    #
+    # **两侧 id 形态不同, 必须归一**: 审计条目写裸编号(``GB 4943.1-2011``),
+    # 实体 id 带前缀(``std::GB 4943.1-2011``)。直接拿审计 id 去比实体 id 会把
+    # **41 条既有标准审计全判成陈旧** —— 实测踩过, ``std::GB 4943.1-2011``
+    # 明明还在库里, 审计却被摘了。
+    _alive_ids = {e["id"] for e in entities if e.get("id")}
+
+    def _audit_target_alive(entry: dict[str, Any]) -> bool:
+        aid = entry.get("id")
+        if not aid:
+            return True  # 没有 id 的条目不由本过滤判断
+        return bool(
+            {str(aid), f"std::{aid}", f"sym::{aid}"} & _alive_ids
+        )
+
+    _stale = [a for a in corrections_applied if not _audit_target_alive(a)]
+    if _stale:
+        corrections_applied = [a for a in corrections_applied if _audit_target_alive(a)]
+        print(
+            f"  [摘除] corrections_applied 里 {len(_stale)} 条指向已移除实体的审计记录, 已摘除: "
+            f"{sorted({str(a.get('id')) for a in _stale})[:6]}"
         )
     short_ref_note = (
         " / 注记短记号 "

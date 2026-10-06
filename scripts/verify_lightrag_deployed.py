@@ -47,10 +47,7 @@ def expected_workspaces(s) -> tuple[dict[str, tuple[int, int]], dict[str, tuple[
 
     - 型号 workspace 必须有数据: ``ingest_spec`` 总会走 ainsert_custom_kg + ainsert。
     - 域 workspace 只有在存在叙述层 (.md) 时才会建 LightRAG 图谱; 纯规则 YAML 的域
-      (如 common 仅 1 条 K-CMN-001) 只写业务表, 不建图谱, 因此不强制。
-
-    workspace 名必须走 ``reg.domain_workspace(domain)`` 而非直接读 ``entry.workspace``:
-    common 域有特判, 数据实际落在 ``_common``, 注册表里的 ``_domain_common`` 字段从不生效。
+      只写业务表, 不建图谱, 因此不强制。
     """
     reg = Registry.load(s)
     models: dict[str, tuple[int, int]] = {}
@@ -119,7 +116,7 @@ def main() -> int:
         chk("文档均已处理", n_ok > 0, f"processed {n_ok} 个文档")
 
         # 型号 workspace 必须有数据; 域 workspace 仅在存在叙述层 (.md) 走 LightRAG 时
-        # 才有实体/关系, 纯规则 YAML 的域 (common 仅 1 条 K-CMN-001) 全 0 属预期。
+        # 才有实体/关系, 纯规则 YAML 的域全 0 属预期。
         for ws, (min_e, min_r) in models.items():
             cur.execute(
                 "SELECT COALESCE(sum(count), 0) FROM public.lightrag_full_entities "

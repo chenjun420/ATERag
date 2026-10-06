@@ -63,7 +63,7 @@ def test_registry_three_layers():
     reg = Registry.load(settings)
     reg.products["M-1"] = type("P", (), {"domain": "power"})()
     ws = reg.query_workspaces("M-1")
-    assert ws == ["M-1", "_domain_power", "_common"]
+    assert ws == ["M-1", "_domain_power"]
 
 
 # ---------- classification ----------

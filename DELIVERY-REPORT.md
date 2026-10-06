@@ -6,7 +6,7 @@
 |---|---|---|
 | RAG 服务源码 (Python 3.13 / uv) | `src/aterag/` | ✅ |
 | MCP Server (streamable-http, 13 工具) | `src/aterag/mcp_server/server.py` | ✅ 板卡常驻 :8080 (systemd `aterag-mcp`) |
-| 领域规则库 (power 116 + common 1 = 117 规则 / 78 SHACL) | `domain_rules/{common,power}/` | ✅ |
+| 领域规则库 (power 125 规则 / 78 SHACL) | `domain_rules/power/` | ✅ |
 | 规则自验器 (逐条执行 test 块) | `scripts/rules_selftest.py` | ✅ 115/115 |
 | Semantica 语义图双写 | `scripts/sync_semantica.py` + `verify_semantica.py` | ✅ 378 节点/460 边 |
 | 板卡原生部署包 | `deploy/native/` (01~05 脚本 + README) | ✅ 已执行 |
@@ -42,7 +42,6 @@
 |---|---|---|
 | 型号 | `PA601-D54A` / `PN1000-48A` | 互相不可见 (PA601 查不到 PN1000 的 20.8A) ✅ |
 | 类型域 | `_domain_power` | 两型号共享, 规则可检索 ✅ |
-| 普适 | `_common` | 单位换算可达 ✅ |
 | 跨域/未注册 | — | fail-closed 拒绝 ✅ |
 
 ## 验证结果汇总
@@ -83,9 +82,9 @@
 | PA601-D54A 规格书导入 | 47 块 / 187 实体 / 106 分块 |
 | PN1000-48A 规格书导入 | 4 块 / 5 实体 / 4 分块 |
 | Semantica 语义图同步 | 378 节点 / 460 边 (幂等) |
-| 领域知识库 -> LightRAG | `_domain_power` 115 块 / `_common` 1 块 |
+| 领域知识库 -> LightRAG | `_domain_power` 116 块 |
 
-落库实况: `aterag_entities` = {PA601-D54A: 187, PN1000-48A: 5}; `aterag_chunks` = {_domain_power: 115, PA601-D54A: 106, PN1000-48A: 4, _common: 1}; AGE graph 3 个 (pa601_d54a / pn1000_48a / _domain_power)。
+落库实况: `aterag_entities` = {PA601-D54A: 187, PN1000-48A: 5}; `aterag_chunks` = {_domain_power: 115, PA601-D54A: 106, PN1000-48A: 4}; AGE graph 3 个 (pa601_d54a / pn1000_48a / _domain_power)。
 
 ## LightRAG 落库实况与脏数据清理
 
@@ -123,7 +122,7 @@ LightRAG 11 张表齐备, 5 个文档全部 `processed`, 合并后实体/关系:
 
 - PA601-D54A: 47 章节块 / 106 分块 / 187 结构化实体 / LightRAG 436 实体+393 关系 (LLM 抽取)
 - PN1000-48A: 4 块 / 5 实体 (隔离夹具)
-- 领域库: power 114 规则块 + knowledge.md 叙述层 (9 章节); common 1 块
+- 领域库: power 115 规则块 + knowledge.md 叙述层 (9 章节)
 - Semantica 语义图 `power_rules`: 378 节点 (Rule 115 / Category 25 / Scope 35 / Source 88 / Formula 38 / Shape 77) + 460 边
 
 ## 通用电源产品知识扩充 (联网检索, Tavily)
@@ -162,8 +161,8 @@ LightRAG 11 张表齐备, 5 个文档全部 `processed`, 合并后实体/关系:
 13. 注册表加载在服务启动时完成 (模块级 `Registry.load`), **导入新型号后必须重启 MCP 服务**, 否则"导入成功但查不到"。`upload_new_spec.py` 已自动串上这一步
 14. `.env` / `registry.yaml` / `domain_rules` / `rag_storage` 全部相对 **CWD** 解析。板卡上经 SSH 执行时 CWD 未必是应用根, 已在 `ingest_new_spec.py` 里 `os.chdir(APP_ROOT)` 固化
 15. `lightrag_full_entities` 是**每文档一行**, 实体总数要 `sum(count)`; 直接数行数会得出"未落库"的错误结论
-16. 域 workspace 是否建 AGE 图谱取决于**有无叙述层 (.md)**: 纯规则 YAML 的域 (如 common 仅 1 条 K-CMN-001) 只写业务表, 不建图谱。校验脚本不能对所有 `populated` 域一视同仁
-17. `registry.domains['common'].workspace` 字段 (`_domain_common`) **从不生效** —— `domain_workspace('common')` 有特判返回 `_common`。解析 workspace 必须走该方法, 不能直读字段
+16. 域 workspace 是否建 AGE 图谱取决于**有无叙述层 (.md)**: 纯规则 YAML 的域只写业务表, 不建图谱。校验脚本不能对所有 `populated` 域一视同仁
+17. 解析 workspace 必须走 `domain_workspace(domain)`, 不能直读 `entry.workspace` 字段
 18. 自验器 `test.given` 的键是 snake_case, 而 SHACL shape 里是 camelCase, **两者必须由 `PS_PROP` 显式映射**。映射缺失时测试数据与 shape 查询的属性永不相交 → 约束**永不触发**、形同虚设; `SCOPE_CLASS` 同理, scope 未映射会落到默认类导致 `sh:targetClass` 匹配不上。K-PWR-123 首跑即踩此坑
 19. 代码里不得留未定义辅助函数: `optimize_process` 引用了未定义的 `_safe_calc`, 本地没跑到该分支, 只有板卡服务态才暴露
 20. MCP `calculate` 的入参名是 `inputs` 而非 `given`; 测试脚本照抄 `given` 会静默取不到值

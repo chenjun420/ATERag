@@ -89,12 +89,12 @@ ps:x a ps:Protection ; ps:tripValue 12 ; ps:recoveryValue 10 ; ps:hysteresis 3 .
     v = eng.validate(bad)
     check("SHACL-保护点<恢复点+回差被识别", not v["conforms"])
 
-    # ---------- 5. 三级隔离 ----------
+    # ---------- 5. 两级隔离 ----------
     check("隔离-registry含PA601", "PA601-D54A" in registry.products)
     layers = rag.workspaces("PA601-D54A")
     check(
-        "隔离-三层装配",
-        layers[0][1] == "model" and layers[1][1] == "domain" and layers[2][1] == "common",
+        "隔离-两层装配",
+        len(layers) == 2 and layers[0][1] == "model" and layers[1][1] == "domain",
         str([ws[0] for ws in layers]),
     )
     if "PN1000-48A" in registry.products:

@@ -131,7 +131,7 @@ class InferenceEngine:
             inputs={k: given[k] for k in var_names},
             output_name=derive.get("output", "result"),
             output_value=value,
-            domain_layer=rule.get("_domain", "common"),
+            domain_layer=rule.get("_domain", self.domain),
             # 缺 confidence 时为 None (未知) —— 不得默认 1.0: 缺失是"未标注可信度",
             # 顶格等于凭空给出最高可信度证书, 方向反了
             confidence=rule.get("confidence"),

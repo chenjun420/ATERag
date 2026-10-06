@@ -68,14 +68,10 @@ jobs:
       # mcp / lightrag, 手工清单必然随代码演进而失效。直接装项目本身。
       - name: Install project
         run: pip install -e .
-      - name: "Rule self-test (117 rules: derive + SHACL)"
+      - name: "Rule self-test (125 rules: derive + SHACL)"
         env:
           PYTHONIOENCODING: utf-8
         run: python scripts/rules_selftest.py power
-      - name: Rule self-test (common)
-        env:
-          PYTHONIOENCODING: utf-8
-        run: python scripts/rules_selftest.py common
       - name: Python 3.11 syntax compatibility
         env:
           PYTHONIOENCODING: utf-8

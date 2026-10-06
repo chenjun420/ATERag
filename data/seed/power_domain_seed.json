@@ -1325,55 +1325,6 @@
       },
       {
         "kind": "power_concept",
-        "id": "BATTERY_CAPACITY",
-        "action": "created",
-        "matched": "BATTERY_CAPACITY",
-        "before": null,
-        "after": {
-          "zh": "蓄电池容量",
-          "en": "battery capacity",
-          "synonyms": [
-            "蓄电池容量",
-            "battery capacity"
-          ],
-          "confidence": 0.8,
-          "authority_kind": "standard",
-          "authority_ref": "YD/T 4523-2023",
-          "clause": "3.5.2"
-        },
-        "authority_kind": "standard",
-        "authority_ref": "YD/T 4523-2023",
-        "source": "YD/T 4523-2023 报批/备案稿公开文本(guifanku.com/854213、max.book118.com/html/2023/0825/5204333143010314.htm)",
-        "checked": "2026-10-05",
-        "confidence": 0.8
-      },
-      {
-        "kind": "power_concept",
-        "id": "BMS",
-        "action": "created",
-        "matched": "BMS",
-        "before": null,
-        "after": {
-          "zh": "电池管理系统",
-          "en": "BMS",
-          "synonyms": [
-            "电池管理系统",
-            "BMS",
-            "battery management system"
-          ],
-          "confidence": 0.8,
-          "authority_kind": "standard",
-          "authority_ref": "YD/T 4523-2023",
-          "clause": "3.5.14"
-        },
-        "authority_kind": "standard",
-        "authority_ref": "YD/T 4523-2023",
-        "source": "YD/T 4523-2023 报批/备案稿公开文本(guifanku.com/854213、max.book118.com/html/2023/0825/5204333143010314.htm)",
-        "checked": "2026-10-05",
-        "confidence": 0.8
-      },
-      {
-        "kind": "power_concept",
         "id": "HYSTERESIS",
         "action": "created",
         "matched": "HYSTERESIS",
@@ -2383,45 +2334,6 @@
       },
       {
         "kind": "symbol",
-        "id": "R_E",
-        "matched": "sym::R_E",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.74-2008"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
-        "id": "R_dc",
-        "matched": "sym::R_dc",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.74-2008"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
-        "id": "R_ac",
-        "matched": "sym::R_ac",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.74-2008"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
         "id": "R_in",
         "matched": "sym::R_in",
         "before": {},
@@ -2435,292 +2347,6 @@
       },
       {
         "kind": "symbol",
-        "id": "R_out",
-        "matched": "sym::R_out",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.74-2008"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
-        "id": "R_ESR",
-        "matched": "sym::R_ESR",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.74-2008"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
-        "id": "R_ESL",
-        "matched": "sym::R_ESL",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.74-2008"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
-        "id": "L_s",
-        "matched": "sym::L_s",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.74-2008"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
-        "id": "L_CM",
-        "matched": "sym::L_CM",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.74-2008"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
-        "id": "L_DM",
-        "matched": "sym::L_DM",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.74-2008"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
-        "id": "C_out",
-        "matched": "sym::C_out",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.74-2008"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
-        "id": "C_in",
-        "matched": "sym::C_in",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.74-2008"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
-        "id": "C_par",
-        "matched": "sym::C_par",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.74-2008"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
-        "id": "Z_in",
-        "matched": "sym::Z_in",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.74-2008"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
-        "id": "Z_out",
-        "matched": "sym::Z_out",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.74-2008"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.74-2008《电工术语 电路理论》(IEC 60050-131:2002)",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
-        "id": "R_θ",
-        "matched": "sym::R_θ",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.32-1994"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.32-1994《电工术语 电力半导体器件》",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
-        "id": "R_θjc",
-        "matched": "sym::R_θjc",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.32-1994"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.32-1994《电工术语 电力半导体器件》",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
-        "id": "R_θcs",
-        "matched": "sym::R_θcs",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.32-1994"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.32-1994《电工术语 电力半导体器件》",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
-        "id": "R_θsa",
-        "matched": "sym::R_θsa",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.32-1994"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.32-1994《电工术语 电力半导体器件》",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
-        "id": "T_j,max",
-        "matched": "sym::T_j,max",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.32-1994"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.32-1994《电工术语 电力半导体器件》",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
-        "id": "T_case",
-        "matched": "sym::T_case",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.32-1994"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.32-1994《电工术语 电力半导体器件》",
-        "checked": "2026-10-04",
-        "confidence": 0.9
-      },
-      {
-        "kind": "symbol",
-        "id": "t_sw",
-        "matched": "sym::t_sw",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.93-2015"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)",
-        "checked": "2026-10-04",
-        "confidence": 0.85
-      },
-      {
-        "kind": "symbol",
-        "id": "t_on",
-        "matched": "sym::t_on",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.93-2015"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)",
-        "checked": "2026-10-04",
-        "confidence": 0.85
-      },
-      {
-        "kind": "symbol",
-        "id": "t_off",
-        "matched": "sym::t_off",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.93-2015"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)",
-        "checked": "2026-10-04",
-        "confidence": 0.85
-      },
-      {
-        "kind": "symbol",
-        "id": "t_dead",
-        "matched": "sym::t_dead",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.93-2015"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)",
-        "checked": "2026-10-04",
-        "confidence": 0.85
-      },
-      {
-        "kind": "symbol",
-        "id": "τ_th",
-        "matched": "sym::τ_th",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.93-2015"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)",
-        "checked": "2026-10-04",
-        "confidence": 0.85
-      },
-      {
-        "kind": "symbol",
         "id": "τ_noise",
         "matched": "sym::τ_noise",
         "before": {},
@@ -2731,91 +2357,6 @@
         "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)",
         "checked": "2026-10-04",
         "confidence": 0.85
-      },
-      {
-        "kind": "symbol",
-        "id": "f_sw",
-        "matched": "sym::f_sw",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.93-2015"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)",
-        "checked": "2026-10-04",
-        "confidence": 0.8
-      },
-      {
-        "kind": "symbol",
-        "id": "f_c",
-        "matched": "sym::f_c",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.93-2015"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)",
-        "checked": "2026-10-04",
-        "confidence": 0.8
-      },
-      {
-        "kind": "symbol",
-        "id": "f_RHPZ",
-        "matched": "sym::f_RHPZ",
-        "before": {},
-        "after": {
-          "authority_kind": "standard",
-          "authority_ref": "GB/T 2900.93-2015"
-        },
-        "source": "全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)",
-        "checked": "2026-10-04",
-        "confidence": 0.8
-      },
-      {
-        "kind": "load_condition",
-        "id": "半载",
-        "matched": "load::半载",
-        "before": {
-          "ratio": 0.5,
-          "derivation": null,
-          "authority_kind": "project_defined",
-          "authority_ref": "data/seed/corrections.yaml#load_conditions",
-          "confidence": null
-        },
-        "after": {
-          "ratio": 0.5,
-          "derivation": "满载 × 50%",
-          "authority_kind": "project_defined",
-          "authority_ref": "data/seed/corrections.yaml#load_conditions",
-          "confidence": 0.5
-        },
-        "authority_kind": "project_defined",
-        "authority_ref": "data/seed/corrections.yaml#load_conditions",
-        "source": "项目约定(本段记录, 2026-10-04 会话确认)",
-        "checked": "2026-10-04",
-        "confidence": 0.5
-      },
-      {
-        "kind": "load_condition",
-        "id": "xx%载",
-        "matched": "load::xx%载",
-        "before": {
-          "derivation": null,
-          "authority_kind": "project_defined",
-          "authority_ref": "data/seed/corrections.yaml#load_conditions",
-          "confidence": null
-        },
-        "after": {
-          "derivation": "满载 × xx%",
-          "authority_kind": "project_defined",
-          "authority_ref": "data/seed/corrections.yaml#load_conditions",
-          "confidence": 0.5
-        },
-        "authority_kind": "project_defined",
-        "authority_ref": "data/seed/corrections.yaml#load_conditions",
-        "source": "项目约定(本段记录, 2026-10-04 会话确认)",
-        "checked": "2026-10-04",
-        "confidence": 0.5
       }
     ]
   },
@@ -14409,338 +13950,6 @@
       }
     },
     {
-      "id": "sym::R_θjc",
-      "name": "R_θjc",
-      "entity_type": "symbol",
-      "text": "R_θjc: 热阻",
-      "confidence": null,
-      "source": "GB/T 2900.32-1994",
-      "section": null,
-      "metadata": {
-        "authority_kind": "standard"
-      },
-      "zh": "热阻",
-      "namespaces": [
-        "N"
-      ],
-      "dimension_declared": false,
-      "authority_kind": "standard",
-      "provenance": {
-        "zh": {
-          "property_name": "zh",
-          "value": "热阻",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "namespaces": {
-          "property_name": "namespaces",
-          "value": [
-            "N"
-          ],
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "dimension_declared": {
-          "property_name": "dimension_declared",
-          "value": false,
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "authority_ref": {
-          "property_name": "authority_ref",
-          "value": "GB/T 2900.32-1994",
-          "sources": [
-            {
-              "document": "GB/T 2900.32-1994",
-              "section": "GB/T 2900.32-1994",
-              "line": null,
-              "confidence": 0.9,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
-        }
-      },
-      "authority_ref": "GB/T 2900.32-1994"
-    },
-    {
-      "id": "sym::R_θcs",
-      "name": "R_θcs",
-      "entity_type": "symbol",
-      "text": "R_θcs: 热阻",
-      "confidence": null,
-      "source": "GB/T 2900.32-1994",
-      "section": null,
-      "metadata": {
-        "authority_kind": "standard"
-      },
-      "zh": "热阻",
-      "namespaces": [
-        "N"
-      ],
-      "dimension_declared": false,
-      "authority_kind": "standard",
-      "provenance": {
-        "zh": {
-          "property_name": "zh",
-          "value": "热阻",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "namespaces": {
-          "property_name": "namespaces",
-          "value": [
-            "N"
-          ],
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "dimension_declared": {
-          "property_name": "dimension_declared",
-          "value": false,
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "authority_ref": {
-          "property_name": "authority_ref",
-          "value": "GB/T 2900.32-1994",
-          "sources": [
-            {
-              "document": "GB/T 2900.32-1994",
-              "section": "GB/T 2900.32-1994",
-              "line": null,
-              "confidence": 0.9,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
-        }
-      },
-      "authority_ref": "GB/T 2900.32-1994"
-    },
-    {
-      "id": "sym::R_θsa",
-      "name": "R_θsa",
-      "entity_type": "symbol",
-      "text": "R_θsa: 热阻",
-      "confidence": null,
-      "source": "GB/T 2900.32-1994",
-      "section": null,
-      "metadata": {
-        "authority_kind": "standard"
-      },
-      "zh": "热阻",
-      "namespaces": [
-        "N"
-      ],
-      "dimension_declared": false,
-      "authority_kind": "standard",
-      "provenance": {
-        "zh": {
-          "property_name": "zh",
-          "value": "热阻",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "namespaces": {
-          "property_name": "namespaces",
-          "value": [
-            "N"
-          ],
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "dimension_declared": {
-          "property_name": "dimension_declared",
-          "value": false,
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "authority_ref": {
-          "property_name": "authority_ref",
-          "value": "GB/T 2900.32-1994",
-          "sources": [
-            {
-              "document": "GB/T 2900.32-1994",
-              "section": "GB/T 2900.32-1994",
-              "line": null,
-              "confidence": 0.9,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
-        }
-      },
-      "authority_ref": "GB/T 2900.32-1994"
-    },
-    {
-      "id": "sym::R_θ",
-      "name": "R_θ",
-      "entity_type": "symbol",
-      "text": "R_θ: 热阻",
-      "confidence": null,
-      "source": "GB/T 2900.32-1994",
-      "section": null,
-      "metadata": {
-        "authority_kind": "standard"
-      },
-      "zh": "热阻",
-      "namespaces": [
-        "N"
-      ],
-      "dimension_declared": false,
-      "authority_kind": "standard",
-      "provenance": {
-        "zh": {
-          "property_name": "zh",
-          "value": "热阻",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "namespaces": {
-          "property_name": "namespaces",
-          "value": [
-            "N"
-          ],
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "dimension_declared": {
-          "property_name": "dimension_declared",
-          "value": false,
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "authority_ref": {
-          "property_name": "authority_ref",
-          "value": "GB/T 2900.32-1994",
-          "sources": [
-            {
-              "document": "GB/T 2900.32-1994",
-              "section": "GB/T 2900.32-1994",
-              "line": null,
-              "confidence": 0.9,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
-        }
-      },
-      "authority_ref": "GB/T 2900.32-1994"
-    },
-    {
       "id": "sym::R_in",
       "name": "R_in",
       "entity_type": "symbol",
@@ -14838,370 +14047,6 @@
         }
       },
       "authority_ref": "GB/T 2900.74-2008"
-    },
-    {
-      "id": "sym::T_j",
-      "name": "T_j",
-      "entity_type": "symbol",
-      "text": "T_j: 结温/环温/壳温",
-      "confidence": null,
-      "source": null,
-      "section": null,
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "zh": "结温/环温/壳温",
-      "dimension": "[K] 或 [℃]",
-      "namespaces": [
-        "N"
-      ],
-      "dimension_declared": true,
-      "authority_kind": "unverified",
-      "provenance": {
-        "zh": {
-          "property_name": "zh",
-          "value": "结温/环温/壳温",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[K] 或 [℃]",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "namespaces": {
-          "property_name": "namespaces",
-          "value": [
-            "N"
-          ],
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "dimension_declared": {
-          "property_name": "dimension_declared",
-          "value": true,
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "sym::T_a",
-      "name": "T_a",
-      "entity_type": "symbol",
-      "text": "T_a: 结温/环温/壳温",
-      "confidence": null,
-      "source": null,
-      "section": null,
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "zh": "结温/环温/壳温",
-      "dimension": "[K] 或 [℃]",
-      "namespaces": [
-        "N"
-      ],
-      "dimension_declared": true,
-      "authority_kind": "unverified",
-      "provenance": {
-        "zh": {
-          "property_name": "zh",
-          "value": "结温/环温/壳温",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[K] 或 [℃]",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "namespaces": {
-          "property_name": "namespaces",
-          "value": [
-            "N"
-          ],
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "dimension_declared": {
-          "property_name": "dimension_declared",
-          "value": true,
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "sym::T_j,max",
-      "name": "T_j,max",
-      "entity_type": "symbol",
-      "text": "T_j,max: 最高结温",
-      "confidence": null,
-      "source": "GB/T 2900.32-1994",
-      "section": null,
-      "metadata": {
-        "authority_kind": "standard"
-      },
-      "zh": "最高结温",
-      "dimension": "[K]",
-      "namespaces": [
-        "N"
-      ],
-      "dimension_declared": true,
-      "authority_kind": "standard",
-      "provenance": {
-        "zh": {
-          "property_name": "zh",
-          "value": "最高结温",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[K]",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "namespaces": {
-          "property_name": "namespaces",
-          "value": [
-            "N"
-          ],
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "dimension_declared": {
-          "property_name": "dimension_declared",
-          "value": true,
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "authority_ref": {
-          "property_name": "authority_ref",
-          "value": "GB/T 2900.32-1994",
-          "sources": [
-            {
-              "document": "GB/T 2900.32-1994",
-              "section": "GB/T 2900.32-1994",
-              "line": null,
-              "confidence": 0.9,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
-        }
-      },
-      "authority_ref": "GB/T 2900.32-1994"
-    },
-    {
-      "id": "sym::τ_th",
-      "name": "τ_th",
-      "entity_type": "symbol",
-      "text": "τ_th: 热时间常数",
-      "confidence": null,
-      "source": "GB/T 2900.93-2015",
-      "section": null,
-      "metadata": {
-        "authority_kind": "standard"
-      },
-      "zh": "热时间常数",
-      "dimension": "[s]",
-      "namespaces": [
-        "N"
-      ],
-      "dimension_declared": true,
-      "authority_kind": "standard",
-      "provenance": {
-        "zh": {
-          "property_name": "zh",
-          "value": "热时间常数",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "dimension": {
-          "property_name": "dimension",
-          "value": "[s]",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "namespaces": {
-          "property_name": "namespaces",
-          "value": [
-            "N"
-          ],
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "dimension_declared": {
-          "property_name": "dimension_declared",
-          "value": true,
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "authority_ref": {
-          "property_name": "authority_ref",
-          "value": "GB/T 2900.93-2015",
-          "sources": [
-            {
-              "document": "GB/T 2900.93-2015",
-              "section": "GB/T 2900.93-2015",
-              "line": null,
-              "confidence": 0.85,
-              "metadata": {
-                "authority_kind": "standard"
-              }
-            }
-          ]
-        }
-      },
-      "authority_ref": "GB/T 2900.93-2015"
     },
     {
       "id": "sym::τ_noise",
@@ -20251,52 +19096,6 @@
         "domain": {
           "property_name": "domain",
           "value": "H",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_J.10.3_IEC61000_3_2_LIMIT",
-      "name": "F_J.10.3_IEC61000_3_2_LIMIT",
-      "entity_type": "formula",
-      "text": "F_J.10.3_IEC61000_3_2_LIMIT: 谐波限值表",
-      "confidence": null,
-      "source": null,
-      "section": "J.10.3",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "domain": "J",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "J.10.3",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "J",
           "sources": [
             {
               "document": "",
@@ -25874,1075 +24673,6 @@
       }
     },
     {
-      "id": "F_N.1.1_THERMAL_RESISTANCE",
-      "name": "F_N.1.1_THERMAL_RESISTANCE",
-      "entity_type": "formula",
-      "text": "F_N.1.1_THERMAL_RESISTANCE: R_θ = ΔT/P",
-      "confidence": null,
-      "source": null,
-      "section": "N.1.1",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "R_θ = ΔT/P",
-      "declared_dimension": "[K/W]",
-      "domain": "N",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "N.1.1",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "R_θ = ΔT/P",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "declared_dimension": {
-          "property_name": "declared_dimension",
-          "value": "[K/W]",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "N",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_N.1_THERMAL_NETWORK",
-      "name": "F_N.1_THERMAL_NETWORK",
-      "entity_type": "formula",
-      "text": "F_N.1_THERMAL_NETWORK: T_j = T_a + P·(R_θjc + R_θcs + R_θsa)",
-      "confidence": null,
-      "source": null,
-      "section": "N.1",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "T_j = T_a + P·(R_θjc + R_θcs + R_θsa)",
-      "declared_dimension": "[K]",
-      "domain": "N",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "N.1",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "T_j = T_a + P·(R_θjc + R_θcs + R_θsa)",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "declared_dimension": {
-          "property_name": "declared_dimension",
-          "value": "[K]",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "N",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_N.1.2_SINK_RESISTANCE_MAX",
-      "name": "F_N.1.2_SINK_RESISTANCE_MAX",
-      "entity_type": "formula",
-      "text": "F_N.1.2_SINK_RESISTANCE_MAX: R_θsa ≤ (T_j,max − T_a)/P − R_θjc − R_θcs",
-      "confidence": null,
-      "source": null,
-      "section": "N.1.2",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "R_θsa ≤ (T_j,max − T_a)/P − R_θjc − R_θcs",
-      "declared_dimension": "[K/W]",
-      "domain": "N",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "N.1.2",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "R_θsa ≤ (T_j,max − T_a)/P − R_θjc − R_θcs",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "declared_dimension": {
-          "property_name": "declared_dimension",
-          "value": "[K/W]",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "N",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_N.1.3_THERMAL_SERIES_PARALLEL",
-      "name": "F_N.1.3_THERMAL_SERIES_PARALLEL",
-      "entity_type": "formula",
-      "text": "F_N.1.3_THERMAL_SERIES_PARALLEL: 串联求和；并联 1/R_θ = Σ1/R_θi",
-      "confidence": null,
-      "source": null,
-      "section": "N.1.3",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "串联求和；并联 1/R_θ = Σ1/R_θi",
-      "declared_dimension": "[K/W]",
-      "domain": "N",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "N.1.3",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "串联求和；并联 1/R_θ = Σ1/R_θi",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "declared_dimension": {
-          "property_name": "declared_dimension",
-          "value": "[K/W]",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "N",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_N.1.4_THERMAL_TRANSIENT",
-      "name": "F_N.1.4_THERMAL_TRANSIENT",
-      "entity_type": "formula",
-      "text": "F_N.1.4_THERMAL_TRANSIENT: C_th·dT/dt = P − (T−T_a)/R_θ",
-      "confidence": null,
-      "source": null,
-      "section": "N.1.4",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "C_th·dT/dt = P − (T−T_a)/R_θ",
-      "declared_dimension": "[W]",
-      "domain": "N",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "N.1.4",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "C_th·dT/dt = P − (T−T_a)/R_θ",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "declared_dimension": {
-          "property_name": "declared_dimension",
-          "value": "[W]",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "N",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_N.1.5_THERMAL_TAU",
-      "name": "F_N.1.5_THERMAL_TAU",
-      "entity_type": "formula",
-      "text": "F_N.1.5_THERMAL_TAU: τ_th = R_θ·C_th",
-      "confidence": null,
-      "source": null,
-      "section": "N.1.5",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "τ_th = R_θ·C_th",
-      "declared_dimension": "[s]",
-      "domain": "N",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "N.1.5",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "τ_th = R_θ·C_th",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "declared_dimension": {
-          "property_name": "declared_dimension",
-          "value": "[s]",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "N",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_N.1.6_THERMAL_SETTLE",
-      "name": "F_N.1.6_THERMAL_SETTLE",
-      "entity_type": "formula",
-      "text": "F_N.1.6_THERMAL_SETTLE: T(t) − T_a = P·R_θ(1 − e^{−t/τ_th})",
-      "confidence": null,
-      "source": null,
-      "section": "N.1.6",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "T(t) − T_a = P·R_θ(1 − e^{−t/τ_th})",
-      "declared_dimension": "[K]",
-      "upstream": [
-        "T14"
-      ],
-      "domain": "N",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "N.1.6",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "T(t) − T_a = P·R_θ(1 − e^{−t/τ_th})",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "declared_dimension": {
-          "property_name": "declared_dimension",
-          "value": "[K]",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "upstream": {
-          "property_name": "upstream",
-          "value": [
-            "T14"
-          ],
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "N",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_N.1.7_SOAK_TIME",
-      "name": "F_N.1.7_SOAK_TIME",
-      "entity_type": "formula",
-      "text": "F_N.1.7_SOAK_TIME: t_驻留 ≥ 3~5 · τ_th",
-      "confidence": null,
-      "source": null,
-      "section": "N.1.7",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "t_驻留 ≥ 3~5 · τ_th",
-      "declared_dimension": "[s]",
-      "domain": "N",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "N.1.7",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "t_驻留 ≥ 3~5 · τ_th",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "declared_dimension": {
-          "property_name": "declared_dimension",
-          "value": "[s]",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "N",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_N.1.8_CONVECTION_H",
-      "name": "F_N.1.8_CONVECTION_H",
-      "entity_type": "formula",
-      "text": "F_N.1.8_CONVECTION_H: h = Nu·k/L，Nu = f(Gr·Pr) 或 f(Re·Pr)",
-      "confidence": null,
-      "source": null,
-      "section": "N.1.8",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "h = Nu·k/L，Nu = f(Gr·Pr) 或 f(Re·Pr)",
-      "domain": "N",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "N.1.8",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "h = Nu·k/L，Nu = f(Gr·Pr) 或 f(Re·Pr)",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "N",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_N.1.9_CONDUCTION_R",
-      "name": "F_N.1.9_CONDUCTION_R",
-      "entity_type": "formula",
-      "text": "F_N.1.9_CONDUCTION_R: R_θ = L/(k·A)",
-      "confidence": null,
-      "source": null,
-      "section": "N.1.9",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "R_θ = L/(k·A)",
-      "domain": "N",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "N.1.9",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "R_θ = L/(k·A)",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "N",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_N.1.10_FAN_MATCH",
-      "name": "F_N.1.10_FAN_MATCH",
-      "entity_type": "formula",
-      "text": "F_N.1.10_FAN_MATCH: 工作点 = 风扇静压曲线 ∩ 散热器压降曲线",
-      "confidence": null,
-      "source": null,
-      "section": "N.1.10",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "工作点 = 风扇静压曲线 ∩ 散热器压降曲线",
-      "domain": "N",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "N.1.10",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "工作点 = 风扇静压曲线 ∩ 散热器压降曲线",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "N",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_N.1.11_RADIATION",
-      "name": "F_N.1.11_RADIATION",
-      "entity_type": "formula",
-      "text": "F_N.1.11_RADIATION: P = ε·σ·A·(T₁⁴ − T₂⁴)，σ = 5.67e-8 W/(m²·K⁴)",
-      "confidence": null,
-      "source": null,
-      "section": "N.1.11",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "P = ε·σ·A·(T₁⁴ − T₂⁴)，σ = 5.67e-8 W/(m²·K⁴)",
-      "declared_dimension": "[W]",
-      "domain": "N",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "N.1.11",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "P = ε·σ·A·(T₁⁴ − T₂⁴)，σ = 5.67e-8 W/(m²·K⁴)",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "declared_dimension": {
-          "property_name": "declared_dimension",
-          "value": "[W]",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "N",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_N.2_LOSS_BUDGET",
-      "name": "F_N.2_LOSS_BUDGET",
-      "entity_type": "formula",
-      "text": "F_N.2_LOSS_BUDGET: P_loss,max = (T_max − T_a)/R_θ,total",
-      "confidence": null,
-      "source": null,
-      "section": "N.2",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "P_loss,max = (T_max − T_a)/R_θ,total",
-      "upstream": [
-        "F_N.1.2"
-      ],
-      "domain": "N",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "N.2",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "P_loss,max = (T_max − T_a)/R_θ,total",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "upstream": {
-          "property_name": "upstream",
-          "value": [
-            "F_N.1.2"
-          ],
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "N",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_N.2.1_THERMAL_EFFICIENCY_LIMIT",
-      "name": "F_N.2.1_THERMAL_EFFICIENCY_LIMIT",
-      "entity_type": "formula",
-      "text": "F_N.2.1_THERMAL_EFFICIENCY_LIMIT: η_max = P_out/(P_out + P_loss,max)",
-      "confidence": null,
-      "source": null,
-      "section": "N.2.1",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "η_max = P_out/(P_out + P_loss,max)",
-      "domain": "N",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "N.2.1",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "η_max = P_out/(P_out + P_loss,max)",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "upstream": {
-          "property_name": "upstream",
-          "value": [
-            "F_J.9.7"
-          ],
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "N",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
       "id": "F_N.3_DERATING",
       "name": "F_N.3_DERATING",
       "entity_type": "formula",
@@ -27901,68 +25631,6 @@
         "expr": {
           "property_name": "expr",
           "value": "ESR ≥ 2·ESR₀ 或 C ≤ 0.8·C₀",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "N",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_N.5.3_CAP_RIPPLE_HEATING",
-      "name": "F_N.5.3_CAP_RIPPLE_HEATING",
-      "entity_type": "formula",
-      "text": "F_N.5.3_CAP_RIPPLE_HEATING: P = I_ripple,rms²·ESR，ΔT = P·R_θ",
-      "confidence": null,
-      "source": null,
-      "section": "N.5.3",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "P = I_ripple,rms²·ESR，ΔT = P·R_θ",
-      "domain": "N",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "N.5.3",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "P = I_ripple,rms²·ESR，ΔT = P·R_θ",
           "sources": [
             {
               "document": "",
@@ -28977,9 +26645,6 @@
       },
       "expr": "t_hold ≥ t_failover + t_margin",
       "declared_dimension": "[T]",
-      "upstream": [
-        "F_J.15"
-      ],
       "domain": "Q",
       "authority_kind": "unverified",
       "provenance": {
@@ -29016,23 +26681,6 @@
         "declared_dimension": {
           "property_name": "declared_dimension",
           "value": "[T]",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "upstream": {
-          "property_name": "upstream",
-          "value": [
-            "F_J.15"
-          ],
           "sources": [
             {
               "document": "",
@@ -30695,7 +28343,6 @@
         "upstream": {
           "property_name": "upstream",
           "value": [
-            "F_J.10.2_THD",
             " T12"
           ],
           "sources": [
@@ -30760,23 +28407,6 @@
         "expr": {
           "property_name": "expr",
           "value": "PF = cosφ₁/sqrt(1+THD_I²)",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "upstream": {
-          "property_name": "upstream",
-          "value": [
-            "F_J.10.1"
-          ],
           "sources": [
             {
               "document": "",
@@ -30855,23 +28485,6 @@
         "declared_dimension": {
           "property_name": "declared_dimension",
           "value": "[W]",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "upstream": {
-          "property_name": "upstream",
-          "value": [
-            "F_J.9.1"
-          ],
           "sources": [
             {
               "document": "",
@@ -40460,7 +38073,7 @@
       "version": "2008",
       "title": "信息技术设备骚扰特性限值与测量方法",
       "scope": "传导/辐射发射（ITE）",
-      "bindings": "P7、G.11、F_P.4",
+      "bindings": "P7、G.11",
       "citation_status": "UNVERIFIED",
       "authority_kind": "unverified",
       "provenance": {
@@ -40526,7 +38139,7 @@
         },
         "bindings": {
           "property_name": "bindings",
-          "value": "P7、G.11、F_P.4",
+          "value": "P7、G.11",
           "sources": [
             {
               "document": "",
@@ -40846,7 +38459,7 @@
         },
         "bindings": {
           "property_name": "bindings",
-          "value": "F_P.2.1、G.11",
+          "value": "G.11",
           "sources": [
             {
               "document": "",
@@ -41054,7 +38667,7 @@
         },
         "bindings": {
           "property_name": "bindings",
-          "value": "R12、P7、G.11、F_P.5.1",
+          "value": "R12、P7、G.11",
           "sources": [
             {
               "document": "",
@@ -42893,7 +40506,7 @@
       "version": "2018",
       "title": "谐波电流发射限值（≤75 A）",
       "scope": "PF/THD 限值",
-      "bindings": "G.5、F_J.10.3",
+      "bindings": "G.5",
       "citation_status": "UNVERIFIED",
       "authority_kind": "unverified",
       "provenance": {
@@ -42959,7 +40572,7 @@
         },
         "bindings": {
           "property_name": "bindings",
-          "value": "G.5、F_J.10.3",
+          "value": "G.5",
           "sources": [
             {
               "document": "",
@@ -43285,7 +40898,7 @@
       "authority_ref": "IEC 61000-4-30-2015",
       "version": "2015",
       "title": "电能质量测量方法",
-      "scope": "A/B 类 MPE",
+      "scope": "类、MPE",
       "bindings": "G.34、附录M",
       "citation_status": "UNVERIFIED",
       "authority_kind": "unverified",
@@ -43337,7 +40950,7 @@
         },
         "scope": {
           "property_name": "scope",
-          "value": "A/B 类 MPE",
+          "value": "类、MPE",
           "sources": [
             {
               "document": "",
@@ -43925,7 +41538,7 @@
       "authority_ref": "IEC 60255-3-1989",
       "version": "1989",
       "title": "过电流保护设备 反时限特性",
-      "scope": "反时限曲线 t = K·TSM/((I/I_p)ⁿ−1)",
+      "scope": "反时限曲线、=、K·TSM、((I、I_p)ⁿ−1)",
       "bindings": "F_L.2.5、G.39",
       "citation_status": "UNVERIFIED",
       "authority_kind": "unverified",
@@ -43977,7 +41590,7 @@
         },
         "scope": {
           "property_name": "scope",
-          "value": "反时限曲线 t = K·TSM/((I/I_p)ⁿ−1)",
+          "value": "反时限曲线、=、K·TSM、((I、I_p)ⁿ−1)",
           "sources": [
             {
               "document": "",
@@ -44150,7 +41763,6 @@
       "version": "1994",
       "title": "差动保护设备",
       "scope": "比率制动",
-      "bindings": "F_L.7.2",
       "citation_status": "UNVERIFIED",
       "authority_kind": "unverified",
       "provenance": {
@@ -44202,21 +41814,6 @@
         "scope": {
           "property_name": "scope",
           "value": "比率制动",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "bindings": {
-          "property_name": "bindings",
-          "value": "F_L.7.2",
           "sources": [
             {
               "document": "",
@@ -45493,7 +43090,7 @@
       "authority_ref": "IEC 60898-1/2",
       "title": "断路器（MCB）",
       "scope": "断路器额定",
-      "bindings": "F_L.8.3、G.40",
+      "bindings": "G.40",
       "citation_status": "UNVERIFIED",
       "authority_kind": "unverified",
       "provenance": {
@@ -45544,7 +43141,7 @@
         },
         "bindings": {
           "property_name": "bindings",
-          "value": "F_L.8.3、G.40",
+          "value": "G.40",
           "sources": [
             {
               "document": "",
@@ -45589,7 +43186,6 @@
       "authority_ref": "IEC 60947-2",
       "title": "低压开关设备和控制设备 断路器",
       "scope": "塑壳断路器 MCCB",
-      "bindings": "F_L.8.3",
       "citation_status": "UNVERIFIED",
       "authority_kind": "unverified",
       "provenance": {
@@ -45626,21 +43222,6 @@
         "scope": {
           "property_name": "scope",
           "value": "塑壳断路器 MCCB",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "bindings": {
-          "property_name": "bindings",
-          "value": "F_L.8.3",
           "sources": [
             {
               "document": "",
@@ -46069,7 +43650,7 @@
       "authority_ref": "DL/T 587",
       "title": "（中国电力行业标准）微机继电保护装置运行管理规程",
       "scope": "定值管理",
-      "bindings": "F_L.6、G.39",
+      "bindings": "G.39",
       "citation_status": "UNVERIFIED",
       "authority_kind": "unverified",
       "provenance": {
@@ -46120,7 +43701,7 @@
         },
         "bindings": {
           "property_name": "bindings",
-          "value": "F_L.6、G.39",
+          "value": "G.39",
           "sources": [
             {
               "document": "",
@@ -46470,7 +44051,6 @@
       "version": "2010",
       "title": "第2部分：E/E/PE 安全相关系统的要求",
       "scope": "硬件、架构、DC、诊断措施",
-      "bindings": "F_L.5",
       "citation_status": "UNVERIFIED",
       "authority_kind": "unverified",
       "provenance": {
@@ -46522,21 +44102,6 @@
         "scope": {
           "property_name": "scope",
           "value": "硬件、架构、DC、诊断措施",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "bindings": {
-          "property_name": "bindings",
-          "value": "F_L.5",
           "sources": [
             {
               "document": "",
@@ -46806,7 +44371,6 @@
       "version": "2010",
       "title": "SIL 测定方法示例",
       "scope": "风险图、HAZOP、FMEA",
-      "bindings": "F_L.5、F_N.7",
       "citation_status": "UNVERIFIED",
       "authority_kind": "unverified",
       "provenance": {
@@ -46858,21 +44422,6 @@
         "scope": {
           "property_name": "scope",
           "value": "风险图、HAZOP、FMEA",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "bindings": {
-          "property_name": "bindings",
-          "value": "F_L.5、F_N.7",
           "sources": [
             {
               "document": "",
@@ -47142,7 +44691,6 @@
       "version": "2016",
       "title": "过程工业领域 SIS 的功能安全",
       "scope": "流程工业",
-      "bindings": "F_L.5",
       "citation_status": "UNVERIFIED",
       "authority_kind": "unverified",
       "provenance": {
@@ -47206,21 +44754,6 @@
             }
           ]
         },
-        "bindings": {
-          "property_name": "bindings",
-          "value": "F_L.5",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
         "citation_status": {
           "property_name": "citation_status",
           "value": "UNVERIFIED",
@@ -47254,7 +44787,6 @@
       "version": "2023",
       "title": "安全相关控制系统安全部件",
       "scope": "PL a~e、Cat.B~4、MTTFd、DC、CCF",
-      "bindings": "F_L.5",
       "citation_status": "UNVERIFIED",
       "authority_kind": "unverified",
       "provenance": {
@@ -47318,21 +44850,6 @@
             }
           ]
         },
-        "bindings": {
-          "property_name": "bindings",
-          "value": "F_L.5",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
         "citation_status": {
           "property_name": "citation_status",
           "value": "UNVERIFIED",
@@ -47366,7 +44883,6 @@
       "version": "2021",
       "title": "机械安全 机械电气/电子/可编程系统",
       "scope": "SIL 1~3",
-      "bindings": "F_L.5",
       "citation_status": "UNVERIFIED",
       "authority_kind": "unverified",
       "provenance": {
@@ -47418,21 +44934,6 @@
         "scope": {
           "property_name": "scope",
           "value": "SIL 1~3",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "bindings": {
-          "property_name": "bindings",
-          "value": "F_L.5",
           "sources": [
             {
               "document": "",
@@ -47702,7 +45203,6 @@
       "version": "2010",
       "title": "机械安全 风险评估与减小",
       "scope": "风险评估",
-      "bindings": "F_N.7",
       "citation_status": "UNVERIFIED",
       "authority_kind": "unverified",
       "provenance": {
@@ -47754,21 +45254,6 @@
         "scope": {
           "property_name": "scope",
           "value": "风险评估",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "bindings": {
-          "property_name": "bindings",
-          "value": "F_N.7",
           "sources": [
             {
               "document": "",
@@ -47977,102 +45462,6 @@
         "bindings": {
           "property_name": "bindings",
           "value": "F_N.4.7、G.13",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "citation_status": {
-          "property_name": "citation_status",
-          "value": "UNVERIFIED",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "std::JEDEC JESD22-A101",
-      "name": "稳态热阻测定",
-      "entity_type": "standard",
-      "text": "JEDEC JESD22-A101 稳态热阻测定",
-      "confidence": null,
-      "source": "JEDEC JESD22-A101",
-      "section": null,
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "standard_id": "JEDEC JESD22-A101",
-      "authority_ref": "JEDEC JESD22-A101",
-      "title": "稳态热阻测定",
-      "scope": "R_θjc",
-      "bindings": "F_N.1.2",
-      "citation_status": "UNVERIFIED",
-      "authority_kind": "unverified",
-      "provenance": {
-        "standard_id": {
-          "property_name": "standard_id",
-          "value": "JEDEC JESD22-A101",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "title": {
-          "property_name": "title",
-          "value": "稳态热阻测定",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "scope": {
-          "property_name": "scope",
-          "value": "R_θjc",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "bindings": {
-          "property_name": "bindings",
-          "value": "F_N.1.2",
           "sources": [
             {
               "document": "",
@@ -48405,7 +45794,6 @@
       "authority_ref": "JEDEC JESD24",
       "title": "失效分析",
       "scope": "FMEDA 支撑",
-      "bindings": "F_N.7",
       "citation_status": "UNVERIFIED",
       "authority_kind": "unverified",
       "provenance": {
@@ -48442,21 +45830,6 @@
         "scope": {
           "property_name": "scope",
           "value": "FMEDA 支撑",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "bindings": {
-          "property_name": "bindings",
-          "value": "F_N.7",
           "sources": [
             {
               "document": "",
@@ -50516,7 +47889,6 @@
       "standard_id": "IEC 62506",
       "authority_ref": "IEC 62506",
       "title": "加速试验方法",
-      "scope": "F_N.4",
       "citation_status": "UNVERIFIED",
       "authority_kind": "unverified",
       "provenance": {
@@ -50538,21 +47910,6 @@
         "title": {
           "property_name": "title",
           "value": "加速试验方法",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "scope": {
-          "property_name": "scope",
-          "value": "F_N.4",
           "sources": [
             {
               "document": "",
@@ -51265,10 +48622,7 @@
         },
         "formula_refs": {
           "property_name": "formula_refs",
-          "value": [
-            "F_E.1",
-            "F_J.2"
-          ],
+          "value": [],
           "sources": [
             {
               "document": "",
@@ -51381,10 +48735,7 @@
         },
         "formula_refs": {
           "property_name": "formula_refs",
-          "value": [
-            "F_J.2",
-            "F_E.16"
-          ],
+          "value": [],
           "sources": [
             {
               "document": "",
@@ -51491,9 +48842,7 @@
         },
         "formula_refs": {
           "property_name": "formula_refs",
-          "value": [
-            "F_S.2"
-          ],
+          "value": [],
           "sources": [
             {
               "document": "",
@@ -51602,11 +48951,7 @@
         },
         "formula_refs": {
           "property_name": "formula_refs",
-          "value": [
-            "F_J.3_INDUCTOR_RIPPLE",
-            "F_J.4_OUTPUT_RIPPLE",
-            "A-J.1"
-          ],
+          "value": [],
           "sources": [
             {
               "document": "",
@@ -51719,10 +49064,7 @@
         },
         "formula_refs": {
           "property_name": "formula_refs",
-          "value": [
-            "F_J.4_OUTPUT_RIPPLE",
-            "F_K.7_RHPZ_BW"
-          ],
+          "value": [],
           "sources": [
             {
               "document": "",
@@ -51825,9 +49167,7 @@
         },
         "formula_refs": {
           "property_name": "formula_refs",
-          "value": [
-            "F_W.4_IMPEDANCE_MATCH"
-          ],
+          "value": [],
           "sources": [
             {
               "document": "",
@@ -51939,7 +49279,6 @@
         "formula_refs": {
           "property_name": "formula_refs",
           "value": [
-            "F_K.8_ROUTH_HURWITZ",
             "F_K.3_PHASE_MARGIN"
           ],
           "sources": [
@@ -52053,7 +49392,6 @@
         "formula_refs": {
           "property_name": "formula_refs",
           "value": [
-            "F_J.5_RIPPLE_RMS",
             "F_W.9.1_THD"
           ],
           "sources": [
@@ -52277,9 +49615,7 @@
         },
         "formula_refs": {
           "property_name": "formula_refs",
-          "value": [
-            "F_M.2_RIPPLE_RMS_CONV"
-          ],
+          "value": [],
           "sources": [
             {
               "document": "",
@@ -52315,9 +49651,7 @@
       "tests": [
         "G.5"
       ],
-      "formula_refs": [
-        "F_N.2_LOSS_BUDGET"
-      ],
+      "formula_refs": [],
       "authority_kind": "unverified",
       "provenance": {
         "label": {
@@ -52388,9 +49722,7 @@
         },
         "formula_refs": {
           "property_name": "formula_refs",
-          "value": [
-            "F_N.2_LOSS_BUDGET"
-          ],
+          "value": [],
           "sources": [
             {
               "document": "",
@@ -52497,9 +49829,7 @@
         },
         "formula_refs": {
           "property_name": "formula_refs",
-          "value": [
-            "F_W.4_TRANSMISSION_LINE"
-          ],
+          "value": [],
           "sources": [
             {
               "document": "",
@@ -52721,9 +50051,7 @@
         },
         "formula_refs": {
           "property_name": "formula_refs",
-          "value": [
-            "F_K.6_FILTER_CRITERION"
-          ],
+          "value": [],
           "sources": [
             {
               "document": "",
@@ -56585,230 +53913,6 @@
       }
     },
     {
-      "id": "BATTERY_CAPACITY",
-      "name": "蓄电池容量",
-      "entity_type": "power_concept",
-      "text": "蓄电池容量 battery capacity",
-      "confidence": 0.8,
-      "source": "YD/T 4523-2023",
-      "section": null,
-      "metadata": {
-        "authority_kind": "standard"
-      },
-      "zh": "蓄电池容量",
-      "en": "battery capacity",
-      "synonyms": [
-        "蓄电池容量",
-        "battery capacity"
-      ],
-      "authority_kind": "standard",
-      "authority_ref": "YD/T 4523-2023",
-      "clause": "3.5.2",
-      "provenance": {
-        "zh": {
-          "property_name": "zh",
-          "value": "蓄电池容量",
-          "sources": [
-            {
-              "document": "YD/T 4523-2023",
-              "section": "YD/T 4523-2023",
-              "line": null,
-              "confidence": 0.8,
-              "metadata": {
-                "authority_kind": "standard",
-                "checked": "2026-10-05",
-                "correction_source": "YD/T 4523-2023 报批/备案稿公开文本(guifanku.com/854213、max.book118.com/html/2023/0825/5204333143010314.htm)"
-              }
-            }
-          ]
-        },
-        "en": {
-          "property_name": "en",
-          "value": "battery capacity",
-          "sources": [
-            {
-              "document": "YD/T 4523-2023",
-              "section": "YD/T 4523-2023",
-              "line": null,
-              "confidence": 0.8,
-              "metadata": {
-                "authority_kind": "standard",
-                "checked": "2026-10-05",
-                "correction_source": "YD/T 4523-2023 报批/备案稿公开文本(guifanku.com/854213、max.book118.com/html/2023/0825/5204333143010314.htm)"
-              }
-            }
-          ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "蓄电池容量",
-            "battery capacity"
-          ],
-          "sources": [
-            {
-              "document": "YD/T 4523-2023",
-              "section": "YD/T 4523-2023",
-              "line": null,
-              "confidence": 0.8,
-              "metadata": {
-                "authority_kind": "standard",
-                "checked": "2026-10-05",
-                "correction_source": "YD/T 4523-2023 报批/备案稿公开文本(guifanku.com/854213、max.book118.com/html/2023/0825/5204333143010314.htm)"
-              }
-            }
-          ]
-        },
-        "confidence": {
-          "property_name": "confidence",
-          "value": 0.8,
-          "sources": [
-            {
-              "document": "YD/T 4523-2023",
-              "section": "YD/T 4523-2023",
-              "line": null,
-              "confidence": 0.8,
-              "metadata": {
-                "authority_kind": "standard",
-                "checked": "2026-10-05",
-                "correction_source": "YD/T 4523-2023 报批/备案稿公开文本(guifanku.com/854213、max.book118.com/html/2023/0825/5204333143010314.htm)"
-              }
-            }
-          ]
-        },
-        "clause": {
-          "property_name": "clause",
-          "value": "3.5.2",
-          "sources": [
-            {
-              "document": "YD/T 4523-2023",
-              "section": "YD/T 4523-2023",
-              "line": null,
-              "confidence": 0.8,
-              "metadata": {
-                "authority_kind": "standard",
-                "checked": "2026-10-05",
-                "correction_source": "YD/T 4523-2023 报批/备案稿公开文本(guifanku.com/854213、max.book118.com/html/2023/0825/5204333143010314.htm)"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "BMS",
-      "name": "电池管理系统",
-      "entity_type": "power_concept",
-      "text": "电池管理系统 BMS",
-      "confidence": 0.8,
-      "source": "YD/T 4523-2023",
-      "section": null,
-      "metadata": {
-        "authority_kind": "standard"
-      },
-      "zh": "电池管理系统",
-      "en": "BMS",
-      "synonyms": [
-        "电池管理系统",
-        "BMS",
-        "battery management system"
-      ],
-      "authority_kind": "standard",
-      "authority_ref": "YD/T 4523-2023",
-      "clause": "3.5.14",
-      "provenance": {
-        "zh": {
-          "property_name": "zh",
-          "value": "电池管理系统",
-          "sources": [
-            {
-              "document": "YD/T 4523-2023",
-              "section": "YD/T 4523-2023",
-              "line": null,
-              "confidence": 0.8,
-              "metadata": {
-                "authority_kind": "standard",
-                "checked": "2026-10-05",
-                "correction_source": "YD/T 4523-2023 报批/备案稿公开文本(guifanku.com/854213、max.book118.com/html/2023/0825/5204333143010314.htm)"
-              }
-            }
-          ]
-        },
-        "en": {
-          "property_name": "en",
-          "value": "BMS",
-          "sources": [
-            {
-              "document": "YD/T 4523-2023",
-              "section": "YD/T 4523-2023",
-              "line": null,
-              "confidence": 0.8,
-              "metadata": {
-                "authority_kind": "standard",
-                "checked": "2026-10-05",
-                "correction_source": "YD/T 4523-2023 报批/备案稿公开文本(guifanku.com/854213、max.book118.com/html/2023/0825/5204333143010314.htm)"
-              }
-            }
-          ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "电池管理系统",
-            "BMS",
-            "battery management system"
-          ],
-          "sources": [
-            {
-              "document": "YD/T 4523-2023",
-              "section": "YD/T 4523-2023",
-              "line": null,
-              "confidence": 0.8,
-              "metadata": {
-                "authority_kind": "standard",
-                "checked": "2026-10-05",
-                "correction_source": "YD/T 4523-2023 报批/备案稿公开文本(guifanku.com/854213、max.book118.com/html/2023/0825/5204333143010314.htm)"
-              }
-            }
-          ]
-        },
-        "confidence": {
-          "property_name": "confidence",
-          "value": 0.8,
-          "sources": [
-            {
-              "document": "YD/T 4523-2023",
-              "section": "YD/T 4523-2023",
-              "line": null,
-              "confidence": 0.8,
-              "metadata": {
-                "authority_kind": "standard",
-                "checked": "2026-10-05",
-                "correction_source": "YD/T 4523-2023 报批/备案稿公开文本(guifanku.com/854213、max.book118.com/html/2023/0825/5204333143010314.htm)"
-              }
-            }
-          ]
-        },
-        "clause": {
-          "property_name": "clause",
-          "value": "3.5.14",
-          "sources": [
-            {
-              "document": "YD/T 4523-2023",
-              "section": "YD/T 4523-2023",
-              "line": null,
-              "confidence": 0.8,
-              "metadata": {
-                "authority_kind": "standard",
-                "checked": "2026-10-05",
-                "correction_source": "YD/T 4523-2023 报批/备案稿公开文本(guifanku.com/854213、max.book118.com/html/2023/0825/5204333143010314.htm)"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
       "id": "HYSTERESIS",
       "name": "回差",
       "entity_type": "power_concept",
@@ -59525,20 +56629,6 @@
       "clause": "YD/T 4523-2023"
     },
     {
-      "source_id": "BATTERY_CAPACITY",
-      "target_id": "std::YD/T 4523-2023",
-      "relationship_type": "defined_by",
-      "confidence": null,
-      "clause": "YD/T 4523-2023"
-    },
-    {
-      "source_id": "BMS",
-      "target_id": "std::YD/T 4523-2023",
-      "relationship_type": "defined_by",
-      "confidence": null,
-      "clause": "YD/T 4523-2023"
-    },
-    {
       "source_id": "HYSTERESIS",
       "target_id": "std::YD/T 1817-2017",
       "relationship_type": "defined_by",
@@ -59693,12 +56783,6 @@
     {
       "source_id": "A-9",
       "target_id": "F_M.1_SAMPLING",
-      "relationship_type": "applies_to_formula",
-      "confidence": null
-    },
-    {
-      "source_id": "A-12",
-      "target_id": "F_N.2_LOSS_BUDGET",
       "relationship_type": "applies_to_formula",
       "confidence": null
     },

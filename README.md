@@ -11,14 +11,14 @@ MCP 客户端 (需求/用例/代码/参数 Agent)
 ┌─────────────────────────────────────────────┐
 │ MCP Server (8 业务工具 + 5 管理工具)          │
 ├─────────────────────────────────────────────┤
-│ RagService  三层装配 [model, _domain_T, _common] │
+│ RagService  两层装配 [model, _domain_T] │
 │   ├─ Qdrant 预过滤向量检索 (章节/类别/优先级)   │
 │   ├─ PG pg_textsearch BM25 (zhparser 中文)     │
 │   ├─ RRF 融合                                 │
 │   └─ LightRAG mix (图导航, 型号 workspace)     │
 ├─────────────────────────────────────────────┤
 │ InferenceEngine                              │
-│   ├─ domain_rules/{common,power}/rules.yaml   │
+│   └─ domain_rules/power/rules.yaml        │
 │   │    115 规则 (37 公式 derive + 77 SHACL)      │
 │   ├─ 多步推导链 (缺失输入自动派生)              │
 │   └─ 决策溯源 (前提逐条标注 layer)             │
@@ -39,7 +39,6 @@ MCP 客户端 (需求/用例/代码/参数 Agent)
 |---|---|---|
 | `{model_id}` | 型号个性化参数 | 仅本型号 |
 | `_domain_{type}` | 产品类型通用知识/规则 | 同类型型号共享, 跨域拒绝 |
-| `_common` | 单位换算等普适内核 | 全型号 |
 
 - 导入规格书自动识别型号 ID 与产品类型; 新类型自动建域 (`registry.yaml` + 规则包骨架)
 - 查询自动识别型号 (`model_id` 可省略); 多型号歧义/无法识别 → fail-closed 拒绝
@@ -63,7 +62,7 @@ QDRANT_VECTOR_SIZE=1024 python deploy/qdrant/init_tenant.py
 python scripts/ingest_pa601.py
 
 # 6. 构建领域知识库
-python scripts/build_domain.py power common
+python scripts/build_domain.py power
 
 # 7. 验证
 python scripts/validate_pa601.py
@@ -111,7 +110,7 @@ Windows 控制台默认 GBK, 跑脚本前先设 `$env:PYTHONIOENCODING='utf-8'`�
 
 ## 领域规则
 
-`domain_rules/{common,power}/rules.yaml` — 每条规则含公式/SHACL/来源 URL/置信度/自验用例。
+`domain_rules/power/rules.yaml` — 每条规则含公式/SHACL/来源 URL/置信度/自验用例。
 新增规则只改 YAML (websearch 迭代采集 → 形式化 → test 自验)。
 
 ## 产测条件抽取 (输入条件 → 输出条件)

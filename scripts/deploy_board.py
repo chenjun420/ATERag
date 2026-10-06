@@ -56,7 +56,7 @@ async def build_domain_layer() -> bool:
     if not embed.dimension:
         await embed.probe_dimension()
     try:
-        for d in ("power", "common"):
+        for d in ("power",):
             res = await build_domain(d, s, registry, embed, llm)
             print(f"    {d}: {res}")
     finally:

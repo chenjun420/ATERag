@@ -55,7 +55,6 @@ class Settings(BaseSettings):
     # 没有它只是那部分需求切不出条件, 不该让整个抽取失败
     # (AnnotationBook.load 对不存在的路径返回空书)。
     annotations_dir: str = "data/annotations"
-    common_workspace: str = "_common"
     domain_workspace_prefix: str = "_domain_"
 
     # ---- MCP ----

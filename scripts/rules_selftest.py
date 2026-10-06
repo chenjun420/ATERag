@@ -257,7 +257,6 @@ CLASS_OVERRIDE = {
     "K-TLM-103": "DigitalInput",
     "K-TLM-111": "DigitalOutput",
     "K-CAL-103": "Capacitor",
-    "K-CAL-104": "Semiconductor",
     "K-PROT-112": "Sensor",
     "K-TLM-106": "Product",
     "K-CTL-101": "AlarmSpec",

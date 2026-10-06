@@ -1,4 +1,4 @@
-"""领域规则加载器: domain_rules/{common,domain}/rules.yaml -> 可执行规则."""
+"""领域规则加载器: domain_rules/{domain}/rules.yaml -> 可执行规则."""
 
 from __future__ import annotations
 
@@ -10,11 +10,16 @@ import yaml
 
 @functools.lru_cache(maxsize=32)
 def load_domain_rules(rules_dir: str, domain: str) -> tuple[list[dict], list[dict]]:
-    """加载 common + 指定域的规则包 (进程内缓存, 文件变更时重启或手动清除)。"""
+    """加载指定域的规则包 (进程内缓存, 文件变更时重启或手动清除)。
+
+    2026-10 起不再有 common 层: ``domain_rules/common/`` 已删除, 内容
+    并入 ``domain_rules/power/``。原来这里无条件先加载 common 再加载
+    domain, 是为多域预留 —— 单域时它只会让同一批规则被数两次。
+    """
     base = Path(rules_dir)
     all_rules: list[dict] = []
     all_shapes: list[str] = []
-    for sub in ("common", domain):
+    for sub in (domain,):
         d = base / sub
         if not d.exists():
             continue
@@ -62,8 +67,10 @@ def formula_type_to_rule_id(formula_type: str) -> str:
         "power_factor": "K-AC-001",
         "apparent_power": "K-AC-002",
         "reactive_power": "K-AC-003",
-        "temp_rise": "K-THM-001",
-        "junction_temp": "K-THM-002",
+        # 热力学已移出范围(2026-10):``temp_rise``/``junction_temp`` 原指向
+        # K-THM-001/K-THM-002, 那两条与 K-CAL-104/105/106、K-THM-101 一并
+        # 删除 —— 判据依赖的公式也同时从种子移除。留着这两个键会指向不存在的
+        # 规则, calculate() 查不到就静默返回空, 属于「看起来有实际没有」。
         "cap_life_factor": "K-THM-003",
         "tolerance": "K-FIX-002",
         "rss_tolerance": "K-FIX-017",
@@ -86,9 +93,10 @@ def formula_type_to_rule_id(formula_type: str) -> str:
         "required_bulk_capacitance": "K-PWR-115",
         "ovp_trip_voltage": "K-PROT-101",
         "min_hysteresis": "K-PROT-108",
-        # 批次5/6: 安规、遥测、热设计
+        # 批次5/6: 安规、遥测
         "max_y_capacitance": "K-SAF-104",
         "ntc_resistance": "K-TLM-104",
-        "total_thermal_resistance": "K-CAL-105",
+        # 热设计已移出范围(2026-10):``total_thermal_resistance`` 原指向
+        # K-CAL-105(热阻链路判据), 与 temp_rise/junction_temp 一并删除。
     }
     return mapping.get(formula_type, formula_type)

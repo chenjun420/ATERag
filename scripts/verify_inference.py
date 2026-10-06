@@ -25,7 +25,8 @@ cases = [
     ("fixture_precision", {"param_tolerance": 0.3}),
     ("tolerance", {"components": [0.3, 0.4]}),
     ("probe_selection", {"current": 11.1}),
-    ("temp_rise", {"power_loss": 45, "thermal_resistance": 0.5}),
+    # 热力学已移出范围(2026-10):``temp_rise`` / ``junction_temp`` 对应的
+    # K-THM-001 / K-THM-002 已从 rules.yaml 删除, 相应删掉这里的用例。
     ("availability", {"mtbf": 500000, "mttr": 0.5}),
     ("channel_count", {"throughput": 1000, "test_time": 120, "available_time": 86400}),
     ("cap_life_factor", {"rated_temp": 105, "operating_temp": 65}),

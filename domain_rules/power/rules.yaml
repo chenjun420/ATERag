@@ -299,54 +299,6 @@ rules:
       esr: 0.05
     expect:
       esr_loss: 0.2
-- id: K-THM-001
-  statement: 温升 = 损耗功率 × 热阻 (ΔT = P × Rth)
-  category: thermal
-  scope: thermal
-  derive:
-    output: temp_rise
-    expr: power_loss * thermal_resistance
-    inputs:
-    - power_loss
-    - thermal_resistance
-  variables:
-    temp_rise: ℃
-    power_loss: W
-    thermal_resistance: ℃/W
-  source:
-    name: 热阻与温升基本关系 (电子散热通用公式) [行业技术资料(C 级线索, 待回 A 级复核)]
-    url: https://techweb.rohm.com.tw/product/circuit-design/electric-circuit-design/21859
-    retrieved: 2026-09-29
-  confidence: 0.7
-  test:
-    given:
-      power_loss: 45
-      thermal_resistance: 0.5
-    expect:
-      temp_rise: 22.5
-- id: K-THM-002
-  statement: 结温 = 环境温度 + 损耗功率 × 热阻 (Tj = Ta + P × Rth)
-  category: thermal
-  scope: thermal
-  derive:
-    output: junction_temp
-    expr: ambient_temp + power_loss * thermal_resistance
-    inputs:
-    - ambient_temp
-    - power_loss
-    - thermal_resistance
-  source:
-    name: 热设计基础 (通用电子散热) [行业技术资料(C 级线索, 待回 A 级复核)]
-    url: https://techweb.rohm.com.tw/product/circuit-design/electric-circuit-design/21859
-    retrieved: 2026-09-29
-  confidence: 0.7
-  test:
-    given:
-      ambient_temp: 25
-      power_loss: 45
-      thermal_resistance: 0.5
-    expect:
-      junction_temp: 47.5
 - id: K-THM-003
   statement: '铝电解电容寿命倍增律: 纹波电流恒定时, 温度每降低 10℃ 寿命翻倍 (Arrhenius 近似)'
   category: thermal
@@ -2557,81 +2509,6 @@ rules:
       rated_voltage_v: 63
     expect:
       violation: true
-- id: K-CAL-104
-  statement: '半导体结温降额判据: 功率半导体结温 T_j ≤ 额定最高结温 − 20℃ (典型留 20℃ 余量), 且不超过规格工作环境温度对应的降额曲线值; 温升 ΔT = P × R_th
-    后须复核此判据, 结温余量不足将导致参数漂移与早期失效'
-  category: derating
-  scope: derating
-  constraint:
-    shape: "@prefix sh: <http://www.w3.org/ns/shacl#> .\n@prefix ps: <https://aterag.example.org/power#>\
-      \ .\nps:JunctionDeratingShape a sh:NodeShape ;\n    sh:targetClass ps:Semiconductor ;\n    sh:sparql\
-      \ [\n        sh:message \"器件 {?this} 结温 {?tj}°C 超过降额上限 {?limit}°C (额定 Tj_max − 20℃)\" ;\n      \
-      \  sh:select \"\"\"\n            SELECT $this ?tj ?limit WHERE {\n                $this ps:junctionTempC\
-      \ ?tj .\n                $this ps:deratedMaxJunctionTempC ?limit .\n                FILTER (?tj\
-      \ > ?limit)\n            }\n        \"\"\" ;\n    ] .\n"
-  source:
-    name: 功率器件电压/电流/结温降额设计 (ADI 效率与降额) - 通用电源降额惯例
-    url: https://www.analog.com/cn/resources/technical-articles/an-efficiency-primer-for-switchmode-dcdc-converter-power-supplies.html
-    retrieved: 2026-09-29
-  confidence: 0.9
-  test:
-    given:
-      junction_temp_c: 128
-      derated_max_junction_temp_c: 105
-    expect:
-      violation: true
-- id: K-CAL-105
-  statement: '热阻链路判据: 结到环境总热阻 R_th,ja = R_th,jc(结壳) + R_th,cs(壳到散热器) + R_th,sa(散热器到环境), 串联叠加; 产测可通过外壳/散热器实测温升反推实际热阻
-    (R_actual = ΔT_measured / P_loss) 并与设计值比对, 偏差过大提示接触界面热阻劣化(导热硅脂干涸/螺钉松动)'
-  category: derating
-  scope: derating
-  derive:
-    output: total_thermal_resistance
-    expr: rth_jc + rth_cs + rth_sa
-    inputs:
-    - rth_jc
-    - rth_cs
-    - rth_sa
-  variables:
-    total_thermal_resistance: ℃/W
-    rth_jc: ℃/W
-    rth_cs: ℃/W
-    rth_sa: ℃/W
-  source:
-    name: 热阻链路串联叠加 (结-壳/壳-散热器/散热器-环境) 与产测反推校验
-    url: local://thermal-chain
-    retrieved: 2026-09-29
-  confidence: 0.95
-  test:
-    given:
-      rth_jc: 0.5
-      rth_cs: 0.3
-      rth_sa: 0.7
-    expect:
-      total_thermal_resistance: 1.5
-- id: K-CAL-106
-  statement: '温升实测反推热阻判据: 产测实测温升 ΔT_measured / 损耗 P_loss 得实际热阻, 须落在设计值 ±30% 内且绝对值不超过判据上限; 超出上限即判散热失效(风扇停转、散热器翅片堵塞、导热界面失效),
-    不得仅按温度遥测读数判合格'
-  category: derating
-  scope: derating
-  constraint:
-    shape: "@prefix sh: <http://www.w3.org/ns/shacl#> .\n@prefix ps: <https://aterag.example.org/power#>\
-      \ .\nps:ThermalMeasuredShape a sh:NodeShape ;\n    sh:targetClass ps:ThermalTest ;\n    sh:sparql\
-      \ [\n        sh:message \"实测热阻 {?actual}℃/W 超过判据上限 {?limit}℃/W, 散热失效\" ;\n        sh:select \"\"\
-      \"\n            SELECT $this ?actual ?limit WHERE {\n                $this ps:measuredThermalResistance\
-      \ ?actual .\n                $this ps:thermalResistanceLimit ?limit .\n                FILTER (?actual\
-      \ > ?limit)\n            }\n        \"\"\" ;\n    ] .\n"
-  source:
-    name: 产测温升反推热阻与散热失效判定 (ΔT = P × R_th 应用)
-    url: local://thermal-measured
-    retrieved: 2026-09-29
-  confidence: 0.85
-  test:
-    given:
-      measured_thermal_resistance: 2.5
-      thermal_resistance_limit: 1.8
-    expect:
-      violation: true
 - id: K-CAL-107
   statement: '环境温度校验判据: 产测须记录环境温度并与器件/电容降额曲线联动判定 - 高温环境下输出能力按降额曲线降低(如 -40~+70℃ 工作, 70℃ 以上线性降额至 40%), 高温工位测得的额定输出能力不适用于常温判定;
     判据须按实测环境温度查对应降额值'
@@ -2790,40 +2667,6 @@ rules:
       gain_margin_min_db: 10
     expect:
       gain_margin_headroom_db: 3.9000000000000057
-- id: K-THM-101
-  statement: '冷却方式决定热阻取值: 数据手册给的 θJA 是 still air (自然对流) 值, 不得直接用于强制风冷工况的结温校核; 强制风冷须取该风速下的热阻, 或以风冷改善系数把自然对流热阻折算到风冷工况。同一器件 θJA
-      随风速显著变化, 结温判定的可信度取决于所引热阻对应的冷却方式与风速是否与实际工况一致'
-  category: thermal
-  scope: thermal
-  derive:
-    output: junction_temp_c
-    expr: ambient_temp_c + power_loss_w * thermal_resistance_c_per_w / airflow_improvement_factor
-    inputs:
-      - ambient_temp_c
-      - power_loss_w
-      - thermal_resistance_c_per_w
-      - airflow_improvement_factor
-  variables:
-    ambient_temp_c: degC
-    power_loss_w: W
-    thermal_resistance_c_per_w: degC/W
-    airflow_improvement_factor: '无量纲; 自然对流取 1; 强制风冷取该风速下热阻相对自然对流热阻的比值'
-    junction_temp_c: degC
-  source:
-    name: 'NXP AN2601 MSC8102/MSC8122/MSC8126 Thermal Management Design Guidelines - 结到环境热阻随风速变化 (自然对流 21.6 degC/W, 100/200/400 ft/min
-      分别 18.8/17.4/15.6; 0.5/1.0/1.5/2.0 m/s 下 9 器件满载 47/34/27/23 degC/W); Renesas TB379 Thermal Characterization of Packaged
-      Semiconductor Devices - 自然对流按 JESD51-2A (静止空气), 强制对流按 JESD51-6 (风洞, 100~600 LFM, 200 LFM 约合 1 m/s), 两者条件不同故 θJA 不可直接比较'
-    url: https://www.nxp.com/docs/en/application-note/AN2601.pdf
-    retrieved: 2026-10-06
-  confidence: 0.85
-  test:
-    given:
-      ambient_temp_c: 40
-      power_loss_w: 8
-      thermal_resistance_c_per_w: 2.4
-      airflow_improvement_factor: 1.2
-    expect:
-      junction_temp_c: 56.0
 - id: K-MSR-001
   statement: '量具测量能力指数 Cm = 公差 / (不确定度倍数 × 标准测量不确定度): ISO/TR 14253-6:2012 术语 3.8 定义 Cm = T/(4·u_m) 且明确倍数取 4, 即被测公差至少应为标准不确定度的 4 倍以上。须注意与 ANSI/NCSLI Z540.3 的 TUR = TL/U (公差/扩展不确定度) 约定不同: TUR = Cm × 覆盖因子, 两者不可混用; 公差、倍数与不确定度须取同一被测量同一工况的值, 不得跨工况交叉引用'
   category: accuracy
@@ -3072,3 +2915,31 @@ rules:
       rail_power_budget_tolerance_w: 5.0
     expect:
       violation: true
+# 原 common 层的通用规则, 2026-10 随 common 层一并并入本文件。
+# id 保留 K-CMN- 前缀: 它记录的是「这条原先住在跨域公共层」这件事实,
+# 改名成 K-PWR-* 会把它伪装成电源专用判据, 而它是 SI 单位换算 ——
+# 任何量纲体系都要用, 与本项目只做电源无关。
+- id: K-CMN-001
+  statement: "SI 词头换算 k=1000, m=0.001 (kV/V/mV, A/mA, W/kW/mW)"
+  category: units
+  scope: universal
+  derive:
+    output: scaled
+    expr: "value * (10 ** exponent)"
+    inputs: [value, exponent]
+  variables: {value: any, exponent: "int (-3..3)"}
+  source:
+    name: SI unit prefixes (BIPM)
+    url: https://www.bipm.org/en/measurement-units
+    retrieved: 2026-09-29
+  # 顶格 1.0 的理由(知识门把 confidence==1.0 列为 WARN, 要求写明为什么):
+  # SI 前缀是**定义式**事实 —— k=10^3 / m=10^-3 由 BIPM SI  Brochure
+  # 唯一确定, 没有竞争来源, 也没有「实测值可能偏」这回事。confidence 的
+  # 语义是「**出处**可不可信」(见 rules.yaml 头注), 不是「公式对不对」,
+  # 而这里出处就是定义本身, 所以顶格是断言而不是缺省。
+  #
+  # 如果哪天这条规则开始吃**非 SI** 的倍数(比如 dBm 的 10^(dBm/10)),
+  # 这个理由立刻不成立, 必须降档 —— 那时它是一条工程约定, 不是定义。
+  note: "SI 前缀是定义式事实(BIPM 为唯一来源), 顶格可采信; 改成非 SI 倍数即失效"
+  confidence: 1.0
+  test: {given: {value: 500, exponent: -3}, expect: {scaled: 0.5}}  # 500mV->0.5V

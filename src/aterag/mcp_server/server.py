@@ -501,7 +501,7 @@ async def search_cases(query: str, model_id: str = "", top_k: int = 5) -> str:
     if err:
         return json.dumps(err, ensure_ascii=False)
     result = await get_rag().search(query, model_id=r.model_id, top_k=top_k)
-    shared = [h for h in result["results"] if h.get("layer") in ("domain", "common")]
+    shared = [h for h in result["results"] if h.get("layer") in ("domain",)]
     model_hits = [h for h in result["results"] if h.get("layer") == "model"]
     return json.dumps(
         {

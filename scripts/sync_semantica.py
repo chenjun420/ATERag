@@ -27,7 +27,7 @@ from aterag.config import get_settings
 
 def load_rules(rules_dir: Path, domain: str) -> list[dict]:
     rules: list[dict] = []
-    for sub in ("common", domain):
+    for sub in (domain,):
         d = rules_dir / sub
         if not d.exists():
             continue
@@ -62,7 +62,7 @@ def build_knowledge_graph(domain: str, rules: list[dict]):
         constraint = r.get("constraint") or {}
         props = {
             "rule_id": rid,
-            "domain": r.get("_domain", "common"),
+            "domain": r.get("_domain", domain),
             "category": r.get("category", ""),
             "scope": r.get("scope", ""),
             "statement": r.get("statement", ""),

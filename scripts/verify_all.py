@@ -30,7 +30,7 @@ SUITES: list[tuple[str, list[str], re.Pattern[str]]] = [
         ["scripts/smoke_endpoints.py"],
         re.compile(r"LLM chat ok"),
     ),
-    ("三层装配隔离", ["scripts/verify_layers.py"], re.compile(r"\[common\] hits=[1-9]")),
+    ("两层装配隔离", ["scripts/verify_layers.py"], re.compile(r"\[domain\] layers=.*domain")),
     ("检索链路 (BM25/向量/RRF)", ["scripts/verify_search.py"], re.compile(r"RRF fused=[1-9]")),
     (
         "图谱导航 (mix 引用解析)",

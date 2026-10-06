@@ -1,9 +1,14 @@
 """产品注册表: 型号 <-> 产品类型(知识域) 映射与查询自动识别.
 
-三级知识隔离的锚点:
+两级知识隔离的锚点:
   workspace(model)     型号个性化参数
   workspace(_domain_X) 产品类型通用知识 (同类型型号共享, 跨域隔离)
-  workspace(_common)   最小普适内核
+
+原第三级 ``workspace(_common)``(最小普适内核)已随 common 层一起移除
+(2026-10): ``domain_rules/common/`` 删除, 其唯一一条规则 ``K-CMN-001``
+(SI 词头换算)并入 ``domain_rules/power/``。留着这一层只会让装配多出
+一个恒为空、却仍参与检索过滤与层级标注的 workspace —— 而
+``verify_layers.py`` 还得专门断言它有命中。
 """
 
 from __future__ import annotations
@@ -72,8 +77,6 @@ class Registry:
         path = cls._resolve_path(settings)
         reg = cls(settings=settings, _path=path)
         data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-        common = (data.get("common") or {}).get("workspace", settings.common_workspace)
-        reg._common_workspace = common
         for name, d in (data.get("domains") or {}).items():
             reg.domains[name] = DomainEntry(
                 workspace=d.get("workspace", f"{settings.domain_workspace_prefix}{name}"),
@@ -91,7 +94,6 @@ class Registry:
         if not self._path:
             return
         data = {
-            "common": {"workspace": self._common_workspace},
             "domains": {
                 name: {"workspace": d.workspace, "kb_status": d.kb_status}
                 for name, d in self.domains.items()
@@ -114,24 +116,18 @@ class Registry:
         return model_id
 
     def domain_workspace(self, domain: str) -> str:
-        if domain == "common":
-            return self._common_workspace
+        """域 -> workspace。**不再对 "common" 特判** —— 那层已删除。"""
         d = self.domains.get(domain)
         if d:
             return d.workspace
         return f"{self.settings.domain_workspace_prefix}{domain}"
 
-    @property
-    def common_workspace(self) -> str:
-        return self._common_workspace
-
     def query_workspaces(self, model_id: str) -> list[str]:
-        """型号查询的三层装配: [model, _domain_{type}, _common]。"""
+        """型号查询的两层装配: [model, _domain_{type}]。"""
         entry = self.products.get(model_id)
         layers = [self.model_workspace(model_id)]
         if entry:
             layers.append(self.domain_workspace(entry.domain))
-        layers.append(self.common_workspace)
         return layers
 
     # ---------- 导入端: 注册 ----------

@@ -20,7 +20,7 @@ os.environ.setdefault("EMBED_MODEL", "x")
 from rules_selftest import build_ttl
 
 rid = sys.argv[1]
-for f in ("domain_rules/common/rules.yaml", "domain_rules/power/rules.yaml"):
+for f in ("domain_rules/power/rules.yaml",):
     data = yaml.safe_load(open(f, encoding="utf-8").read()) or {}
     for r in data.get("rules", []):
         if r["id"] == rid:

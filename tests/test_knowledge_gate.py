@@ -247,14 +247,21 @@ class TestRealSeed:
     def test_undeclared_reference_fields_are_known(self) -> None:
         """安全网: **新字段**里出现 id 记号会红 —— 逼一次显式决定。
 
-        当前已知的三个未登记字段是方案 md 带来的条款/上游记号
-        (``bindings`` / ``upstream`` / ``scope``)。它们不是本库 id 引用,
-        但也还没被登记成「非引用」—— 这个断言就是登记它们的地方。
+        2026-10 起期望集是**空集**: 原先登记的三个字段
+        (``bindings`` / ``upstream`` / ``scope``)都不再含解析不到的 id 记号。
+        摘掉的是 8 条手写简写 —— ``F_L.5`` / ``F_L.6`` / ``F_L.7.2`` /
+        ``F_L.8.3`` / ``F_N.7``(章节指针, 子公式都在库里)、``F_P.4`` /
+        ``F_J.15``(EMC 域)、``F_N.4``(章节指针), 全部由生成器的
+        ``UNRESOLVABLE_REF_TOKENS`` 处理, 理由逐条写在那个常量上。
+
+        **这个断言现在是一道哨兵**: 数据干净时它是空集断言; 哪天任何字段里
+        又出现解析不到的 id 记号, 它会重新出现在 ``found`` 里 —— 那时先查
+        数据(补公式或摘记号), 不要直接往期望集里加字段名。
         """
         recs = self._records()
         ids = {str(r["id"]) for r in recs if r.get("id")}
         found = set(kg.discover_reference_fields(recs, ids))
-        assert found == {"bindings", "upstream", "scope"}, found
+        assert found == set(), found
 
     def test_load_conventions_have_locatable_authority(self) -> None:
         """工况比例是**项目约定**, 出处落在 corrections.yaml 的约定记录段。
