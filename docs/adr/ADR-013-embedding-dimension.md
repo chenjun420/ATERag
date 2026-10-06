@@ -65,6 +65,29 @@ ATERag 仓库自身对此也没有共识：`README.md` 称 1024 维，
     这是有意的 fail-closed：维度错了就该在启动时炸，不该在检索时静默降质。
   - 公式检索召回上限受 1024 维约束。若日后实测 Recall@10 不达标，
     需另开 ADR 推翻本条，而不是在代码里加特例。
+## 实际接入者（2026-10-06）
+
+| 接入方 | 端点 | 原生维度 | 维度裁剪参数 |
+|---|---|---|---|
+| doubao-embedding-vision | rk.cn-beijing.volces.com/api/plan/v3 | **2048** | dimensions |
+
+ark 走 openai 兼容协议(/api/plan/v3 + /embeddings), 所以走
+_OpenAIBackend 而非 dashscope 分支。实测:
+
+- dimensions=1024 **生效**, 不传则返回 2048
+- dimensions 是**唯一**有效的字段名 —— output_dimension / dimension /
+  dim / 	runcate_prompt_tokens 全部被忽略(返回 2048)
+- dimensions=256 返回 **400 InvalidParameter**(不接受任意值)
+- 响应带 index 字段(不是 dashscope 的 	ext_index)
+
+这直接验证了本 ADR「负面/代价」里的第一条: 接入方**必须**下发 dimensions。
+本 ADR 定的「唯一硬约束」在实现上是靠 _OpenAIBackend 显式带参保证的, 而
+探测到的维度不能自动回填 —— 探测成功但没记录时若靠默认值补上, 恰好就是本
+ADR 要防的「静默降质」。
+
+嵌入不严格确定: 同一文本重复请求余弦 0.9984~1.0, 最大分量差 ~1e-2。
+因此**不能用 == 断言向量可复现**, 也不要用它做顺序验证。
+
 - 后续需要做的:
   - `deploy/qdrant/init_tenant.py` 随 ADR-014 一并删除。
   - `.env.example` 的 `#EMBED_DIM=2560` 改为 `EMBED_DIM=1024`。

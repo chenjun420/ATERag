@@ -25,20 +25,42 @@ class _EmbedBackend(Protocol):
 
 
 class _OpenAIBackend:
-    def __init__(self, base: str, model: str, api_key: str):
+    def __init__(self, base: str, model: str, api_key: str, dim: int = 0):
         self._url = base.rstrip("/") + "/embeddings"
         self._model = model
         self._api_key = api_key
+        self._dim = dim
 
     async def embed(self, client: httpx.AsyncClient, texts: list[str]) -> list[list[float]]:
+        payload: dict[str, object] = {"model": self._model, "input": texts}
+        if self._dim:
+            # **必须显式下发 dimensions**。ADR-013 定死全系统1024 维(halfvec),
+            # 而原生维度更高的模型会默认返回全维度 —— 实测 doubao-embedding-vision
+            # 原生 2048 维, 不传就落成 2048, 与库里 `vector(1024)` / HNSW 索引
+            # 对不上, 表现为「探测维度」与建表维度不一致的运行期错误。
+            #
+            # 探测到的维度不能自动回填: ADR-013 要求「探测失败不得回退默认值」,
+            # 同理「探测成功但没记录」也不能靠默认值补上 —— 必须显式配置。
+            payload["dimensions"] = self._dim
         resp = await client.post(
             self._url,
             headers={"Authorization": f"Bearer {self._api_key}"},
-            json={"model": self._model, "input": texts},
+            json=payload,
         )
         resp.raise_for_status()
         data = resp.json()["data"]
-        # openai 协议保证与 input 顺序一致
+        # 按响应里的 ``index`` 排序, **不假设返回顺序等于输入顺序**。
+        # 实测 ark 的响应确实带 ``index``, 而旧注释写「openai 协议保证与 input
+        # 顺序一致」—— 协议没有这条保证, 实测也未必成立。顺序错掉不会报错,
+        # 只会让每条 chunk 的向量对应到别人的文本, 而检索看起来完全正常。
+        if any("index" in item for item in data):
+            ordered = sorted(data, key=lambda d: d["index"])
+            if [d["index"] for d in ordered] != list(range(len(ordered))):
+                raise ValueError(
+                    f"openai embedding: index 不连续, 得到 "
+                    f"{[d['index'] for d in ordered]} (期望 0..{len(ordered) - 1})"
+                )
+            return [d["embedding"] for d in ordered]
         return [d["embedding"] for d in data]
 
 
@@ -106,7 +128,7 @@ class EmbeddingClient:
         self._client = httpx.AsyncClient(timeout=timeout)
         if protocol == "openai":
             self._backend: _EmbedBackend = _OpenAIBackend(
-                settings.embed_base, self._model, settings.embed_api_key
+                settings.embed_base, self._model, settings.embed_api_key, settings.embed_dim
             )
         else:
             self._backend = _DashScopeBackend(
