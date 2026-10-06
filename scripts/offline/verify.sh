@@ -38,24 +38,43 @@ else
     bad "知识门未通过"
 fi
 
-echo "=== 3 数据库 ==="
+echo "=== 3 数据库对账(逐项判, 不是只打印) ==="
+# 原来这里把三个计数打进 [ok] 却不断言非零 —— 领域知识一条没灌进去也会显示
+# 「通过」, 而那正是本脚本要挡的失败。现在逐项判。
+# 决策谱系 0 行是**合法**的: 新装还没人跑过推理, 且种子数据本身不进 provenance。
 if "$PY" - <<'EOF'
-import os, sys
+import sys
+
 sys.path.insert(0, "src")
+import psycopg  # noqa: E402
+
+from aterag.config import get_settings  # noqa: E402
+
+s = get_settings()
 try:
-    from aterag.config import get_settings
-    import psycopg
-    s = get_settings()
     with psycopg.connect(s.postgres_dsn) as conn:
-        q = conn.execute("SELECT count(*) FROM l0_term.provenance").fetchone()[0]
-        c = conn.execute(
-            "SELECT count(*) FROM public.aterag_chunks WHERE workspace_id = '_domain_power'"
+        prov = conn.execute("SELECT count(*) FROM l0_term.provenance").fetchone()[0]
+        chunks = conn.execute(
+            "SELECT count(*) FROM public.aterag_chunks WHERE workspace_id = %s",
+            ("_domain_power",),
         ).fetchone()[0]
-        d = conn.execute("SELECT count(*) FROM l0_term.provenance WHERE entity_type = 'decision'").fetchone()[0]
-    print(f"  [ok]   provenance {q} 行 / _domain_power chunks {c} 条 / 决策谱系 {d} 行")
+        dec = conn.execute(
+            "SELECT count(*) FROM l0_term.provenance WHERE entity_type = %s",
+            ("decision",),
+        ).fetchone()[0]
 except Exception as e:  # noqa: BLE001
-    print(f"  [FAIL] 数据库核对失败: {e}")
+    print(f"  [FAIL] 数据库查询失败: {e}")
     raise SystemExit(1)
+
+print(f"  [info] provenance {prov} 行 / 决策谱系 {dec} 行 / _domain_power {chunks} 条")
+if chunks == 0:
+    print("  [FAIL] 领域知识 0 条。离线安装装不了它 —— EmbeddingClient.embed() 必须")
+    print("         打供应商 HTTP, 没有离线路径。联网后执行:")
+    print("           python scripts/build_domain.py power")
+    print("         未装载时 search_cases 的 domain 层恒空而工具照常返回结果,")
+    print("         所以这一项必须红, 不能算通过。")
+    raise SystemExit(1)
+print(f"  [ok]   领域知识已装载 ({chunks} 条)")
 EOF
 then :; else fail=$((fail + 1)); fi
 

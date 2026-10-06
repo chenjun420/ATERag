@@ -7,7 +7,7 @@
 #   3. 依赖(--no-index)—— 断网环境唯一的合法装法
 #   4. 应用文件        —— .env 缺 EMBED_DIM 这类要在写库之前炸
 #   5. 数据库迁移      —— schema 先于数据
-#   6. 知识装载 + 核对 —— 数据进库后立刻对账, 不对账就是「装上了但没生效」
+#   6. 知识前置条件核对 —— 装载本身要外网, 这里只对账并给出补装载命令
 #   7. systemd + 自检  —— 服务起来后跑 verify.sh
 set -euo pipefail
 
@@ -107,10 +107,62 @@ cd "$APP_DIR"
 "$VENV/bin/alembic" upgrade head
 
 # ---------------------------------------------------------------- 6 知识装载
-log "6/7 领域知识装载 + 落地核对"
-"$VENV/bin/python" scripts/build_domain_kb.py --domain power 2>/dev/null \
-    || "$VENV/bin/python" -c "from aterag.kg.materialize import *  # 兜底入口" 2>/dev/null \
-    || echo "  (装载入口缺失, 由 verify.sh 的对账步骤报错)"
+log "6/7 领域知识: 装载要外网, 这里只核对前置条件并与库对账"
+# **这一步不装载, 是实测出来的而不是省事**: 领域规则的每个 chunk 必须带向量
+# 入库, 而向量唯一来源是 EmbeddingClient.embed() —— 它无条件 POST 供应商
+# HTTP (src/aterag/models/embed_client.py:175), 没有离线路径。所以离线安装
+# 装不了它; 硬调只会失败, 或者更糟: 静默灌 0 条而工具照常返回结果。
+# 装载是**联网之后**的一步, 补装载命令见本步末尾。
+#
+# 这里只做离线能确定的两件事:
+#   1. 规则源文件在不在 —— 缺文件的话联网那天必然失败, 现在就该报
+#   2. 与库对账 _domain_power 条数, 并把补装载命令原样打出来
+RULES_DIR="$(grep -E '^DOMAIN_RULES_DIR=' "$ENV_FILE" | tail -1 | cut -d= -f2- || true)"
+RULES_DIR="${RULES_DIR:-domain_rules}"
+if [ -d "$APP_DIR/$RULES_DIR/power" ]; then
+    N_RULES=$(find "$APP_DIR/$RULES_DIR/power" -name '*.yaml' | wc -l | tr -d ' ')
+    echo "  [ok] 规则源在位: $RULES_DIR/power ($N_RULES 个 .yaml)"
+else
+    die "规则源缺失: $APP_DIR/$RULES_DIR/power —— 联网后补装载必然失败"
+fi
+
+# 对账直接查库, 不看任何装载函数的返回值: 中间隔着分块/嵌入/写库, 任何一层
+# 静默失败都只表现为「检索结果少」, 而不表现为报错。
+_CHK="$(mktemp)"
+cat >"$_CHK" <<'PYCHK'
+import sys
+
+sys.path.insert(0, "src")
+import psycopg  # noqa: E402
+
+from aterag.config import get_settings  # noqa: E402
+
+s = get_settings()
+with psycopg.connect(s.postgres_dsn) as conn:
+    print(
+        conn.execute(
+            "SELECT count(*) FROM public.aterag_chunks WHERE workspace_id = %s",
+            ("_domain_power",),
+        ).fetchone()[0]
+    )
+PYCHK
+CHUNKS="$("$VENV/bin/python" "$_CHK" 2>/dev/null || true)"
+rm -f "$_CHK"
+case "$CHUNKS" in
+    ''|*[!0-9]*)
+        echo "  [!!] _domain_power 对账查询失败 —— 装完请手工确认 (verify.sh 第 3 步会再报一次)"
+        ;;
+    0)
+        echo "  [!!] 领域知识**未装载** (_domain_power 0 条)。这不阻塞安装, 但"
+        echo "       domain 层检索会恒空: search_cases 照常返回结果, 只是没有"
+        echo "       领域知识, 看起来一切正常。联网后执行 (需 EMBED_API_KEY):"
+        echo "         cd $APP_DIR && $VENV/bin/python scripts/build_domain.py power"
+        echo "       然后重跑 verify.sh 对账。"
+        ;;
+    *)
+        echo "  [ok] 领域知识已装载 (_domain_power $CHUNKS 条)"
+        ;;
+esac
 
 # ---------------------------------------------------------------- 7 systemd
 log "7/7 systemd 单元"
