@@ -74,6 +74,11 @@ APP_DIR=/opt/aterag bash install.sh
 bash verify.sh
 ```
 
+装到**非默认路径**或在一台正跑着 aterag 的机器上验证本包时, 加 `SYSTEMD_SKIP=1`:
+那三个 service 单元的 `WorkingDirectory` / `ExecStart` / `EnvironmentFile`
+**全写死 `/opt/aterag`**, 不跳过就会用演练目录的单元重启线上服务。跳过时
+脚本会明说跳过了, 不静默略过。
+
 `install.sh` 的步骤与它们各自要挡的失败:
 
 | 步 | 挡什么 |
@@ -83,7 +88,7 @@ bash verify.sh
 | 3 `--no-index` 装依赖 | 断网环境唯一的合法装法; 锁里的 sha256 在这一步再校验一次 |
 | 4 应用文件 + `.env` 断言 | `EMBED_DIM` 缺省会让嵌入落到服务端原生维度(实测 2048)而 pgvector 上限 2000, 表现是「装完检索变差」而不是启动失败 |
 | 5 `alembic upgrade head` | schema 先于数据 |
-| 6 知识装载 + 对账 | 「装上了但没生效」 |
+| 6 领域知识**前置条件核对** + 与库对账 | 规则源缺失(联网补装载必然失败);已装载则报条数, 未装载则**明说**并给出补装载命令 |
 | 7 systemd + 自检 | 服务起来但工具不在册 |
 
 ## 已知边界(不藏)
@@ -97,4 +102,23 @@ bash verify.sh
 - **`.env` 不入包**: 里面有 API key。`install.sh` 在缺 `.env` 时从
   `.env.example` 生成一份并**停下**要求填密钥, 不带着空密钥往下装。
 - **`make_bundle.sh` 需要一次网络**: 下载轮子那一步。装的过程不需要。
+- **领域知识不在包内, 离线也装不了**: 每个 chunk 必须带向量入库, 而向量
+  唯一来源是 `EmbeddingClient.embed()` —— 它无条件 POST 供应商 HTTP
+  (`src/aterag/models/embed_client.py`), **没有离线路径**。所以离线装完
+  `_domain_power` 仍是空的, 此时 `search_cases` 的 domain 层**恒空**, 而
+  工具照常返回结果, 看起来一切正常。`install.sh` 第 6 步与 `verify.sh`
+  第 3 步都会把这件事**显式报出来**(前者给命令, 后者判 FAIL)。
+  联网后补装载:
+
+  ```sh
+  cd /opt/aterag && ./.venv/bin/python scripts/build_domain.py power
+  ```
+
+  该命令**幂等**(先清空该 workspace 再整批写), 重复执行安全。
+- **`.env` 的行尾会被严格对待**: `install.sh` 不再用 shell 解析 `.env`,
+  配置一律问应用自己(pydantic-settings)。实测板卡 `.env` 是 CRLF 行尾,
+  `grep -E | cut -d=` 取值会把 `\r` 带进路径(`domain_rules\r/power`),
+  于是目录不存在而安装中断; 而同一份文件 pydantic-settings 读出的是
+  `domain_rules`。同一配置两个值 —— 所以第二份解析器必须删掉, 不是加
+  `tr -d`。
 - **PG 本身不在包内**: 目标机要自备 PostgreSQL 与 pgvector(与现有部署一致)。
