@@ -2455,7 +2455,7 @@
       }
     },
     {
-      "id": "VOUT_NOM",
+      "id": "VOUT_RATED",
       "name": "额定输出电压",
       "entity_type": "power_concept",
       "text": "VOUT_NOM: 额定输出电压 nominal output voltage",
@@ -2469,9 +2469,7 @@
       "en": "nominal output voltage",
       "synonyms": [
         "额定输出电压",
-        "nominal output voltage",
-        "输出标称电压",
-        "标称输出"
+        "nominal output voltage"
       ],
       "qudt_ref": "PotentialDifference",
       "authority_kind": "unverified",
@@ -2541,7 +2539,25 @@
             }
           ]
         }
-      }
+      },
+      "renamed_from": "VOUT_NOM",
+      "dropped_synonyms": [
+        {
+          "alias": "标称输出电压",
+          "basis": "GB/T 2900.70 442-01-01 vs 442-01-04 定义不同",
+          "state": "already_absent"
+        },
+        {
+          "alias": "标称输出",
+          "basis": "同上",
+          "state": "removed"
+        },
+        {
+          "alias": "输出标称电压",
+          "basis": "同上",
+          "state": "removed"
+        }
+      ]
     },
     {
       "id": "VOUT_TRIM",
@@ -7032,8 +7048,7 @@
       "en": "nominal input voltage",
       "synonyms": [
         "标称输入电压",
-        "nominal input voltage",
-        "额定输入"
+        "nominal input voltage"
       ],
       "authority_kind": "industry",
       "provenance": {
@@ -7124,7 +7139,14 @@
         }
       },
       "original_zh": "额定输入电压",
-      "authority_ref": "GB/T 2900.1 电工术语; IEC 60050-151"
+      "authority_ref": "GB/T 2900.1 电工术语; IEC 60050-151",
+      "dropped_synonyms": [
+        {
+          "alias": "额定输入",
+          "basis": "同上(反向合并)",
+          "state": "removed"
+        }
+      ]
     },
     {
       "id": "COND_VIN_MIN",
@@ -51305,6 +51327,3042 @@
       "derivation": "满载 × xx%"
     },
     {
+      "id": "RATED_VALUE",
+      "name": "额定值",
+      "entity_type": "power_concept",
+      "text": "RATED_VALUE: 额定值 rated value — 通常是由制造商对一部件、装置或设备在规定的工作条件下所规定的一个量值。 [GB/T 2900.70-2008/IEC 60050-442:1998 442-01-01]",
+      "confidence": null,
+      "source": "GB/T 2900.70-2008 §442-01-01",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "额定值",
+      "en": "rated value",
+      "synonyms": [
+        "额定值",
+        "rated value",
+        "额定",
+        "铭牌值"
+      ],
+      "definition": "通常是由制造商对一部件、装置或设备在规定的工作条件下所规定的一个量值。 [GB/T 2900.70-2008/IEC 60050-442:1998 442-01-01]",
+      "definition_verbatim": true,
+      "ie_ref": "151-04-03",
+      "defined_by_standard": "GB/T 2900.70-2008",
+      "standard_section": "442-01-01",
+      "note": "产测判据引用的是这个 —— 它是带条件的保证值。标称值(NOMINAL_VALUE)只用于标识识别, 不承诺性能, 不可直接当判据。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.70-2008 §442-01-01",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "额定值",
+          "sources": [
+            {
+              "document": "GB/T 2900.70-2008 §442-01-01",
+              "section": "GB/T 2900.70-2008 §442-01-01",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "rated value",
+          "sources": [
+            {
+              "document": "GB/T 2900.70-2008 §442-01-01",
+              "section": "GB/T 2900.70-2008 §442-01-01",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "额定值",
+            "rated value",
+            "额定",
+            "铭牌值"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.70-2008 §442-01-01",
+              "section": "GB/T 2900.70-2008 §442-01-01",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "通常是由制造商对一部件、装置或设备在规定的工作条件下所规定的一个量值。 [GB/T 2900.70-2008/IEC 60050-442:1998 442-01-01]",
+          "sources": [
+            {
+              "document": "GB/T 2900.70-2008 §442-01-01",
+              "section": "GB/T 2900.70-2008 §442-01-01",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": true,
+          "sources": [
+            {
+              "document": "GB/T 2900.70-2008 §442-01-01",
+              "section": "GB/T 2900.70-2008 §442-01-01",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "ie_ref": {
+          "property_name": "ie_ref",
+          "value": "151-04-03",
+          "sources": [
+            {
+              "document": "GB/T 2900.70-2008 §442-01-01",
+              "section": "GB/T 2900.70-2008 §442-01-01",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.70-2008",
+          "sources": [
+            {
+              "document": "GB/T 2900.70-2008 §442-01-01",
+              "section": "GB/T 2900.70-2008 §442-01-01",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "442-01-01",
+          "sources": [
+            {
+              "document": "GB/T 2900.70-2008 §442-01-01",
+              "section": "GB/T 2900.70-2008 §442-01-01",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "产测判据引用的是这个 —— 它是带条件的保证值。标称值(NOMINAL_VALUE)只用于标识识别, 不承诺性能, 不可直接当判据。",
+          "sources": [
+            {
+              "document": "GB/T 2900.70-2008 §442-01-01",
+              "section": "GB/T 2900.70-2008 §442-01-01",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "NOMINAL_VALUE",
+      "name": "标称值",
+      "entity_type": "power_concept",
+      "text": "NOMINAL_VALUE: 标称值 nominal value — 用以标志或识别某一部件、装置或设备的合适的近似量值。 [GB/T 2900.70-2008/IEC 60050-442:1998 442-01-04]",
+      "confidence": null,
+      "source": "GB/T 2900.70-2008 §442-01-04",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "标称值",
+      "en": "nominal value",
+      "synonyms": [
+        "标称值",
+        "nominal value",
+        "标称",
+        "名义值"
+      ],
+      "definition": "用以标志或识别某一部件、装置或设备的合适的近似量值。 [GB/T 2900.70-2008/IEC 60050-442:1998 442-01-04]",
+      "definition_verbatim": true,
+      "ie_ref": "151-04-01",
+      "defined_by_standard": "GB/T 2900.70-2008",
+      "standard_section": "442-01-04",
+      "note": "是**近似标识值**, 不承诺任何性能。不可与 RATED_VALUE 互为同义词 —— PA601 里「标称输入电压范围 100~127Vac」与「输入工作电压范围 88~290Vac」并存, 若把标称当额定, 产测激励点会取错。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.70-2008 §442-01-04",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "标称值",
+          "sources": [
+            {
+              "document": "GB/T 2900.70-2008 §442-01-04",
+              "section": "GB/T 2900.70-2008 §442-01-04",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "nominal value",
+          "sources": [
+            {
+              "document": "GB/T 2900.70-2008 §442-01-04",
+              "section": "GB/T 2900.70-2008 §442-01-04",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "标称值",
+            "nominal value",
+            "标称",
+            "名义值"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.70-2008 §442-01-04",
+              "section": "GB/T 2900.70-2008 §442-01-04",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "用以标志或识别某一部件、装置或设备的合适的近似量值。 [GB/T 2900.70-2008/IEC 60050-442:1998 442-01-04]",
+          "sources": [
+            {
+              "document": "GB/T 2900.70-2008 §442-01-04",
+              "section": "GB/T 2900.70-2008 §442-01-04",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": true,
+          "sources": [
+            {
+              "document": "GB/T 2900.70-2008 §442-01-04",
+              "section": "GB/T 2900.70-2008 §442-01-04",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "ie_ref": {
+          "property_name": "ie_ref",
+          "value": "151-04-01",
+          "sources": [
+            {
+              "document": "GB/T 2900.70-2008 §442-01-04",
+              "section": "GB/T 2900.70-2008 §442-01-04",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.70-2008",
+          "sources": [
+            {
+              "document": "GB/T 2900.70-2008 §442-01-04",
+              "section": "GB/T 2900.70-2008 §442-01-04",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "442-01-04",
+          "sources": [
+            {
+              "document": "GB/T 2900.70-2008 §442-01-04",
+              "section": "GB/T 2900.70-2008 §442-01-04",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "是**近似标识值**, 不承诺任何性能。不可与 RATED_VALUE 互为同义词 —— PA601 里「标称输入电压范围 100~127Vac」与「输入工作电压范围 88~290Vac」并存, 若把标称当额定, 产测激励点会取错。",
+          "sources": [
+            {
+              "document": "GB/T 2900.70-2008 §442-01-04",
+              "section": "GB/T 2900.70-2008 §442-01-04",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "GAIN_CROSSOVER_FREQ",
+      "name": "增益交越角频率",
+      "entity_type": "power_concept",
+      "text": "GAIN_CROSSOVER_FREQ: 增益交越角频率 gain crossover (angular) frequency — 开环增益响应值为1处的角频率。",
+      "confidence": null,
+      "source": "GB/T 2900.56-2008 §351-25-04",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "增益交越角频率",
+      "en": "gain crossover (angular) frequency",
+      "synonyms": [
+        "增益交越角频率",
+        "gain crossover frequency",
+        "交越频率",
+        "穿越频率"
+      ],
+      "definition": "开环增益响应值为1处的角频率。",
+      "definition_verbatim": true,
+      "defined_by_standard": "GB/T 2900.56-2008",
+      "standard_section": "351-25-04",
+      "note": "K-LOOP-001 的判据对象(交越频率须低于开关频率的一半)。标准用的全称是「增益交越角频率」, 规则与规格书里简写「交越频率」—— 别名收录简写, 但 name 用标准全称。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.56-2008 §351-25-04",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "增益交越角频率",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-04",
+              "section": "GB/T 2900.56-2008 §351-25-04",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "gain crossover (angular) frequency",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-04",
+              "section": "GB/T 2900.56-2008 §351-25-04",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "增益交越角频率",
+            "gain crossover frequency",
+            "交越频率",
+            "穿越频率"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-04",
+              "section": "GB/T 2900.56-2008 §351-25-04",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "开环增益响应值为1处的角频率。",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-04",
+              "section": "GB/T 2900.56-2008 §351-25-04",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": true,
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-04",
+              "section": "GB/T 2900.56-2008 §351-25-04",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.56-2008",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-04",
+              "section": "GB/T 2900.56-2008 §351-25-04",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "351-25-04",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-04",
+              "section": "GB/T 2900.56-2008 §351-25-04",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "K-LOOP-001 的判据对象(交越频率须低于开关频率的一半)。标准用的全称是「增益交越角频率」, 规则与规格书里简写「交越频率」—— 别名收录简写, 但 name 用标准全称。",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-04",
+              "section": "GB/T 2900.56-2008 §351-25-04",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "PHASE_MARGIN",
+      "name": "相位裕度",
+      "entity_type": "power_concept",
+      "text": "PHASE_MARGIN: 相位裕度 phase margin — 增益交越频率上的开环相位响应与一（-180°）弧度之差。",
+      "confidence": null,
+      "source": "GB/T 2900.56-2008 §351-25-05",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "相位裕度",
+      "en": "phase margin",
+      "synonyms": [
+        "相位裕度",
+        "phase margin",
+        "相角裕度"
+      ],
+      "definition": "增益交越频率上的开环相位响应与一（-180°）弧度之差。",
+      "definition_verbatim": true,
+      "defined_by_standard": "GB/T 2900.56-2008",
+      "standard_section": "351-25-05",
+      "note": "K-LOOP-002 的判据对象。定义里的「一(−180°)弧度之差」是关键: 差值为**正**才有裕度。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.56-2008 §351-25-05",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "相位裕度",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-05",
+              "section": "GB/T 2900.56-2008 §351-25-05",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "phase margin",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-05",
+              "section": "GB/T 2900.56-2008 §351-25-05",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "相位裕度",
+            "phase margin",
+            "相角裕度"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-05",
+              "section": "GB/T 2900.56-2008 §351-25-05",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "增益交越频率上的开环相位响应与一（-180°）弧度之差。",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-05",
+              "section": "GB/T 2900.56-2008 §351-25-05",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": true,
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-05",
+              "section": "GB/T 2900.56-2008 §351-25-05",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.56-2008",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-05",
+              "section": "GB/T 2900.56-2008 §351-25-05",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "351-25-05",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-05",
+              "section": "GB/T 2900.56-2008 §351-25-05",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "K-LOOP-002 的判据对象。定义里的「一(−180°)弧度之差」是关键: 差值为**正**才有裕度。",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-05",
+              "section": "GB/T 2900.56-2008 §351-25-05",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "PHASE_CROSSOVER_FREQ",
+      "name": "相位交越角频率",
+      "entity_type": "power_concept",
+      "text": "PHASE_CROSSOVER_FREQ: 相位交越角频率 phase crossover (angular) frequency — 开环相位响应为-π弧度处的最低角频率。",
+      "confidence": null,
+      "source": "GB/T 2900.56-2008 §351-25-06",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "相位交越角频率",
+      "en": "phase crossover (angular) frequency",
+      "synonyms": [
+        "相位交越角频率",
+        "phase crossover frequency",
+        "相位穿越频率"
+      ],
+      "definition": "开环相位响应为-π弧度处的最低角频率。",
+      "definition_verbatim": true,
+      "defined_by_standard": "GB/T 2900.56-2008",
+      "standard_section": "351-25-06",
+      "note": "增益裕度是在**这个**频率上取的 —— 两条规则/术语必须成对使用, 混用会取错点。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.56-2008 §351-25-06",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "相位交越角频率",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-06",
+              "section": "GB/T 2900.56-2008 §351-25-06",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "phase crossover (angular) frequency",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-06",
+              "section": "GB/T 2900.56-2008 §351-25-06",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "相位交越角频率",
+            "phase crossover frequency",
+            "相位穿越频率"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-06",
+              "section": "GB/T 2900.56-2008 §351-25-06",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "开环相位响应为-π弧度处的最低角频率。",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-06",
+              "section": "GB/T 2900.56-2008 §351-25-06",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": true,
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-06",
+              "section": "GB/T 2900.56-2008 §351-25-06",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.56-2008",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-06",
+              "section": "GB/T 2900.56-2008 §351-25-06",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "351-25-06",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-06",
+              "section": "GB/T 2900.56-2008 §351-25-06",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "增益裕度是在**这个**频率上取的 —— 两条规则/术语必须成对使用, 混用会取错点。",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-06",
+              "section": "GB/T 2900.56-2008 §351-25-06",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "GAIN_MARGIN",
+      "name": "增益裕度",
+      "entity_type": "power_concept",
+      "text": "GAIN_MARGIN: 增益裕度 gain margin — 相位交越频率上开环增益响应的倒数值。注: 开环增益响应的对数表示中，增益裕度的值1/G可以当作相位交越频率上的负对数-lgG。",
+      "confidence": null,
+      "source": "GB/T 2900.56-2008 §351-25-07",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "增益裕度",
+      "en": "gain margin",
+      "synonyms": [
+        "增益裕度",
+        "gain margin",
+        "幅值裕度"
+      ],
+      "definition": "相位交越频率上开环增益响应的倒数值。注: 开环增益响应的对数表示中，增益裕度的值1/G可以当作相位交越频率上的负对数-lgG。",
+      "definition_verbatim": true,
+      "defined_by_standard": "GB/T 2900.56-2008",
+      "standard_section": "351-25-07",
+      "note": "K-LOOP-003 的判据对象。定义是「倒数值」, 报数时别直接报成 dB —— 标准给的是比值。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.56-2008 §351-25-07",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "增益裕度",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-07",
+              "section": "GB/T 2900.56-2008 §351-25-07",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "gain margin",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-07",
+              "section": "GB/T 2900.56-2008 §351-25-07",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "增益裕度",
+            "gain margin",
+            "幅值裕度"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-07",
+              "section": "GB/T 2900.56-2008 §351-25-07",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "相位交越频率上开环增益响应的倒数值。注: 开环增益响应的对数表示中，增益裕度的值1/G可以当作相位交越频率上的负对数-lgG。",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-07",
+              "section": "GB/T 2900.56-2008 §351-25-07",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": true,
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-07",
+              "section": "GB/T 2900.56-2008 §351-25-07",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.56-2008",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-07",
+              "section": "GB/T 2900.56-2008 §351-25-07",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "351-25-07",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-07",
+              "section": "GB/T 2900.56-2008 §351-25-07",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "K-LOOP-003 的判据对象。定义是「倒数值」, 报数时别直接报成 dB —— 标准给的是比值。",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-07",
+              "section": "GB/T 2900.56-2008 §351-25-07",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "FUNDAMENTAL_FREQUENCY",
+      "name": "基波频率",
+      "entity_type": "power_concept",
+      "text": "FUNDAMENTAL_FREQUENCY: 基波频率 fundamental frequency — 基波分量的频率。",
+      "confidence": null,
+      "source": "GB/T 2900.33-2004 §551-20-03",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "基波频率",
+      "en": "fundamental frequency",
+      "synonyms": [
+        "基波频率",
+        "fundamental frequency",
+        "基频"
+      ],
+      "definition": "基波分量的频率。",
+      "definition_verbatim": true,
+      "defined_by_standard": "GB/T 2900.33-2004",
+      "standard_section": "551-20-03",
+      "note": "谐波族一切术语的基准 —— 谐波次数是「与基波频率之比」, 没有它这族无从定义。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.33-2004 §551-20-03",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "基波频率",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-03",
+              "section": "GB/T 2900.33-2004 §551-20-03",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "fundamental frequency",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-03",
+              "section": "GB/T 2900.33-2004 §551-20-03",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "基波频率",
+            "fundamental frequency",
+            "基频"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-03",
+              "section": "GB/T 2900.33-2004 §551-20-03",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "基波分量的频率。",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-03",
+              "section": "GB/T 2900.33-2004 §551-20-03",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": true,
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-03",
+              "section": "GB/T 2900.33-2004 §551-20-03",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.33-2004",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-03",
+              "section": "GB/T 2900.33-2004 §551-20-03",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "551-20-03",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-03",
+              "section": "GB/T 2900.33-2004 §551-20-03",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "谐波族一切术语的基准 —— 谐波次数是「与基波频率之比」, 没有它这族无从定义。",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-03",
+              "section": "GB/T 2900.33-2004 §551-20-03",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "HARMONIC_FREQUENCY",
+      "name": "谐波频率",
+      "entity_type": "power_concept",
+      "text": "HARMONIC_FREQUENCY: 谐波频率 harmonic frequency — 频率为基波频率整数倍的频率。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.33-2004 §551-20-05 术语清单, 定义正文未逐字核对]",
+      "confidence": null,
+      "source": "GB/T 2900.33-2004 §551-20-05",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "谐波频率",
+      "en": "harmonic frequency",
+      "synonyms": [
+        "谐波频率",
+        "harmonic frequency",
+        "n次谐波频率"
+      ],
+      "definition": "频率为基波频率整数倍的频率。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.33-2004 §551-20-05 术语清单, 定义正文未逐字核对]",
+      "definition_verbatim": false,
+      "defined_by_standard": "GB/T 2900.33-2004",
+      "standard_section": "551-20-05",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.33-2004 §551-20-05",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "谐波频率",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-05",
+              "section": "GB/T 2900.33-2004 §551-20-05",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "harmonic frequency",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-05",
+              "section": "GB/T 2900.33-2004 §551-20-05",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "谐波频率",
+            "harmonic frequency",
+            "n次谐波频率"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-05",
+              "section": "GB/T 2900.33-2004 §551-20-05",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "频率为基波频率整数倍的频率。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.33-2004 §551-20-05 术语清单, 定义正文未逐字核对]",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-05",
+              "section": "GB/T 2900.33-2004 §551-20-05",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": false,
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-05",
+              "section": "GB/T 2900.33-2004 §551-20-05",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.33-2004",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-05",
+              "section": "GB/T 2900.33-2004 §551-20-05",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "551-20-05",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-05",
+              "section": "GB/T 2900.33-2004 §551-20-05",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "HARMONIC_COMPONENT",
+      "name": "谐波分量",
+      "entity_type": "power_concept",
+      "text": "HARMONIC_COMPONENT: 谐波分量 harmonic component — 周期量的傅里叶级数中次数大于1的分量。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.33-2004 §551-20-07 术语清单, 定义正文未逐字核对]",
+      "confidence": null,
+      "source": "GB/T 2900.33-2004 §551-20-07",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "谐波分量",
+      "en": "harmonic component",
+      "synonyms": [
+        "谐波分量",
+        "harmonic component",
+        "谐波"
+      ],
+      "definition": "周期量的傅里叶级数中次数大于1的分量。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.33-2004 §551-20-07 术语清单, 定义正文未逐字核对]",
+      "definition_verbatim": false,
+      "defined_by_standard": "GB/T 2900.33-2004",
+      "standard_section": "551-20-07",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.33-2004 §551-20-07",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "谐波分量",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-07",
+              "section": "GB/T 2900.33-2004 §551-20-07",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "harmonic component",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-07",
+              "section": "GB/T 2900.33-2004 §551-20-07",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "谐波分量",
+            "harmonic component",
+            "谐波"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-07",
+              "section": "GB/T 2900.33-2004 §551-20-07",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "周期量的傅里叶级数中次数大于1的分量。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.33-2004 §551-20-07 术语清单, 定义正文未逐字核对]",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-07",
+              "section": "GB/T 2900.33-2004 §551-20-07",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": false,
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-07",
+              "section": "GB/T 2900.33-2004 §551-20-07",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.33-2004",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-07",
+              "section": "GB/T 2900.33-2004 §551-20-07",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "551-20-07",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-07",
+              "section": "GB/T 2900.33-2004 §551-20-07",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "HARMONIC_ORDER",
+      "name": "谐波次数",
+      "entity_type": "power_concept",
+      "text": "HARMONIC_ORDER: 谐波次数 harmonic order — 谐波频率与基波频率之比, 为正整数。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.33-2004 §551-20-09 术语清单, 定义正文未逐字核对]",
+      "confidence": null,
+      "source": "GB/T 2900.33-2004 §551-20-09",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "谐波次数",
+      "en": "harmonic order",
+      "synonyms": [
+        "谐波次数",
+        "harmonic order",
+        "谐波阶数",
+        "谐波序次"
+      ],
+      "definition": "谐波频率与基波频率之比, 为正整数。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.33-2004 §551-20-09 术语清单, 定义正文未逐字核对]",
+      "definition_verbatim": false,
+      "defined_by_standard": "GB/T 2900.33-2004",
+      "standard_section": "551-20-09",
+      "note": "IEC 60050-161 的 EMC 部分注: 谐波次数又称谐波阶数(harmonic order) —— 两个中文名同一条, 收录避免检索分裂。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.33-2004 §551-20-09",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "谐波次数",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-09",
+              "section": "GB/T 2900.33-2004 §551-20-09",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "harmonic order",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-09",
+              "section": "GB/T 2900.33-2004 §551-20-09",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "谐波次数",
+            "harmonic order",
+            "谐波阶数",
+            "谐波序次"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-09",
+              "section": "GB/T 2900.33-2004 §551-20-09",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "谐波频率与基波频率之比, 为正整数。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.33-2004 §551-20-09 术语清单, 定义正文未逐字核对]",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-09",
+              "section": "GB/T 2900.33-2004 §551-20-09",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": false,
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-09",
+              "section": "GB/T 2900.33-2004 §551-20-09",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.33-2004",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-09",
+              "section": "GB/T 2900.33-2004 §551-20-09",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "551-20-09",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-09",
+              "section": "GB/T 2900.33-2004 §551-20-09",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "IEC 60050-161 的 EMC 部分注: 谐波次数又称谐波阶数(harmonic order) —— 两个中文名同一条, 收录避免检索分裂。",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-09",
+              "section": "GB/T 2900.33-2004 §551-20-09",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "HARMONIC_CONTENT",
+      "name": "谐波残量",
+      "entity_type": "power_concept",
+      "text": "HARMONIC_CONTENT: 谐波残量 harmonic content — 从一交变量中减去其基波分量后所得到的量。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.33-2004 §551-20-12 术语清单, 定义正文未逐字核对]",
+      "confidence": null,
+      "source": "GB/T 2900.33-2004 §551-20-12",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "谐波残量",
+      "en": "harmonic content",
+      "synonyms": [
+        "谐波残量",
+        "harmonic content",
+        "谐波含量"
+      ],
+      "definition": "从一交变量中减去其基波分量后所得到的量。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.33-2004 §551-20-12 术语清单, 定义正文未逐字核对]",
+      "definition_verbatim": false,
+      "defined_by_standard": "GB/T 2900.33-2004",
+      "standard_section": "551-20-12",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.33-2004 §551-20-12",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "谐波残量",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-12",
+              "section": "GB/T 2900.33-2004 §551-20-12",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "harmonic content",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-12",
+              "section": "GB/T 2900.33-2004 §551-20-12",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "谐波残量",
+            "harmonic content",
+            "谐波含量"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-12",
+              "section": "GB/T 2900.33-2004 §551-20-12",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "从一交变量中减去其基波分量后所得到的量。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.33-2004 §551-20-12 术语清单, 定义正文未逐字核对]",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-12",
+              "section": "GB/T 2900.33-2004 §551-20-12",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": false,
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-12",
+              "section": "GB/T 2900.33-2004 §551-20-12",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.33-2004",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-12",
+              "section": "GB/T 2900.33-2004 §551-20-12",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "551-20-12",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-12",
+              "section": "GB/T 2900.33-2004 §551-20-12",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "TOTAL_HARMONIC_RATIO",
+      "name": "总谐波比率",
+      "entity_type": "power_concept",
+      "text": "TOTAL_HARMONIC_RATIO: 总谐波比率 total harmonic ratio — 总谐波比率(THD)—— 全部谐波分量的均方根值与基波分量均方根值之比。注: 分母取基波而非总量, 是 THD 与总失真比率(TDR)的唯一区别。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.33-2004 §551-20-13 术语清单, 定义正文未逐字核对]",
+      "confidence": null,
+      "source": "GB/T 2900.33-2004 §551-20-13",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "总谐波比率",
+      "en": "total harmonic ratio",
+      "synonyms": [
+        "总谐波比率",
+        "total harmonic ratio",
+        "THD",
+        "总谐波失真",
+        "总谐波畸变率"
+      ],
+      "definition": "总谐波比率(THD)—— 全部谐波分量的均方根值与基波分量均方根值之比。注: 分母取基波而非总量, 是 THD 与总失真比率(TDR)的唯一区别。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.33-2004 §551-20-13 术语清单, 定义正文未逐字核对]",
+      "definition_verbatim": false,
+      "defined_by_standard": "GB/T 2900.33-2004",
+      "standard_section": "551-20-13",
+      "note": "常见误用: 把「总谐波比率」与「总失真比率」混着报 —— 前者分母是基波, 后者是总量。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.33-2004 §551-20-13",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "总谐波比率",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-13",
+              "section": "GB/T 2900.33-2004 §551-20-13",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "total harmonic ratio",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-13",
+              "section": "GB/T 2900.33-2004 §551-20-13",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "总谐波比率",
+            "total harmonic ratio",
+            "THD",
+            "总谐波失真",
+            "总谐波畸变率"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-13",
+              "section": "GB/T 2900.33-2004 §551-20-13",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "总谐波比率(THD)—— 全部谐波分量的均方根值与基波分量均方根值之比。注: 分母取基波而非总量, 是 THD 与总失真比率(TDR)的唯一区别。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.33-2004 §551-20-13 术语清单, 定义正文未逐字核对]",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-13",
+              "section": "GB/T 2900.33-2004 §551-20-13",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": false,
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-13",
+              "section": "GB/T 2900.33-2004 §551-20-13",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.33-2004",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-13",
+              "section": "GB/T 2900.33-2004 §551-20-13",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "551-20-13",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-13",
+              "section": "GB/T 2900.33-2004 §551-20-13",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "常见误用: 把「总谐波比率」与「总失真比率」混着报 —— 前者分母是基波, 后者是总量。",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-13",
+              "section": "GB/T 2900.33-2004 §551-20-13",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "TOTAL_DISTORTION_RATIO",
+      "name": "总失真比率",
+      "entity_type": "power_concept",
+      "text": "TOTAL_DISTORTION_RATIO: 总失真比率 total distortion ratio — 全部谐波与间谐波分量的均方根值与交变量总均方根值之比。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.33-2004 §551-20-14 术语清单, 定义正文未逐字核对]",
+      "confidence": null,
+      "source": "GB/T 2900.33-2004 §551-20-14",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "总失真比率",
+      "en": "total distortion ratio",
+      "synonyms": [
+        "总失真比率",
+        "total distortion ratio",
+        "TDR"
+      ],
+      "definition": "全部谐波与间谐波分量的均方根值与交变量总均方根值之比。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.33-2004 §551-20-14 术语清单, 定义正文未逐字核对]",
+      "definition_verbatim": false,
+      "defined_by_standard": "GB/T 2900.33-2004",
+      "standard_section": "551-20-14",
+      "note": "含间谐波且分母是总量 —— 这两点是与 TOTAL_HARMONIC_RATIO 的区别, 判据引用时要写明用哪个。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.33-2004 §551-20-14",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "总失真比率",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-14",
+              "section": "GB/T 2900.33-2004 §551-20-14",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "total distortion ratio",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-14",
+              "section": "GB/T 2900.33-2004 §551-20-14",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "总失真比率",
+            "total distortion ratio",
+            "TDR"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-14",
+              "section": "GB/T 2900.33-2004 §551-20-14",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "全部谐波与间谐波分量的均方根值与交变量总均方根值之比。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.33-2004 §551-20-14 术语清单, 定义正文未逐字核对]",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-14",
+              "section": "GB/T 2900.33-2004 §551-20-14",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": false,
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-14",
+              "section": "GB/T 2900.33-2004 §551-20-14",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.33-2004",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-14",
+              "section": "GB/T 2900.33-2004 §551-20-14",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "551-20-14",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-14",
+              "section": "GB/T 2900.33-2004 §551-20-14",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "含间谐波且分母是总量 —— 这两点是与 TOTAL_HARMONIC_RATIO 的区别, 判据引用时要写明用哪个。",
+          "sources": [
+            {
+              "document": "GB/T 2900.33-2004 §551-20-14",
+              "section": "GB/T 2900.33-2004 §551-20-14",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "RIPPLE",
+      "name": "纹波",
+      "entity_type": "power_concept",
+      "text": "RIPPLE: 纹波 ripple — 发生在与电网电源或某些确定的源(如斩波器)有关的频率上的，围绕被测量或供给量的一组不希望有的周期性偏移。注: 纹波是周期和(或)随机偏移(PARD)的一部分，规定条件下测定。",
+      "confidence": null,
+      "source": "GB/T 2900.89-2012 §312-07-02",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "纹波",
+      "en": "ripple",
+      "synonyms": [
+        "纹波",
+        "ripple"
+      ],
+      "definition": "发生在与电网电源或某些确定的源(如斩波器)有关的频率上的，围绕被测量或供给量的一组不希望有的周期性偏移。注: 纹波是周期和(或)随机偏移(PARD)的一部分，规定条件下测定。",
+      "definition_verbatim": true,
+      "defined_by_standard": "GB/T 2900.89-2012",
+      "standard_section": "312-07-02",
+      "note": "抽象父概念。下位见 TRIPPLE_OUTPUT(输出纹波)与输入纹波 —— 定义里「与电源/斩波器有关的频率」是关键: 开关频率上的周期性偏移才是纹波, 随机噪声不是(那是 NOISE, 312-07-04)。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.89-2012 §312-07-02",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "纹波",
+          "sources": [
+            {
+              "document": "GB/T 2900.89-2012 §312-07-02",
+              "section": "GB/T 2900.89-2012 §312-07-02",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "ripple",
+          "sources": [
+            {
+              "document": "GB/T 2900.89-2012 §312-07-02",
+              "section": "GB/T 2900.89-2012 §312-07-02",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "纹波",
+            "ripple"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.89-2012 §312-07-02",
+              "section": "GB/T 2900.89-2012 §312-07-02",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "发生在与电网电源或某些确定的源(如斩波器)有关的频率上的，围绕被测量或供给量的一组不希望有的周期性偏移。注: 纹波是周期和(或)随机偏移(PARD)的一部分，规定条件下测定。",
+          "sources": [
+            {
+              "document": "GB/T 2900.89-2012 §312-07-02",
+              "section": "GB/T 2900.89-2012 §312-07-02",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": true,
+          "sources": [
+            {
+              "document": "GB/T 2900.89-2012 §312-07-02",
+              "section": "GB/T 2900.89-2012 §312-07-02",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.89-2012",
+          "sources": [
+            {
+              "document": "GB/T 2900.89-2012 §312-07-02",
+              "section": "GB/T 2900.89-2012 §312-07-02",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "312-07-02",
+          "sources": [
+            {
+              "document": "GB/T 2900.89-2012 §312-07-02",
+              "section": "GB/T 2900.89-2012 §312-07-02",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "抽象父概念。下位见 TRIPPLE_OUTPUT(输出纹波)与输入纹波 —— 定义里「与电源/斩波器有关的频率」是关键: 开关频率上的周期性偏移才是纹波, 随机噪声不是(那是 NOISE, 312-07-04)。",
+          "sources": [
+            {
+              "document": "GB/T 2900.89-2012 §312-07-02",
+              "section": "GB/T 2900.89-2012 §312-07-02",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "NOISE",
+      "name": "噪声",
+      "entity_type": "power_concept",
+      "text": "NOISE: 噪声 noise — 围绕被测量或供给量的非周期性偏移。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.89-2012 §312-07-04 术语清单, 定义正文未逐字核对]",
+      "confidence": null,
+      "source": "GB/T 2900.89-2012 §312-07-04",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "噪声",
+      "en": "noise",
+      "synonyms": [
+        "噪声",
+        "noise"
+      ],
+      "definition": "围绕被测量或供给量的非周期性偏移。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.89-2012 §312-07-04 术语清单, 定义正文未逐字核对]",
+      "definition_verbatim": false,
+      "defined_by_standard": "GB/T 2900.89-2012",
+      "standard_section": "312-07-04",
+      "note": "与 RIPPLE 的分界是**周期性**: 开关频率上的偏移是纹波, 随机偏移是噪声。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.89-2012 §312-07-04",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "噪声",
+          "sources": [
+            {
+              "document": "GB/T 2900.89-2012 §312-07-04",
+              "section": "GB/T 2900.89-2012 §312-07-04",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "noise",
+          "sources": [
+            {
+              "document": "GB/T 2900.89-2012 §312-07-04",
+              "section": "GB/T 2900.89-2012 §312-07-04",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "噪声",
+            "noise"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.89-2012 §312-07-04",
+              "section": "GB/T 2900.89-2012 §312-07-04",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "围绕被测量或供给量的非周期性偏移。 [释义由本项目撰写 —— 条款号已核对 GB/T 2900.89-2012 §312-07-04 术语清单, 定义正文未逐字核对]",
+          "sources": [
+            {
+              "document": "GB/T 2900.89-2012 §312-07-04",
+              "section": "GB/T 2900.89-2012 §312-07-04",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": false,
+          "sources": [
+            {
+              "document": "GB/T 2900.89-2012 §312-07-04",
+              "section": "GB/T 2900.89-2012 §312-07-04",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.89-2012",
+          "sources": [
+            {
+              "document": "GB/T 2900.89-2012 §312-07-04",
+              "section": "GB/T 2900.89-2012 §312-07-04",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "312-07-04",
+          "sources": [
+            {
+              "document": "GB/T 2900.89-2012 §312-07-04",
+              "section": "GB/T 2900.89-2012 §312-07-04",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "与 RIPPLE 的分界是**周期性**: 开关频率上的偏移是纹波, 随机偏移是噪声。",
+          "sources": [
+            {
+              "document": "GB/T 2900.89-2012 §312-07-04",
+              "section": "GB/T 2900.89-2012 §312-07-04",
+              "line": null,
+              "confidence": 0.85,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "STEADY_STATE",
+      "name": "稳态",
+      "entity_type": "power_concept",
+      "text": "STEADY_STATE: 稳态 steady state — 在所有瞬态效应消失后，当所有输入变量保持恒定时系统所维持的状态。[101-14-01 MOD]",
+      "confidence": null,
+      "source": "GB/T 2900.56-2008 §351-24-09",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "稳态",
+      "en": "steady state",
+      "synonyms": [
+        "稳态",
+        "steady state"
+      ],
+      "definition": "在所有瞬态效应消失后，当所有输入变量保持恒定时系统所维持的状态。[101-14-01 MOD]",
+      "definition_verbatim": true,
+      "defined_by_standard": "GB/T 2900.56-2008",
+      "standard_section": "351-24-09",
+      "note": "判据里「稳态值/稳态精度」说的是它 —— 前提是「瞬态已消失」, 产测取样点必须落在稳态段。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.56-2008 §351-24-09",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "稳态",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-09",
+              "section": "GB/T 2900.56-2008 §351-24-09",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "steady state",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-09",
+              "section": "GB/T 2900.56-2008 §351-24-09",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "稳态",
+            "steady state"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-09",
+              "section": "GB/T 2900.56-2008 §351-24-09",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "在所有瞬态效应消失后，当所有输入变量保持恒定时系统所维持的状态。[101-14-01 MOD]",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-09",
+              "section": "GB/T 2900.56-2008 §351-24-09",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": true,
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-09",
+              "section": "GB/T 2900.56-2008 §351-24-09",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.56-2008",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-09",
+              "section": "GB/T 2900.56-2008 §351-24-09",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "351-24-09",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-09",
+              "section": "GB/T 2900.56-2008 §351-24-09",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "判据里「稳态值/稳态精度」说的是它 —— 前提是「瞬态已消失」, 产测取样点必须落在稳态段。",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-09",
+              "section": "GB/T 2900.56-2008 §351-24-09",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "SETTLING_TIME",
+      "name": "建立时间",
+      "entity_type": "power_concept",
+      "text": "SETTLING_TIME: 建立时间 settling time — 过渡过程时间。对于阶跃响应，从输入变量发生阶跃变化的时刻起，至阶跃响应和其稳态值之差保持小于瞬态值允差的时刻的持续时间间隔。",
+      "confidence": null,
+      "source": "GB/T 2900.56-2008 §351-24-29",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "建立时间",
+      "en": "settling time",
+      "synonyms": [
+        "建立时间",
+        "settling time",
+        "调节时间",
+        "调整时间",
+        "过渡过程时间"
+      ],
+      "definition": "过渡过程时间。对于阶跃响应，从输入变量发生阶跃变化的时刻起，至阶跃响应和其稳态值之差保持小于瞬态值允差的时刻的持续时间间隔。",
+      "definition_verbatim": true,
+      "defined_by_standard": "GB/T 2900.56-2008",
+      "standard_section": "351-24-29",
+      "note": "通用条目。控制系统的行为与特性另有 CONTROL_SETTLING_TIME(§351-25-02), 要求「返回允差带并保持在允差带范围内」—— 两个数可能不等, 判据引用要写明是哪一条。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.56-2008 §351-24-29",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "建立时间",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-29",
+              "section": "GB/T 2900.56-2008 §351-24-29",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "settling time",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-29",
+              "section": "GB/T 2900.56-2008 §351-24-29",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "建立时间",
+            "settling time",
+            "调节时间",
+            "调整时间",
+            "过渡过程时间"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-29",
+              "section": "GB/T 2900.56-2008 §351-24-29",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "过渡过程时间。对于阶跃响应，从输入变量发生阶跃变化的时刻起，至阶跃响应和其稳态值之差保持小于瞬态值允差的时刻的持续时间间隔。",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-29",
+              "section": "GB/T 2900.56-2008 §351-24-29",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": true,
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-29",
+              "section": "GB/T 2900.56-2008 §351-24-29",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.56-2008",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-29",
+              "section": "GB/T 2900.56-2008 §351-24-29",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "351-24-29",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-29",
+              "section": "GB/T 2900.56-2008 §351-24-29",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "通用条目。控制系统的行为与特性另有 CONTROL_SETTLING_TIME(§351-25-02), 要求「返回允差带并保持在允差带范围内」—— 两个数可能不等, 判据引用要写明是哪一条。",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-29",
+              "section": "GB/T 2900.56-2008 §351-24-29",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "CONTROL_RISE_TIME",
+      "name": "控制上升时间",
+      "entity_type": "power_concept",
+      "text": "CONTROL_RISE_TIME: 控制上升时间 control rise time — 在参比变量或扰动变量发生阶跃变化后，从被控变量第一次偏离其期望值附近的规定允差带开始，到被控变量第一次返回允差带为止的持续时间间隔。",
+      "confidence": null,
+      "source": "GB/T 2900.56-2008 §351-25-01",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "控制上升时间",
+      "en": "control rise time",
+      "synonyms": [
+        "控制上升时间",
+        "control rise time",
+        "上升时间",
+        "rise time"
+      ],
+      "definition": "在参比变量或扰动变量发生阶跃变化后，从被控变量第一次偏离其期望值附近的规定允差带开始，到被控变量第一次返回允差带为止的持续时间间隔。",
+      "definition_verbatim": true,
+      "defined_by_standard": "GB/T 2900.56-2008",
+      "standard_section": "351-25-01",
+      "note": "注意: 控制上升时间**不是**「从 10% 到 90%」那个常见的 10-90 定义 ——标准取的是「离开允差带到首次返回允差带」。引号引到 10-90 定义会与标准值不可比。下位: VOUT_RISE_TIME(输出电压上升时间)。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.56-2008 §351-25-01",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "控制上升时间",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-01",
+              "section": "GB/T 2900.56-2008 §351-25-01",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "control rise time",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-01",
+              "section": "GB/T 2900.56-2008 §351-25-01",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "控制上升时间",
+            "control rise time",
+            "上升时间",
+            "rise time"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-01",
+              "section": "GB/T 2900.56-2008 §351-25-01",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "在参比变量或扰动变量发生阶跃变化后，从被控变量第一次偏离其期望值附近的规定允差带开始，到被控变量第一次返回允差带为止的持续时间间隔。",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-01",
+              "section": "GB/T 2900.56-2008 §351-25-01",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": true,
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-01",
+              "section": "GB/T 2900.56-2008 §351-25-01",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.56-2008",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-01",
+              "section": "GB/T 2900.56-2008 §351-25-01",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "351-25-01",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-01",
+              "section": "GB/T 2900.56-2008 §351-25-01",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "注意: 控制上升时间**不是**「从 10% 到 90%」那个常见的 10-90 定义 ——标准取的是「离开允差带到首次返回允差带」。引号引到 10-90 定义会与标准值不可比。下位: VOUT_RISE_TIME(输出电压上升时间)。",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-01",
+              "section": "GB/T 2900.56-2008 §351-25-01",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "CONTROL_SETTLING_TIME",
+      "name": "控制建立时间",
+      "entity_type": "power_concept",
+      "text": "CONTROL_SETTLING_TIME: 控制建立时间 control settling time — 在参比变量或扰动变量发生阶跃变化后，从被控变量第一次偏离其期望值附近的规定允差带开始，到被控变量第一次返回允差带并保持在允差带范围内为止的持续时间间隔。",
+      "confidence": null,
+      "source": "GB/T 2900.56-2008 §351-25-02",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "控制建立时间",
+      "en": "control settling time",
+      "synonyms": [
+        "控制建立时间",
+        "control settling time"
+      ],
+      "definition": "在参比变量或扰动变量发生阶跃变化后，从被控变量第一次偏离其期望值附近的规定允差带开始，到被控变量第一次返回允差带并保持在允差带范围内为止的持续时间间隔。",
+      "definition_verbatim": true,
+      "defined_by_standard": "GB/T 2900.56-2008",
+      "standard_section": "351-25-02",
+      "note": "与 SETTLING_TIME 的区别是「并保持在允差带范围内」—— 少了「保持」两字, 报数就不可比。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.56-2008 §351-25-02",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "控制建立时间",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-02",
+              "section": "GB/T 2900.56-2008 §351-25-02",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "control settling time",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-02",
+              "section": "GB/T 2900.56-2008 §351-25-02",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "控制建立时间",
+            "control settling time"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-02",
+              "section": "GB/T 2900.56-2008 §351-25-02",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "在参比变量或扰动变量发生阶跃变化后，从被控变量第一次偏离其期望值附近的规定允差带开始，到被控变量第一次返回允差带并保持在允差带范围内为止的持续时间间隔。",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-02",
+              "section": "GB/T 2900.56-2008 §351-25-02",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": true,
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-02",
+              "section": "GB/T 2900.56-2008 §351-25-02",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.56-2008",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-02",
+              "section": "GB/T 2900.56-2008 §351-25-02",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "351-25-02",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-02",
+              "section": "GB/T 2900.56-2008 §351-25-02",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "与 SETTLING_TIME 的区别是「并保持在允差带范围内」—— 少了「保持」两字, 报数就不可比。",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-25-02",
+              "section": "GB/T 2900.56-2008 §351-25-02",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "OVERSHOOT",
+      "name": "超调（量）",
+      "entity_type": "power_concept",
+      "text": "OVERSHOOT: 超调（量） overshoot — 对于阶跃响应，为偏离输出变量最终稳态值的最大瞬时偏差，通常以最终稳态值与初始稳态值之差的百分数表示。",
+      "confidence": null,
+      "source": "GB/T 2900.56-2008 §351-24-30",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "zh": "超调（量）",
+      "en": "overshoot",
+      "synonyms": [
+        "超调",
+        "超调量",
+        "overshoot",
+        "超调率"
+      ],
+      "definition": "对于阶跃响应，为偏离输出变量最终稳态值的最大瞬时偏差，通常以最终稳态值与初始稳态值之差的百分数表示。",
+      "definition_verbatim": true,
+      "defined_by_standard": "GB/T 2900.56-2008",
+      "standard_section": "351-24-30",
+      "note": "抽象父概念。下位: DYNAMIC_OVERSHOOT(动态超调量) —— 定义里「以…之差的**百分数**」是分母, 报数时要说明用的哪两个值。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.56-2008 §351-24-30",
+      "provenance": {
+        "zh": {
+          "property_name": "zh",
+          "value": "超调（量）",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-30",
+              "section": "GB/T 2900.56-2008 §351-24-30",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "en": {
+          "property_name": "en",
+          "value": "overshoot",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-30",
+              "section": "GB/T 2900.56-2008 §351-24-30",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "synonyms": {
+          "property_name": "synonyms",
+          "value": [
+            "超调",
+            "超调量",
+            "overshoot",
+            "超调率"
+          ],
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-30",
+              "section": "GB/T 2900.56-2008 §351-24-30",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition": {
+          "property_name": "definition",
+          "value": "对于阶跃响应，为偏离输出变量最终稳态值的最大瞬时偏差，通常以最终稳态值与初始稳态值之差的百分数表示。",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-30",
+              "section": "GB/T 2900.56-2008 §351-24-30",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "definition_verbatim": {
+          "property_name": "definition_verbatim",
+          "value": true,
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-30",
+              "section": "GB/T 2900.56-2008 §351-24-30",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "defined_by_standard": {
+          "property_name": "defined_by_standard",
+          "value": "GB/T 2900.56-2008",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-30",
+              "section": "GB/T 2900.56-2008 §351-24-30",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "standard_section": {
+          "property_name": "standard_section",
+          "value": "351-24-30",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-30",
+              "section": "GB/T 2900.56-2008 §351-24-30",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "抽象父概念。下位: DYNAMIC_OVERSHOOT(动态超调量) —— 定义里「以…之差的**百分数**」是分母, 报数时要说明用的哪两个值。",
+          "sources": [
+            {
+              "document": "GB/T 2900.56-2008 §351-24-30",
+              "section": "GB/T 2900.56-2008 §351-24-30",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
       "id": "std::GB 4943.1-2022",
       "name": "音视频、信息技术和通信技术设备 第1部分：安全要求",
       "entity_type": "standard",
@@ -51775,7 +54833,14 @@
             }
           ]
         }
-      }
+      },
+      "synonyms": [
+        "容量",
+        "capacity",
+        "额定容量",
+        "标称容量"
+      ],
+      "note": "抽象父概念。下位区分见 RATED_CAPACITY(额定容量)与 NOMINAL_CAPACITY(标称容量) —— 两者定义不同(GB/T 2900.70 442-01-01 vs 442-01-04),别名里保留这两个词是为了让检索能命中父子, **不代表它们同义**。"
     },
     {
       "id": "RATED_CAPACITY",
@@ -54751,7 +57816,8 @@
       },
       "zh": "直流二次电源",
       "synonyms": [
-        "直流二次电源"
+        "直流二次电源",
+        "DC secondary supply"
       ],
       "authority_kind": "standard",
       "authority_ref": "YD/T 983-2018",
@@ -54824,7 +57890,8 @@
       },
       "zh": "交流二次电源",
       "synonyms": [
-        "交流二次电源"
+        "交流二次电源",
+        "AC secondary supply"
       ],
       "authority_kind": "standard",
       "authority_ref": "YD/T 983-2018",
@@ -54897,7 +57964,8 @@
       },
       "zh": "三级电源端口",
       "synonyms": [
-        "三级电源端口"
+        "三级电源端口",
+        "third power port"
       ],
       "authority_kind": "standard",
       "authority_ref": "YD/T 983-2018",

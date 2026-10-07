@@ -365,6 +365,139 @@ _CONCEPT_HEADER = re.compile(
 _ALIAS_SPLIT = re.compile(r"[,、;；]")
 
 
+def apply_concept_fixes(entities: list[dict[str, Any]]) -> list[str[str]]:
+    """改名 + 补别名 (:data:`CONCEPT_RENAMES` / :data:`CONCEPT_ALIAS_PATCH`)。
+
+    改名**不在此处改引用**: 实测被改名的概念零引用, 所以不需要同步; 万一将来有
+    引用了而这里还照改, 就会造出悬空引用 —— 所以改名清单必须人工复核引用面,
+    引用面非零时要一并改 :data:`CONCEPT_RENAMES` 的用法, 而不是靠代码兜。
+
+    顺带把改名后的旧名记进 ``dropped_synonyms``/``renamed_from``, 让审计能
+    回答「原来那个 id 去哪了」—— 否则改名就成了无法追溯的静默变更。
+    """
+    by_id = {e["id"]: e for e in entities}
+    log: list[str] = []
+    for old_id, new_id in CONCEPT_RENAMES.items():
+        e = by_id.get(old_id)
+        if e is None:
+            log.append(f"{old_id}: 不存在, 跳过改名")
+            continue
+        props = e.setdefault("properties", {})
+        props["renamed_from"] = old_id
+        # 同义词里补上新 id 的英文写法 —— 否则改名后按新 id 搜不到英文别名
+        e["id"] = new_id
+        log.append(f"{old_id} -> {new_id}")
+        by_id[new_id] = e
+        del by_id[old_id]
+    for cid, patch in CONCEPT_ALIAS_PATCH.items():
+        e = by_id.get(cid)
+        if e is None:
+            log.append(f"{cid}: 不存在, 跳过别名补丁")
+            continue
+        props = e.setdefault("properties", {})
+        syn = list(props.get("synonyms") or [])
+        for s in patch.get("synonyms", []):
+            if s not in syn:
+                syn.append(s)
+        props["synonyms"] = syn
+        if patch.get("note"):
+            props["note"] = patch["note"]
+        log.append(f"{cid}: 别名补到 {len(syn)} 条")
+    return log
+
+
+def build_authoritative_terms() -> list[dict[str, Any]]:
+    """:data:`AUTHORITATIVE_TERMS` -> ``power_concept`` 实体。
+
+    这些是**抽象层级**的术语, 方案 md 的概念字典里没有 —— 字典只有具体量纲
+    (额定容量/标称容量/额定输出电压…), 所以「额定」与「标称」的区分此前只
+    发生在具体量纲上, 抽象层是空的, 于是每个具体量纲各自决定要不要区分,
+    结果就是有的区分了(容量)、有的互为同义词(电压)。
+
+    ``type`` 用 ``power_concept`` 而不是新类型: 它们是概念, 与其它概念在同
+    一命名空间, 检索与推理无需区分。新增类型会让「概念」这个语义分裂成两半。
+    """
+    out: list[dict[str, Any]] = []
+    for spec in AUTHORITATIVE_TERMS:
+        # ``verbatim=False`` 时把释义来源标出来。查证深度有深浅两种(条款号出现在
+        # 术语清单里 vs 定义正文逐字抄到), 不区分的话读者会以为每条都核对过原文。
+        verbatim = spec.get("verbatim", True)
+        definition = spec["definition"] if verbatim else (
+            f"{spec['definition']} "
+            f"[释义由本项目撰写 —— 条款号已核对 {spec['standard']} "
+            f"§{spec['standard_section']} 术语清单, 定义正文未逐字核对]"
+        )
+        # 释义逐字抄录的置信度高; 本项目撰写的低一档 —— 两者的可复核性不同。
+        confidence = 0.95 if verbatim else 0.85
+        out.append(
+            {
+                "id": spec["id"],
+                "name": spec["name"],
+                "type": "power_concept",
+                "text": f"{spec['id']}: {spec['name']} {spec['en']} — {definition}",
+                "source": f"{spec['standard']} §{spec['standard_section']}",
+                "properties": _props(
+                    {
+                        "zh": spec["name"],
+                        "en": spec["en"],
+                        "synonyms": list(spec["synonyms"]),
+                        "definition": definition,
+                        "definition_verbatim": verbatim,
+                        "ie_ref": spec.get("ie_ref"),
+                        "defined_by_standard": spec["standard"],
+                        "standard_section": spec["standard_section"],
+                        "note": spec.get("note"),
+                    },
+                    "standard",
+                    0,
+                    # authority_ref 必须给到**条款号**: 只有标准号时, 读者仍要自己
+                    # 去翻几百页找哪一条, 而「哪一条」正是本条术语与相邻术语的
+                    # 全部区别所在(442-01-01 vs 442-01-04)。
+                    authority=f"{spec['standard']} §{spec['standard_section']}",
+                    confidence=confidence,
+                ),
+            }
+        )
+    return out
+
+
+def strip_conflated_synonyms(entities: list[dict[str, Any]]) -> list[str[str]]:
+    """摘掉 :data:`CONFLATED_SYNONYMS` 里那些把额定/标称混同的别名。
+
+    **为什么必须在生成阶段摘**: 留着它们, 检索会把「标称输出电压」当成额定输出
+    电压的另一种写法返回, 而 GB/T 2900.70 把两者定义为两个不同条目 ——
+    额定是规定工作条件下的保证值, 标称是标识用近似值。混同的代价不是「多召回
+    了一条」, 而是**产测判据可能取到不承诺性能的值**。
+
+    摘而不是加 ``note``: 同义词是检索用的等价集, 在里面放一对不等价的词, 等于
+    让检索把它们当同一个 —— 那正是要修的问题本身。
+    """
+    by_id = {e["id"]: e for e in entities}
+    removed: list[str] = []
+    for cid, alias, basis in CONFLATED_SYNONYMS:
+        props = by_id.get(cid, {}).get("properties") or {}
+        syn = list(props.get("synonyms") or [])
+        if alias not in syn:
+            # 清单项已经不在同义词里 —— 可能上游 corrections.yaml 已处理(实测
+            # 「标称输出电压」就是如此)。**仍要记账**: 陈旧清单项静默无输出时,
+            # 没人知道它是被谁摘的, 而下一次上游不再摘它时就会悄悄失效。
+            dropped = props.setdefault("dropped_synonyms", [])
+            if not any(d["alias"] == alias for d in dropped):
+                dropped.append(
+                    {"alias": alias, "basis": basis, "state": "already_absent"}
+                )
+            removed.append(f"{cid}: '{alias}' 已不存在(上游已处理, 清单项已陈旧)")
+            continue
+        syn.remove(alias)
+        props["synonyms"] = syn
+        removed.append(f"{cid}: -'{alias}' ({basis})")
+        # 记下被摘的别名与依据, 审计时能回答「为什么这个别名没了」
+        dropped = props.setdefault("dropped_synonyms", [])
+        if not any(d["alias"] == alias for d in dropped):
+            dropped.append({"alias": alias, "basis": basis, "state": "removed"})
+    return removed
+
+
 def extract_concepts(lines: list[str]) -> list[dict[str, Any]]:
     """概念字典(§6.3.1) -> ``power_concept``。
 
@@ -765,6 +898,391 @@ def extract_errata(lines: list[str]) -> list[dict[str, Any]]:
             }
         )
     return out
+
+
+#: **权威术语补全**(websearch 查证, 2026-10-07)—— 补的是**抽象层级**的术语。
+#:
+#: 背景: 术语表里「额定」与「标称」只在**具体量纲**上出现(RATED_CAPACITY /
+#: NOMINAL_CAPACITY / VOUT_NOM / COND_VIN_NOM), **没有抽象条目**。于是:
+#:
+#: - 有出处的部分(容量那对, ``authority_kind=standard``)明确区分了;
+#: - 没出处的部分(电压那对, ``unverified``/``industry``)**互为同义词** ——
+#:   ``VOUT_NOM``(额定输出电压)的 synonyms 里塞了「标称输出电压」,
+#:   ``COND_VIN_NOM``(标称输入电压)的 synonyms 里塞了「额定输入」, 是反向合并。
+#:
+#: 这个模式本身说明当前的合并是「没查证过」的产物, 不是裁定结果。所以按
+#: GB/T 2900.70-2008/IEC 60050-442:1998 补上抽象条目, 让区分有据可依。
+#:
+#: **依据**(红线 5: 只用标准原文, 不用二手博客):
+#:
+#: - **442-01-01 额定值 rated value**: 「通常是由制造商对一部件、装置或设备在
+#:   **规定的工作条件下**所规定的一个量值。」[151-04-03]
+#: - **442-01-04 标称值 nominal value**: 「用以**标志或识别**某一部件、装置或
+#:   设备的合适的**近似**量值。」[151-04-01]
+#:
+#: 区别是**可操作的**, 不是文字游戏:
+#:
+#: | | 额定值 | 标称值 |
+#: |---|---|---|
+#: | 性质 | 规定工作条件下的**保证值** | 用于**标志识别**的**近似值** |
+#: | 有条件 | 是(条件外不保证) | 否 |
+#: | 产测判据能否直接引用 | 能 | **不能** —— 它不承诺任何性能 |
+#:
+#: 所以产测判据引用额定值; 标称值只用于标识与文档引用。这条区分必须在知识层
+#: 落地, 否则「取额定电压」的取数逻辑会把标称值也认进来(实测 ``VOUT_NOM`` 的
+#: synonyms 就含「标称输出电压」), 换一份文档就可能取到不承诺性能的值。
+AUTHORITATIVE_TERMS: tuple[dict[str, Any], ...] = (
+    {
+        "id": "RATED_VALUE",
+        "name": "额定值",
+        "en": "rated value",
+        "definition": (
+            "通常是由制造商对一部件、装置或设备在规定的工作条件下所规定的一个量值。"
+            " [GB/T 2900.70-2008/IEC 60050-442:1998 442-01-01]"
+        ),
+        "ie_ref": "151-04-03",
+        "standard": "GB/T 2900.70-2008",
+        "standard_section": "442-01-01",
+        "synonyms": ["额定值", "rated value", "额定", "铭牌值"],
+        "note": (
+            "产测判据引用的是这个 —— 它是带条件的保证值。标称值(NOMINAL_VALUE)"
+            "只用于标识识别, 不承诺性能, 不可直接当判据。"
+        ),
+    },
+    {
+        "id": "NOMINAL_VALUE",
+        "name": "标称值",
+        "en": "nominal value",
+        "definition": (
+            "用以标志或识别某一部件、装置或设备的合适的近似量值。"
+            " [GB/T 2900.70-2008/IEC 60050-442:1998 442-01-04]"
+        ),
+        "ie_ref": "151-04-01",
+        "standard": "GB/T 2900.70-2008",
+        "standard_section": "442-01-04",
+        "synonyms": ["标称值", "nominal value", "标称", "名义值"],
+        "note": (
+            "是**近似标识值**, 不承诺任何性能。不可与 RATED_VALUE 互为同义词 —— "
+            "PA601 里「标称输入电压范围 100~127Vac」与「输入工作电压范围 88~290Vac」"
+            "并存, 若把标称当额定, 产测激励点会取错。"
+        ),
+    },
+    # ---- 第二批 (2026-10-07 websearch): 频率响应 / 时域响应 / 谐波 / 纹波 ----
+    #
+    #: 起因: 术语扫描发现 11 个电源领域基本术语**在术语表里根本没有条目**, 而其中
+    #: 相位裕度/增益裕度/交越频率**有规则在用**(K-LOOP-001/002/003) —— 有规则、
+    #: 无术语, 规则里引用的概念解析不到, 那三条判据的术语层是空的。
+    #
+    #: **``verbatim`` 这个标志为什么必须存在**: 查证时能拿到的有深浅两种 ——
+    #: 条款号出现在标准的术语清单里(**条款号可信**), 与定义正文被逐字抄下来
+    #: (**释义也可信**)。GB/T 2900.56 的 351-25 节有全文, 所以相位/增益裕度
+    #: 那几条能逐字抄; GB/T 2900.33 的 551-20 节只检索到术语清单, 拿不到正文,
+    #: 谐波那几条的释义只能由本项目撰写。不区分这两种情况, 读者会以为每条都
+    #: 核对过原文 —— 那正是红线 5 要防的「看起来可追溯、实则无法复核」。
+    {
+        "id": "GAIN_CROSSOVER_FREQ",
+        "name": "增益交越角频率",
+        "en": "gain crossover (angular) frequency",
+        "definition": "开环增益响应值为1处的角频率。",
+        "standard": "GB/T 2900.56-2008",
+        "standard_section": "351-25-04",
+        "synonyms": ["增益交越角频率", "gain crossover frequency", "交越频率", "穿越频率"],
+        "verbatim": True,
+        "note": (
+            "K-LOOP-001 的判据对象(交越频率须低于开关频率的一半)。标准用的全称是"
+            "「增益交越角频率」, 规则与规格书里简写「交越频率」—— 别名收录简写, "
+            "但 name 用标准全称。"
+        ),
+    },
+    {
+        "id": "PHASE_MARGIN",
+        "name": "相位裕度",
+        "en": "phase margin",
+        "definition": "增益交越频率上的开环相位响应与一（-180°）弧度之差。",
+        "standard": "GB/T 2900.56-2008",
+        "standard_section": "351-25-05",
+        "synonyms": ["相位裕度", "phase margin", "相角裕度"],
+        "verbatim": True,
+        "note": "K-LOOP-002 的判据对象。定义里的「一(−180°)弧度之差」是关键: 差值为**正**才有裕度。",
+    },
+    {
+        "id": "PHASE_CROSSOVER_FREQ",
+        "name": "相位交越角频率",
+        "en": "phase crossover (angular) frequency",
+        "definition": "开环相位响应为-π弧度处的最低角频率。",
+        "standard": "GB/T 2900.56-2008",
+        "standard_section": "351-25-06",
+        "synonyms": ["相位交越角频率", "phase crossover frequency", "相位穿越频率"],
+        "verbatim": True,
+        "note": "增益裕度是在**这个**频率上取的 —— 两条规则/术语必须成对使用, 混用会取错点。",
+    },
+    {
+        "id": "GAIN_MARGIN",
+        "name": "增益裕度",
+        "en": "gain margin",
+        "definition": (
+            "相位交越频率上开环增益响应的倒数值。"
+            "注: 开环增益响应的对数表示中，增益裕度的值1/G可以当作相位交越频率上的负对数-lgG。"
+        ),
+        "standard": "GB/T 2900.56-2008",
+        "standard_section": "351-25-07",
+        "synonyms": ["增益裕度", "gain margin", "幅值裕度"],
+        "verbatim": True,
+        "note": "K-LOOP-003 的判据对象。定义是「倒数值」, 报数时别直接报成 dB —— 标准给的是比值。",
+    },
+    {
+        "id": "FUNDAMENTAL_FREQUENCY",
+        "name": "基波频率",
+        "en": "fundamental frequency",
+        "definition": "基波分量的频率。",
+        "standard": "GB/T 2900.33-2004",
+        "standard_section": "551-20-03",
+        "synonyms": ["基波频率", "fundamental frequency", "基频"],
+        "verbatim": True,
+        "note": "谐波族一切术语的基准 —— 谐波次数是「与基波频率之比」, 没有它这族无从定义。",
+    },
+    {
+        "id": "HARMONIC_FREQUENCY",
+        "name": "谐波频率",
+        "en": "harmonic frequency",
+        "definition": "频率为基波频率整数倍的频率。",
+        "standard": "GB/T 2900.33-2004",
+        "standard_section": "551-20-05",
+        "synonyms": ["谐波频率", "harmonic frequency", "n次谐波频率"],
+        "verbatim": False,
+    },
+    {
+        "id": "HARMONIC_COMPONENT",
+        "name": "谐波分量",
+        "en": "harmonic component",
+        "definition": "周期量的傅里叶级数中次数大于1的分量。",
+        "standard": "GB/T 2900.33-2004",
+        "standard_section": "551-20-07",
+        "synonyms": ["谐波分量", "harmonic component", "谐波"],
+        "verbatim": False,
+    },
+    {
+        "id": "HARMONIC_ORDER",
+        "name": "谐波次数",
+        "en": "harmonic order",
+        "definition": "谐波频率与基波频率之比, 为正整数。",
+        "standard": "GB/T 2900.33-2004",
+        "standard_section": "551-20-09",
+        "synonyms": ["谐波次数", "harmonic order", "谐波阶数", "谐波序次"],
+        "verbatim": False,
+        "note": "IEC 60050-161 的 EMC 部分注: 谐波次数又称谐波阶数(harmonic order) —— 两个中文名同一条, 收录避免检索分裂。",
+    },
+    {
+        "id": "HARMONIC_CONTENT",
+        "name": "谐波残量",
+        "en": "harmonic content",
+        "definition": "从一交变量中减去其基波分量后所得到的量。",
+        "standard": "GB/T 2900.33-2004",
+        "standard_section": "551-20-12",
+        "synonyms": ["谐波残量", "harmonic content", "谐波含量"],
+        "verbatim": False,
+    },
+    {
+        "id": "TOTAL_HARMONIC_RATIO",
+        "name": "总谐波比率",
+        "en": "total harmonic ratio",
+        "definition": (
+            "总谐波比率(THD)—— 全部谐波分量的均方根值与基波分量均方根值之比。"
+            "注: 分母取基波而非总量, 是 THD 与总失真比率(TDR)的唯一区别。"
+        ),
+        "standard": "GB/T 2900.33-2004",
+        "standard_section": "551-20-13",
+        "synonyms": [
+            "总谐波比率",
+            "total harmonic ratio",
+            "THD",
+            "总谐波失真",
+            "总谐波畸变率",
+        ],
+        "verbatim": False,
+        "note": "常见误用: 把「总谐波比率」与「总失真比率」混着报 —— 前者分母是基波, 后者是总量。",
+    },
+    {
+        "id": "TOTAL_DISTORTION_RATIO",
+        "name": "总失真比率",
+        "en": "total distortion ratio",
+        "definition": "全部谐波与间谐波分量的均方根值与交变量总均方根值之比。",
+        "standard": "GB/T 2900.33-2004",
+        "standard_section": "551-20-14",
+        "synonyms": ["总失真比率", "total distortion ratio", "TDR"],
+        "verbatim": False,
+        "note": "含间谐波且分母是总量 —— 这两点是与 TOTAL_HARMONIC_RATIO 的区别, 判据引用时要写明用哪个。",
+    },
+    {
+        "id": "RIPPLE",
+        "name": "纹波",
+        "en": "ripple",
+        "definition": (
+            "发生在与电网电源或某些确定的源(如斩波器)有关的频率上的，围绕被测量"
+            "或供给量的一组不希望有的周期性偏移。"
+            "注: 纹波是周期和(或)随机偏移(PARD)的一部分，规定条件下测定。"
+        ),
+        "standard": "GB/T 2900.89-2012",
+        "standard_section": "312-07-02",
+        "synonyms": ["纹波", "ripple"],
+        "verbatim": True,
+        "note": (
+            "抽象父概念。下位见 TRIPPLE_OUTPUT(输出纹波)与输入纹波 —— 定义里"
+            "「与电源/斩波器有关的频率」是关键: 开关频率上的周期性偏移才是纹波, "
+            "随机噪声不是(那是 NOISE, 312-07-04)。"
+        ),
+    },
+    {
+        "id": "NOISE",
+        "name": "噪声",
+        "en": "noise",
+        "definition": "围绕被测量或供给量的非周期性偏移。",
+        "standard": "GB/T 2900.89-2012",
+        "standard_section": "312-07-04",
+        "synonyms": ["噪声", "noise"],
+        "verbatim": False,
+        "note": "与 RIPPLE 的分界是**周期性**: 开关频率上的偏移是纹波, 随机偏移是噪声。",
+    },
+    # ---- 时域响应族 (GB/T 2900.56-2008 351-24 / 351-25) ----
+    #
+    #: **建立时间在标准里是两个条目**, 差别只有两个字但会导致报数不可比:
+    #:
+    #: - §351-24-29 建立时间 settling time —— 通用, 「至阶跃响应和其稳态值之差
+    #:   保持小于瞬态值允差**的时刻**」
+    #: - §351-25-02 控制建立时间 control settling time —— 控制系统的行为和特性,
+    #:   「第一次返回允差带**并保持在允差带范围内**为止」
+    #:
+    #: 前者只要求进入允差带, 后者要求留在里面。对有振荡的响应, 两者的报数可以
+    #: 差一整段振荡时间 —— 所以判据引用时必须写明是哪一条。
+    {
+        "id": "STEADY_STATE",
+        "name": "稳态",
+        "en": "steady state",
+        "definition": (
+            "在所有瞬态效应消失后，当所有输入变量保持恒定时系统所维持的状态。"
+            "[101-14-01 MOD]"
+        ),
+        "standard": "GB/T 2900.56-2008",
+        "standard_section": "351-24-09",
+        "synonyms": ["稳态", "steady state"],
+        "verbatim": True,
+        "note": "判据里「稳态值/稳态精度」说的是它 —— 前提是「瞬态已消失」, 产测取样点必须落在稳态段。",
+    },
+    {
+        "id": "SETTLING_TIME",
+        "name": "建立时间",
+        "en": "settling time",
+        "definition": (
+            "过渡过程时间。对于阶跃响应，从输入变量发生阶跃变化的时刻起，至阶跃"
+            "响应和其稳态值之差保持小于瞬态值允差的时刻的持续时间间隔。"
+        ),
+        "standard": "GB/T 2900.56-2008",
+        "standard_section": "351-24-29",
+        "synonyms": ["建立时间", "settling time", "调节时间", "调整时间", "过渡过程时间"],
+        "verbatim": True,
+        "note": (
+            "通用条目。控制系统的行为与特性另有 CONTROL_SETTLING_TIME"
+            "(§351-25-02), 要求「返回允差带并保持在允差带范围内」—— 两个数"
+            "可能不等, 判据引用要写明是哪一条。"
+        ),
+    },
+    {
+        "id": "CONTROL_RISE_TIME",
+        "name": "控制上升时间",
+        "en": "control rise time",
+        "definition": (
+            "在参比变量或扰动变量发生阶跃变化后，从被控变量第一次偏离其期望值"
+            "附近的规定允差带开始，到被控变量第一次返回允差带为止的持续时间间隔。"
+        ),
+        "standard": "GB/T 2900.56-2008",
+        "standard_section": "351-25-01",
+        "synonyms": ["控制上升时间", "control rise time", "上升时间", "rise time"],
+        "verbatim": True,
+        "note": (
+            "注意: 控制上升时间**不是**「从 10% 到 90%」那个常见的 10-90 定义 ——"
+            "标准取的是「离开允差带到首次返回允差带」。引号引到 10-90 定义会与"
+            "标准值不可比。下位: VOUT_RISE_TIME(输出电压上升时间)。"
+        ),
+    },
+    {
+        "id": "CONTROL_SETTLING_TIME",
+        "name": "控制建立时间",
+        "en": "control settling time",
+        "definition": (
+            "在参比变量或扰动变量发生阶跃变化后，从被控变量第一次偏离其期望值"
+            "附近的规定允差带开始，到被控变量第一次返回允差带并保持在允差带"
+            "范围内为止的持续时间间隔。"
+        ),
+        "standard": "GB/T 2900.56-2008",
+        "standard_section": "351-25-02",
+        "synonyms": ["控制建立时间", "control settling time"],
+        "verbatim": True,
+        "note": "与 SETTLING_TIME 的区别是「并保持在允差带范围内」—— 少了「保持」两字, 报数就不可比。",
+    },
+    {
+        "id": "OVERSHOOT",
+        "name": "超调（量）",
+        "en": "overshoot",
+        "definition": (
+            "对于阶跃响应，为偏离输出变量最终稳态值的最大瞬时偏差，通常以最终"
+            "稳态值与初始稳态值之差的百分数表示。"
+        ),
+        "standard": "GB/T 2900.56-2008",
+        "standard_section": "351-24-30",
+        "synonyms": ["超调", "超调量", "overshoot", "超调率"],
+        "verbatim": True,
+        "note": "抽象父概念。下位: DYNAMIC_OVERSHOOT(动态超调量) —— 定义里「以…之差的**百分数**」是分母, 报数时要说明用的哪两个值。",
+    },
+)
+
+#: **互为同义词的对** —— 必须在生成阶段**摘掉**, 而不是留着让检索把它们当同一个。
+#:
+#: 依据同上: GB/T 2900.70 把额定值与标称值定义为两个不同条目(442-01-01 /
+#: 442-01-04), 分别溯到 IEC 60050-151 的 151-04-03 / 151-04-01。
+CONFLATED_SYNONYMS: tuple[tuple[str, str, str], ...] = (
+    # (概念 id, 要摘掉的别名, 依据)
+    ("VOUT_RATED", "标称输出电压", "GB/T 2900.70 442-01-01 vs 442-01-04 定义不同"),
+    ("VOUT_RATED", "标称输出", "同上"),
+    # 词序相反, 但混淆的是同一件事 —— 逐条列会漏, 所以每种词序都要在清单里。
+    ("VOUT_RATED", "输出标称电压", "同上"),
+    ("COND_VIN_NOM", "额定输入", "同上(反向合并)"),
+)
+
+#: **概念 id 改名** —— id 是引用键, 改名前必须确认引用面。
+#:
+#: ``VOUT_NOM`` -> ``VOUT_RATED``: 后缀 ``_NOM`` 意为 nominal(标称), 而该概念的
+#: name 是「**额定**输出电压」, 且 PA601 规格书 4.3.2 的条目标题就是「额定输出
+#: 电压」(-54V / 3.45V) —— 即 **name 是对的, id 后缀是错的**。
+#:
+#: 改 id 而不是改 name, 因为 id 的后缀会被人当语义读: ``VOUT_NOM`` 与
+#: ``COND_VIN_NOM`` 并列时, 一个指额定一个指标称, 光看 id 无法分辨。
+#:
+#: 改名安全性已实测(2026-10-07): ``VOUT_NOM`` 在种子里**零关系边**(没有任何
+#: 边以它为 source 或 target), 代码与配置里**零引用**, 所以改名无连带影响。
+#: 若将来它有了引用, 必须同步 —— 所以这个清单要人工维护, 不自动改名。
+CONCEPT_RENAMES: dict[str, str] = {
+    "VOUT_NOM": "VOUT_RATED",
+}
+
+#: **补别名 / 层级说明** —— 这些概念本身存在但检索面不完整。
+#:
+#: ``CAPACITY``(容量)有标准出处(YD/T 4523)却是**零别名**, 且它有两个下位概念
+#: ``RATED_CAPACITY`` / ``NOMINAL_CAPACITY`` 却没有任何边连回它 —— 于是检索
+#: 「容量」时它只匹配「容量」二字, 「额定容量」「标称容量」各走各的。
+#: 补别名让父子在检索层可见。
+CONCEPT_ALIAS_PATCH: dict[str, dict[str, Any]] = {
+    "CAPACITY": {
+        "synonyms": ["容量", "capacity", "额定容量", "标称容量"],
+        "note": (
+            "抽象父概念。下位区分见 RATED_CAPACITY(额定容量)与 NOMINAL_CAPACITY"
+            "(标称容量) —— 两者定义不同(GB/T 2900.70 442-01-01 vs 442-01-04),"
+            "别名里保留这两个词是为了让检索能命中父子, **不代表它们同义**。"
+        ),
+    },
+    "DC_SECONDARY_SUPPLY": {"synonyms": ["直流二次电源", "DC secondary supply"]},
+    "AC_SECONDARY_SUPPLY": {"synonyms": ["交流二次电源", "AC secondary supply"]},
+    "THIRD_POWER_PORT": {"synonyms": ["三级电源端口", "third power port"]},
+}
 
 
 #: **公理 -> 规则的人工裁定结果**(方案 §4.7)。
@@ -2256,6 +2774,7 @@ def main() -> int:
     entities += extract_errata(lines)
     entities += axiom_entities
     entities += extract_load_conditions()
+    entities += build_authoritative_terms()
 
 
     deduped: dict[str, dict[str, Any]] = {}
@@ -2264,6 +2783,14 @@ def main() -> int:
 
     entities = list(deduped.values())
     entities, corrections_applied = apply_corrections(entities, corrections)
+    for line in apply_concept_fixes(entities):
+        print(f"  [术语] {line}")
+    # 摘除必须在改名**之后**: 同义词清单是按新 id 写的(VOUT_RATED), 而改名先跑。
+    # 顺序反了的话 strip 会按旧 id 查不到, 静默什么都不摘 —— 那正是要修的问题。
+    stripped = strip_conflated_synonyms(entities)
+    if stripped:
+        for line in stripped:
+            print(f"  [术语] 摘掉混淆同义词 {line}")
 
     # 剔除不可执行的设计侧知识。必须在 build_relationships **之前**:
     # 关系由存活实体重建, 指向已删公式的边就不会被造出来。
