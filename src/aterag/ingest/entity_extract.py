@@ -142,6 +142,36 @@ def _semantic_tags(row: dict[str, str], book: Any) -> list[str]:
     return sorted(tags)
 
 
+def variant_suffix_for(
+    row: dict[str, str], model_id: str = "", ordinal: int | None = None
+) -> str:
+    """给定 row 形态的字典, 返回档位后缀 (eid 的最后一段)。
+
+    **这是档位口径的唯一入口**, 供同包内需要同一口径的其他调用方复用 ——
+    目前是 :mod:`aterag.ingest.persist_requirements` 的 ``test_requirement.variant_key``。
+
+    为什么必须是同一个入口: 档位在两层各出现一次(实体层的 eid 后缀、判据层的
+    ``variant_key``), 而 ``variant_key`` 上有唯一索引。两处各拼一次就会出现
+    「实体层认为是两个档位、判据层合成一个」, 于是 upsert 又开始静默覆盖 ——
+    与当初 eid 拼判据数值是同一类缺陷, 只是换了层。
+
+    ``row`` 需要的键与 :func:`map_row` 产出的行同形: ``rail`` / ``unit`` /
+    ``notes`` / ``requirement_text`` / ``standard``(可选)。
+
+    ``ordinal`` 是同一 ``req_id`` 内的出现序号(0 起), 与 :func:`map_row` 传
+    ``ctx.seq`` 的做法一致: 有些表(如 AC 110V / AC 220V 两行)的轨、工况、标���、
+    单位全相同, **判据数值就是它唯一的身份**, 语义标签无从区分。这种情况下靠
+    出现序号兜底, 而不是把数值拼进键 —— 后者会让改判据等于换主键, 判据无法
+    版本化。
+    """
+    book = _pattern_book(model_id)
+    return _variant_suffix(
+        row,
+        unique="" if ordinal is None else str(ordinal),
+        tags=_semantic_tags(row, book),
+    )
+
+
 def _variant_suffix(
     row: dict[str, str], *, unique: str = "", tags: Sequence[str] = ()
 ) -> str:

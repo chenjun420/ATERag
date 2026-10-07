@@ -363,6 +363,14 @@ def _test_requirement(s: SchemaIdent) -> str:
 CREATE TABLE {s}.test_requirement (
     req_id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     sr_id              TEXT NOT NULL,
+    -- 档位键: 一个 sr_id 常有多行(多电压轨/多负载档/长期短期)。实测 PA601
+    -- 95 个条件只对应 74 个编号, 18 个编号有 2~3 档 —— 只有 sr_id 时无法
+    -- 定位一行, 而按 sr_id upsert 会**静默覆盖**(丢掉另外 21 行)。
+    -- 语义与 entity_extract 的 eid 档位后缀一致: 轨 + 工况标签, 不含判据数值
+    -- (判据一改主键就变, 判据便无法版本化)。
+    -- 缺省为 '' 而不是 NOT NULL: 迁移前的老行没有这个概念, 用空串表示
+    -- 「未标注档位」, 与 entity_extract 里 rail='' 的既有语义一致。
+    variant_key        TEXT NOT NULL DEFAULT '',
     concept_id         TEXT NOT NULL,
     measurand          TEXT,
     dut_node           TEXT,
@@ -388,6 +396,9 @@ CREATE TABLE {s}.test_requirement (
     valid_until        TIMESTAMPTZ
 );
 CREATE INDEX idx_req_sr ON {s}.test_requirement (sr_id);
+-- (sr_id, variant_key) 唯一: 落库幂等的依据。**不带这个唯一约束就只能靠
+-- 应用层去重**, 而去重逻辑一旦漏判就是静默丢行(实测: 18 个编号多档位)。
+CREATE UNIQUE INDEX uq_req_sr_variant ON {s}.test_requirement (sr_id, variant_key);
 CREATE INDEX idx_req_concept ON {s}.test_requirement (concept_id);
 CREATE INDEX idx_req_coverage ON {s}.test_requirement (coverage_status);
 CREATE INDEX idx_req_signal ON {s}.test_requirement (signal_type);

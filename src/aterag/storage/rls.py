@@ -126,14 +126,37 @@ def create_ctx_model_sql(schema: str = "public") -> str:
 
 
 def set_current_model_sql(model_key: str) -> str:
-    """生成「设置当前型号」的 SQL。
+    """生成「设置当前型号」的 SQL。**由型号键推导 schema 名**。
 
     纪律 1: 只接受已认证层传入的型号键。**本函数不解析 token**,
     认证中间件在连接建立时调用它。型号键会进 SET 的字符串位置,
     所以先过一遍 validate_model_key (由 model_schema_name 内部完成)。
+
+    .. warning::
+       只在「schema 名就是型号键折叠出来的」时成立。型号键与实际部署的 schema
+       名不一致时(实测: 型号键 ``PA601-D54A`` 而板卡上部署的是 ``pw_sr5400``),
+       本函数设进去的值与 RLS 策略里写死的不匹配, 表现为**所有行都看不见 / 插不进**。
+       那时用 :func:`set_current_schema_sql`, 由注册表声明的 schema 名为准。
     """
     normalized = model_schema_name(model_key)
     return f"SET LOCAL {CTX_MODEL_SETTING} = {quote_literal(normalized)}"
+
+
+def set_current_schema_sql(schema: str) -> str:
+    """生成「设置当前 schema 上下文」的 SQL, 直接吃**已确定的 schema 名**。
+
+    与 :func:`set_current_model_sql` 的区别是不做 ``model_schema_name`` 推导 ——
+    调用方已经知道 schema 叫什么(从注册表 ``products.<model>.schema`` 读的),
+    再推导一次只会在两者不一致时把上下文设错, 而错误的症状是 RLS 静默拒绝:
+    INSERT 报「违背行级安全策略」, SELECT 返回 0 行, 都不指向真正的配置问题。
+
+    过一遍 ``quote_ident`` 的白名单: 值会进 SET 的字符串位置。**只用它做校验,
+    不把带双引号的结果塞进去** —— ``quote_literal(quote_ident(s))`` 得到的值是
+    文字含双引号的 ``'"pw_sr5400"'``, 与策略里比的 ``'pw_sr5400'`` 不相等,
+    症状是所有行都看不见/插不进, 且不指向任何配置错误。
+    """
+    quote_ident(schema)  # 白名单校验, 抛 SchemaError 即为非法标识符
+    return f"SET LOCAL {CTX_MODEL_SETTING} = {quote_literal(schema)}"
 
 
 class SchemaIdent(str):

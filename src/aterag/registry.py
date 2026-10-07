@@ -43,6 +43,18 @@ class ProductEntry:
     #: 或「额定电流最大者」猜, 猜错会把效率/功率判据挂到不存在的输出路上, 而且
     #: 不报错 —— 宁可缺声明而不猜。
     main_rail: str = ""
+    #: 本型号的 PG **schema 名**(如 ``pw_sr5400``)。
+    #:
+    #: 为什么必须声明而不能用 :func:`storage.schema.model_schema_name` 现算:
+    #: 现算规则是「型号键折叠连字符加 ``pw_`` 前缀」, 对 ``PA601-D54A`` 会得到
+    #: ``pw_pa601_d54a`` —— 而板卡上实际部署的、装了 31 张表的那个 schema 是
+    #: ``pw_sr5400``(初版部署时的型号键是 ``SR5400``)。现算会在同一个产品名下
+    #: **再建一份空 schema**, 于是同一型号的数据分散在两个 schema 里, 而两边
+    #: 都查得到 —— 正是红线 4 拒绝的双源。
+    #:
+    #: **留空 = 未声明**: 落库/建表类操作必须报错而不是回退到现算(回退就是上面
+    #: 那个双源)。查询类操作可以只告警。
+    schema: str = ""
 
 
 @dataclass
@@ -105,6 +117,7 @@ class Registry:
                 doc_version=str(p.get("doc_version", "")),
                 doc_profile=str(p.get("doc_profile", "")),
                 main_rail=str(p.get("main_rail", "")),
+                schema=str(p.get("schema", "")),
             )
         return reg
 
@@ -122,6 +135,8 @@ class Registry:
                     "doc_number": p.doc_number,
                     "doc_version": p.doc_version,
                     **({"doc_profile": p.doc_profile} if p.doc_profile else {}),
+                    **({"main_rail": p.main_rail} if p.main_rail else {}),
+                    **({"schema": p.schema} if p.schema else {}),
                 }
                 for model_id, p in self.products.items()
             },
@@ -129,6 +144,27 @@ class Registry:
         self._path.write_text(
             yaml.safe_dump(data, allow_unicode=True, sort_keys=False), encoding="utf-8"
         )
+
+    # ---------- schema ----------
+    def schema_name(self, model_id: str) -> str:
+        """本型号的 PG schema 名, **必须已声明**否则报错。
+
+        刻意不提供「没声明就现算」的兜底: 见 :attr:`ProductEntry.schema` 的说明 ——
+        现算出的名字与板卡上实际部署的 schema 往往不同, 回退等于在同一型号下
+        建第二份数据源(红线 4)。
+
+        报错信息带上已声明的型号, 便于直接看出是「忘了声明」还是「型号名写错」。
+        """
+        entry = self.products.get(model_id)
+        if entry is None:
+            raise KeyError(f"型号未注册: {model_id}(在册: {sorted(self.products)})")
+        if not entry.schema:
+            declared = [k for k, v in self.products.items() if v.schema]
+            raise KeyError(
+                f"型号 {model_id} 未声明 PG schema 名。"
+                f"请在注册表里给该型号加 schema: <名称>(已声明的有: {declared})。"
+            )
+        return entry.schema
 
     # ---------- workspace ----------
     def model_workspace(self, model_id: str) -> str:
