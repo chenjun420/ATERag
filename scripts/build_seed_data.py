@@ -2373,6 +2373,60 @@ OUT_OF_SCOPE_ENTITY_IDS = frozenset(
     }
 )
 
+
+#: **移除的 unverified 概念** —— 查证后的处置(2026-10-07, websearch)。
+#:
+#: 只收**同名重复**这一类 —— 判据是机械可复核的「库里存在另一条同名且权威级更高
+#: 的概念」, 不需要外部查证, 也不依赖任何标准条款号。
+#:
+#: ## 为什么是红线 4 而不是「新旧版本并存」
+#:
+#: ``CREDIBILITY_BY_AUTHORITY``: ``standard`` 0.9 / ``industry`` 0.6 / ``unverified``
+#: **0.2**。同名而权威级不同的两条, 冲突消解里**低的那条永远输** —— 它赢不了, 又
+#: 仍能被名称/别名检索命中, 于是同一条知识有两个可改的入口, 而改错的那个不会报错
+#: (它在检索里照常返回, 只是可信度低)。
+#:
+#: 实测 6 组同名重复:
+#:
+#: | 移除 | 保留 | 保留方权威级 |
+#: |---|---|---|
+#: | POWER_FACTOR「功率因数」 | YC_PF「功率因数」 | standard(GB/Z 14429-2005) |
+#: | POUT_MAX「输出功率」 | YC_POUT「输出功率」 | standard |
+#: | IOUT_MAX「输出电流」 | YC_IOUT「输出电流」 | standard |
+#: | SCP_PROTECT「输出短路保护」 | PROT_SCP「输出短路保护」 | industry |
+#: | OTP_PROTECT「过温保护」 | PROT_OTP「过温保护」 | industry |
+#: | OCP_PROTECTION「输出过流保护」 | PROT_OCP「输出过流保护」 | unverified, 但留 PROT_OCP 与 PROT_SCP/PROT_OTP/PROT_OVP 命名族一致 |
+#:
+#: **零引用是实测的**(2026-10-07): 关系边合计 **0**; ``domain_rules/`` 与 ``tests/``
+#: 零命中; 唯一代码引用是 ``verify_joint_reasoning.py:371``(调试脚本列了
+#: ``OCP_PROTECTION``)与本文件的注释 —— 两处都已同步。
+#:
+#: ## 刻意**不**收进这一类的
+#:
+#: 另有 50 条 unverified 概念经查证后保留, 因为移除它们的理由都还站不住:
+#:
+#: - ``EFFICIENCY``「整机效率」: ``YC_EFFICIENCY``「效率」虽是 standard 级量概念,
+#:   但**整机效率**是系统边界的效率, 与器件效率不是同一个测量口径, 不算重复。
+#: - ``INSTR_*`` 14 条: 仪器类术语条款号(GB/T 2900.77/.89)可查但成本高, 而
+#:   「查证不动」不等于「无价值」—— 其中 3 条(示波器/电子负载/功率分析仪)在
+#:   ``rules.yaml`` 里真被用到。按「无法确认即移除」一刀切会连带删掉在用的词。
+#: - ``TEMP_COEFFICENT`` / ``VOUT_RISE_TIME``: 零规则引用是真, 但仍可查证
+#:   (温度系数见 IEC 60050-161; 上升时间的抽象层已由 ``CONTROL_RISE_TIME``
+#:   覆盖), 不该以「没查完」为名删掉。
+#: - 引用**废止标准**是可以接受的(例如 ``GB 3187-1994`` 已于 2009-04-01 废止、
+#:   由 ``GB/T 2900.13-2008`` 代替, 但其 ``§3.6 使用寿命`` 仍可作 LIFETIME 的
+#:   条款出处)—— 所以「新版查不到」不构成移除理由。
+DUPLICATE_CONCEPT_IDS = frozenset(
+    {
+        "POWER_FACTOR",
+        "POUT_MAX",
+        "IOUT_MAX",
+        "SCP_PROTECT",
+        "OTP_PROTECT",
+        "OCP_PROTECTION",
+    }
+)
+
 #: **已知无法解析的短记号**, 在注记字段(``bindings``/``upstream``)里出现就摘掉。
 #:
 #: 为什么需要显式列出来: 这些记号在方案 md 里是**手写简写**, 从来没有对应的
@@ -2582,7 +2636,11 @@ def prune_non_executable(
 
     # 范围排除**先于**可执行性判定: 被移出范围的实体不该再参与
     # 「谁引用了谁」的分析, 否则已删公式留下的记号会把它也拖下水。
-    _out_of_scope = OUT_OF_SCOPE_ENTITY_IDS | OUT_OF_SCOPE_FORMULA_IDS
+    _out_of_scope = (
+        OUT_OF_SCOPE_ENTITY_IDS
+        | OUT_OF_SCOPE_FORMULA_IDS
+        | DUPLICATE_CONCEPT_IDS
+    )
     kept_entities = [
         e
         for e in entities

@@ -368,7 +368,10 @@ for prop in ("vout_nom", "iout_max", "current_limit_threshold", "pout_max"):
     say(f"  {prop:26s} <- {src}")
 say("")
 say("  领域侧同一批概念的谱系(板卡 l0_term.provenance):")
-for cid in ("OCP_PROTECTION", "HYSTERESIS"):
+# OCP_PROTECTION 已于 2026-10-07 移除 —— 库里存在同名的 PROT_OCP, 两条都叫
+# 「输出过流保护」, 而 credibility 分级 unverified 0.2 恒低于 counterpart,
+# 于是这条赢不了冲突消解却仍能被检索命中(两个可改入口, 改错的不报错)。
+for cid in ("PROT_OCP", "HYSTERESIS"):
     e = mgr.get_provenance(cid)
     if e is None:
         say(f"    {cid}: <无谱系>")
