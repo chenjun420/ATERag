@@ -50,8 +50,8 @@ class TestExternalOntologyRefs:
     def test_external_ref_becomes_no_edge(self) -> None:
         graph, n_nodes, n_edges = build_context_graph(
             [
-                _node("TRIPPLE_OUTPUT"),
-                _rel("TRIPPLE_OUTPUT", "qudt:PotentialDifference", "has_unit_kind",
+                _node("VOUT_RIPPLE"),
+                _rel("VOUT_RIPPLE", "qudt:PotentialDifference", "has_unit_kind",
                      external=True, ontology="QUDT"),
             ],
             [],
@@ -64,13 +64,13 @@ class TestExternalOntologyRefs:
         """信息不能丢 —— 折进源节点的 metadata。"""
         graph, _, _ = build_context_graph(
             [
-                _node("TRIPPLE_OUTPUT"),
-                _rel("TRIPPLE_OUTPUT", "qudt:PotentialDifference", "has_unit_kind",
+                _node("VOUT_RIPPLE"),
+                _rel("VOUT_RIPPLE", "qudt:PotentialDifference", "has_unit_kind",
                      external=True, ontology="QUDT"),
             ],
             [],
         )
-        attrs = graph.get_node_attributes("TRIPPLE_OUTPUT")
+        attrs = graph.get_node_attributes("VOUT_RIPPLE")
         assert attrs.get("external_refs") == {"qudt:PotentialDifference": "QUDT"}
 
     def test_non_external_relation_still_becomes_edge(self) -> None:

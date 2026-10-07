@@ -1127,7 +1127,7 @@ AUTHORITATIVE_TERMS: tuple[dict[str, Any], ...] = (
         "synonyms": ["纹波", "ripple"],
         "verbatim": True,
         "note": (
-            "抽象父概念。下位见 TRIPPLE_OUTPUT(输出纹波)与输入纹波 —— 定义里"
+            "抽象父概念。下位见 VOUT_RIPPLE(输出纹波)与输入纹波 —— 定义里"
             "「与电源/斩波器有关的频率」是关键: 开关频率上的周期性偏移才是纹波, "
             "随机噪声不是(那是 NOISE, 312-07-04)。"
         ),
@@ -1260,8 +1260,33 @@ CONFLATED_SYNONYMS: tuple[tuple[str, str, str], ...] = (
 #: 改名安全性已实测(2026-10-07): ``VOUT_NOM`` 在种子里**零关系边**(没有任何
 #: 边以它为 source 或 target), 代码与配置里**零引用**, 所以改名无连带影响。
 #: 若将来它有了引用, 必须同步 —— 所以这个清单要人工维护, 不自动改名。
+#:
+#: ## 后两条: id 与 name 语义无关(比后缀矛盾更严重)
+#:
+#: ``TRIPPLE_OUTPUT`` 的 name 是「输出纹波」, 而 ``TRIPPLE`` 是 ``TRIPLE`` 的
+#: **拼写错误**且语义是「三倍/三重」—— 与纹波毫无关系。同理 ``DYNAMIC_RESPONSE``
+#: 的 name 是「动态响应**恢复时间**」, 而 ``DYNAMIC_RESPONSE`` 读起来是「动态响应」
+#: (一个过程, 不是时间)。光看 id 会以为它指动态响应曲线本身。
+#:
+#: 改名安全性(2026-10-07 实测):
+#:
+#: - ``TRIPPLE_OUTPUT``: 种子里**零关系边**; 代码引用 7 处 —— ``build_seed_data.py``
+#:   的注释 1 处、``tests/test_kg_materialize.py`` 6 处(纯当示例节点 id 用, 已同步
+#:   改名)。**故意不改 ``alembic/versions/0002_l0_rules.py:243``**: 那是已执行迁移
+#:   里建表 SQL 的设计说明注释, 属于历史记录; 改它会让迁移文件与实际跑过的内容分叉,
+#:   而「各环境迁移文件不一致」比「注释里有个旧 id」更糟。
+#: - ``DYNAMIC_RESPONSE``: 种子关系边 0 条; 唯一引用是 ``data/seed/corrections.yaml``
+#:   的修正条目 —— **必须保持旧 id**, 因为 :func:`apply_corrections` 在
+#:   :func:`apply_concept_fixes` **之前**跑, 那时实体还叫 ``DYNAMIC_RESPONSE``;
+#:   跟着改名会让修正条目找不到目标而被静默跳过(修正条目无 ``source``/``checked``
+#:   时才跳过, 但目标不存在也跳 —— 一样是静默)。
+#:   改名为 ``TRANSIENT_RECOVERY_TIME`` 而非 ``RECOVERY_TIME``: corrections.yaml 已把
+#:   它的 name 修正为「**瞬态**恢复时间」, 出处《电子电源术语及定义 2 直流输出稳定
+#:   电源术语》§3.49 —— id 要跟 name 一致。
 CONCEPT_RENAMES: dict[str, str] = {
     "VOUT_NOM": "VOUT_RATED",
+    "TRIPPLE_OUTPUT": "VOUT_RIPPLE",
+    "DYNAMIC_RESPONSE": "TRANSIENT_RECOVERY_TIME",
 }
 
 #: **补别名 / 层级说明** —— 这些概念本身存在但检索面不完整。
@@ -2349,6 +2374,26 @@ OUT_OF_SCOPE_FORMULA_IDS = frozenset(
         "F_M.1.9_ISO5725_REPEATABILITY",
         "F_M.1.10_ISO5725_REPRODUCIBILITY",
         "F_M.1.13_CG_CGK",
+        # N.4/N.5 寿命类(2026-10-07 裁定: 使用寿命相关移出范围)
+        #
+        # **为什么寿命移出范围而 MTBF 保留** —— 两者都是可靠性指标, 但判据不同:
+        #
+        # - 这三条算的是**寿命/容量随时间的变化**(中位寿命、电容可用容量、
+        #   寿命终止时的剩余容量), 服务对象是**设计选型**(这颗电容能用几年),
+        #   而产测对象是**一个已经造出来的电源** —— 测不出「还能用多久」。
+        # - MTBF/失效分布/系列系统那几条算的是**故障率**, 服务对象是
+        #   **可靠性验收与备件测算**, 那在产测范围内(FMEA/可靠性抽检要用),
+        #   所以 ``F_N.4.2_MTBF`` / ``F_N.4.8_SERIES_SYSTEM`` /
+        #   ``F_N.4.10_REDUNDANCY_NO_MTBF_GAIN`` / ``F_N.7.2_SIL_MTBF_DISTINCT``
+        #   与 ``sym::MTBF``、``sym::λ_*`` 全部保留。
+        #
+        # 实测零连带(2026-10-07): 这三条在 ``domain_rules/`` ``tests/`` ``config/``
+        # ``alembic/`` 里**零引用**, 种子里**零关系边**, ``rules.yaml`` 的「寿命」
+        # 20 次命中全是**判据正文里的词**(如「电解电容寿命应大于…」), 不是对这三条
+        # 公式的引用 —— 所以删掉不会让任何一条判据失去依据。
+        "F_N.4.3_MEDIAN_LIFE",
+        "F_N.5.1_CAP_LIFE",
+        "F_N.5.2_CAP_END_OF_LIFE",
     }
 )
 
@@ -2403,7 +2448,7 @@ OUT_OF_SCOPE_ENTITY_IDS = frozenset(
 #:
 #: ## 刻意**不**收进这一类的
 #:
-#: 另有 50 条 unverified 概念经查证后保留, 因为移除它们的理由都还站不住:
+#: 另有 49 条 unverified 概念经查证后保留, 因为移除它们的理由都还站不住:
 #:
 #: - ``EFFICIENCY``「整机效率」: ``YC_EFFICIENCY``「效率」虽是 standard 级量概念,
 #:   但**整机效率**是系统边界的效率, 与器件效率不是同一个测量口径, 不算重复。
@@ -2413,9 +2458,23 @@ OUT_OF_SCOPE_ENTITY_IDS = frozenset(
 #: - ``TEMP_COEFFICENT`` / ``VOUT_RISE_TIME``: 零规则引用是真, 但仍可查证
 #:   (温度系数见 IEC 60050-161; 上升时间的抽象层已由 ``CONTROL_RISE_TIME``
 #:   覆盖), 不该以「没查完」为名删掉。
-#: - 引用**废止标准**是可以接受的(例如 ``GB 3187-1994`` 已于 2009-04-01 废止、
-#:   由 ``GB/T 2900.13-2008`` 代替, 但其 ``§3.6 使用寿命`` 仍可作 LIFETIME 的
-#:   条款出处)—— 所以「新版查不到」不构成移除理由。
+#: - **引用废止标准本身是可以接受的**(ISO 5725 那批、``std::GB 17285-1998`` 等都在
+#:   库里), 所以「废止」不构成移除理由 —— ``LIFETIME`` 是**既无现行条款可引、又无
+#:   消费者**, 两项都不成立才移。
+#:
+#: ## 二、无标准术语依据且零消费者(1 条)
+#:
+#: - ``LIFETIME``「寿命」: ``data/seed/corrections.yaml`` 里**它自己的修正记录**写着
+#:   「方案自写, **未查到标准术语**, 保持原样并标记低置信度」(confidence 0.5)——
+#:   即人工查证环节当时就已确认查不到。此前查过 ``GB 3187-1994 §3.6 使用寿命``:
+#:   条款号存在, 但**该标准已于 2009-04-01 废止**(由 GB/T 2900.13-2008 代替, 后者
+#:   又被 GB/T 2900.99-2016 部分代替), 而现行版的对应条号未能核到。引用一条废止标准
+#:   只为留住一个零消费者的概念, 不划算。
+#:
+#:   ``MTBF``「平均故障间隔时间」**保留**: 有 8 处引用(含 ``rules.yaml`` 2 次、
+#:   ``config/table_schemas.yaml``、``domain_rules/power/knowledge.md``), 且已按
+#:   corrections 升级为 GB/T 3187-1994 §7.2.8 出处 —— 与 LIFETIME 不同档。同族公式
+#:   ``F_N.4.2_MTBF`` 等也保留(见 :data:`OUT_OF_SCOPE_FORMULA_IDS` 的说明)。
 DUPLICATE_CONCEPT_IDS = frozenset(
     {
         "POWER_FACTOR",
@@ -2424,6 +2483,8 @@ DUPLICATE_CONCEPT_IDS = frozenset(
         "SCP_PROTECT",
         "OTP_PROTECT",
         "OCP_PROTECTION",
+        # 二、无标准术语依据且零消费者
+        "LIFETIME",
     }
 )
 

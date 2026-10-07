@@ -657,26 +657,6 @@
       },
       {
         "kind": "power_concept",
-        "id": "DYNAMIC_RESPONSE",
-        "matched": "DYNAMIC_RESPONSE",
-        "before": {
-          "zh": "动态响应恢复时间",
-          "clause": null,
-          "confidence": null
-        },
-        "after": {
-          "zh": "瞬态恢复时间",
-          "clause": "3.49",
-          "confidence": 0.85
-        },
-        "authority_kind": "industry",
-        "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
-        "source": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
-        "checked": "2026-10-04",
-        "confidence": 0.85
-      },
-      {
-        "kind": "power_concept",
         "id": "DYNAMIC_OVERSHOOT",
         "matched": "DYNAMIC_OVERSHOOT",
         "before": {
@@ -2362,7 +2342,7 @@
   },
   "records": [
     {
-      "id": "TRIPPLE_OUTPUT",
+      "id": "VOUT_RIPPLE",
       "name": "输出纹波",
       "entity_type": "power_concept",
       "text": "TRIPPLE_OUTPUT: 输出纹波 output ripple",
@@ -2452,7 +2432,8 @@
             }
           ]
         }
-      }
+      },
+      "renamed_from": "TRIPPLE_OUTPUT"
     },
     {
       "id": "VOUT_RATED",
@@ -2827,7 +2808,7 @@
       }
     },
     {
-      "id": "DYNAMIC_RESPONSE",
+      "id": "TRANSIENT_RECOVERY_TIME",
       "name": "动态响应恢复时间",
       "entity_type": "power_concept",
       "text": "DYNAMIC_RESPONSE: 动态响应恢复时间 dynamic response recovery time",
@@ -2952,7 +2933,8 @@
       },
       "zh_declared": "动态响应恢复时间",
       "clause": "3.49",
-      "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)"
+      "authority_ref": "《电子电源术语及定义 2 直流输出稳定电源术语》(电子行业标准, 重庆市电源学会发布)",
+      "renamed_from": "DYNAMIC_RESPONSE"
     },
     {
       "id": "DYNAMIC_OVERSHOOT",
@@ -4319,93 +4301,6 @@
       "zh_declared": "平均故障间隔时间",
       "original_zh": "平均故障间隔时间",
       "authority_ref": "GB/T 3187-1994 7.2.8; 现行 GB/T 2900.99-2016《电工术语 可信性》(IEC 60050-192:2015)"
-    },
-    {
-      "id": "LIFETIME",
-      "name": "寿命",
-      "entity_type": "power_concept",
-      "text": "LIFETIME: 寿命 lifetime",
-      "confidence": null,
-      "source": null,
-      "section": null,
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "zh": "寿命",
-      "en": "lifetime",
-      "synonyms": [
-        "寿命",
-        "lifetime",
-        "使用寿命"
-      ],
-      "qudt_ref": "Time",
-      "authority_kind": "unverified",
-      "provenance": {
-        "zh": {
-          "property_name": "zh",
-          "value": "寿命",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "en": {
-          "property_name": "en",
-          "value": "lifetime",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "synonyms": {
-          "property_name": "synonyms",
-          "value": [
-            "寿命",
-            "lifetime",
-            "使用寿命"
-          ],
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "qudt_ref": {
-          "property_name": "qudt_ref",
-          "value": "Time",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
     },
     {
       "id": "INSULATION_VOLTAGE",
@@ -24235,84 +24130,6 @@
       }
     },
     {
-      "id": "F_N.4.3_MEDIAN_LIFE",
-      "name": "F_N.4.3_MEDIAN_LIFE",
-      "entity_type": "formula",
-      "text": "F_N.4.3_MEDIAN_LIFE: t₅₀ = ln(2)·MTTF = 0.693·MTTF",
-      "confidence": null,
-      "source": null,
-      "section": "N.4.3",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "t₅₀ = ln(2)·MTTF = 0.693·MTTF",
-      "declared_dimension": "[T]",
-      "domain": "N",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "N.4.3",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "t₅₀ = ln(2)·MTTF = 0.693·MTTF",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "declared_dimension": {
-          "property_name": "declared_dimension",
-          "value": "[T]",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "N",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
       "id": "F_N.4.4_PART_STRESS_MODEL",
       "name": "F_N.4.4_PART_STRESS_MODEL",
       "entity_type": "formula",
@@ -24789,130 +24606,6 @@
         "section": {
           "property_name": "section",
           "value": "N.4.10",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "N",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_N.5.1_CAP_LIFE",
-      "name": "F_N.5.1_CAP_LIFE",
-      "entity_type": "formula",
-      "text": "F_N.5.1_CAP_LIFE: L = L₀·2^((T_rated−T_actual)/10)·(V_rated/V_actual)^k",
-      "confidence": null,
-      "source": null,
-      "section": "N.5.1",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "L = L₀·2^((T_rated−T_actual)/10)·(V_rated/V_actual)^k",
-      "domain": "N",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "N.5.1",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "L = L₀·2^((T_rated−T_actual)/10)·(V_rated/V_actual)^k",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "domain": {
-          "property_name": "domain",
-          "value": "N",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "F_N.5.2_CAP_END_OF_LIFE",
-      "name": "F_N.5.2_CAP_END_OF_LIFE",
-      "entity_type": "formula",
-      "text": "F_N.5.2_CAP_END_OF_LIFE: ESR ≥ 2·ESR₀ 或 C ≤ 0.8·C₀",
-      "confidence": null,
-      "source": null,
-      "section": "N.5.2",
-      "metadata": {
-        "authority_kind": "unverified"
-      },
-      "expr": "ESR ≥ 2·ESR₀ 或 C ≤ 0.8·C₀",
-      "domain": "N",
-      "authority_kind": "unverified",
-      "provenance": {
-        "section": {
-          "property_name": "section",
-          "value": "N.5.2",
-          "sources": [
-            {
-              "document": "",
-              "section": null,
-              "line": null,
-              "confidence": null,
-              "metadata": {
-                "authority_kind": "unverified"
-              }
-            }
-          ]
-        },
-        "expr": {
-          "property_name": "expr",
-          "value": "ESR ≥ 2·ESR₀ 或 C ≤ 0.8·C₀",
           "sources": [
             {
               "document": "",
@@ -52825,7 +52518,7 @@
       "definition_verbatim": true,
       "defined_by_standard": "GB/T 2900.89-2012",
       "standard_section": "312-07-02",
-      "note": "抽象父概念。下位见 TRIPPLE_OUTPUT(输出纹波)与输入纹波 —— 定义里「与电源/斩波器有关的频率」是关键: 开关频率上的周期性偏移才是纹波, 随机噪声不是(那是 NOISE, 312-07-04)。",
+      "note": "抽象父概念。下位见 VOUT_RIPPLE(输出纹波)与输入纹波 —— 定义里「与电源/斩波器有关的频率」是关键: 开关频率上的周期性偏移才是纹波, 随机噪声不是(那是 NOISE, 312-07-04)。",
       "authority_kind": "standard",
       "authority_ref": "GB/T 2900.89-2012 §312-07-02",
       "provenance": {
@@ -52939,7 +52632,7 @@
         },
         "note": {
           "property_name": "note",
-          "value": "抽象父概念。下位见 TRIPPLE_OUTPUT(输出纹波)与输入纹波 —— 定义里「与电源/斩波器有关的频率」是关键: 开关频率上的周期性偏移才是纹波, 随机噪声不是(那是 NOISE, 312-07-04)。",
+          "value": "抽象父概念。下位见 VOUT_RIPPLE(输出纹波)与输入纹波 —— 定义里「与电源/斩波器有关的频率」是关键: 开关频率上的周期性偏移才是纹波, 随机噪声不是(那是 NOISE, 312-07-04)。",
           "sources": [
             {
               "document": "GB/T 2900.89-2012 §312-07-02",
