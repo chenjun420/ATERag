@@ -475,6 +475,82 @@ def check_reportables(records: list[dict[str, Any]], ids: set[str], report: Gate
     )
 
 
+def check_l0_policy_tables(report: GateReport, dsn: str) -> None:
+    """``l0_term`` 表的数据政策核对: 标了「不灌」却有数据 = ERROR, 没标 = WARN。
+
+    查的是「表是不是空的」, 报的却是**审计风险**: 方案 §八 F 实测 13 张表里
+    11 张 0 行 —— 22 个 CHECK / 38 个索引 / 1 个触发器全在空转, 而对应 ADR
+    全部 ``Accepted``。审计读索引会把「已决策」读成「已实现」(红线 14)。
+
+    **空表本身不是错**(红线 4: 领域知识的权威是 git 内种子 JSON, 进 PG 就是
+    双源), 所以空表只进 stats 不报; 要往这些表灌数据得先推翻红线 4, 不是
+    绕过一条 WARN。
+
+    政策以 ``COMMENT ON TABLE`` (迁移 ``0004_l0_data_policy``) 为准, 不在本
+    文件里复述一份 —— 复述就会出现两个真相源, 而注释是跟着表走的那个。
+    """
+    import psycopg  # 局部 import: 离线跑门禁不需要驱动
+
+    with psycopg.connect(dsn) as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT c.relname, obj_description(c.oid)
+            FROM pg_class c
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE n.nspname = 'l0_term' AND c.relkind = 'r'
+            ORDER BY c.relname
+            """
+        )
+        rows = cur.fetchall()
+    if not rows:
+        report.add(
+            "l0_term_missing",
+            "WARN",
+            "l0_term",
+            "l0_term schema 不存在 (迁移未跑?) —— 无法核对数据政策",
+        )
+        return
+    empty = 0
+    for name, comment in rows:
+        policy = (comment or "").strip()
+        if not policy:
+            report.add(
+                "l0_policy_unlabeled",
+                "WARN",
+                f"l0_term.{name}",
+                "表没有 COMMENT 数据政策; 审计无法区分「按红线 4 不灌」与「忘了灌」",
+            )
+            continue
+        if not policy.startswith("按政策不灌"):
+            continue
+        empty += 1
+        n = _live_count(dsn, name)
+        if n:
+            report.add(
+                "l0_policy_violated",
+                "ERROR",
+                f"l0_term.{name}",
+                f"表上写着「按政策不灌」(红线 4), 实际有 {n} 行 —— "
+                "要么数据是漂移的副本, 要么政策注释过期了; 二选一, 别放着",
+            )
+    report.stats["l0_tables"] = len(rows)
+    report.stats["l0_policy_empty"] = empty
+
+
+def _live_count(dsn: str, table: str) -> int:
+    """``count(*)``: 空与非空的判据不能是 reltuples 的估算值。
+
+    表名来自 ``pg_class`` 而非用户输入, 但仍用标识符引号包起来 ——
+    拼接 SQL 只在名字不可信时才需要引号, 这里只需要一条注释说明来源。
+    """
+    import psycopg
+
+    with psycopg.connect(dsn) as conn, conn.cursor() as cur:
+        cur.execute(f'SELECT count(*) FROM l0_term."{table}"')  # noqa: S608
+        row = cur.fetchone()
+    return int(row[0]) if row else 0
+
+
 def run_gate(records: list[dict[str, Any]]) -> GateReport:
     """跑全部门禁检查, 返回报告。**不修改任何数据**。"""
     report = GateReport()
@@ -506,6 +582,14 @@ def main(argv: list[str] | None = None) -> int:
         help="种子 JSON 路径(默认 data/seed/power_domain_seed.json)",
     )
     ap.add_argument("--json", action="store_true", help="机器可读 JSON 输出")
+    ap.add_argument(
+        "--pg-dsn",
+        help=(
+            "PG DSN。给了才核对 l0_term 的数据政策(表上写着「按政策不灌」却有数据 "
+            "= ERROR, 没写政策 = WARN); 不给则显式记 pg_policy_check=skipped —— "
+            "静默跳过会把「没连上」和「查过了没问题」混成一条"
+        ),
+    )
     args = ap.parse_args(argv)
 
     seed_path = Path(args.seed)
@@ -515,11 +599,32 @@ def main(argv: list[str] | None = None) -> int:
     seed = json.loads(seed_path.read_text(encoding="utf-8"))
     report = run_gate(list(seed.get("records") or []))
 
+    if args.pg_dsn:
+        try:
+            check_l0_policy_tables(report, args.pg_dsn)
+            report.stats["pg_policy_check"] = "checked"
+        except Exception as e:  # noqa: BLE001 连不上也要说出来, 不能当成通过
+            report.stats["pg_policy_check"] = f"failed: {type(e).__name__}: {e}"
+            report.add(
+                "pg_policy_unavailable",
+                "WARN",
+                "l0_term",
+                f"数据政策核对未完成: {type(e).__name__}: {e}",
+            )
+    else:
+        report.stats["pg_policy_check"] = "skipped (未给 --pg-dsn)"
+
     if args.json:
         print(json.dumps(report.to_dict(), ensure_ascii=False, indent=2))
     else:
         st = report.stats
         print(f"知识门 {seed_path}: {st['records']} 条记录 ({st['with_id']} 带 id, {st['relations']} 关系)")
+        if "l0_tables" in st:
+            print(
+                f"  l0_term 数据政策: {st['l0_tables']} 张表, "
+                f"其中 {st['l0_policy_empty']} 张按红线 4 不灌"
+            )
+        print(f"  l0_term 政策核对: {st['pg_policy_check']}")
         for f in report.findings:
             if f.severity == "INFO":
                 continue

@@ -11,8 +11,11 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 import json
+import re
 import sys
+from contextlib import redirect_stdout
 from pathlib import Path
 from typing import Any
 
@@ -304,3 +307,68 @@ class TestRealSeed:
 
     def test_gate_cli_exit_zero_on_real_seed(self) -> None:
         assert kg.main(["--seed", str(SEED)]) == 0
+
+
+class TestL0DataPolicy:
+    """A26: 让「按红线 4 不灌数据」变成表上的显式标注, 而不是靠人记得。
+
+    方案 §八 F 实测 ``l0_term`` 13 张表里 11 张 0 行, 22 个 CHECK / 38 个
+    索引 / 1 个触发器全在空转, 而对应 ADR 全部 ``Accepted`` —— 审计会把
+    「已决策」读成「已实现」(红线 14)。本组用例钉住三件事:
+
+    1. 每张**不灌**的表都在迁移 0004 里有 COMMENT, 逐张点名;
+    2. 有数据的 ``provenance`` / ``trace`` **不在**不灌名单里 ——
+       「有注释」不能被读成「有问题的表」;
+    3. 门禁离线跑时**显式记 skip**, 不静默跳过。
+    """
+
+    MIGRATION = ROOT / "alembic" / "versions" / "0004_l0_data_policy.py"
+
+    @staticmethod
+    def _policy_tables() -> dict[str, str]:
+        spec = importlib.util.spec_from_file_location("_mig0004", TestL0DataPolicy.MIGRATION)
+        assert spec and spec.loader
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return dict(mod.POLICY_COMMENTS)
+
+    @staticmethod
+    def _created_tables() -> set[str]:
+        """从各迁移的 DDL 里扫出真实建了哪些 l0_term 表。"""
+        names: set[str] = set()
+        for path in sorted((ROOT / "alembic" / "versions").glob("*.py")):
+            text = path.read_text(encoding="utf-8")
+            names.update(re.findall(r"CREATE TABLE \{L0_SCHEMA\}\.(\w+)", text))
+        return names
+
+    def test_every_l0_table_is_either_labeled_or_explicitly_in_use(self) -> None:
+        """建了的表 = 不灌名单 ∪ {有数据的 provenance/trace}, 不多不少。"""
+        labeled = set(self._policy_tables())
+        in_use = {"provenance", "trace"}  # 板卡实测 1197 / 75 行
+        missing = self._created_tables() - labeled - in_use
+        assert not missing, f"建了但没标数据政策: {sorted(missing)}"
+
+    def test_tables_with_data_are_not_in_the_no_fill_list(self) -> None:
+        labeled = self._policy_tables()
+        for name in ("provenance", "trace"):
+            assert name not in labeled, f"{name} 有数据, 不能标成「按政策不灌」"
+
+    def test_policy_comments_name_the_red_line_and_the_authority(self) -> None:
+        """注释要同时说清「为什么」与「权威在哪」, 否则审计还是问不出下一步。"""
+        for name, comment in self._policy_tables().items():
+            assert comment.startswith("按政策不灌"), (name, comment[:20])
+            assert "红线 4" in comment, (name, "没写红线依据")
+            assert "power_domain_seed.json" in comment or "rules.yaml" in comment, (
+                name,
+                "没写数据权威在哪",
+            )
+
+    def test_gate_records_that_the_pg_check_was_skipped(self) -> None:
+        """不给 --pg-dsn 时必须**显式记 skip**: 静默跳过会把「没连上」和
+        「查过了没问题」混成同一条记录。"""
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            assert kg.main(["--seed", str(SEED)]) == 0
+        out = buf.getvalue()
+        assert "skipped" in out, out
+        assert "--pg-dsn" in out
