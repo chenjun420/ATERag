@@ -28,6 +28,7 @@ from aterag.extract.assess import (
     summarize,
     to_review_items,
 )
+from aterag.extract.configs import validate_extraction_configs
 from aterag.extract.models import (
     ROLE_OTHER,
     ROLE_STIMULUS_RESPONSE,
@@ -338,20 +339,14 @@ def extract_test_conditions(
     profile = prof_book.get(profile_name)
     book = patterns or PatternBook.load(DEFAULT_PATTERNS_PATH)
     method_book = methods or MethodBook.load()
-    # 角色词表从档案的 section_priors 取, 不在代码里硬编码角色名 ——
-    # 角色是文档档案的知识, 换产品线换档案而非换代码。
-    role_vocab = frozenset(
-        pr.role for p in prof_book.profiles.values() for pr in p.section_priors.values()
-    )
-    # fail-closed: 方法库与词表/角色不自洽时直接抛, 不降级为"没有补齐" ——
-    # 静默降级会表现为"条件一直没补上", 却查不出是配置坏了。
-    method_book.validate(book.kinds, role_vocab)
-    method_book.validate_templates()
     assess_book = assess_rules or RuleBook.load(method_book.path)
-    assess_book.validate()
     # 场景规则缺失时 fail-closed: 静默退化成"不拆场景"会让下游拿到含混判据,
     # 却没有任何报错指向配置缺失。
     scen_rules = scenario_rules or ScenarioRules.load()
+    # fail-closed: 五份配置互相不自洽时直接抛, 不降级为"没有补齐" ——
+    # 静默降级会表现为"条件一直没补上", 却查不出是配置坏了。
+    # 校验实现收敛在 extract.configs (A20): 加载期与脚本共用同一份规则。
+    validate_extraction_configs(prof_book, book, method_book, assess_book, scen_rules)
 
     blocks = load_blocks(model_id, blocks_dir)
     selection = select_sections(blocks, profile.section_keywords)

@@ -45,7 +45,35 @@ async def run_all_checks(settings: Settings) -> list[CheckResult]:
         results.append(_check_pgvector(settings))
     results.extend(await _check_llm(settings))
     results.extend(await _check_embedding(settings))
+    results.append(_check_extraction_configs(settings))
     return results
+
+
+def _check_extraction_configs(settings: Settings) -> CheckResult:
+    """抽取侧五份配置的自洽性 —— **在健康检查里, 而不是等抽取时才炸**。
+
+    ``doc_profiles.yaml`` 与 ``test_methods.yaml`` 互相引用(方法库用档案的
+    ``role`` 指认适用范围), 校验过去只发生在抽取内部, 于是「配置能加载成功」
+    会被误读成「配置可用」(方案 §11.6 A20)。这一项零 IO 之外的依赖, 不查它
+    的健康检查等于把最常见的一类配置错误留给线上才发现。
+    """
+    try:
+        from aterag.extract.configs import load_extraction_configs
+
+        cfgs = load_extraction_configs(settings)
+        return CheckResult(
+            "extraction_configs",
+            True,
+            f"{len(cfgs.profiles.profiles)} profiles / {len(cfgs.patterns.rules)} 规则 / "
+            f"{len(cfgs.methods.methods)} 方法 / {len(cfgs.assess_rules.rules)} 评估规则 / "
+            f"{len(cfgs.scenario_rules.dimensions)} 场景维度, 交叉校验通过",
+        )
+    except Exception as e:  # noqa: BLE001 配置坏了就是坏了, 报原样让人能改
+        return CheckResult(
+            "extraction_configs",
+            False,
+            f"抽取侧配置不自洽: {type(e).__name__}: {e}",
+        )
 
 
 def _check_postgres(settings: Settings) -> CheckResult:

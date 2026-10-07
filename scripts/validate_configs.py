@@ -26,6 +26,8 @@ import yaml
 sys.path.insert(0, "src")
 sys.stdout.reconfigure(encoding="utf-8")
 
+from aterag.extract.configs import validate_extraction_configs  # noqa: E402
+
 FAIL = "❌"
 PASS = "✅"
 
@@ -144,24 +146,26 @@ def main() -> int:
     else:
         problems.append("缺少 config/condition_patterns.yaml")
 
-    # ---- 业界方法库 (缝⑤): 与封闭词表/角色词表交叉校验 ----
-    # 这是两仓对接的第一道闸: 方法库引用了词表外的 kind, 下游就无法为它翻译
-    # 出执行动作, 而这种断裂在产线上只表现为"用例缺步骤", 极难定位。
+    # ---- 业界方法库 (缝⑤) + 抽取侧配置自洽 (A20) ----
+    # 交叉校验**只有一份实现**(aterag.extract.configs): 校验规则曾经有两份
+    # (这里一份、抽取内部一份), 两份必然漂 —— 而漂掉的那份不会报错, 只会在
+    # 另一个入口放行坏配置。
     tm_path = Path("config/test_methods.yaml")
     if tm_path.exists():
         try:
             from aterag.extract.assess import RuleBook
+            from aterag.extract.scenarios import ScenarioRules
             from aterag.extract.supplement import MethodBook
 
             mbook = MethodBook.load(tm_path)
+            rules = RuleBook.load(str(tm_path))
+            scen = ScenarioRules.load()
             if book is not None and pb_roles:
-                mbook.validate(book.kinds, pb_roles)
-                mbook.validate_templates()
-                rules = RuleBook.load(str(tm_path))
-                rules.validate()
+                validate_extraction_configs(pb, book, mbook, rules, scen)
                 print(
                     f"  {PASS} 业界方法库: {len(mbook.methods)} 条方法 / "
-                    f"{len(mbook.templates)} 个描述模板 / {len(rules.rules)} 条评估规则"
+                    f"{len(mbook.templates)} 个描述模板 / {len(rules.rules)} 条评估规则 / "
+                    f"{len(scen.dimensions)} 个场景维度"
                 )
                 print(
                     f"       交叉校验通过: kind ⊆ 词表({len(book.kinds)}), "
