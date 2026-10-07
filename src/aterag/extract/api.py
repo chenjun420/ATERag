@@ -106,6 +106,13 @@ class DocProfile:
     reference_markers: tuple[str, ...] = ()
     req_id_pattern: str = ""
     review_dispositions: tuple[Mapping[str, Any], ...] = ()
+    #: 模板身份 (方案 §4.0①)。**档案 ≠ 模板**: 档案是这份文档的解析知识, 模板是
+    #: 「这一族文档长什么样」的族系标识。两者分开才能回答两个不同的问题:
+    #: 「这段抽取用的是哪套参数」(template_id) 与「这套参数有没有被改过」
+    #: (template_fingerprint)。合成一个字段就只能回答前者。
+    template_id: str = ""
+    template_version: str = ""
+    note: str = ""
 
     def disposition_for(
         self, *, req_id: str = "", kind: str = "", section: str = "", match: str = ""
@@ -173,6 +180,9 @@ class ProfileBook:
                 reference_markers=tuple(spec.get("reference_markers") or ()),
                 req_id_pattern=str(spec.get("req_id_pattern", "")),
                 review_dispositions=tuple(spec.get("review_dispositions") or ()),
+                template_id=str(spec.get("template_id", "")),
+                template_version=str(spec.get("template_version", "")),
+                note=str(spec.get("note", "")),
             )
         if not profiles:
             raise ValueError(f"档案未定义任何 profile: {p}")
@@ -187,6 +197,55 @@ class ProfileBook:
         if key not in self.profiles:
             raise KeyError(f"未定义的 profile: {key} (已定义: {sorted(self.profiles)})")
         return self.profiles[key]
+
+
+# ---------------- 模板身份 (方案 §4.0②) ----------------
+
+
+def _schema_field_whitelist() -> tuple[str, ...]:
+    """表字段白名单 —— 参与模板指纹。
+
+    表头映射变了 = 实体抽出的字段变了, 所以它属于「模板」的一部分。**读不读得到
+    都必须参与**: 读不到时返回空元组, 指纹照样算得出来 (只是不含表这一维),
+    而这里刻意不抛错 —— 抽取能不能跑与指纹能不能算完整是两件事, 混在一起会让
+    「配置不完整」表现为「抽取失败」, 那是误导。
+    """
+    try:
+        from aterag.ingest.table_schema import load_registry
+
+        return tuple(sorted(load_registry().known_fields))
+    except Exception:  # noqa: BLE001 见 docstring: 缺表档案不该让抽取失败
+        return ()
+
+
+def _template_identity(
+    profile: DocProfile,
+    prof_book: ProfileBook,
+    book: PatternBook,
+    scenario_rules: ScenarioRules | None = None,
+) -> dict[str, str]:
+    """算出这份抽取的模板身份三元组 (方案 §4.0②)。
+
+    词表传的是**全局可见的**: kind 取条件规则库的封闭词表, role 取全部档案声明
+    的角色 (不是只看本档案 —— 方法库引用的是全局角色表, 只算本档案的会让
+    「别处加了角色」在这里看不见, 而那同样影响抽取结果)。
+
+    ``scenario_rules`` 目前**不进指纹**: 场景规则决定怎么命名/组合场景, 不改变
+    「按什么模板解析条目」。两者混进一个哈希的话, 以后调一次场景命名就得重采
+    全部模板基线, 而命名调整与解析能力无关。留着参数是因为将来若某条场景规则
+    真的影响条目抽取, 这里是明确的位置而不是散落在别处。
+
+    ``template_id`` 缺失时**抛错**: 静默填空等于回到「模板未被建模」, 而
+    ExtractionResult 会带着空 template 字段流下去, 下游以为记了其实没记。
+    """
+    from aterag.extract.configs import role_vocabulary, template_identity
+
+    return template_identity(
+        profile,
+        known_kinds=book.kinds,
+        known_roles=role_vocabulary(prof_book),
+        schema_fields=_schema_field_whitelist(),
+    )
 
 
 # ---------------- 数据来源 ----------------
@@ -566,6 +625,7 @@ def extract_test_conditions(
         doc_version=doc_version,
         profile=profile.name,
         source=source,
+        template=_template_identity(profile, prof_book, book, scen_rules),
         selection=selection,
         conditions=conditions,
         excluded=outcome.excluded,

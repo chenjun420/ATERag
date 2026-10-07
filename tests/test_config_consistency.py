@@ -116,6 +116,32 @@ class TestBrokenConfigsRaiseAtLoad:
             validate_extraction_configs(broken_profiles, patterns, methods, rules, scen)
         assert "limits_to" in str(ei.value)
 
+    def test_profile_without_template_id_raises_at_load(self, good, tmp_path):
+        """缺 template_id 必须在**加载期**被挡, 而不是等抽取时抛。
+
+        否则 health 会报「配置通过」而实际一抽取就炸 —— 那正是 A20 要消除的
+        「能加载 ≠ 可用」。
+        """
+
+        def mutate(doc):
+            del doc["profiles"][doc["default_profile"]]["template_id"]
+
+        broken = ProfileBook.load(_write(tmp_path, DP, mutate))
+        _, patterns, methods, rules, scen, _ = good
+        with pytest.raises(ValueError) as ei:
+            validate_extraction_configs(broken, patterns, methods, rules, scen)
+        assert "template_id" in str(ei.value)
+
+    def test_profile_without_template_version_raises_at_load(self, good, tmp_path):
+        def mutate(doc):
+            del doc["profiles"][doc["default_profile"]]["template_version"]
+
+        broken = ProfileBook.load(_write(tmp_path, DP, mutate))
+        _, patterns, methods, rules, scen, _ = good
+        with pytest.raises(ValueError) as ei:
+            validate_extraction_configs(broken, patterns, methods, rules, scen)
+        assert "template_version" in str(ei.value)
+
     def test_profile_without_section_keywords_raises(self, good, tmp_path):
         """没有 section_keywords 的档案选中不了章节 -> 配置不可能可用。"""
         _, patterns, methods, rules, scen, _ = good

@@ -10,10 +10,30 @@ version: 1
 # 未在 registry.yaml 显式指定 profile 的型号用这个
 default_profile: power_spec_cn
 
+# ---- 模板身份 (方案 §4.0①) ----
+#
+# 档案 ≠ 模板。档案是「这份文档怎么解析」, 模板是「这一族文档长什么样」的族系
+# 标识, 两者分开才能回答两个不同的问题:
+#   template_id + fingerprint —— 这段抽取用的是哪套参数, 参数有没有被改过
+#
+# power_spec_cn 与 power_spec_cn_pn2000 **同属一个模板族** (同一家的定制电源
+# 技术规格书, 只是章节号不同: 4.3 vs 2)。把它们挂同一个 template_id, 基线就能
+# 按模板维度对齐; 挂两个 id 则永远看不出「这俩其实是同一个模板被改过章节号」。
+#
+# template_version 是**人工维护**的版本号, 故意不由代码推导: 它记的是「这版模板
+# 是谁在什么时候改的」, 指纹只回答「变没变」。两者都要 —— 光有指纹时, 事后看到
+# 一份历史产物只能知道参数不同, 不知道当时用的是哪个版本号。
+#
+# 变更约定: 改会改变抽取结果的部分 (section_keywords / exclude_words /
+# section_priors / 表字段白名单) 时, template_version 递增一位, 并同步更新
+# config/template_baseline.yaml 的对应条目 (scripts/template_drift.py 会红)。
+
 profiles:
 
   # 中兴系电源定制规格书 (PA601-D54A / PN2000-24A 等)
   power_spec_cn:
+    template_id: power_spec_cn_v1
+    template_version: "1.0"
     description: 定制电源技术规格书 (章节 4.3 = 功能/性能要求)
 
     # 章节选择: 标题链命中任一关键字的章节 + 其全部子章节
@@ -118,6 +138,9 @@ profiles:
   # 关键字在它里面一个都命中不了 -> SectionKeywordNotFound,
   # 「登记在册却进不来」。**换模板只改本文件, 不改代码** (方案 §11.4 A19)。
   power_spec_cn_pn2000:
+    # 与 power_spec_cn 同族: 同一家的定制电源技术规格书, 只是章节号从 4.3 变成 2。
+    template_id: power_spec_cn_v1
+    template_version: "1.0"
     description: PN2000-24A 定制电源技术规格书 (章节 2 技术要求)
     section_keywords:
       # 逐个子章节点名, 而非笼统写「技术要求」: 2.4/2.5 的信号与遥测表
@@ -169,6 +192,11 @@ profiles:
 
   # 极简示例: 只做章节选择 + 剔除, 不做语义装配 (用于对照与冒烟)
   minimal:
+    # 独立的模板族: 它不按任何真实文档的章节结构, 只做对照与冒烟。
+    # 刻意不与 power_spec_cn_v1 同族 —— 挂了同一个 id 就会让「改了 minimal」
+    # 看起来像「改了真实模板」, 基线也就跟着一起红。
+    template_id: minimal_v1
+    template_version: "1.0"
     description: 只抽取条目, 不拆输入/输出条件
     section_keywords:
       - 功能/性能要求

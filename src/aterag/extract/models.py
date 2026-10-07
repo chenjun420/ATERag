@@ -175,6 +175,10 @@ class ExtractionResult:
     # 被排除的不可行场景组合 (必须带理由, 不静默丢弃)
     excluded_scenarios: list[Any] = field(default_factory=list)
     stats: dict[str, Any] = field(default_factory=dict)
+    #: 模板身份三元组 (方案 §4.0②): 这份产物是用哪套参数、哪一版模板算出来的。
+    #: 落库后任何历史产物都能反查当时的模板 —— 这是事后追责的前提, 也是
+    #: ``scripts/template_drift.py`` 判定「变了」的依据。
+    template: dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -182,6 +186,7 @@ class ExtractionResult:
             "doc_version": self.doc_version,
             "profile": self.profile,
             "source": self.source,
+            "template": dict(self.template),
             "selection": self.selection.to_dict() if self.selection else None,
             "conditions": [c.to_dict() for c in self.conditions],
             "excluded": [e.to_dict() for e in self.excluded],

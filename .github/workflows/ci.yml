@@ -104,6 +104,18 @@ jobs:
         env:
           PYTHONIOENCODING: utf-8
         run: python scripts/review_annotation.py -m PA601-D54A --check
+      # 模板漂移门禁 (方案 §4.0③⑤)。**辅助工具**, 不是防线: 抽取过程本身对模板
+      # 失配已 fail-closed (章节选不中抛 SectionKeywordNotFound, 表头不认识抛
+      # TableSchemaUnmapped)。这里管的是抽取管不到的那一类 —— 参数变了、抽取照样
+      # 跑完、结果看着正常但其实 role/limits_to 判错了。
+      # 只列 PA601/PN1000: PN2000-24A 的 blocks 未入库, 门禁会报 ERROR 而不是
+      # 静默放过 (「测不了」不等于「没漂移」), 那不该让 CI 常红。
+      - name: "Template drift gate (fingerprint + coverage baseline)"
+        env:
+          PYTHONIOENCODING: utf-8
+        run: >
+          python scripts/template_drift.py
+          --model PA601-D54A --model PN1000-48A
 
   secrets:
     name: Secret scan

@@ -1,0 +1,353 @@
+"""模板漂移门禁 (方案 §4.0③)。
+
+**定位: 辅助工具, 不是防线。** §4.0 的核心结论是「检测归抽取过程, 且必须
+fail-closed」—— 抽取撞上模板失配时会直接报错 (红线 12), 不依赖本脚本。
+
+那这个脚本还负责什么? 两件抽取过程**做不到**的事:
+
+1. **事后追责**: 历史产物是用哪套参数算出来的。抽取时落的
+   ``ExtractionResult.template`` 就是为此存在 (§4.0②)。
+2. **相对基线漂移**: 「和上次比变了没有」。抽取过程只能告诉你「现在这样对不对」,
+   不知道「相对上次变了」—— 而模板变更的典型后果恰恰是**静默失效**: 抽取跑完、
+   结果看着正常、其实抽错了。这类失效抽取过程自己发现不了, 因为它没有「上次」
+   可比。
+
+所以本脚本的判据是**回归对账**, 不是正确性判定。§4.0 那句「辅助工具坏了只影响
+方便, 不影响正确性」在这里成立的前提是: 抽取过程已经能独立 fail-closed。
+
+三段检查 (对应 §4.0 的方案):
+
+============  ==============================================  ==========
+检查          判据                                           红了说明
+============  ==============================================  ==========
+基线对比      当前 fingerprint vs 基线                       参数被改过
+影响面        按 section_path 前缀反查受影响的需求           **改了什么内容**
+覆盖率回归    条件数 / 未解析队列 / 待审队列 三项            **结果变了多少**
+============  ==============================================  ==========
+
+只报「变了」没有用 —— 人无法判断影响面, 于是只能忽略。后两段是给「变了」配的
+可操作信息。
+
+多型号
+------
+基线按 ``(template_id, model_id)`` 存, 不全局一份 (§4.0④)。改 PA601 的档案不会
+让另两个型号一起红。
+
+用法:
+    .venv\\Scripts\\python.exe scripts/template_drift.py              # 对比基线
+    .venv\\Scripts\\python.exe scripts/template_drift.py --update     # 接受变更并写基线
+    .venv\\Scripts\\python.exe scripts/template_drift.py --model PN2000-24A
+
+退出码: 0 未漂移 / 1 有漂移 / 2 基线缺失或不可读
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, "src")
+sys.stdout.reconfigure(encoding="utf-8")
+
+import yaml  # noqa: E402
+
+from aterag.config import get_settings  # noqa: E402
+from aterag.extract.api import (  # noqa: E402
+    ProfileBook,
+    extract_test_conditions,
+    model_profile_name,
+)
+from aterag.extract.assembler import PatternBook  # noqa: E402
+from aterag.extract.configs import role_vocabulary, template_identity  # noqa: E402
+from aterag.ingest.table_schema import load_registry  # noqa: E402
+
+BASELINE_PATH = "config/template_baseline.yaml"
+PASS = "✅"
+FAIL = "❌"
+WARN = "⚠️"
+
+#: 覆盖率回归的允许波动。绝对数而非百分比: 条件数本来就只有几十条, 百分比在
+#: 小基数上会显得很宽容 (5% of 20 = 1 条, 1 条可能就是整个 4.4 章节)。
+TOLERANCE = {
+    "conditions_total": 0,  # 条件数**不许**变: 变了就是漏抽或多抽, 没有解释
+    "unresolved_text": 5,  # 未解析文本: 允许波动 (抽取器在演进), 但要看清
+    "needs_review": 5,  # 待审队列: 同上
+}
+
+#: 基线文件的头部说明。**每次 --update 都重写它** —— 所以它必须由代码生成,
+#: 写成手工维护的注释会在第一次 --update 时被冲掉, 而那段说明恰恰是防止
+#: 「直接 --update 把门禁的牙拔了」的唯一东西。
+BASELINE_HEADER = """\
+# 模板基线 —— 由 scripts/template_drift.py --update 生成
+#
+# 按 (template_id, model_id) 存 (§4.0④): 改一个型号的档案不该让别的型号跟着变红。
+#
+# **这个文件是「回归对账」用的, 不是防线。** 抽取过程本身对模板失配是 fail-closed
+# 的 (红线 12): 章节选不中会抛 SectionKeywordNotFound, 表头不认识会抛
+# TableSchemaUnmapped。这里管的是抽取过程**管不到**的那一类 —— 参数变了、抽取照样
+# 跑完、结果看着正常但其实判错了 (role / limits_to 判错时条件数往往不变)。
+#
+# 更新流程: 改配置 -> 跑 scripts/template_drift.py 看清楚红了什么 -> 确认变更
+# 有意 -> 递增 doc_profiles.yaml 里的 template_version -> 跑 --update 采新基线。
+# 不要跳过「看清楚红了什么」直接 --update, 那等于把门禁的牙拔了。
+#
+# 缺条目 ≠ 无漂移: 没基线的型号不参与漂移判定, 脚本会单独报出来。
+"""
+
+
+def _baseline_path(args) -> Path:
+    return Path(args.baseline)
+
+
+def load_baseline(path: Path) -> dict:
+    """读基线。缺失时返回空结构 —— 由调用方决定是「新增型号」还是「配置坏了」。"""
+    if not path.exists():
+        return {"version": 1, "note": "由 scripts/template_drift.py --update 生成", "entries": {}}
+    doc = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    doc.setdefault("entries", {})
+    return doc
+
+
+def measure(model_id: str, *, blocks_dir: str | None = None) -> dict:
+    """跑一次抽取, 取模板身份与三项覆盖率指标。
+
+    ``template_drift`` 关心的是**产物统计**, 不是条件内容 —— 所以这里不逐条比对
+    条件, 只比数量与队列长度。逐条比对会因排序/措辞产生大量噪声 diff, 而噪声会
+    让人习惯性忽略红字, 那等于没有门禁。
+    """
+    settings = get_settings()
+    prof_book = ProfileBook.load(settings.doc_profiles_path)
+    profile_name = model_profile_name(model_id)
+    profile = prof_book.get(profile_name)
+    patterns = PatternBook.load(settings.condition_patterns_path)
+    # 用**当前**配置算指纹, 不读基线里的旧值 —— 基线是被比方, 不是证据。
+    ident = template_identity(
+        profile,
+        known_kinds=patterns.kinds,
+        known_roles=role_vocabulary(prof_book),
+        schema_fields=sorted(load_registry(settings.table_schemas_path).known_fields),
+    )
+    kwargs = {"blocks_dir": blocks_dir} if blocks_dir else {}
+    result = extract_test_conditions(model_id, profiles=prof_book, patterns=patterns, **kwargs)
+    stats = result.stats
+    return {
+        "model_id": model_id,
+        "profile": profile.name,
+        **ident,
+        "metrics": {
+            "conditions_total": int(stats.get("conditions_total", 0)),
+            "unresolved_text": int(stats.get("unresolved_text", 0)),
+            "needs_review": len(result.needs_review),
+            "scenarios": int(stats.get("scenarios", 0)),
+        },
+        # 影响面: section_priors 的键就是「模板管到哪些章节号」。人工改了章节号,
+        # 这些键就是受影响的范围 —— 比让人自己回忆改了哪一处可靠。
+        "governed_sections": sorted(profile.section_priors),
+    }
+
+
+def diff_metrics(now: dict, base: dict) -> tuple[list[str], list[str]]:
+    """三项覆盖率对比基线。
+
+    返回 ``(超容差, 未超容差但确实变了)`` 两段 —— 都报出来。
+
+    为什么要分开: 只报超容差的话, 「变了 3 条待审」和「没变」在输出上一模一样,
+    而人无法区分这两种情况。真正的代价不是「红」, 是「学会了忽略输出」——
+    门禁一旦让人习惯性扫一眼, 后面真出事那次也一样被扫掉。
+    """
+    over: list[str] = []
+    within: list[str] = []
+    for key, tol in TOLERANCE.items():
+        cur = now.get(key, 0)
+        old = base.get(key, 0)
+        if cur == old:
+            continue
+        arrow = "增加" if cur > old else "减少"
+        text = f"{key}: {old} -> {cur} ({arrow} {abs(cur - old)}, 容差 {tol})"
+        (over if abs(cur - old) > tol else within).append(text)
+    return over, within
+
+
+def check(model_id: str, baseline: dict, *, blocks_dir: str | None = None) -> dict:
+    """对某个型号做三段检查。返回结果字典, 不直接打印 —— 便于测试。"""
+    now = measure(model_id, blocks_dir=blocks_dir)
+    entries = baseline.get("entries") or {}
+    base = entries.get(model_id)
+    problems: list[str] = []
+    if base is None:
+        # 新增型号不是漂移, 是「还没有基线」—— 单独一类, 不混进漂移里报红。
+        return {
+            "model_id": model_id,
+            "status": "no_baseline",
+            "current": now,
+            "fingerprint_changed": None,
+            "metric_diffs": [],
+            "message": "该型号没有基线条目 —— 跑 --update 接受当前状态后才会开始比对",
+        }
+    fp_changed = now["fingerprint"] != base.get("fingerprint")
+    over, within = diff_metrics(now["metrics"], base.get("metrics") or {})
+    if fp_changed:
+        problems.append("模板指纹变化 (参数被改过)")
+    if over:
+        problems.append("覆盖率回归")
+    return {
+        "model_id": model_id,
+        "status": "drift" if problems else "ok",
+        "current": now,
+        "baseline": base,
+        "fingerprint_changed": fp_changed,
+        "metric_diffs": over,
+        "metric_diffs_within_tolerance": within,
+        "governed_sections_changed": sorted(
+            set(now["governed_sections"]) ^ set(base.get("governed_sections") or [])
+        ),
+        "message": "; ".join(problems),
+    }
+
+
+def render(result: dict) -> None:
+    m = result["model_id"]
+    now = result["current"]
+    print(f"\n=== {m} (profile={now['profile']}, template={now['template_id']} v{now['template_version']}) ===")
+    print(f"  当前指纹 {now['fingerprint']}  指标 {json.dumps(now['metrics'], ensure_ascii=False)}")
+    if result["status"] == "no_baseline":
+        print(f"  {WARN} {result['message']}")
+        return
+    base = result["baseline"]
+    if result["fingerprint_changed"]:
+        print(f"  {FAIL} 模板指纹 {base.get('fingerprint')} -> {now['fingerprint']}")
+        print(f"       模板版本 {base.get('template_version')} -> {now['template_version']}")
+        gov = result.get("governed_sections_changed") or []
+        if gov:
+            print(f"       {FAIL} 模板管辖章节号有增删 (影响面): {', '.join(gov)}")
+            print("            ↑ 这些章节号的变化会让 role / limits_to 判错, 且抽取不会报错")
+        else:
+            print(f"       模板管辖章节: {', '.join(now['governed_sections']) or '(无先验)'}")
+        print("       下一步: 确认变更是有意的 -> template_version 递增 -> 跑 --update")
+    else:
+        print(f"  {PASS} 模板指纹未变 ({now['fingerprint']})")
+    for d in result["metric_diffs"]:
+        print(f"  {FAIL} 覆盖率回归 {d}")
+    for d in result.get("metric_diffs_within_tolerance") or []:
+        print(f"  {WARN} 有变化但未超容差 {d}")
+    if result["status"] == "ok":
+        print(f"  {PASS} 无漂移")
+
+
+def update(baseline: dict, results: list[dict], *, note: str = "") -> dict:
+    """把当前状态写进基线。
+
+    只覆盖本次**实际测量过**的型号 —— 不碰没跑的型号的条目。没测过的型号若被
+    顺手刷成当前值, 等于把它的基线清空, 而清空的基线永远不会红。
+    """
+    entries = dict(baseline.get("entries") or {})
+    for r in results:
+        now = r["current"]
+        entries[now["model_id"]] = {
+            "profile": now["profile"],
+            "template_id": now["template_id"],
+            "template_version": now["template_version"],
+            "fingerprint": now["fingerprint"],
+            "metrics": now["metrics"],
+            "governed_sections": now["governed_sections"],
+        }
+    return {
+        "version": 1,
+        "note": "由 scripts/template_drift.py --update 生成; 人工审核后接受",
+        **({"update_note": note} if note else {}),
+        "entries": entries,
+    }
+
+
+def registered_models() -> list[str]:
+    """注册表里在册的型号 —— 基线该覆盖谁由注册表说了算, 不由脚本里写死。
+
+    走 :class:`Registry` 而不是自己读 YAML: 定位注册表的兜底规则 (配置路径 ->
+    ``data/<basename>`` -> 报错) 只在那一处实现, 自己读一遍就等于复制一份,
+    而复制的那份会以「注册表为空」的形式静默失败。
+    """
+    from aterag.registry import Registry
+
+    return sorted(Registry.load(get_settings()).products)
+
+
+def build_parser() -> argparse.ArgumentParser:
+    """单独成函数而不是内联在 ``main`` 里: 参数解析不该与执行逻辑缠在一起,
+    否则「直接调 main() 做一次检查」就必须先伪造 sys.argv。"""
+    ap = argparse.ArgumentParser(
+        description="模板漂移门禁 (辅助工具: 抽取过程本身已 fail-closed)"
+    )
+    ap.add_argument("--baseline", default=BASELINE_PATH, help=f"基线文件路径 (默认 {BASELINE_PATH})")
+    ap.add_argument("--model", action="append", help="只查该型号 (可重复); 默认查注册表在册型号")
+    ap.add_argument("--blocks-dir", help="blocks 目录 (默认 rag_storage/blocks)")
+    ap.add_argument("--update", action="store_true", help="接受当前状态并写基线")
+    ap.add_argument("--note", help="随 --update 一起记录的变更说明 (给审计看)")
+    return ap
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+
+    path = _baseline_path(args)
+    baseline = load_baseline(path)
+    models = args.model or registered_models()
+    if not models:
+        print("没有可检查的型号: 注册表为空或 --model 未指定")
+        return 2
+
+    if args.update:
+        results = []
+        for m in models:
+            try:
+                res = check(m, {"entries": {}}, blocks_dir=args.blocks_dir)
+            except Exception as e:  # noqa: BLE001 更新时也要报清是哪个型号
+                print(f"[{FAIL}] {m}: 无法测量 ({type(e).__name__}: {e})")
+                return 2
+            results.append(res)
+        new = update(baseline, results, note=args.note or "")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(BASELINE_HEADER + yaml.safe_dump(new, allow_unicode=True, sort_keys=False, width=100), encoding="utf-8")
+        print(f"基线已写入: {path}  ({len(results)} 个型号)")
+        for r in results:
+            now = r["current"]
+            print(
+                f"  {now['model_id']:14s} {now['template_id']} v{now['template_version']} "
+                f"fp={now['fingerprint']}  {json.dumps(now['metrics'], ensure_ascii=False)}"
+            )
+        return 0
+
+    counts = {"drift": 0, "no_baseline": 0, "unmeasurable": 0, "ok": 0}
+    for m in models:
+        try:
+            res = check(m, baseline, blocks_dir=args.blocks_dir)
+        except Exception as e:  # noqa: BLE001 测量失败不能当成「无漂移」
+            print(f"[{FAIL}] {m}: 无法测量 ({type(e).__name__}: {e})")
+            counts["unmeasurable"] += 1
+            continue
+        render(res)
+        counts[res["status"]] += 1
+
+    print("\n" + "=" * 64)
+    if counts["unmeasurable"]:
+        # 测量失败不能当成「无漂移」—— 那会把「查不了」报成「没问题」。
+        print(f"TEMPLATE_DRIFT ERROR ({counts['unmeasurable']} 个型号无法测量; 测量失败不等于无漂移)")
+        return 2
+    if counts["drift"]:
+        print(f"TEMPLATE_DRIFT FAIL ({counts['drift']}/{len(models)} 个型号有漂移)")
+        if counts["no_baseline"]:
+            print(f"  {WARN} {counts['no_baseline']} 个型号没有基线 (未参与漂移判定)")
+        return 1
+    if counts["no_baseline"]:
+        print(
+            f"TEMPLATE_DRIFT PASS ({len(models) - counts['no_baseline']}/{len(models)} 个型号无漂移; "
+            f"{counts['no_baseline']} 个无基线未判定)"
+        )
+        return 0
+    print(f"TEMPLATE_DRIFT PASS ({len(models)} 个型号无漂移)")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

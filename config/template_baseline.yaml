@@ -1,0 +1,50 @@
+# 模板基线 —— 由 scripts/template_drift.py --update 生成
+#
+# 按 (template_id, model_id) 存 (§4.0④): 改一个型号的档案不该让别的型号跟着变红。
+#
+# **这个文件是「回归对账」用的, 不是防线。** 抽取过程本身对模板失配是 fail-closed
+# 的 (红线 12): 章节选不中会抛 SectionKeywordNotFound, 表头不认识会抛
+# TableSchemaUnmapped。这里管的是抽取过程**管不到**的那一类 —— 参数变了、抽取照样
+# 跑完、结果看着正常但其实判错了 (role / limits_to 判错时条件数往往不变)。
+#
+# 更新流程: 改配置 -> 跑 scripts/template_drift.py 看清楚红了什么 -> 确认变更
+# 有意 -> 递增 doc_profiles.yaml 里的 template_version -> 跑 --update 采新基线。
+# 不要跳过「看清楚红了什么」直接 --update, 那等于把门禁的牙拔了。
+#
+# 缺条目 ≠ 无漂移: 没基线的型号不参与漂移判定, 脚本会单独报出来。
+version: 1
+note: 由 scripts/template_drift.py --update 生成; 人工审核后接受
+update_note: 基线头改为代码生成 (原手写说明头会在首次 --update 时被冲掉)
+entries:
+  PA601-D54A:
+    profile: power_spec_cn
+    template_id: power_spec_cn_v1
+    template_version: '1.0'
+    fingerprint: de243c9dea8ea8a4
+    metrics:
+      conditions_total: 95
+      unresolved_text: 3
+      needs_review: 42
+      scenarios: 131
+    governed_sections:
+    - 4.3.1
+    - 4.3.2
+    - 4.3.3
+    - 4.3.4
+    - 4.3.5
+  PN1000-48A:
+    profile: power_spec_cn
+    template_id: power_spec_cn_v1
+    template_version: '1.0'
+    fingerprint: de243c9dea8ea8a4
+    metrics:
+      conditions_total: 3
+      unresolved_text: 0
+      needs_review: 1
+      scenarios: 3
+    governed_sections:
+    - 4.3.1
+    - 4.3.2
+    - 4.3.3
+    - 4.3.4
+    - 4.3.5

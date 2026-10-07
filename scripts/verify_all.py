@@ -74,6 +74,14 @@ SUITES: list[tuple[str, list[str], re.Pattern[str]]] = [
         ["scripts/verify_lightrag_deployed.py"],
         re.compile(r"LIGHTING_VERIFY PASS \d+/\d+"),
     ),
+    (
+        # 模板漂移门禁 (方案 §4.0③⑤)。这是**辅助**工具: 抽取过程本身对模板失配
+        # 已 fail-closed, 这里管的是「参数变了但抽取照样跑完」的那一类静默失效。
+        # 放在离线段而非板卡段: 它只读配置与 blocks, 不需要 PG/Qdrant。
+        "模板漂移门禁 (辅助)",
+        ["scripts/template_drift.py", "--model", "PA601-D54A", "--model", "PN1000-48A"],
+        re.compile(r"TEMPLATE_DRIFT PASS"),
+    ),
 ]
 
 

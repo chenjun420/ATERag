@@ -116,6 +116,12 @@ def main() -> int:
             for name, p in pb.profiles.items():
                 if not p.section_keywords:
                     problems.append(f"profile {name} 未定义 section_keywords")
+                # 模板身份 (方案 §4.0①): 缺失时 template_identity 会抛, 但那时
+                # 是在**抽取路径**上抛 —— 配置校验就该在这里先挡住。
+                if not p.template_id:
+                    problems.append(f"profile {name} 未定义 template_id (方案 §4.0①)")
+                if not p.template_version:
+                    problems.append(f"profile {name} 未定义 template_version")
                 for sec, pr in p.section_priors.items():
                     if pr.limits_to not in {"input", "output", "both"}:
                         problems.append(f"profile {name} 的 {sec}.limits_to 非法: {pr.limits_to}")
