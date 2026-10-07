@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     # 抽取侧档案: 章节选择/剔除词/角色先验 + 条件规则库 + 人工注记目录
     doc_profiles_path: str = "config/doc_profiles.yaml"
     condition_patterns_path: str = "config/condition_patterns.yaml"
+    # 型号事实的标题别名: 「额定输出电压」这个事实在规格书里的各种写法。
+    # 属于档案侧知识 (换文档换写法), 不该硬编码在取数的工具函数里。
+    quantity_aliases_path: str = "config/quantity_aliases.yaml"
     # 人工注记 (兜底判据的签字记录) 属于**运行时数据**, 不属于系统。
     #
     # 它逐条对应某个客户型号的规格书条款, 进版本库等于把客户判据连同需求编号

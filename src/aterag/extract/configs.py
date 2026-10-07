@@ -35,6 +35,7 @@ from typing import TYPE_CHECKING
 
 from aterag.extract.assembler import PatternBook
 from aterag.extract.assess import RuleBook
+from aterag.extract.quantity_aliases import QuantityAliasBook
 from aterag.extract.scenarios import ScenarioRules
 from aterag.extract.supplement import MethodBook
 
@@ -49,13 +50,14 @@ LIMITS_TO_VALUES = frozenset({"input", "output", "both"})
 
 @dataclass(frozen=True, slots=True)
 class ExtractionConfigs:
-    """抽取侧五份配置, 已通过 :func:`validate_extraction_configs`。"""
+    """抽取侧六份配置, 已通过 :func:`validate_extraction_configs`。"""
 
     profiles: object  # ProfileBook (延迟标注: 它在本模块下游, 避免循环 import)
     patterns: PatternBook
     methods: MethodBook
     assess_rules: RuleBook
     scenario_rules: ScenarioRules
+    quantity_aliases: "QuantityAliasBook | None" = None
 
 
 def role_vocabulary(profiles: object) -> frozenset[str]:
@@ -76,15 +78,18 @@ def validate_extraction_configs(
     methods: MethodBook,
     assess_rules: RuleBook,
     scenario_rules: ScenarioRules | None = None,
+    quantity_aliases: QuantityAliasBook | None = None,
 ) -> None:
-    """校验五份配置互相自洽, 不自洽就抛 (fail-closed)。
+    """校验六份配置互相自洽, 不自洽就抛 (fail-closed)。
 
     校验项按「错了会怎样」排:
     1. 档案自身: 没有 ``section_keywords`` 的档案选中不了章节; ``limits_to``
        写错会让限值永远归错侧;
     2. 方法库 <-> 词表/角色: 引用词表外的 ``kind`` 下游无法翻译执行动作,
        引用档案没有的 ``role`` 则永远匹配不上;
-    3. 评估规则与场景规则: 引用不存在的方法 id / 维度名。
+    3. 评估规则与场景规则: 引用不存在的方法 id / 维度名;
+    4. 标题别名表: 别名跨事实互斥 —— 同一条标题认两个事实时结果只取决于遍历
+       顺序, 那是巧合不是判断 (§11.7)。
     """
     problems: list[str] = []
 
@@ -113,13 +118,18 @@ def validate_extraction_configs(
         problems.append(f"评估规则: {e}")
     if scenario_rules is not None and not scenario_rules.dimensions:
         problems.append("scenario_rules.yaml 未定义任何场景维度 (不拆场景, 判据含混)")
+    if quantity_aliases is not None:
+        try:
+            quantity_aliases.validate()
+        except ValueError as e:
+            problems.append(f"quantity_aliases.yaml: {e}")
 
     if problems:
         raise ValueError("抽取侧配置不自洽: " + "; ".join(problems))
 
 
 def load_extraction_configs(settings: "Settings | None" = None) -> ExtractionConfigs:
-    """按 ``settings`` 的路径加载五份抽取配置并校验。
+    """按 ``settings`` 的路径加载六份抽取配置并校验。
 
     路径全部来自配置(不写死相对路径), 因为板卡上部署目录与开发机不同 ——
     这正是历史上 ``validate_configs.py`` 找不到 ``registry.yaml`` 的那类坑。
@@ -133,11 +143,13 @@ def load_extraction_configs(settings: "Settings | None" = None) -> ExtractionCon
     methods = MethodBook.load()
     assess_rules = RuleBook.load(methods.path)
     scenario_rules = ScenarioRules.load()
-    validate_extraction_configs(profiles, patterns, methods, assess_rules, scenario_rules)
+    aliases = QuantityAliasBook.load(s.quantity_aliases_path)
+    validate_extraction_configs(profiles, patterns, methods, assess_rules, scenario_rules, aliases)
     return ExtractionConfigs(
         profiles=profiles,
         patterns=patterns,
         methods=methods,
         assess_rules=assess_rules,
         scenario_rules=scenario_rules,
+        quantity_aliases=aliases,
     )

@@ -154,18 +154,21 @@ def main() -> int:
     if tm_path.exists():
         try:
             from aterag.extract.assess import RuleBook
+            from aterag.extract.quantity_aliases import QuantityAliasBook
             from aterag.extract.scenarios import ScenarioRules
             from aterag.extract.supplement import MethodBook
 
             mbook = MethodBook.load(tm_path)
             rules = RuleBook.load(str(tm_path))
             scen = ScenarioRules.load()
+            aliases = QuantityAliasBook.load("config/quantity_aliases.yaml")
             if book is not None and pb_roles:
-                validate_extraction_configs(pb, book, mbook, rules, scen)
+                validate_extraction_configs(pb, book, mbook, rules, scen, aliases)
                 print(
                     f"  {PASS} 业界方法库: {len(mbook.methods)} 条方法 / "
                     f"{len(mbook.templates)} 个描述模板 / {len(rules.rules)} 条评估规则 / "
-                    f"{len(scen.dimensions)} 个场景维度"
+                    f"{len(scen.dimensions)} 个场景维度 / "
+                    f"{len(aliases.facts)} 个事实别名"
                 )
                 print(
                     f"       交叉校验通过: kind ⊆ 词表({len(book.kinds)}), "

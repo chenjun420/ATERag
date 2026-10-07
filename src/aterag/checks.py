@@ -66,7 +66,8 @@ def _check_extraction_configs(settings: Settings) -> CheckResult:
             True,
             f"{len(cfgs.profiles.profiles)} profiles / {len(cfgs.patterns.rules)} 规则 / "
             f"{len(cfgs.methods.methods)} 方法 / {len(cfgs.assess_rules.rules)} 评估规则 / "
-            f"{len(cfgs.scenario_rules.dimensions)} 场景维度, 交叉校验通过",
+            f"{len(cfgs.scenario_rules.dimensions)} 场景维度 / "
+            f"{len(cfgs.quantity_aliases.facts)} 事实别名, 交叉校验通过",
         )
     except Exception as e:  # noqa: BLE001 配置坏了就是坏了, 报原样让人能改
         return CheckResult(

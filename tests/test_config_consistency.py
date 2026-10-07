@@ -28,12 +28,14 @@ from aterag.extract.configs import (
     role_vocabulary,
     validate_extraction_configs,
 )
+from aterag.extract.quantity_aliases import QuantityAliasBook, QuantityFact
 from aterag.extract.scenarios import ScenarioRules
 from aterag.extract.supplement import MethodBook
 
 DP = "config/doc_profiles.yaml"
 CP = "config/condition_patterns.yaml"
 TM = "config/test_methods.yaml"
+QA = "config/quantity_aliases.yaml"
 
 
 @pytest.fixture
@@ -44,6 +46,7 @@ def good():
         MethodBook.load(TM),
         RuleBook.load(TM),
         ScenarioRules.load(),
+        QuantityAliasBook.load(QA),
     )
 
 
@@ -63,7 +66,7 @@ class TestGoodConfigsPass:
 
     def test_role_vocabulary_comes_from_profiles_not_code(self, good):
         """角色词表必须等于档案里出现过的角色, 不多不少 (换档案=换角色知识)。"""
-        profiles, _, _, _, _ = good
+        profiles, _, _, _, _, _ = good
         declared = {pr.role for p in profiles.profiles.values() for pr in p.section_priors.values()}
         assert role_vocabulary(profiles) == declared
         assert role_vocabulary(profiles) <= set(role_vocabulary(profiles))
@@ -76,7 +79,7 @@ class TestGoodConfigsPass:
 class TestBrokenConfigsRaiseAtLoad:
     def test_method_role_not_in_profiles_raises(self, good, tmp_path):
         """方法库引用了档案没有的 role -> 加载期抛错, 并点名是哪条方法。"""
-        profiles, patterns, methods, rules, scen = good
+        profiles, patterns, methods, rules, scen, _ = good
 
         def mutate(doc):
             doc["methods"][0]["applies_to"]["role"] = "role_that_profile_never_declared"
@@ -88,7 +91,7 @@ class TestBrokenConfigsRaiseAtLoad:
         assert methods.methods[0].id in str(ei.value), "报错要点名出是哪条方法"
 
     def test_method_kind_outside_vocab_raises(self, good, tmp_path):
-        profiles, patterns, methods, rules, scen = good
+        profiles, patterns, methods, rules, scen, _ = good
 
         def mutate(doc):
             doc["methods"][0]["applies_to"]["kinds"] = ["kind_that_does_not_exist"]
@@ -99,7 +102,7 @@ class TestBrokenConfigsRaiseAtLoad:
         assert "kind_that_does_not_exist" in str(ei.value)
 
     def test_bad_limits_to_raises(self, good, tmp_path):
-        profiles, patterns, methods, rules, scen = good
+        profiles, patterns, methods, rules, scen, _ = good
         # 章节号随档案不同, 取实际的第一个键 —— 测试不该钉住某个编号。
         first_sec = next(iter(profiles.profiles[profiles.default_profile].section_priors))
 
@@ -115,7 +118,7 @@ class TestBrokenConfigsRaiseAtLoad:
 
     def test_profile_without_section_keywords_raises(self, good, tmp_path):
         """没有 section_keywords 的档案选中不了章节 -> 配置不可能可用。"""
-        _, patterns, methods, rules, scen = good
+        _, patterns, methods, rules, scen, _ = good
 
         def mutate(doc):
             doc["profiles"][doc["default_profile"]]["section_keywords"] = []
@@ -126,7 +129,7 @@ class TestBrokenConfigsRaiseAtLoad:
         assert "section_keywords" in str(ei.value)
 
     def test_default_profile_pointing_nowhere_raises(self, good, tmp_path):
-        _, patterns, methods, rules, scen = good
+        _, patterns, methods, rules, scen, _ = good
 
         def mutate(doc):
             doc["default_profile"] = "no_such_profile"
@@ -138,15 +141,34 @@ class TestBrokenConfigsRaiseAtLoad:
 
     def test_empty_scenario_dimensions_raises(self, good):
         """场景维度为空 -> 不拆场景, 下游拿到含混判据却不报错。"""
-        profiles, patterns, methods, rules, _ = good
+        profiles, patterns, methods, rules, _, _ = good
         empty = ScenarioRules(dimensions=(), tier_pattern="", path="")
         with pytest.raises(ValueError) as ei:
             validate_extraction_configs(profiles, patterns, methods, rules, empty)
         assert "场景维度" in str(ei.value)
 
+    def test_broken_alias_book_raises_through_this_gate(self, good):
+        """标题别名表也走这道闸 -> health 覆盖得到 (否则取数侧静默取空)。"""
+        profiles, patterns, methods, rules, scen, alias_book = good
+        broken = QuantityAliasBook(
+            facts={
+                **alias_book.facts,
+                "current": QuantityFact(
+                    name="current",
+                    titles=(*alias_book.facts["current"].titles, "额定输出电压"),
+                    match="exact",
+                    value_from=("max",),
+                ),
+            },
+            path=alias_book.path,
+        )
+        with pytest.raises(ValueError) as ei:
+            validate_extraction_configs(profiles, patterns, methods, rules, scen, broken)
+        assert "quantity_aliases.yaml" in str(ei.value)
+
     def test_all_problems_reported_at_once_not_one_at_a_time(self, good, tmp_path):
         """一次报全部问题: 逐个报错会让人修一个跑一次, 与「改配置」的心智不符。"""
-        profiles, patterns, methods, rules, scen = good
+        profiles, patterns, methods, rules, scen, _ = good
 
         def mutate(doc):
             doc["methods"][0]["applies_to"]["role"] = "bad_role_1"
@@ -232,15 +254,16 @@ class TestSingleValidationImplementation:
 
 
 class _FakeSettings:
-    """只需要配置路径的那几个字段 —— 加载期校验不碰 DB。"""
+    """只需要配置路径的那几个字段 —— 加载期校验不碰 DB。
 
-    doc_profiles_path: str = DP
-    condition_patterns_path: str = CP
-    test_methods_path: str = TM
+    注意: 这里刻意只列路径字段。少列一个, ``load_extraction_configs`` 就会在
+    加载期抛 AttributeError 而不是悄悄用默认值 —— 那正是 A20 想要的报错时机。
+    """
 
     def __init__(self):
         self.doc_profiles_path = DP
         self.condition_patterns_path = CP
+        self.quantity_aliases_path = QA
 
 
 def test_load_extraction_configs_is_awaitable_free():

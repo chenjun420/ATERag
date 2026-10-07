@@ -16,6 +16,7 @@ import json
 from mcp.server.mcpserver import MCPServer
 
 from aterag.config import get_settings
+from aterag.extract.quantity_aliases import QuantityAliasBook
 from aterag.inference import InferenceEngine
 from aterag.inference.decision_explain import explain, to_json_dict
 from aterag.inference.decision_prov import DecisionRecorder
@@ -27,6 +28,15 @@ settings = get_settings()
 registry = Registry.load(settings)
 _rag: RagService | None = None
 _decision_prov: DecisionRecorder | None = None
+_aliases: QuantityAliasBook | None = None
+
+
+def _alias_book() -> QuantityAliasBook:
+    """标题别名表, 全局一份 (进程内配置不会变, 每次重载只是白费 IO)。"""
+    global _aliases
+    if _aliases is None:
+        _aliases = QuantityAliasBook.load(settings.quantity_aliases_path)
+    return _aliases
 
 
 def get_decision_recorder() -> DecisionRecorder:
@@ -100,52 +110,61 @@ class FactUnavailable(RuntimeError):
         }
 
 
-def _model_facts(model_id: str, required: tuple[str, ...] = ()) -> dict:
+def _model_facts(
+    model_id: str, required: tuple[str, ...] = (), aliases: "QuantityAliasBook | None" = None
+) -> dict:
     """从 PG 实体提取型号关键数值供 Datalog 推导。
 
     反幻觉约定:
     - 数值只能来自 ``aterag_entities`` 的结构化字段, 任何分支都不得填默认值
+    - 标题怎么认由 ``config/quantity_aliases.yaml`` 声明 (方案 §11.7), 不写死
+      子串: 规格书换个措辞("标称输出电压")时, 取数应当仍然成立, 而不是静默变空
     - 主轨 (main rail) 按"额定输出电流最大者"动态选取, 不写死轨名
       (此前写死 ``rail in ("-54V", "")``, 换 -48V 型号会静默取不到电流)
     - 实体查询异常直接向上抛, 不再 ``except: pass`` 吞掉
     - ``required`` 中的事实缺失即抛 :class:`FactUnavailable`, 由调用方转成错误上报
+
+    ``aliases`` 参数只给测试注入用; 运行期走配置路径加载。
     """
     facts: dict = {}
     prov: dict = {}
 
     ents = get_rag().query_entities(model_id, etype="Requirement")  # 异常直接上抛
+    book = aliases or _alias_book()
 
     volts: dict[str, float] = {}  # rail -> 额定输出电压
     currs: dict[str, float] = {}  # rail -> 额定输出电流
     for e in ents:
         title = e.get("title", "")
         rail = e.get("rail", "") or "main"
-        if "额定输出电压" in title:
-            raw = e.get("typ")
-            if raw is None:
-                raw = e.get("min") or e.get("max")
-            try:
-                volts.setdefault(rail, abs(float(raw)))
-            except (TypeError, ValueError):
-                continue
+        spec = book.match_fact(title)
+        if spec is None:
+            continue
+        # 别名跨事实互斥已在加载期保证 (QuantityAliasBook.validate), 命中即唯一。
+        val = spec.value_of(e)
+        if val is None:
+            # 有这个标题却取不出值 -> 跳过但不猜。值只能来自实体的结构化字段。
+            continue
+        if spec.name == "voltage":
+            volts.setdefault(rail, val)
             prov[f"voltage_{rail}"] = {
                 "req_id": e.get("req_id"),
                 "section_path": e.get("section_path"),
+                "title": title,
             }
-        elif "输出电流" in title:
-            try:
-                currs[rail] = float(e["max"])
-            except (KeyError, TypeError, ValueError):
-                continue
+        elif spec.name == "current":
+            currs[rail] = val
             prov[f"current_{rail}"] = {
                 "req_id": e.get("req_id"),
                 "section_path": e.get("section_path"),
+                "title": title,
             }
-        elif "整机效率" in title and e.get("min") is not None:
-            facts["efficiency_min"] = e["min"]
-            prov["efficiency_min"] = {
+        else:
+            facts[spec.name] = val
+            prov[spec.name] = {
                 "req_id": e.get("req_id"),
                 "section_path": e.get("section_path"),
+                "title": title,
             }
 
     for rail, v in volts.items():
