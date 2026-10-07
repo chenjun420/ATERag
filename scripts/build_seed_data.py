@@ -196,8 +196,39 @@ def build_facts() -> list[dict[str, Any]]:
     return facts
 
 
-#: 从 authority_ref 里抽标准号。GB/T、GB/Z、GB、IEC、YY/T 等形式。
-_STD_ID_RE = re.compile(r"(?:GB/I|GB/T|GB/Z|GB|YY/T|IEC/IEC|IEC|YD/T|JB/T)\s*\d+(?:\.\d+)*(?:-\d{4})?")
+#: 从 authority_ref 里抽标准号。
+#:
+#: **口径必须与 ``knowledge_gate.STANDARD_ID_HEAD`` 逐字一致** —— 它决定
+#: ``defined_by`` 边建不建得出来, 那个决定「引用 nonexistent」报不报得出来。
+#: 两者不一致时会得出**相反**的结论而**都不报错**: 这里默默少建一条边, 门禁默默
+#: 放过一条悬空引用。``tests/test_gate_std_id_head.py`` 对真实种子的每个
+#: ``authority_ref`` 断言两者给出同一个 head, 防的就是这个漂。
+#:
+#: 早先的写法有两个实测问题: 前缀只枚举了 GB/I、GB/T、GB/Z、GB、YY/T、IEC、
+#: YD/T、JB/T(**漏掉** DL/T、GJB/Z、EN、IEEE、ISO、UL、CISPR —— 种子里都有),
+#: 且 ``\d+(?:\.\d+)*`` 只认点分段(``CISPR 16-1-2`` 会截成 ``CISPR 16``)。
+#: 现在用通用形态, 没见过的新族也能被提取 —— 漏检是静默的, 误提取会报出来。
+#:
+#: **必须用 :meth:`re.Pattern.match` 而不是 ``search``** —— ``authority_ref``
+#: 一律**以标准号开头**(``"GB/T 2900.70-2008 §442-01-01"``、``"GB/T 3187-1994 7.2.8;
+#: 现行 …"``), 所以锚定在开头既够用又安全。
+#:
+#: 早先用 ``search`` 时踩过两次: ``std::GB/T 17626.2-2018`` 的 ``authority_ref``
+#: 被 corrections 填成了查询网址 ``https://std.samr.gov.cn/…/gbDetailed?id=71F7…``,
+#: ``search`` 在网址里匹配到十六进制片段 ``71F772D`` 当成了标准号 —— 门禁据此报出
+#: 「71F772D 引用了不存在的标准」这类**假错误**。锚定后一律提取不到, 正确跳过。
+#:
+#: **部分号允许一位数字**: ``DL/T 5-2019``(电力可靠性管理规定)是真实标准。
+#: 不用「至少两位」去规避十六进制误匹配 —— 那是拿真实数据迁就正则。
+#:
+#: **末尾裸 ``+`` 允许**: ``IEC 61850-2013+``(含后续修正件)在种子里就是这么写的。
+#:
+#: 修正件后缀 ``+A2:2013`` 的字母**后面还有数字**(修正件号), 所以是
+#: ``[A-Za-z]\d*``; 早先写成 ``[A-Za-z]`` 会把它截成 ``+A``, 与库里实体对不上。
+_STD_ID_RE = re.compile(
+    r"[A-Z]{2,6}(?:/[A-Z]{1,6})?\s*\d+[A-Za-z]?(?:[-.]\d+[A-Za-z]?)*"
+    r"(?:\+(?:[A-Za-z]\d*(?::\d{4})?)?)?"
+)
 
 _BOOTSTRAP = "V6.0 开发指导方案"
 
@@ -455,6 +486,158 @@ def build_authoritative_terms() -> list[dict[str, Any]]:
                     # 全部区别所在(442-01-01 vs 442-01-04)。
                     authority=f"{spec['standard']} §{spec['standard_section']}",
                     confidence=confidence,
+                ),
+            }
+        )
+    return out
+
+
+#: **被引用但方案 md 未列的标准**(2026-10-07 websearch 查证)—— 图稀疏层 1。
+#:
+#: 起因(图诊断实测): 有 12 个标准号被 61 处 ``authority_ref`` 引用, 但种子里
+#: **没有对应的 ``std::`` 实体**, 于是 :func:`build_relationships` 的
+#: ``f"std::{head}" in ids`` 判断全部落空, **一条 ``defined_by`` 边都建不出来**,
+#: 且不报错。这些标准号只出现在各实体的 ``authority_ref`` 文本里, 方案 md 的
+#: 标准表里没有 —— 所以 ``extract_standards`` 抽不到它们。
+#:
+#: **为什么补实体而不是改引用**: 缺的是**实体这一端**。那 61 处引用是既有的引用,
+#: 补一端就够; 反过来去改/删引用是把已有知识改掉。
+#:
+#: **只注入查证过的**(红线 5: 出处必须可查)。剩下 3 个
+#: (``GB/T 14598.127-2013`` / ``GB/T 2900.32-1994`` / ``GB/T 2900.93-2015``)
+#: 本轮未查到版本与现行状态, **故意不注入** —— 由门禁的
+#: ``authority_ref_resolvable`` 报出来, 那才是「已登记的缺口」而不是「静默无输出」。
+#:
+#: ``status`` 只填**查到**的那一个, 查不到就留 ``UNVERIFIED``, 不猜。
+#:
+#: **``GB/Z 14429-2005`` 的特别说明**(它一个人占 32 条引用): 该标准是《远动设备及
+#: 系统 第1-3部分:总则 术语》(≡IEC 60870-1-3:1997), 即**电力调度自动化/远动
+#: 终端**的术语表。引用它的 32 个实体是 ``YC_*``遥测 / ``YX_*``遥信 /
+#: ``YK_*``遥控 —— 远动四遥量, **类别对得上**。但那 32 条里**只有 1 条带条款号**
+#: (``INSTR_SOE_TESTER`` -> §2.1.45 事故追忆), 其余 31 条只写标准号不写条款。
+#: 补上实体后这 31 条会各自获得一条 ``defined_by`` 边、看起来更权威, 而实质上
+#: 「标准号可解析」不等于「该量的定义在那一页」。所以门禁另设
+#: ``authority_clause_missing``: standard 级引用**不带条款号**判 WARN。
+#:
+#: **``GB 3187-1994`` 已废止**(2009-04-01), 由 ``GB/T 2900.13-2008`` 代替,
+#: 后者又被 ``GB/T 2900.99-2016`` 部分代替。仍然注入: 引用废止标准是可接受的
+#: (只要标了 ``SUPERSEDED`` 与代替关系), 保留它才能回答「历史报告依据的是哪一版」。
+REFERENCED_STANDARDS: tuple[dict[str, Any], ...] = (
+    {
+        "id": "std::GB/Z 14429-2005",
+        "title": "远动设备及系统 第1-3部分:总则 术语",
+        "title_en": "Telecontrol equipment and systems. Part 1: General considerations. Section 3: Glossary",
+        "status": "CURRENT",
+        "published": "2005-02-06",
+        "implemented": "2005-12-01",
+        "replaces": "GB/T 14429-1993",
+        "iec_equivalent": "IEC 60870-1-3:1997",
+        "note": "复审 2024-08-23 结论「继续有效」。范围是远动设备(电网调度自动化)的"
+        "术语, 不是电源通用术语表 —— 引用它的 YC_/YX_/YK_ 是远动四遥量。",
+    },
+    {
+        "id": "std::GB/T 2900.70-2008",
+        "title": "电工术语 电器附件",
+        "title_en": "Electrotechnical terminology - Electrical accessories",
+        "status": "CURRENT",
+        "published": "2008-01-22",
+        "implemented": "2008-09-01",
+        "iec_equivalent": "IEC 60050-442:1998",
+        "note": "IDT。额定值(442-01-01)与标称值(442-01-04)的出处 —— "
+        "RATED_VALUE / NOMINAL_VALUE 引的是它。",
+    },
+    {
+        "id": "std::GB/T 2900.56-2008",
+        "title": "电工术语 控制技术",
+        "title_en": "Electrotechnical terminology - Control technology",
+        "status": "CURRENT",
+        "published": "2008-06-18",
+        "implemented": "2009-05-01",
+        "iec_equivalent": "IEC 60050-351:2006",
+        "note": "IDT。相位裕度(§351-25-05)、增益裕度(§351-25-07)、增益交越角频率"
+        "(§351-25-04)、控制建立时间(§351-25-02)、超调量(§351-24-30)的出处。",
+    },
+    {
+        "id": "std::GB/T 2900.33-2004",
+        "title": "电工术语 电力电子技术",
+        "title_en": "Electrotechnical terminology - Power electronics",
+        "status": "CURRENT",
+        "published": "2004-05-10",
+        "implemented": "2004-12-01",
+        "iec_equivalent": "IEC 60050-551:1998; IEC 60050-551-20:2001",
+        "note": "IDT 两条。谐波族(§551-20-03~14)的出处。",
+    },
+    {
+        "id": "std::GB/T 2900.89-2012",
+        "title": "电工术语 电工电子测量和仪器仪表 第2部分:电测量的通用术语",
+        "title_en": "Electrotechnical terminology - Electrical and electronic measurements and instruments - Part 2: General terms relating to electrical measurements",
+        "status": "CURRENT",
+        "iec_equivalent": "IEC 60050-312:2001",
+        "note": "纹波(§312-07-02)、噪声(§312-07-04)的出处。",
+    },
+    {
+        "id": "std::GB/T 2900.74-2008",
+        "title": "电工术语 电路理论",
+        "title_en": "Electrotechnical terminology - Circuit theory",
+        "status": "CURRENT",
+        "iec_equivalent": "IEC 60050-131:2002",
+        "note": "MOD(修改采用)。sym::R_in(线路电阻)的出处。",
+    },
+    {
+        "id": "std::GB/T 3187-1994",
+        "title": "可靠性、维修性术语",
+        "title_en": "Reliability and maintainability terms",
+        "status": "SUPERSEDED",
+        "published": "1994-12-06",
+        "implemented": "1995-07-01",
+        "abolished": "2009-04-01",
+        "replaced_by": "GB/T 2900.13-2008",
+        "iec_equivalent": "IEC 60050-191:1990",
+        "note": "**已于 2009-04-01 废止**, 由 GB/T 2900.13-2008《电工术语 可信性与"
+        "服务质量》(≡IEC 60050-191:1990)全部代替; 后者又被 GB/T 2900.99-2016"
+        "部分代替。保留是因为 MTBF 的 §7.2.8 出处在这一版, 且要能回答"
+        "「历史报告依据的是哪一版」。",
+    },
+)
+
+
+def build_referenced_standards() -> list[dict[str, Any]]:
+    """:data:`REFERENCED_STANDARDS` -> ``standard`` 实体。
+
+    ``authority_kind`` 给 ``standard``, 依据是**标准号本身已核实存在且现行** ——
+    这是比「某概念的某条定义出自它」弱得多的主张, 不需要逐条条款支撑。引用它的
+    概念**是否引对了条款**, 由门禁的 ``authority_clause_missing`` 单独判 ——
+    两件事不能混成一件: 标准真实存在 ≠ 每个引用都核到了条款。
+    """
+    out: list[dict[str, Any]] = []
+    for spec in REFERENCED_STANDARDS:
+        num = spec["id"].replace("std::", "")
+        conf = 0.95 if spec.get("status") in {"CURRENT", "SUPERSEDED"} else 0.7
+        out.append(
+            {
+                "id": spec["id"],
+                "name": spec["title"],
+                "type": "standard",
+                "text": f"{num} {spec['title']}",
+                "source": num,
+                "properties": _props(
+                    {
+                        "title": spec["title"],
+                        "title_en": spec.get("title_en"),
+                        "status": spec.get("status", "UNVERIFIED"),
+                        "published": spec.get("published"),
+                        "implemented": spec.get("implemented"),
+                        "abolished": spec.get("abolished"),
+                        "replaces": spec.get("replaces"),
+                        "replaced_by": spec.get("replaced_by"),
+                        "iec_equivalent": spec.get("iec_equivalent"),
+                        "note": spec.get("note"),
+                    },
+                    "standard",
+                    None,
+                    authority_kind="standard",
+                    authority=num,
+                    confidence=conf,
                 ),
             }
         )
@@ -1814,7 +1997,7 @@ def build_relationships(entities: list[dict[str, Any]]) -> list[dict[str, Any]]:
         # ``authority_ref`` 是**带条号的引用**(如「GB/Z 14429-2005 2.1.3」), 直接
         # split 取第一段只会得到「GB/Z」—— 匹配不到任何标准实体, 边就静默不生成。
         # 必须先把标准号本身抽出来。
-        m = _STD_ID_RE.search(aref) if isinstance(aref, str) else None
+        m = _STD_ID_RE.match(aref) if isinstance(aref, str) else None
         # **归一化必须两边一致**: 实体 id 形如 ``std::GB/T 17626.5-2019``, ``GB/T``
         # 与 ``17626`` 之间**有空格**。早先一版在这里 ``.replace(" ", "")``, 只压掉了
         # 引用侧, 于是永远匹配不上, 边一条都生成不出来, 且不报错。
@@ -1896,7 +2079,7 @@ def apply_corrections(
         条号归 ``clause``。
         """
         sref = entry.get("standard_ref")
-        if sref and _STD_ID_RE.search(str(sref)):
+        if sref and _STD_ID_RE.match(str(sref)):
             return "standard", sref
         kind = entry.get("authority_kind") or "industry"
         return kind, entry.get("authority_ref") or entry.get("source")
@@ -2894,6 +3077,7 @@ def main() -> int:
     entities += axiom_entities
     entities += extract_load_conditions()
     entities += build_authoritative_terms()
+    entities += build_referenced_standards()
 
 
     deduped: dict[str, dict[str, Any]] = {}

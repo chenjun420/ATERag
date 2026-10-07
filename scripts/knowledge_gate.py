@@ -109,6 +109,48 @@ REF_TOKEN_SPLIT = re.compile(r"[、,，/;；\s]+")
 #: 用于「声明是 standard 却没给标准号」这类形态检查。
 STANDARD_NUMBER = re.compile(r"^[A-Z]{2,4}(/([A-Z]|T|Z))?\s+\d")
 
+#: 标准号**提取器**(与上面的形态检查不是一回事): 从 ``"GB/Z 14429-2005 §442-01-01"``
+#: 里取出 ``"GB/Z 14429-2005"``, 才能拿去和库里的 ``std::`` 实体比对。
+#:
+#: :data:`STANDARD_NUMBER` 只锚到第一位数字(``GB/Z 1``)—— 它回答「**像不像**标准号」,
+#: 提取器回答「**是哪一条**」。两者用途不同, 不能互相替代(实测踩过: 拿形态正则
+#: 当提取器, 把 ``GB/Z 14429-2005`` 截成 ``GB/Z 1``, 报出 22 条假错误 ——
+#: **报错的门禁比不报更糟**)。
+#:
+#: 三个部分各自对应标准号的一段真实形态:
+#:
+#: - 前缀 ``[A-Z]{2,6}(?:/[A-Z]{1,6})?``: 覆盖 ``GB/T`` / ``GB/Z`` / ``YD/T`` /
+#:   ``DL/T`` / ``GJB/Z`` / ``CISPR`` / ``ISO`` / ``UL`` / ``EN`` / ``IEEE`` /
+#:   ``ANSI/IEEE``。用通用形态而非枚举清单, 是为了让**没见过的族也能被提取**——
+#: 少一个前缀就漏一批检查, 而漏检是静默的。
+#: **必须用 :meth:`re.Pattern.match` 而不是 ``search``** —— 见
+#: ``build_seed_data._STD_ID_RE`` 的同段说明: ``authority_ref`` 一律以标准号开头,
+#: 而 ``search`` 会在 corrections 填进去的**查询网址**里匹配到十六进制片段
+#: (``gbDetailed?id=71F772D…`` -> 把 ``71F772D`` 当标准号), 报出一堆假错误。
+#: **报错的门禁比不报更糟** —— 它会让人去「修」本来没问题的东西。
+#:
+#: 三个部分各自对应标准号的一段真实形态:
+#:
+#: - 前缀 ``[A-Z]{2,6}(?:/[A-Z]{1,6})?``: 覆盖 ``GB/T`` / ``GB/Z`` / ``YD/T`` /
+#:   ``DL/T`` / ``GJB/Z`` / ``CISPR`` / ``ISO`` / ``UL`` / ``EN`` / ``IEEE`` /
+#:   ``ANSI/IEEE``。用通用形态而非枚举清单, 是为了让**没见过的族也能被提取**——
+#:   少一个前缀就漏一批检查, 而漏检是静默的。
+#: - 部分号 ``\d+[A-Za-z]?(?:[-.]\d+[A-Za-z]?)*``: 覆盖纯数字(``14429``)、
+#:   带字母(``GJB/Z 299C``)、多段(``CISPR 16-1-2`` / ``ISO 13849-1-2023``)、
+#:   **一位数字**(``DL/T 5-2019`` 是真实标准)。
+#: - 修正件 ``\+(?:[A-Za-z]\d*(?::\d{4})?)?``: ``+A2:2013``, 也允许**裸 ``+``**
+#:   (``IEC 61850-2013+`` 含后续修正件, 种子里就是这么写的)。
+#:
+#: **口径必须与 ``build_seed_data._STD_ID_RE`` 一致** —— 提取口径不同就会得出
+#: 「库里有这个标准」与「库里没有」两个相反的结论, 而**两者都不会报错**:
+#: 生成器默默少建一条 ``defined_by`` 边, 门禁默默放过一条悬空引用。
+#: ``tests/test_gate_std_id_head.py`` 对真实种子的每个 ``authority_ref`` 断言
+#: 两者给出同一个 head —— 那条测试就是防漂的。
+STANDARD_ID_HEAD = re.compile(
+    r"[A-Z]{2,6}(?:/[A-Z]{1,6})?\s*\d+[A-Za-z]?(?:[-.]\d+[A-Za-z]?)*"
+    r"(?:\+(?:[A-Za-z]\d*(?::\d{4})?)?)?"
+)
+
 #: 条款号形态: ``3.10`` / ``G.12`` / ``5.1.2`` / ``A-1.5``
 CLAUSE_NUMBER = re.compile(r"^(\d+(\.\d+)*|[A-Z](\.\d+)+|[A-Z]-\d+(\.\d+)*)$")
 
@@ -423,6 +465,100 @@ def check_authority_shape(records: list[dict[str, Any]], report: GateReport) -> 
                 )
 
 
+def check_authority_refsolvable(records: list[dict[str, Any]], report: GateReport) -> None:
+    """``authority_ref`` 里的标准号必须在库里真有对应的 ``standard`` 实体。
+
+    ## 为什么这条必须存在
+
+    :func:`check_authority_shape` 只检查「``authority_ref`` **长得像**标准号」——
+    形态过了就放行。但**长得��标准号**与**库里查得到**是两件事: 实测(图诊断
+    2026-10-07)有 61 处 ``authority_ref`` 引的 12 个标准号在种子里**没有实体**,
+    于是 ``build_relationships`` 的 ``f"std::{head}" in ids`` 判断全部落空, 一条
+    ``defined_by`` 边都建不出来, **且不报错** —— 门禁当时全绿。
+
+    引用一个库里不存在的标准, 就是红线 5 的「看起来可追溯、实则无法复核」: 按
+    authority_ref 去查标准能查到(那个标准真实存在), 但**在本项目里复核这条引用**
+    无从下手, 因为库里没有它。
+
+    ## 为什么判 WARN 而不是 ERROR
+
+    早先写成 ERROR, 但实测跑下来是 **8 条常驻** —— 3 个真实标准本轮未查证、
+    5 个引用本身残缺(``GB/T 17626`` 没有部分号)或复合(``IEC 60898-1/2`` 指两条
+    标准)。按本项目 §4.4 已有的裁决: **判 ERROR 会让门禁在种子上永远红, 而永远红
+    的门禁会被整体忽略** —— 那比「WARN 但列得清清楚楚」更坏。
+
+    所以降为 WARN, 但**信息量不减**: 每条都带引用者清单, 处置动作写在消息里。
+    真要清零, 靠的是把那 8 条逐条查证/修正引用, 不是把门禁调严。
+
+    判 ERROR 的场景仍然存在(引用被改成指向一个**根本不存在**的标准号), 只是
+    当前种子还没到那一步 —— 到那时门禁会红, 而那时它本就该红。
+    """
+    std_nums = {
+        str(r.get("id") or "").removeprefix("std::").strip()
+        for r in records
+        if r.get("entity_type") == "standard"
+    }
+    unresolved: dict[str, list[str]] = {}
+    for rec in records:
+        ref = rec.get("authority_ref")
+        if not ref:
+            continue
+        m = STANDARD_ID_HEAD.match(str(ref))
+        if m is None:
+            continue  # 形态问题已由 authority_shape 报过; 非标准号形态的引用跳过
+        head = re.sub(r"\s+", " ", m.group(0)).strip()
+        if head not in std_nums:
+            unresolved.setdefault(head, []).append(str(rec.get("id") or "<no-id>"))
+    for head, users in sorted(unresolved.items()):
+        report.add(
+            "authority_ref_resolvable",
+            "WARN",
+            head,
+            f"{len(users)} 处引用指向库里不存在的标准实体(示例 {users[:3]})—— "
+            f"处置二选一: 补 standard 实体(标准真实存在时), 或改这些 authority_ref"
+            f"(引用残缺/复合时, 如 {head!r} 可能是残缺族号或 'A/B' 两标准合写)",
+        )
+
+
+def check_authority_clause_missing(records: list[dict[str, Any]], report: GateReport) -> None:
+    """``standard`` 级引用**不带条款号**时 WARN。
+
+    ## 为什么单独一条
+
+    「标准号解析得到」与「这一条引用**核到了条款**」是**两件事**。补了标准实体
+    之后, 前者自动成立, 后者不会自动成立 —— 图诊断实测: ``GB/Z 14429-2005``
+    一个人被 32 处引用(远动四遥量 ``YC_*``/``YX_*``/``YK_*``), 其中**只有 1 条**
+    带条款号(``INSTR_SOE_TESTER`` -> §2.1.45), 其余 31 条只写标准号。
+
+    只写标准号意味着「我引了这条标准」而没有说「引它的哪一条」—— 读者能查到那
+    条标准, 但**复核不到这一条知识**。这在红线 5 的语言里是「出处不可查」。
+
+    判 WARN 而不是 ERROR: 引到哪一条需要人工逐条核(有的概念本就是整条标准的
+    通则, 没有单一条款), 但**这件事必须被看见** —— 不看见就成了「已核对过」。
+    """
+    by_type: dict[str, int] = {}
+    samples: dict[str, list[str]] = {}
+    for rec in records:
+        if _authority_kind(rec) != "standard":
+            continue
+        ref = str(rec.get("authority_ref") or "")
+        if not ref or STANDARD_ID_HEAD.match(ref) is None:
+            continue
+        if rec.get("clause") or "§" in ref:
+            continue
+        etype = str(rec.get("entity_type") or "?")
+        by_type[etype] = by_type.get(etype, 0) + 1
+        samples.setdefault(etype, []).append(str(rec.get("id") or "<no-id>"))
+    for etype, n in sorted(by_type.items()):
+        report.add(
+            "authority_clause_missing",
+            "WARN",
+            etype,
+            f"{n} 条 standard 级引用不带条款号(示例 {samples[etype][:3]})—— "
+            f"「引了这条标准」不等于「核到了这一条」, 复核时会卡在这里",
+        )
+
+
 def check_reportables(records: list[dict[str, Any]], ids: set[str], report: GateReport) -> None:
     """WARN/INFO 级: 无出处、无 confidence、孤儿记录。
 
@@ -558,6 +694,8 @@ def run_gate(records: list[dict[str, Any]]) -> GateReport:
     check_refs(records, ids, report)
     check_undeclared_id_tokens(records, ids, report)
     check_authority_shape(records, report)
+    check_authority_refsolvable(records, report)
+    check_authority_clause_missing(records, report)
     check_reportables(records, ids, report)
     check_graph_structure(records, report)
     by_type = Counter(str(r.get("entity_type")) for r in records)
