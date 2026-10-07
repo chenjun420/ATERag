@@ -64,6 +64,11 @@ CAPABILITY_BY_KIND: Mapping[str, tuple[str, ...]] = {
     "telemetry_value": ("protocol_analyzer",),
     "protection_action": ("fault_injection_path", "protection_tester"),
     "thermal": ("thermal_chamber",),
+    # 词表把温度激励拆成两侧: input=`temperature`(环境/热工况激励),
+    # output=`thermal`(热行为判据)。两键缺一, 温箱能力就少一半 —— 实测 SR-1217
+    # 温度系数行(instrument_need) 只落出 dmm 没有 thermal_chamber, 就是因为
+    # 这里只有 `thermal`。
+    "temperature": ("thermal_chamber",),
     "command": ("protocol_analyzer",),
     "cap_load": ("capacitor_bank",),
     "fault_stimulus": ("fault_injection_path",),
@@ -351,16 +356,87 @@ def derive_instrument_ranges(
     )
 
 
+@dataclass(frozen=True)
+class ExcludedRequirement:
+    """一条被显式筛出的需求行 + 原因。
+
+    过滤是**报告面动作**: 被筛掉的行不参与能力推导, 但必须逐条留痕
+    (红线: 静默丢弃比保留更危险 —— 分档型「3A 以下不要求」整行含"不要求",
+    一刀切等于掩掉真实判据), 由人工复核命中是否成立。
+    """
+
+    sr_id: str
+    variant_key: str
+    measurand: str
+    reason: str
+
+
+def filter_requirement_rows(
+    rows: Iterable[Mapping[str, Any]],
+    *,
+    priority: str | None = None,
+    exclude_priority: str | None = None,
+    exclude_words: str | None = None,
+) -> tuple[list[Mapping[str, Any]], list[ExcludedRequirement]]:
+    """按等级/内容过滤需求行, 返回 (保留, 被筛除+原因)。
+
+    - ``priority``: 逗号分隔多值, 命中任意一个才保留(正向选择)。
+    - ``exclude_priority``: 逗号分隔多值, 命中任意一个就筛出(负向) —— 典型
+      ``"不要求,无要求"``。
+    - ``exclude_words``: 逗号分隔多词, 在 ``source_ref.notes`` 里**子串包含**
+      命中即筛出。**这是显式开关而非默认**: 分档型备注(「3A 以下不要求」)
+      与关系型备注(「不要求均流度, 但不能出现…」)也会被词命中, 是否成立
+      由复核者按留痕判断 —— 所以被筛行逐条带 notes 原因, 不静默。
+
+    取值来源: 等级嵌在 ``source_ref->>'priority'``; 内容在 ``source_ref->>'notes'``
+    (与落库边界一致 —— test_requirement 无独立 priority 列, 不再建第二份镜像)。
+    """
+    keep = _multi(priority)
+    drop = _multi(exclude_priority)
+    words = _multi(exclude_words)
+    kept: list[Mapping[str, Any]] = []
+    excluded: list[ExcludedRequirement] = []
+    for r in rows:
+        src = r.get("source_ref") or {}
+        prio = str(src.get("priority") or "")
+        notes = str(src.get("notes") or "")
+        reasons: list[str] = []
+        if keep and prio not in keep:
+            reasons.append(f"等级 {prio or '(空)'} 不在正向集合 {keep}")
+        if drop and prio in drop:
+            reasons.append(f"等级为 {prio}")
+        hit = [w for w in words if w in notes]
+        if hit:
+            reasons.append(f"备注命中 {hit}: {notes[:60]}")
+        if reasons:
+            excluded.append(
+                ExcludedRequirement(
+                    sr_id=str(r.get("sr_id") or ""),
+                    variant_key=str(r.get("variant_key") or ""),
+                    measurand=str(r.get("measurand") or ""),
+                    reason="; ".join(reasons),
+                )
+            )
+        else:
+            kept.append(r)
+    return kept, excluded
+
+
+def _multi(raw: str | None) -> list[str]:
+    return [v.strip() for v in (raw or "").split(",") if v.strip()]
+
+
 __all__ = [
-    "CAPABILITY_BY_KIND",
     "UNIT_CAPABILITY",
     "FIXTURE_TYPES",
     "DemandItem",
     "RailDemand",
     "InstrumentRange",
+    "ExcludedRequirement",
     "derive_capability_demand",
     "derive_fixture_type_demand",
     "derive_instrument_ranges",
     "derive_rail_channel_demand",
+    "filter_requirement_rows",
     "normalize_rail",
 ]

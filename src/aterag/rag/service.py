@@ -79,8 +79,14 @@ class RagService:
         section_path: str | None = None,
         category: str | None = None,
         priority: str | None = None,
+        exclude_priority: str | None = None,
         top_k: int = 8,
     ) -> dict:
+        """等级过滤语义: ``priority`` 逗号分隔多值(命中任一即出现);
+        ``exclude_priority`` 负向多值(命中任一即不出现) —— 典型用法传
+        ``"不要求,无要求"`` 显式拒收无要求的等级。响应的 ``filters`` 里
+        原样回显, 保证可审计。
+        """
         resolved = self.resolve(query, model_id)
         ws_layers = self.workspaces(resolved.model_id)
         workspaces = [w for w, _ in ws_layers]
@@ -95,6 +101,7 @@ class RagService:
             section_path=section_path,
             category=category,
             priority=priority,
+            exclude_priority=exclude_priority,
         )
         # 未知 workspace 标 "unregistered" 而非 "model": 混入未注册 workspace 的命中
         # 会被误当成型号事实, 污染溯源分层与隔离判断
@@ -108,8 +115,8 @@ class RagService:
             section_path=section_path,
             category=category,
             priority=priority,
+            exclude_priority=exclude_priority,
         )
-        hybrid.tag_layers(bm25_hits, layer_map)
 
         fused = pipeline.rrf_fuse(vector_hits, bm25_hits, top_k=top_k)
         results = [
@@ -137,6 +144,7 @@ class RagService:
                 "section_path": section_path,
                 "category": category,
                 "priority": priority,
+                "exclude_priority": exclude_priority,
             },
             "results": results,
         }

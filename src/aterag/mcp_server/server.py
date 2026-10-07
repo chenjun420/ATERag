@@ -205,11 +205,15 @@ async def search_requirements(
     section_path: str = "",
     category: str = "all",
     priority: str = "all",
+    exclude_priority: str = "",
     top_k: int = 8,
 ) -> str:
     """检索需求项 (SR 编号/标题/判据), 支持章节/类别/优先级过滤。
 
     model_id 可省略, 自动从 query 识别。
+    priority 支持逗号分隔多值(命中任一即出现), 如 ``强制,推荐``;
+    exclude_priority 为**负向多值**(命中任一即筛掉), 典型用法
+    ``不要求,无要求`` —— 等级列写明不要求的需求会被显式筛出并回显。
     """
     r, err = _resolve_or_error(query, model_id or None)
     if err:
@@ -220,6 +224,7 @@ async def search_requirements(
         section_path=section_path or None,
         category=category,
         priority=priority,
+        exclude_priority=exclude_priority or None,
         top_k=top_k,
     )
     # 附加强制需求实体 (PG 直查, 精确)

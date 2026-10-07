@@ -136,3 +136,95 @@ class TestDemandItemShape:
         d2 = DemandItem(capability="x", approved_by=("SR-1",),
                         provisional_by=("SR-2",))
         assert not d2.provisional_only  # 有已批准依据就不能整项降级为提示
+
+
+class TestFilterRequirementRows:
+    """等级/内容过滤: 正向多值、负向多值、词命中留痕。"""
+
+    def _r(self, sr, prio=None, notes=""):
+        return {
+            "sr_id": sr,
+            "variant_key": "",
+            "measurand": "m",
+            "source_ref": {"priority": prio, "notes": notes},
+        }
+
+    def test_exclude_priority_removes_not_required(self):
+        from aterag.fixture.demand import filter_requirement_rows
+        rows = [self._r("A", "强制"), self._r("B", "不要求"), self._r("C", "无要求")]
+        kept, ex = filter_requirement_rows(rows, exclude_priority="不要求,无要求")
+        assert [r["sr_id"] for r in kept] == ["A"]
+        assert {e.sr_id for e in ex} == {"B", "C"}
+        assert all("等级为" in e.reason for e in ex)
+
+    def test_priority_positive_multi_value(self):
+        from aterag.fixture.demand import filter_requirement_rows
+        rows = [self._r("A", "强制"), self._r("B", "推荐"), self._r("C", "")]
+        kept, ex = filter_requirement_rows(rows, priority="强制,推荐")
+        assert [r["sr_id"] for r in kept] == ["A", "B"]
+        assert [e.sr_id for e in ex] == ["C"]
+
+    def test_exclude_words_leaves_trace_with_notes(self):
+        from aterag.fixture.demand import filter_requirement_rows
+        rows = [
+            self._r("A", "强制", notes="正常"),
+            self._r("B", "强制", notes="3A以下不要求，3A以上：±1%精度"),
+        ]
+        kept, ex = filter_requirement_rows(rows, exclude_words="不要求")
+        assert [r["sr_id"] for r in kept] == ["A"]
+        assert len(ex) == 1 and ex[0].sr_id == "B"
+        # 留痕必须带原文片段 —— 分档型备注是否真该筛, 复核者要能直接看到
+        assert "3A以下不要求" in ex[0].reason
+
+    def test_no_params_keeps_everything(self):
+        from aterag.fixture.demand import filter_requirement_rows
+        rows = [self._r("A", "不要求", notes="不要求")]
+        kept, ex = filter_requirement_rows(rows)
+        assert len(kept) == 1 and not ex
+
+
+class TestCapabilityMappingCompleteness:
+    """映射表 vs kind 词表的完整性 —— 这类漂移不报错, 只让需求静默丢失。
+
+    实测教训(2026-10-07): 词表 input 侧的温度激励叫 ``temperature``, 而
+    ``CAPABILITY_BY_KIND`` 只写了 output 侧的 ``thermal`` —— SR-1217 温度系数
+    行的仪器需求里 thermal_chamber 一直缺席, 流程图/采购清单都看不见温箱。
+    不存在的键不会抛错, 只会推不出能力。
+    """
+
+    #: 刻意不映射的键 + 理由(新增 kind 时必须显式在这里表态)。
+    ALLOWED_UNMAPPED = {
+        "measurement_setup": "回答「怎么测」, 属工装特性而非仪器类别(伪能力名不可下单)",
+        "input_type": "AC/DC 类型声明, 不蕴含新增仪器",
+        "power_event": "上电/下电时刻, 由 timing/scope 类判据的条件承接, 不单独出能力",
+        "duty": "工作制声明, 不蕴含新增仪器",
+        "output_metric": "一类输出度量的占位, 具体量由其子判据承接",
+        "presence": "存在性检查, 目视/软件判定, 不蕴含新增仪器",
+    }
+
+    def test_every_wordlist_kind_is_mapped_or_explicitly_allowed(self):
+        import yaml
+
+        from aterag.fixture.demand import CAPABILITY_BY_KIND
+        cfg = yaml.safe_load(open("config/condition_patterns.yaml", encoding="utf-8"))
+        kinds = set(cfg["kinds"]["input"]) | set(cfg["kinds"]["output"])
+        unmapped = kinds - set(CAPABILITY_BY_KIND) - set(self.ALLOWED_UNMAPPED)
+        assert not unmapped, (
+            f"kind 词表里有未表态的键: {sorted(unmapped)} —— "
+            f"要么进 CAPABILITY_BY_KIND, 要么进 ALLOWED_UNMAPPED 写清理由"
+        )
+
+    def test_no_stale_mapping_keys(self):
+        import yaml
+
+        from aterag.fixture.demand import CAPABILITY_BY_KIND
+        cfg = yaml.safe_load(open("config/condition_patterns.yaml", encoding="utf-8"))
+        kinds = set(cfg["kinds"]["input"]) | set(cfg["kinds"]["output"])
+        stale = set(CAPABILITY_BY_KIND) - kinds
+        assert not stale, f"映射表里有词表外的遗留键: {sorted(stale)}"
+
+    def test_temperature_stimulus_yields_thermal_chamber(self):
+        """input 侧 temperature 与 output 侧 thermal 必须都推得出温箱。"""
+        from aterag.fixture.demand import CAPABILITY_BY_KIND
+        assert "thermal_chamber" in CAPABILITY_BY_KIND["temperature"]
+        assert "thermal_chamber" in CAPABILITY_BY_KIND["thermal"]

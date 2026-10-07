@@ -549,7 +549,7 @@ def supplement_conditions(
         for side in SUPPLIES_SIDES:
             m = book.pick_always(cond, side)
             if m is not None and _attach_setup(cond, m, side, result):
-                result.supplemented.append(cond)
+                _record_supplemented(cond, result)
         if not missing:
             continue
         for side in missing:
@@ -582,9 +582,21 @@ def supplement_conditions(
                 stale = f"no_{side}_condition"
                 if stale in cond.flags:
                     cond.flags.remove(stale)
-                result.supplemented.append(cond)
+                _record_supplemented(cond, result)
                 result.hits[m.id] = result.hits.get(m.id, 0) + 1
     return result
+
+
+def _record_supplemented(cond: TestCondition, result: SupplementResult) -> None:
+    """把条件登记为「被补齐过」—— **按需求去重**。
+
+    同一条需求可能先被 ``applies: always`` 挂了测法约束(测量怎么测), 再被
+    缺侧补齐追加激励子句 —— 这是两件事、两个方法。旧实现按发生次数追加,
+    于是同一条需求在 ``supplemented`` 里出现两次: 消费方(统计/报告)把「被补齐
+    的需求数」数成动作次数, 口径静默翻倍。去重保持「列表 = 被补齐的需求集合」。
+    """
+    if cond not in result.supplemented:
+        result.supplemented.append(cond)
 
 
 @dataclass(frozen=True, slots=True)

@@ -35,20 +35,24 @@ from __future__ import annotations
 
 from aterag.fixture.demand import (
     DemandItem,
+    ExcludedRequirement,
     InstrumentRange,
     RailDemand,
     derive_capability_demand,
     derive_fixture_type_demand,
     derive_instrument_ranges,
     derive_rail_channel_demand,
+    filter_requirement_rows,
 )
 
 __all__ = [
     "DemandItem",
+    "ExcludedRequirement",
     "InstrumentRange",
     "RailDemand",
     "derive_capability_demand",
     "derive_fixture_type_demand",
     "derive_instrument_ranges",
     "derive_rail_channel_demand",
+    "filter_requirement_rows",
 ]

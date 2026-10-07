@@ -438,13 +438,57 @@ methods:
     verdict: numeric
     applies_to:
       role: signal_io
-      title_pattern: '温度|温升|热点'
+      # 负向断言「温度系数/温漂」: 那是**环境激励类判据**(由 psu_output_tempco
+      # 承接), 不是「读上报温度」。曾因 pattern 写 `温度` 而两条方法同时命中
+      # 同一条 SR-1217, 补齐层出现重复产物 —— 分类错一条, 下游全歪。
+      title_pattern: '温升|热点|温度(?!系数|漂)'
     supplies: input
     conditions:
       - kind: temperature
         value: {note: "按条目所指位置(入风口/热点)施加对应温度工况"}
       - kind: measurement_setup
         value: {note: "经通信通道读取上报温度值"}
+
+  # ============ 补充方法 (2026-10-07): 覆盖 GAP 归因出的两个方法缺 ============
+  - id: load_share_measurement
+    basis: "并联电源均流测量通行做法 (电力系统直流电源行业检测方法; Glary 并联应用笔记; 中析检测 CMA/CNAS 均流不平衡度试验)"
+    verdict: numeric
+    applies: always
+    knowledge_ref:
+      - MEAS_LOAD_SHARE_SYNC_SAMPLING
+    applies_to:
+      title_pattern: '均流|负载均流|并机均流|current.?shar'
+    supplies: input
+    conditions:
+      - kind: load
+        value: {note: "并联系统额定电流 10/25/50/75/100% 五点; 每点稳定 ≥5min"}
+      - kind: measurement_setup
+        value:
+          note: "多通道**同步**采集每台模块输出电流 (数据采集/多通道功率分析仪, 电流传感器 ≥0.5 级); 各模块输出线长/截面保持一致"
+          verdict_formula: "(max|Ii − Ī| / Ī) × 100%  半载及以上常规限 ±5%, 轻载放宽(参考 ±10%), 型号限值以规格书为准"
+    measurement_hints:
+      note: "前置: 并联前逐台单机校准输出电压整定与限流特性; 动态均流另做 50%→100% 负载阶跃记录超调与恢复时间"
+      pending: "PA601 SR-1219 备注声明「不要求均流度」—— 判据口径须需求方先澄清; 本方法按通用测量要求提供, 是否适用按澄清结果"
+
+  - id: psu_output_tempco
+    basis: "温度系数测量通行做法 (GB/T 2424.7-2024 带负载温度箱测量; MIL-STD-810 试验 501.7/502.7 温度试验条件)"
+    verdict: numeric
+    applies: always
+    knowledge_ref:
+      - MEAS_TEMPCO_CHAMBER_SWEEP
+    applies_to:
+      title_pattern: '温度系数|温漂|温变'
+    supplies: input
+    conditions:
+      - kind: temperature
+        value: {note: "≥3 个温度点(规格书工作范围两端 + 常温); 温度箱须**带载**达到能力, DUT 按工况运行"}
+      - kind: measurement_setup
+        value:
+          note: "每点热浸稳定后同步记录输出电压与 DUT 处温度 (6 位半 DMM + 热电偶/巡检仪)"
+          verdict_formula: "(ΔV/V)/ΔT 最小二乘拟合"
+    measurement_hints:
+      note: "室温漂移 1℃ 即可吃掉 ±0.02%/℃ 判据整个允差带: 无温箱则该项物理不可测, 不得以室温+遥测读数替代"
+      pending: "温箱能力口径(温度范围/稳定度/变温率/负载容量)须按产品侧规格书确认后进选型"
 
   # ============ 通用兜底: 仍缺一侧时的最小可用条件 ============
   # 前面都没命中时的最后防线, 保证"缺哪侧补哪侧"总有回应。

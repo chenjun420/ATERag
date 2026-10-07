@@ -240,6 +240,23 @@ def save_chunk_vectors(dsn: str, rows: list[dict], vectors: list[Sequence[float]
 # ---------------------------------------------------------------------------
 
 
+def _priority_values(raw: str | None) -> list[str]:
+    """等级参数 -> 值列表。
+
+    支持逗号分隔多值(``"强制,推荐"``); ``""``/``None``/``"all"`` 都表示不过滤。
+    否定项(``exclude_priority``)用同一个解析器 —— 两处语义都是**值集合**,
+    不是布尔开关, 调用方自己决定给哪组词。
+
+    口径(方案 §11.4): ``强制`` / ``推荐`` / ``不要求`` / ``不建议`` 这类等级词
+    由 doc_profiles.sieve 在入库前按**整格等值**收口 —— 库里的等级列只会出现
+    正向值或空串。排除「不要求/无要求」的负向过滤之所以仍然有存在意义: 历史行
+    (规则改前入的库)与人工注记回填可能带来这些值, 检索面要能显式拒收而不是
+    靠「碰不到」。
+    """
+    vals = [v.strip() for v in (raw or "").split(",") if v.strip()]
+    return [v for v in vals if v != "all"]
+
+
 async def vector_search(
     dsn: str,
     embed: EmbeddingClient,
@@ -249,13 +266,35 @@ async def vector_search(
     section_path: str | None = None,
     category: str | None = None,
     priority: str | None = None,
+    exclude_priority: str | None = None,
 ) -> list[dict]:
-    """pgvector 余弦预过滤检索 —— 替换原 ``pipeline.qdrant_search``。
+    """pgvector 余弦预过滤检索。
 
-    过滤语义逐项照抄原实现(见模块 docstring)。返回的 dict 形状也一致:
-    ``score`` 是**余弦相似度**(``1 - 余弦距离``), 与 Qdrant 的 COSINE 打分
-    同量纲, 这样 ``rrf_fuse`` 选代表项时的比较才有意义。
+    过滤语义: ``workspace_id IN (...)`` 是前提(逐项照抄原实现);
+    ``section_path``/``category`` 精确等值; ``priority`` 支持**多值集合**
+    (逗号分隔, 命中任一即出现)与 ``exclude_priority`` **负向集合**(命中
+    任一即不出现 —— 典型用法: ``"不要求,无要求"`` 排掉无要求等级)。
+    返回的 dict 形状一致, ``score`` 是**余弦相似度**(``1 - 余弦距离``)。
     """
+    if not workspaces:
+        return []
+    placeholders = ", ".join(f"'{w}'" for w in workspaces)  # workspace 为内部受控值
+    conds = [f"workspace_id IN ({placeholders})", "embedding IS NOT NULL"]
+    params: list[Any] = []
+    if section_path:
+        conds.append("section_path = %s")
+        params.append(section_path)
+    if category and category != "all":
+        conds.append("category = %s")
+        params.append(category)
+    prios = _priority_values(priority)
+    ex_prios = _priority_values(exclude_priority)
+    if prios:
+        conds.append("priority = ANY(%s)")
+        params.append(prios)
+    if ex_prios:
+        conds.append("priority <> ALL(%s)")
+        params.append(ex_prios)
     if not workspaces:
         return []
     placeholders = ", ".join(f"'{w}'" for w in workspaces)  # workspace 为内部受控值
@@ -304,11 +343,14 @@ def bm25_search(
     section_path: str | None = None,
     category: str | None = None,
     priority: str | None = None,
+    exclude_priority: str | None = None,
 ) -> list[dict]:
     """pg_textsearch BM25 检索 (中文配置), 跨 workspace UNION, 支持元数据过滤。
 
     从 ``ingest.pipeline`` 原样搬来 —— 它本来就是纯 PG, 与 Qdrant 无关,
     搬过来是为了让检索原语都在一处, 而不是留一半在 ingest 一半在 retrieval。
+    ``priority``/``exclude_priority`` 语义与 :func:`vector_search` 一致
+    (单值保持向后兼容; 多值/负向集合走 ANY/ALL 数组参数)。
     """
     if not workspaces:
         return []
@@ -321,9 +363,14 @@ def bm25_search(
     if category and category != "all":
         conds.append("category = %s")
         params.append(category)
-    if priority and priority != "all":
-        conds.append("priority = %s")
-        params.append(priority)
+    prios = _priority_values(priority)
+    ex_prios = _priority_values(exclude_priority)
+    if prios:
+        conds.append("priority = ANY(%s)")
+        params.append(prios)
+    if ex_prios:
+        conds.append("priority <> ALL(%s)")
+        params.append(ex_prios)
     where = " AND ".join(conds)
     sql = f"""
         SELECT id, workspace_id, layer, section_path, heading, category,
@@ -374,6 +421,7 @@ async def search(
     section_path: str | None = None,
     category: str | None = None,
     priority: str | None = None,
+    exclude_priority: str | None = None,
 ) -> list[dict]:
     """向量预过滤 -> BM25 -> RRF, 返回 ``rrf_score`` 已设的命中列表。
 
@@ -389,6 +437,7 @@ async def search(
         section_path=section_path,
         category=category,
         priority=priority,
+        exclude_priority=exclude_priority,
     )
     bm = bm25_search(
         dsn,
@@ -398,5 +447,6 @@ async def search(
         section_path=section_path,
         category=category,
         priority=priority,
+        exclude_priority=exclude_priority,
     )
     return rrf_fuse(tag_layers(vec, layer_map), tag_layers(bm, layer_map), top_k=top_k)

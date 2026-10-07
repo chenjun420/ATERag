@@ -113,6 +113,19 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="工装/仪器能力需求推导")
     ap.add_argument("-m", "--model", required=True, help="型号, 如 PA601-D54A")
     ap.add_argument("--json", action="store_true", help="输出 JSON")
+    ap.add_argument(
+        "--priority", default="",
+        help="等级正向过滤, 逗号分隔多值; 命中任一才保留, 如 '强制'",
+    )
+    ap.add_argument(
+        "--exclude-priority", default="",
+        help="等级负向过滤, 逗号分隔多值; 命中任一即筛出, 如 '不要求,无要求'",
+    )
+    ap.add_argument(
+        "--exclude-words", default="",
+        help="内容负向过滤: source_ref.notes 子串命中即筛出(默认关)。"
+             "注意分档型备注也会命中, 被筛行逐条留痕供复核",
+    )
     args = ap.parse_args()
 
     from aterag.config import get_settings
@@ -121,6 +134,7 @@ def main() -> int:
         derive_fixture_type_demand,
         derive_instrument_ranges,
         derive_rail_channel_demand,
+        filter_requirement_rows,
     )
     from aterag.registry import Registry
 
@@ -141,6 +155,14 @@ def main() -> int:
               "scripts/persist_test_requirements.py", file=sys.stderr)
         return 2
 
+    kept, excluded = filter_requirement_rows(
+        rows,
+        priority=args.priority,
+        exclude_priority=args.exclude_priority,
+        exclude_words=args.exclude_words,
+    )
+    rows = kept
+
     demand = derive_capability_demand(rows)
     rails = derive_rail_channel_demand(rows)
     ranges = derive_instrument_ranges(rows)
@@ -151,6 +173,11 @@ def main() -> int:
         "model": args.model,
         "schema": schema,
         "requirements": len(rows),
+        "excluded_requirements": [
+            {"sr_id": e.sr_id, "variant_key": e.variant_key,
+             "measurand": e.measurand, "reason": e.reason}
+            for e in excluded
+        ],
         "capability_demand": [d.to_dict() for d in demand],
         "rail_channel_demand": [r.to_dict() for r in rails],
         "instrument_ranges": [r.to_dict() for r in ranges],
@@ -166,7 +193,8 @@ def main() -> int:
     L.append("=" * 88)
     L.append(f"工装/仪器能力需求 —— {args.model} ({schema})")
     L.append("=" * 88)
-    L.append(f"依据: 已落库产测需求 {len(rows)} 行")
+    L.append(f"依据: 已落库产测需求 {len(rows)} 行" +
+             (f"(另有 {len(excluded)} 行被过滤参数筛出, 见「被筛出的需求」节)" if excluded else ""))
     L.append("")
     L.append("--- 仪器/工装能力需求 (kind + spec 单位两路证据并集) ---")
     L.append(f"{'能力':26s} {'硬':>4s} {'提示':>4s}  依据 sr_id(前 4)")
@@ -195,6 +223,16 @@ def main() -> int:
     L.append("--- 需要的工装形态 ---")
     L.append(f"  {', '.join(ftypes) if ftypes else '(无)'}")
     L.append("  形态是产品侧决策, 这里只指出「必须有对应形态」, 不指定型号/通道数。")
+    L.append("")
+    L.append("--- 被筛出的需求 (过滤参数命中, 留痕供复核) ---")
+    if excluded:
+        for e in excluded:
+            L.append(f"  {e.sr_id:26s} [{e.variant_key}]{e.measurand}")
+            L.append(f"    原因: {e.reason}")
+        L.append("  分档型备注(「3A 以下不要求」)与要求型备注(「不要求均流度, 但…」)"
+                 "同样会命中词过滤 —— 是否真要筛除由人工复核, 上面逐条带原因。")
+    else:
+        L.append("  (无过滤参数或无命中)")
     L.append("")
     L.append("--- 表现状 ---")
     for t, n in counts.items():
