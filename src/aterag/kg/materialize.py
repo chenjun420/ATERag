@@ -56,12 +56,22 @@ def build_context_graph(records: Iterable[Mapping[str, Any]],
 
     **两类关系记录不建成本地边**
     ----------------------------
-    1. ``external: true`` 的记录(实测 24 条 ``has_unit_kind`` -> ``qudt:*``)。
-       生成器在 ``build_seed_data.py:930`` 写死了这个语义: 「指向**外部本体**,
-       不是本图节点 —— 用 IRI 形式, 不伪造本地 id」。所以 ``qudt:PotentialDifference``
-       是 IRI 引用, 库里没有也不该有对应节点。建边就会得到 24 条指向虚空的边,
-       Explorer 里点开是空页。这里把它们折进**源节点的 metadata**
-       (``external_refs``), 信息不丢, 图内部保持自洽。
+    1. ``external: true`` 的记录 —— **走真实种子时一条都不会到这一层**。
+       生成器 :func:`build_seed_data.build_relationships` 确实会为带 ``qudt_ref``
+       的概念产出 ``has_unit_kind`` -> ``qudt:*`` 并标 ``external: True``, 但
+       :func:`build_seed_data.prune_non_executable` 的**双端存活过滤**紧接着把
+       它们整条丢掉 —— ``qudt:*`` 不在实体集里(它本来就是 IRI, 不是本地 id)。
+       该过滤的注释自己写着「既有 ``qudt:`` 边也是这么消失的」。
+
+       所以这一段是**给绕过生成器的直接调用方兜底的安全网**, 不是运行期主路径。
+       早先这里写的是「实测 24 条」并指向 ``build_seed_data.py:930``, 那两个说法
+       都不成立了: 条数在变(随概念增删), 而行号早已漂移 —— 照着注释去核对会
+       核不到任何东西, 这正是 :class:`TestSeedWiringForExternalRefs` 要挡的。
+
+       语义本身仍必须守住(兜底有意义): ``qudt:PotentialDifference`` 是 IRI 引用,
+       库里没有也不该有对应节点, 建边就会得到指向虚空的边, Explorer 里点开是空页。
+       到这一层时折进**源节点的 metadata** (``external_refs``), 图内部保持自洽。
+
     2. ``source_id == target_id`` 的自环(实测 10 条 ``std::X defined_by std::X``,
        ``clause`` 就是标准号本身)。一条 ``defined_by`` 指向自己不含任何信息 ——
        那是 ``standards_add`` 逐条发关系时落下的产物, 不是语义。丢弃并计数。

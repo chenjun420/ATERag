@@ -98,6 +98,55 @@ class TestExternalOntologyRefs:
         for src, tgt, _t in _edge_types(graph):
             assert not str(tgt).startswith("qudt:"), f"边指向不存在的 QUDT 节点: {tgt}"
 
+    def test_real_seed_carries_no_external_relations(self) -> None:
+        """真实种子里 **一条 ``external: true`` 关系都没有** —— 上面那个断言平凡通过。
+
+        ``prune_non_executable`` 的双端存活过滤会在生成阶段就把
+        ``has_unit_kind`` -> ``qudt:*`` 整条丢掉(``qudt:*`` 不在实体集里), 所以
+        :meth:`test_external_ref_kept_on_source_node`` 那两个测试是**手工构造**
+        记录、与生成器实际产出脱钩的 —— 它们测的是函数, 不是接线。
+
+        这条测试把接线本身钉住: 若哪天有人放宽那个过滤(比如想让 QUDT 引用真的
+        进图), ``external_refs`` 的兜底逻辑就必须同时被重新审视, 否则上面那些
+        测试还会照样绿, 而 ``external_refs`` 仍是空的。
+        """
+        import json
+        from pathlib import Path
+
+        seed = Path("data/seed/power_domain_seed.json")
+        if not seed.exists():
+            pytest.skip("种子文件不在(离线包/裁剪仓库里)")
+        records = json.loads(seed.read_text(encoding="utf-8"))["records"]
+        rels = [r for r in records if isinstance(r, dict) and r.get("source_id")]
+        ext = [r for r in rels if r.get("external") is True]
+        assert not ext, (
+            f"种子里出现了 {len(ext)} 条 external 关系(例如 {ext[0]})—— "
+            f"materialize 的 external_refs 兜底路径从不被走, "
+            f"而它的注释曾声称「实测 24 条」"
+        )
+
+    def test_qudt_ref_attributes_survive_as_plain_attributes(self) -> None:
+        """``qudt_ref`` 作为**概念属性**仍在库里 —— 这才是那条信息真正的落点。
+
+        关系被过滤掉不等于信息丢失: 单位挂在概念的属性上。哪天有人看到
+        「``qudt:`` 边全没了」就顺手把 ``qudt_ref`` 属性也删掉, 那才是真丢信息。
+        """
+        import json
+        from pathlib import Path
+
+        seed = Path("data/seed/power_domain_seed.json")
+        if not seed.exists():
+            pytest.skip("种子文件不在(离线包/裁剪仓库里)")
+        records = json.loads(seed.read_text(encoding="utf-8"))["records"]
+        with_ref = [
+            r
+            for r in records
+            if isinstance(r, dict)
+            and r.get("entity_type") == "power_concept"
+            and r.get("qudt_ref")
+        ]
+        assert with_ref, "所有概念的 qudt_ref 都没了 —— 单位信息已丢失"
+
 
 # ---------------------------------------------------------------------------
 # 自环: 丢弃
