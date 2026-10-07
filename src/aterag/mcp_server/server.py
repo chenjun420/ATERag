@@ -12,6 +12,7 @@ list_domain_rules / health
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from mcp.server.mcpserver import MCPServer
 
@@ -723,6 +724,124 @@ async def list_domain_rules(category: str = "") -> str:
             }
         )
     return json.dumps({"rules": out, "shacl_shapes": len(shapes)}, ensure_ascii=False)
+
+
+def _kg_graph():
+    """从种子构建分析用图 (方案 §4.4)。
+
+    每次重建而不是缓存: ``materialize.py`` 已论证「落盘/缓存 = 第二份副本,
+    忘了同步就出现界面旧知识/推理新知识」, 而本图只有 641 节点 / 65 边, 重建是
+    毫秒级 —— 为省这点时间引入副本不划算。
+
+    种子路径走 :class:`Registry` 解析出的同一套兜底规则, 而不是自己拼
+    ``registry_path`` 的父目录 —— 那只在本机成立(``data/``), 换个部署目录就找不到,
+    而症状是「图分析报空」。
+    """
+    from aterag.kg import analytics
+    from aterag.kg.materialize import load_seed_records
+
+    reg_path = Registry._resolve_path(settings)
+    seed = reg_path.parent / "seed" / "power_domain_seed.json"
+    if not seed.exists():
+        seed = Path("data/seed/power_domain_seed.json")
+    ents, rels = load_seed_records(str(seed))
+    return analytics.graph_from_records([*ents, *rels])
+
+
+#: 图稀疏到这个比例以下, 分析结论就不该被当真 —— 返回里必须带这句。
+#: 实测 87%。设这个阈值不是为了让结论好看, 而是让「结论不可信」这件事出现在
+#: 输出里, 而不是留在实现者的脑子里。
+SPARSE_GRAPH_RATIO = 0.5
+
+
+def _sparseness_note(topo: dict) -> str | None:
+    n = topo.get("nodes") or 0
+    if not n:
+        return None
+    ratio = topo.get("isolated_nodes", 0) / n
+    if ratio <= SPARSE_GRAPH_RATIO:
+        return None
+    return (
+        f"注意: {topo['isolated_nodes']}/{n} 个节点孤立 ({ratio:.0%}), 最大连通分量仅 "
+        f"{topo['largest_component']}。下面的排名与追溯在这种稀疏度下信息量有限 —— "
+        f"大量分数为 0 是因为节点没进任何边, 不是因为它不重要。"
+    )
+
+
+@mcp.tool()
+async def analyze_graph(metric: str = "centrality") -> str:
+    """知识图谱分析 (方案 §4.4)。metric 目前支持 centrality。"""
+    from aterag.kg import analytics
+
+    if metric != "centrality":
+        return json.dumps(
+            {
+                "error": "unknown_metric",
+                "message": f"不支持的 metric: {metric!r}",
+                "hint": "目前实现: centrality (结构健康请跑 scripts/knowledge_gate.py)",
+            },
+            ensure_ascii=False,
+        )
+    try:
+        graph = _kg_graph()
+        topo = analytics.topology(graph)
+        report = analytics.centrality_report(graph)
+    except Exception as e:  # noqa: BLE001 分析失败不能报成「分析结果为空」
+        return json.dumps(
+            {"error": "graph_analysis_failed", "message": f"{type(e).__name__}: {e}"},
+            ensure_ascii=False,
+        )
+    return json.dumps(
+        {
+            "metric": metric,
+            "topology": topo,
+            "sparseness_warning": _sparseness_note(topo),
+            **report,
+        },
+        ensure_ascii=False,
+    )
+
+
+@mcp.tool()
+async def trace_dependency(
+    node_id: str, direction: str = "downstream", max_depth: int = 5
+) -> str:
+    """追溯某节点在知识图谱里的依赖 (方案 §4.4)。
+
+    direction:
+      downstream —— 我引用了谁 (概念依据哪份标准)
+      upstream   —— 谁引用了我 (某定理由哪条公理推出; **has_theorem 边要反着走**)
+
+    方向读反不会报错, 只会得到一个看起来合理的空答案 —— 所以两个方向都显式返回。
+    """
+    from aterag.kg import analytics
+
+    if direction not in {"downstream", "upstream"}:
+        return json.dumps(
+            {
+                "error": "bad_direction",
+                "message": f"direction 只能是 downstream / upstream, 实际 {direction!r}",
+            },
+            ensure_ascii=False,
+        )
+    try:
+        graph = _kg_graph()
+        topo = analytics.topology(graph)
+        res = analytics.trace_dependencies(
+            graph, node_id, direction=direction, max_depth=max_depth
+        )
+    except Exception as e:  # noqa: BLE001
+        return json.dumps(
+            {"error": "trace_failed", "message": f"{type(e).__name__}: {e}"},
+            ensure_ascii=False,
+        )
+    return json.dumps(
+        {
+            "sparseness_warning": _sparseness_note(topo),
+            **res,
+        },
+        ensure_ascii=False,
+    )
 
 
 @mcp.tool()

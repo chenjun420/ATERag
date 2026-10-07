@@ -559,6 +559,7 @@ def run_gate(records: list[dict[str, Any]]) -> GateReport:
     check_undeclared_id_tokens(records, ids, report)
     check_authority_shape(records, report)
     check_reportables(records, ids, report)
+    check_graph_structure(records, report)
     by_type = Counter(str(r.get("entity_type")) for r in records)
     # ``update`` 而不是赋值: :func:`check_ids` 已经往 stats 里放了
     # ``bare_name_ids``, 赋值会把它抹掉 —— 而那条正是「已登记的裸名 id
@@ -572,6 +573,81 @@ def run_gate(records: list[dict[str, Any]]) -> GateReport:
         }
     )
     return report
+
+
+def check_graph_structure(records: list[dict[str, Any]], report: GateReport) -> None:
+    """图结构健康 (方案 §4.4 的 ``GraphValidator`` 产出)。
+
+    **判据为什么是 WARN 而不是 ERROR**: 孤立节点与薄覆盖都不是「数据坏了」, 而是
+    「关系还没建够」—— 合法但值得知道的状态。把它判 ERROR 会让门禁在种子上永远红,
+    而永远红的门禁会被整体忽略, 于是真正该看的 ERROR 也一起没人看了。
+
+    但有一类是真的坏: **图建不起来** (``validate_structure`` 抛异常)。那说明适配层
+    或数据形状坏了, 静默跳过等于把「查不了」报成「没问题」, 所以那条判 ERROR。
+    """
+    from aterag.kg import analytics
+
+    try:
+        graph = analytics.graph_from_records(records)
+        v = analytics.validate_structure(graph)
+    except Exception as e:  # noqa: BLE001 图建不起来是真问题, 不是「没查」
+        report.add(
+            "graph_structure",
+            "ERROR",
+            "graph",
+            f"图结构检查未完成: {type(e).__name__}: {e}",
+        )
+        return
+
+    topo = v["topology"]
+    report.stats["graph_nodes"] = topo["nodes"]
+    report.stats["graph_edges"] = topo["edges"]
+    report.stats["graph_isolated"] = topo["isolated_nodes"]
+    report.stats["graph_largest_component"] = topo["largest_component"]
+
+    # 只有这一条判 ERROR, 且**要求多节点**。单节点样本(测试夹具、单条记录重跑)
+    # 本来就一条边都没有, 拿它判 ERROR 会让门禁在最小输入上永远红 —— 而永远红
+    # 的门禁会被整体忽略。早先另写了个 `elif edges == 0` 分支, 但 edges 为 0 必然
+    # 意味着所有节点孤立, 那个分支永远不可达 —— 不可达的判据就是装饰, 而且它与本条
+    # 的文案撞车, 让人以为两条规则都在生效。
+    if topo["nodes"] > 1 and topo["isolated_nodes"] == topo["nodes"]:
+        report.add(
+            "graph_structure",
+            "ERROR",
+            "graph",
+            f"图里 {topo['nodes']} 个节点全部孤立 —— 一条边都没有, 图等于不存在"
+            "(实体都在但关系全丢了, 通常是关系记录的目标 id 全部解析不到)",
+        )
+
+    ratio = topo["isolated_nodes"] / topo["nodes"] if topo["nodes"] else 0.0
+    if topo["edges"] and ratio > 0.5:
+        report.add(
+            "graph_structure",
+            "WARN",
+            "graph",
+            f"{topo['isolated_nodes']}/{topo['nodes']} 个节点孤立 ({ratio:.0%}); "
+            f"最大连通分量仅 {topo['largest_component']} —— 图分析类产出(中心性/追溯)"
+            f"在这种稀疏度下信息量有限, 要让它们有意义得先补关系",
+        )
+
+    for issue in v["issues"]:
+        sev = str(issue.get("severity", "")).upper()
+        if "ERROR" in sev:
+            report.add("graph_structure", "ERROR", issue.get("node") or "graph", issue["message"])
+        elif "WARNING" in sev and "orphan" not in issue["message"].lower():
+            report.add("graph_structure", "WARN", "graph", issue["message"])
+
+    thin = analytics.thin_coverage(graph)
+    if thin["total"]:
+        report.stats["graph_thin_covered"] = thin["count"]
+        if thin["count"]:
+            report.add(
+                "graph_thin_covered",
+                "WARN",
+                thin["node_type"],
+                f"{thin['count']}/{thin['total']} 个 {thin['node_type']} 节点入度 <= {thin['threshold']}"
+                f" (其中 {thin['zero_in_degree']} 个为 0) —— 覆盖薄弱, 相关分析用不上它们",
+            )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -625,6 +701,16 @@ def main(argv: list[str] | None = None) -> int:
                 f"其中 {st['l0_policy_empty']} 张按红线 4 不灌"
             )
         print(f"  l0_term 政策核对: {st['pg_policy_check']}")
+        if "graph_nodes" in st:
+            print(
+                f"  图结构: {st['graph_nodes']} 节点 / {st['graph_edges']} 边 "
+                f"(孤立 {st['graph_isolated']}, 最大连通分量 {st['graph_largest_component']})"
+                + (
+                    f"; 覆盖薄弱 {st['graph_thin_covered']} 个"
+                    if "graph_thin_covered" in st
+                    else ""
+                )
+            )
         for f in report.findings:
             if f.severity == "INFO":
                 continue
