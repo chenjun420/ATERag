@@ -286,6 +286,27 @@ def rows_from_postgres(
 # ---------------- 编排 ----------------
 
 
+def model_profile_name(model_id: str) -> str:
+    """型号在注册表里绑定的文档档案名。
+
+    **档案选择是数据, 不是调用方的记忆**: MCP 工具只把 ``profile`` 作为可选
+    覆盖传进来, 默认路径下没人会记得为 PN2000-24A 指定另一份档案 —— 档案换了
+    也没有任何测试会发现调用方还在用旧的 (方案 §11.4 A19)。
+
+    注册表缺失/型号未登记/未绑定 -> 空串 (调用方回落到 default_profile),
+    因为「没绑定档案」本身是合法的默认状态, 不该让抽取失败。
+    """
+    from aterag.config import get_settings
+    from aterag.registry import Registry
+
+    try:
+        reg = Registry.load(get_settings())
+    except FileNotFoundError:
+        return ""
+    entry = reg.products.get(model_id)
+    return entry.doc_profile if entry else ""
+
+
 def extract_test_conditions(
     model_id: str,
     *,
@@ -303,10 +324,16 @@ def extract_test_conditions(
 ) -> ExtractionResult:
     """抽取某型号在选定章节内的产测条件 (输入条件 / 输出条件)。
 
+    档案选择顺序: 显式 ``profile_name`` -> 注册表 ``doc_profile`` -> 默认档案。
+    走注册表是因为「档案换了但调用方还在传旧档案名」没有任何测试会发现 ——
+    PN2000-24A 就是这么在册却抛 SectionKeywordNotFound 的 (方案 §11.4 A19)。
+
     source:
       blocks   —— 从 blocks 侧车重跑抽取 (默认: 离线、确定性、无需 DB)
       postgres —— 读 RAG 落库实体 (需 dsn)
     """
+    if profile_name is None and model_id:
+        profile_name = model_profile_name(model_id)
     prof_book = profiles or ProfileBook.load()
     profile = prof_book.get(profile_name)
     book = patterns or PatternBook.load(DEFAULT_PATTERNS_PATH)

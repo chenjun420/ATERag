@@ -110,6 +110,63 @@ profiles:
     default_role: stimulus_response
     default_limits_to: output
 
+  # PN2000-24A 模板 (章节 2 技术要求, 与中兴系 4.3 功能/性能要求 是两套结构)
+  #
+  # 存在的理由: PN2000-24A 登记在 data/registry.yaml, 但章节树完全不同
+  # (2 技术要求 / 2.1 工作环境条件 / 2.2 输出规格 / 2.3 保护功能 /
+  # 2.4 信号接口 / 2.5 遥测功能), power_spec_cn 的「功能/性能要求」
+  # 关键字在它里面一个都命中不了 -> SectionKeywordNotFound,
+  # 「登记在册却进不来」。**换模板只改本文件, 不改代码** (方案 §11.4 A19)。
+  power_spec_cn_pn2000:
+    description: PN2000-24A 定制电源技术规格书 (章节 2 技术要求)
+    section_keywords:
+      # 逐个子章节点名, 而非笼统写「技术要求」: 2.4/2.5 的信号与遥测表
+      # 由信号/遥测 schema 产实体, 但它们不是产测条件 (无限值列), 收编进来
+      # 会让条件装配拿到一批空条件的条目。
+      - 工作环境条件
+      - 输出规格
+      - 保护功能
+
+    exclude_words:
+      - 不要求
+      - 无要求
+      - 不做要求
+      - 无此要求
+
+    include_prose: false
+
+    section_priors:
+      "2.1":
+        role: input_domain
+        limits_to: input
+        note: "工作环境条件: 输入电压/频率/工作温度本身是激励域 (产测在这些点加激励, 验输出是否正常)"
+      "2.2":
+        role: output_spec
+        limits_to: output
+        note: "输出规格: 限值即响应判据; 轨道列显式写出 (-48V)"
+      "2.3":
+        role: protection_response
+        limits_to: both
+        note: "保护功能: 保护点既是激励阈值也是响应判据"
+      "2.4":
+        role: signal_io
+        limits_to: output
+      "2.5":
+        role: signal_io
+        limits_to: output
+
+    reference_markers:
+      - 详见
+      - 参见
+      - 见
+      - 按
+      - 依据
+
+    req_id_pattern: '\b([A-Z]{2,6}[0-9A-Z]*(?:-[A-Z0-9]+)+)\b'
+
+    default_role: stimulus_response
+    default_limits_to: output
+
   # 极简示例: 只做章节选择 + 剔除, 不做语义装配 (用于对照与冒烟)
   minimal:
     description: 只抽取条目, 不拆输入/输出条件

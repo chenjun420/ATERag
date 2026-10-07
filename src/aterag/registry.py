@@ -27,6 +27,12 @@ class ProductEntry:
     domain: str
     doc_number: str = ""
     doc_version: str = ""
+    #: 本型号用哪份文档档案 (config/doc_profiles.yaml 的 profile 名)。
+    #: 留空 = 用 default_profile。**必须落在注册表里而不是靠调用方记得传** ——
+    #: 否则档案改了却没有任何测试发现调用方还在用旧的 (方案 §11.4 A19:
+    #: PN2000-24A 登记在册却抛 SectionKeywordNotFound, 因为档案选择只存在于
+    #: MCP 工具的可选参数里)。
+    doc_profile: str = ""
 
 
 @dataclass
@@ -87,6 +93,7 @@ class Registry:
                 domain=p["domain"],
                 doc_number=str(p.get("doc_number", "")),
                 doc_version=str(p.get("doc_version", "")),
+                doc_profile=str(p.get("doc_profile", "")),
             )
         return reg
 
@@ -103,6 +110,7 @@ class Registry:
                     "domain": p.domain,
                     "doc_number": p.doc_number,
                     "doc_version": p.doc_version,
+                    **({"doc_profile": p.doc_profile} if p.doc_profile else {}),
                 }
                 for model_id, p in self.products.items()
             },

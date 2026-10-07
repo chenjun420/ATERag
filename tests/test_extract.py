@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -26,7 +27,7 @@ from aterag.extract import (
 from aterag.extract.api import DocProfile, SectionPrior
 from aterag.extract.assembler import assemble
 from aterag.ingest.entity_extract import extract_from_blocks
-from aterag.ingest.markdown_parser import parse_markdown
+from aterag.ingest.markdown_parser import parse_file, parse_markdown
 from aterag.ingest.table_schema import infer_roles, load_registry
 
 # ---------------- 最小规格书样本 (自包含, 不依赖仓库文件) ----------------
@@ -429,6 +430,62 @@ class TestProfiles:
         for p in book.profiles.values():
             for pr in p.section_priors.values():
                 assert pr.limits_to in {"input", "output", "both"}
+
+
+# ---------------- 在册型号必须真的进得来 (方案 §11.4 A19) ----------------
+class TestRegisteredModelsEnterable:
+    """PN2000-24A 长期「登记在册却抛 SectionKeywordNotFound」。
+
+    破口有两处, 分别钉住: 档案选择只存在于调用方的可选参数里 (注册表没绑定),
+    以及 PN2000 模板的两张表 (信号接口/遥测) 表头词与 PA601 不同 -> 落空。
+    """
+
+    FIXTURE = "tests/fixtures/PN2000-24A 定制电源技术规格书.md"
+
+    def test_registry_profiles_are_defined(self):
+        """注册表里绑定的 doc_profile 必须真实存在于 doc_profiles.yaml。"""
+        import yaml
+
+        from aterag.extract.api import model_profile_name
+
+        reg = yaml.safe_load(Path("data/registry.yaml").read_text(encoding="utf-8"))
+        book = ProfileBook.load()
+        bound = 0
+        for model_id in reg.get("products") or {}:
+            name = model_profile_name(model_id)
+            if not name:
+                continue
+            bound += 1
+            assert name in book.profiles, f"{model_id} 绑定了未定义的档案 {name}"
+        assert bound >= 1, "注册表没有任何型号绑定档案 —— 绑定能力形同虚设"
+
+    def test_pn2000_profile_selects_its_sections(self):
+        blocks = parse_file(self.FIXTURE)
+        book = ProfileBook.load()
+        prof = book.profiles["power_spec_cn_pn2000"]
+        sel = select_sections(blocks, prof.section_keywords)
+        # 2.1/2.2/2.3 收编, 2.4 信号接口与 2.5 遥测不收编 (非产测条件)
+        assert {"2.1", "2.2", "2.3"} <= set(sel.section_prefixes)
+        assert sel.section_prefixes == ["2.1", "2.2", "2.3"]
+
+    def test_pn2000_tables_all_matched(self):
+        """五张表全部命中 schema —— fail-closed 下漏一张就是抛错。"""
+        reg = load_registry()
+        blocks = parse_file(self.FIXTURE)
+        signatures = [" | ".join(t[0]) for b in blocks for t in b.tables if t]
+        assert len(signatures) == 5
+        for b in blocks:
+            for t in b.tables:
+                if t:
+                    assert reg.detect(t[0], t[1:]).matched, " | ".join(t[0])
+
+    def test_pn2000_entities_extracted(self):
+        blocks = parse_file(self.FIXTURE)
+        ents = extract_from_blocks(blocks, "PN2000-24A", "A")
+        kinds = {e.etype for e in ents}
+        assert {"Requirement", "Signal"} <= kinds
+        rails = {e.props.get("rail") for e in ents if e.etype == "Requirement"}
+        assert "-48V" in rails, "「轨道」列没映射上 —— 保护点分不出输出轨"
 
 
 # ---------------- 端到端 (blocks 通道) ----------------

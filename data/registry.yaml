@@ -15,3 +15,6 @@ products:
     domain: power
     doc_number: ''
     doc_version: A
+    # 章节树与中兴系模板完全不同 (2 技术要求 vs 4.3 功能/性能要求),
+    # 必须绑定自己的档案, 否则抽取抛 SectionKeywordNotFound (方案 §11.4 A19)
+    doc_profile: power_spec_cn_pn2000

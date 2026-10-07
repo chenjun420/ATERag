@@ -122,6 +122,9 @@ schemas:
     columns:
       编号: req_id
       遥测量: subject
+      # PN2000 模板的同义列名 (A19): 「遥测项」与「遥测量」同义, 缺了它整表
+      # 不命中任何 schema -> fail-closed 抛错, 型号登记在册却进不来
+      遥测项: subject
       检测范围: range_text
       精度: accuracy
       备注: notes
@@ -149,6 +152,9 @@ schemas:
       标准: standard
       标准（或测试条件）: standard
       试验条件: standard
+      # PN2000 模板用「轨道」单列写输出轨 (-48V), PA601 用复合列。缺了它这
+      # 列会整列静默丢, 保护点就分不出输出轨 (A19)
+      轨道: rail
 
   # 接口信号定义表 (4.2.4.x) —— 产生 Signal 实体
   # 两组 require: 4.2.4.1/4.2.4.2 带"连接器"列走第一组; 4.2.4.3 的
@@ -160,9 +166,13 @@ schemas:
       any_of:
         - {require: [connector, signal_name]}
         - {require: [signal_name, level, src_dst]}
+        # PN2000 模板 (A19): "编号|信号名称|管脚|说明|等级" —— 信号定义表带
+        # 需求编号但无连接器维度, require 用 [req_id, signal_name] 命中
+        - {require: [req_id, signal_name]}
     entity: signal
     row_strategy: anchor_align
     columns:
+      编号: req_id
       连接器: connector
       管脚: pin
       信号定义: signal_def
