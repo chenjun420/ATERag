@@ -1,60 +1,67 @@
-# 通用电源知识缺口评估（2026-10-07）
+# 通用电源知识缺口评估 v2（2026-10-07 · 全量口径）
 
-基准: 板卡 192.168.5.25 / DB `power_specs`（板卡重建后本轮已重新落库）
-数据面: `pw_sr5400.test_requirement` 95 条（COVERED 40 / PENDING 45 / GAP 10）、
-`domain_rules/power/rules.yaml` 130 条 26 类、`config/test_methods.yaml` 18 条方法、
-`domain_rules/power/knowledge.md`（22 节，含 4c983f0 起的通用产测工艺知识）。
+基准: 板卡 192.168.5.25 / `pw_sr5400.test_requirement` 95 行（重建后重落库）
+口径升级（用户指令）: **所有非「无要求/不要求」需求都需要评估**。
 
-## 一、缺口分层结论
+## 一、评估方法
 
-coverage_status 三态语义（红线: 猜错代价 > 漏判，不自动改判）:
+以落库行逐条评三级（方法支撑用 `condition_vector`，等级取 `source_ref.priority`）:
 
-| 状态 | 语义 | 性质 | 条数 |
-|---|---|---|---|
-| COVERED | 人审签字过、判定可构造 | 无缺口 | 40 |
-| PENDING | 有条件、含未人审 draft 提案 | **流程缺口（签字），不是知识缺口** | 45 |
-| GAP | assessment 判 insufficient —— 条件齐了也测不了/判不了 | **知识/能力缺口所在** | 10 |
+| 级 | 含义 | 判据 |
+|---|---|---|
+| A 健全 | 有已批准方法支撑 | 至少一条 approved 子句且方法齐全 |
+| B 提案 | 只有未人审草案方法 | 方法存在但均为 draft |
+| C 方法缺 | 无任何方法引用 | 需补方法或补知识 |
 
-按 signal_type（role 判据落库后）:
+无要求需求（等级或内容为 不要求/无要求）单独筛出，不参评。
 
-| signal_type | COVERED | PENDING | GAP | 读法 |
-|---|---|---|---|---|
-| PROT | 14 | 1 | 0 | 保护判据知识覆盖最厚 |
-| YX | 12 | 5 | 0 | 遥信基本齐 |
-| YC | 3 | 5 | 0 | 遥测 0 GAP 但 5 条未签字 |
-| TEST | 11 | 34 | 10 | **缺口全部集中在此**（44/55 欠覆盖行） |
+## 二、评估结果（92 行参评 / 3 行筛出）
 
-## 二、GAP 10 条归因（真正要补的知识）
+- **A = 89 / B = 3 / C = 0** —— 上一版的 10 条 GAP 全部落档:
+  - SR-1219 均流度: 备注明写「不要求均流度」（但附并联行为要求）→ 被内容过滤筛出,
+    不入工装需求; 其并联行为要求另行澄清口径
+  - SR-1217 温度系数: 新增 `psu_output_tempco` 方法 + `thermal_chamber` 能力传播后
+    降为 B（方法为草案, 待签字）
+  - 其余 8 条空 spec / 值缺口: 均为 B 或经 1219/1603/1604 类内容筛出后消解
+- **B = 3**（全部是「方法就绪、等签字」，非知识缺口）:
+  - SR-1101 输入工作电压范围（generic_fallback + psu_input_default_verdict）
+  - SR-1105 输入冲击电流（en300132_inrush_measurement）
+  - SR-1217 温度系数（psu_output_tempco）
+- **筛出 3 行**（等级/内容命中不要求词, 逐条留痕）:
+  - SR-1219「不要求均流度, 但不能出现并联空满载切换带载」
+  - SR-1603「3A 以下不要求, 3A 以上 ±1% 精度」—— 分档型, 行内仍含真实判据, 由人复核
+  - SR-1604「功率<50W 不要求精度; 50W≤…±10W; …≥100W ±5%」—— 同上
 
-| 缺口类型 | 条目 | 缺什么 | 落点建议 |
-|---|---|---|---|
-| **方法缺失** | SR-1219 负载均流度 | method_refs=[] —— rules.yaml 有 current-sharing 3 条、knowledge.md 有「并联均流与下垂法」，**有规则有常识但没有可执行的测量方法** | test_methods 增补 `load_share_measurement`（各轨轻载/满载/50% 读数 + 均流度公式已可从 Formula 库取） |
-| **语义混入** | SR-1701 版本管理 | 引用穿透产生的 spec={} 空条件——它不是「测不了」，是**不该出条件**；不该占 GAP 语义 | assess 增加「spec 空 +clause_sources=[block]」→ 报 unnecessary 或不出条，把 GAP 留给真的缺 |
-| **值缺口(产品侧)** | SR-1101 Vdc / SR-1213 / SR-1203(第1变体) / SR-1217(3.45V) | spec 无数值或空 {} —— 规格书里就没有 | 需求方澄清清单（并入 SR-1309/1211/2503） |
-| **仪器能力缺口** | SR-1217 温度系数(-54V ±0.02%/℃) | 走 `thermal_telemetry_read`（读遥温）—— 但可测温度系数需要**能控温的环境腔**；现 instrument_need 只出了 dmm，无 thermal_chamber | 需求推导层把「温度系数」kind 传播出 thermal_chamber + N 点温度阶跃的采样要求 |
-| **rail 归属疑点** | SR-1105 输入冲击电流 rail='-54V' | 输入侧事件挂了输出轨（inrush 由 en300132 方法应带 input 侧条件） | 校验: `supplies=input` 的方法与 rail 非空互斥时告警 |
+## 三、本轮补齐的知识（websearch 查证）
 
-## 三、知识库存量盘点（三种库存对不上缺口的各一块）
+### 1. 负载均流度测试方法
+- 方法: 五点负载（10/25/50/75/100%）同步采样, 每点稳定 ≥5min;
+  不平衡度 = (max|Ii−Ī|/Ī)×100%; 半载及以上 ±5%、轻载放宽（参考 ±10%,
+  型号限值以规格书为准); 动态 50%→100% 阶跃。
+- 前置: 逐台单机校准、输出线束对称（明确「不同步读取/线束不对称」两类误诊）。
+- 落点: 种子 `MEAS_LOAD_SHARE_SYNC_SAMPLING` + `test_methods.load_share_measurement`。
 
-- **rules.yaml（130 条）**: 分类分布厚在 protection 21 / control 11 / fixture 23 / telemetry 8；
-  薄在 thermal 1、reliability 1、limits 1。缺口 kind 里「温度系数」「温漂回差」只有 1 条 thermal 规则可挂。
-- **test_methods.yaml（18 条）**: 抗扰跌落/冲击/四线感测/效率/纹波/动态/时序/遥信告警/热遥测有；
-  **均流度测量、温度系数测量、电池管理验证**（SR-1904 系）无方法 id。
-- **knowledge.md（22 节）**: 基本电学/交流/效率/热/保护矩阵/安规/遥测遥控/校准降额/低线降额/均流下垂都在；
-- 属「讲道理层」，缺的是把道理变成 verdict 步骤的方法条目。
+### 2. 温度系数测试仪器（温箱）
+- 温度系数的承载仪器是**能控温的环境腔**而非读数表: 温箱须程控、带载、
+  ±0.5℃ 稳定度量级; ≥3 温点热浸后同步读输出与温度, 最小二乘拟合。
+- 口径依据: GB/T 2424.7-2024（带负载温箱测量）、MIL-STD-810 501.7/502.7。
+- 发现并修复真缺陷: `CAPABILITY_BY_KIND` 缺 `temperature` 键（词表 input 侧名），
+  SR-1217 的 `thermal_chamber` 一直静默缺席 —— 补键后 `instrument_need` 已得
+  `["dmm", "thermal_chamber"]`, 并加映射完整性门禁测试锁死。
 
-## 四、非知识缺口的待办（保持既有 blocked 清单）
+## 四、过滤能力（新增）
 
-1. **PENDING 45 → 需签字**：含 CI 长红的 `review_annotation --check`（SR-PA601-D54A-1213 未签字，自 9b66d11）。
-   这是流程动作，任何人不得代码侧代签。
-2. **跨仓基准 82 vs 91 skip**：待 ATEStudio 侧同步（红线，勿动）。
-3. **五张点位表 0 行**（信号类通道阻塞）：需产品侧提供信号表结构化数据。
-4. **fixture/test_station/instrument_ledger 0 行**：产品侧工装/仪器台账决策。
-5. **spec 矛盾待澄清**: SR-1309（过流 12A vs 8.1~18A 备注）、SR-1211（变速率量级 139×）、SR-2503（湿度自相矛盾）、
-   两轨额定 и 599.75W > 400W 档上限（verify_board_rag 如实暴露）。
+- 检索面: `search_requirements(priority=…, exclude_priority=…)` —— 支持逗号多值;
+  负向典型用法 `不要求,无要求`。
+- 工装需求面: `derive_fixture_demand.py --priority/--exclude-priority/--exclude-words`
+  —— 词命中逐条留 reason（含备注原文片段）供人工复核, 不静默丢弃。
+- 与抽取侧既有 sieve 的关系: 入库前的「整格等值剔除」已把纯无要求条目挡在库外
+  （SR-1800 电池管理「无要求」实测 0 行）; 过滤面处理的是**库内历史行与分档/关系型
+  备注**的显式筛选。
 
-## 五、本轮之后建议的后续动作
-- ① 增加 load_share / tempco / battery 三条方法（配 assess 段，零词汇代码纪律不变）
-- ② assess 把空 spec 条件分流到 unnecessary（守 GAP 语义）
-- ③ 需求推导层为温度类 kind 传播 thermal_chamber 能力需求
-- ④ rail-vs-supplies 一致性告警（ingest 侧 lint）
+## 五、仍非知识缺口的待办（不变）
+
+1. PENDING 45 → 签字流程（含 CI 长红的 SR-1213）。
+2. 跨仓基准 82 vs 91 skip（待 ATEStudio 侧同步）。
+3. 点位五张表 0 行（信号类通道）与 fixture/instrument_ledger 0 行（产品侧）。
+4. 需求方澄清: SR-1309 / SR-1211 / SR-2503 / 两轨功率矛盾 / SR-1219 并联行为口径。
