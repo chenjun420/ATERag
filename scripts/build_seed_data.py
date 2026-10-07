@@ -503,10 +503,26 @@ def build_authoritative_terms() -> list[dict[str, Any]]:
 #: **为什么补实体而不是改引用**: 缺的是**实体这一端**。那 61 处引用是既有的引用,
 #: 补一端就够; 反过来去改/删引用是把已有知识改掉。
 #:
-#: **只注入查证过的**(红线 5: 出处必须可查)。剩下 3 个
-#: (``GB/T 14598.127-2013`` / ``GB/T 2900.32-1994`` / ``GB/T 2900.93-2015``)
-#: 本轮未查到版本与现行状态, **故意不注入** —— 由门禁的
-#: ``authority_ref_resolvable`` 报出来, 那才是「已登记的缺口」而不是「静默无输出」。
+#: **只注入查证过的**(红线 5: 出处必须可查)。这三条是上一轮门禁报出来后补查的:
+#: ``GB/T 14598.127-2013``(≡IEC 60255-127:2010, 含复归特性, 与引用它的三条
+#: ``SET_*_RETURN`` 类别吻合)、``GB/T 2900.32-1994``、``GB/T 2900.93-2015``。
+#: 后两条的**条款归属存疑**, 只注入实体(标准确实存在且现行), 存疑写进 ``note``,
+#: 并由门禁 ``authority_clause_missing`` 继续报 —— **不因为标准真实就把条款归属也
+#: 认了**, 那是两件事(与 ``build_referenced_standards`` 的 docstring 同一个道理)。
+#:
+#: 剩下这 4 类**故意不注入**, 它们不是「缺实体」:
+#:
+#: - ``std::IEC 60721-3-1/3-2`` / ``std::IEC 60898-1/2``: 实体 id 本身是**两条标准的
+#:   合写**(斜杠分隔), 而 ``authority_ref`` 只能填一个标准号 —— 结构性不可解析。
+#:   补一个 ``std::IEC 60898-1`` 实体等于把一条标准拆成两个 id, 那会造出「一个标准
+#:   号对应两个实体」的分裂, 比现在不可解析更糟。
+#: - ``INSTR_EMC_RECEIVER`` 引 ``GB/T 17626 系列``: 引用刻意写成**系列**(整族 EMC
+#:   试验标准), 没有指向具体一条。补 14 条 GB/T 17626.x 实体是凭空造数据。
+#: - ``COND_VIN_NOM`` 引 ``GB/T 2900.1 电工术语; IEC 60050-151``: 一条引用里
+#:   给了**两条标准**(且前者没写部分号), 提取器只能取到第一条。
+#: - ``CONFORMAL_COATING`` 引 ``IEC 60664-1 / IPC-2221B``: 复合引用(一条 IEC +
+#:   一条 IPC), 且 IEC 60664-1 库里有 2020 版但引用没写年份 —— 升级到 2020 版是
+#:   **推断哪一版**, 留给人工裁定。
 #:
 #: ``status`` 只填**查到**的那一个, 查不到就留 ``UNVERIFIED``, 不猜。
 #:
@@ -597,6 +613,46 @@ REFERENCED_STANDARDS: tuple[dict[str, Any], ...] = (
         "服务质量》(≡IEC 60050-191:1990)全部代替; 后者又被 GB/T 2900.99-2016"
         "部分代替。保留是因为 MTBF 的 §7.2.8 出处在这一版, 且要能回答"
         "「历史报告依据的是哪一版」。",
+    },
+    {
+        "id": "std::GB/T 14598.127-2013",
+        "title": "量度继电器和保护装置 第127部分:过/欠电压保护功能要求",
+        "title_en": "Measuring relays and protection equipment - Part 127: "
+        "Functional requirements for over/under voltage protection",
+        "status": "CURRENT",
+        "published": "2013-07-19",
+        "implemented": "2013-12-02",
+        "iec_equivalent": "IEC 60255-127:2010",
+        "note": "IDT。**类别与引用者对得上**: 该部分含复归特性/复归时间/复归系数"
+        "(§4.2 复归特性、附录A 仅有跳闸输出的继电器的复归时间测定), 而引用它的"
+        "三条正是 SET_OCP_RETURN / SET_OVP_RETURN / SET_OTP_RETURN(保护复归)。",
+    },
+    {
+        "id": "std::GB/T 2900.32-1994",
+        "title": "电工术语 电力半导体器件",
+        "title_en": "Electrotechnical terminology - Power semiconductor devices",
+        "status": "CURRENT",
+        "published": "1994-05-16",
+        "implemented": "1995-01-01",
+        "replaces": "GB 2900.32-1982",
+        "note": "由强制性 GB 转为推荐性 GB/T。参照采用 IEC 出版物 747 与 IEC 50(521)。"
+        "**⚠ 引用存疑**: DERATING 引的是它的 §2.2.9 热降额因数, 但「热降额」在电源"
+        "语境下更可能出自半导体变流器(GB/T 3859)或电路理论(GB/T 2900.74)那几部分。"
+        "本轮**未核到 §2.2.9 的原文**, 所以只注入标准实体(它确实存在且现行), "
+        "不确认条款归属 —— 门禁的 authority_clause_missing 会继续报。",
+    },
+    {
+        "id": "std::GB/T 2900.93-2015",
+        "title": "电工术语 电物理学",
+        "title_en": "Electrotechnical terminology - Physics for electrotechnology",
+        "status": "CURRENT",
+        "published": "2015-09-11",
+        "implemented": "2016-04-01",
+        "iec_equivalent": "IEC 60050-113:2011",
+        "note": "IDT。范围是空间和时间、一般宏观概念、力、热力学、粒子物理学、"
+        "固体物理学。**⚠ 引用存疑**: sym::τ_noise(噪声时间常数)引的是它, 但"
+        "「噪声时间常数」不像是电物理学条目, 更可能在 GB/T 2900.74(电路理论)"
+        "或专门的噪声标准里。同上: 只注入实体, 不确认条款归属。",
     },
 )
 

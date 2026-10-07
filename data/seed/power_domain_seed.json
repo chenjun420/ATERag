@@ -54442,6 +54442,390 @@
       }
     },
     {
+      "id": "std::GB/T 14598.127-2013",
+      "name": "量度继电器和保护装置 第127部分:过/欠电压保护功能要求",
+      "entity_type": "standard",
+      "text": "GB/T 14598.127-2013 量度继电器和保护装置 第127部分:过/欠电压保护功能要求",
+      "confidence": null,
+      "source": "GB/T 14598.127-2013",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "title": "量度继电器和保护装置 第127部分:过/欠电压保护功能要求",
+      "title_en": "Measuring relays and protection equipment - Part 127: Functional requirements for over/under voltage protection",
+      "status": "CURRENT",
+      "published": "2013-07-19",
+      "implemented": "2013-12-02",
+      "iec_equivalent": "IEC 60255-127:2010",
+      "note": "IDT。**类别与引用者对得上**: 该部分含复归特性/复归时间/复归系数(§4.2 复归特性、附录A 仅有跳闸输出的继电器的复归时间测定), 而引用它的三条正是 SET_OCP_RETURN / SET_OVP_RETURN / SET_OTP_RETURN(保护复归)。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 14598.127-2013",
+      "provenance": {
+        "title": {
+          "property_name": "title",
+          "value": "量度继电器和保护装置 第127部分:过/欠电压保护功能要求",
+          "sources": [
+            {
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "title_en": {
+          "property_name": "title_en",
+          "value": "Measuring relays and protection equipment - Part 127: Functional requirements for over/under voltage protection",
+          "sources": [
+            {
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "status": {
+          "property_name": "status",
+          "value": "CURRENT",
+          "sources": [
+            {
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "published": {
+          "property_name": "published",
+          "value": "2013-07-19",
+          "sources": [
+            {
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "implemented": {
+          "property_name": "implemented",
+          "value": "2013-12-02",
+          "sources": [
+            {
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "iec_equivalent": {
+          "property_name": "iec_equivalent",
+          "value": "IEC 60255-127:2010",
+          "sources": [
+            {
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "IDT。**类别与引用者对得上**: 该部分含复归特性/复归时间/复归系数(§4.2 复归特性、附录A 仅有跳闸输出的继电器的复归时间测定), 而引用它的三条正是 SET_OCP_RETURN / SET_OVP_RETURN / SET_OTP_RETURN(保护复归)。",
+          "sources": [
+            {
+              "document": "GB/T 14598.127-2013",
+              "section": "GB/T 14598.127-2013",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "std::GB/T 2900.32-1994",
+      "name": "电工术语 电力半导体器件",
+      "entity_type": "standard",
+      "text": "GB/T 2900.32-1994 电工术语 电力半导体器件",
+      "confidence": null,
+      "source": "GB/T 2900.32-1994",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "title": "电工术语 电力半导体器件",
+      "title_en": "Electrotechnical terminology - Power semiconductor devices",
+      "status": "CURRENT",
+      "published": "1994-05-16",
+      "implemented": "1995-01-01",
+      "replaces": "GB 2900.32-1982",
+      "note": "由强制性 GB 转为推荐性 GB/T。参照采用 IEC 出版物 747 与 IEC 50(521)。**⚠ 引用存疑**: DERATING 引的是它的 §2.2.9 热降额因数, 但「热降额」在电源语境下更可能出自半导体变流器(GB/T 3859)或电路理论(GB/T 2900.74)那几部分。本轮**未核到 §2.2.9 的原文**, 所以只注入标准实体(它确实存在且现行), 不确认条款归属 —— 门禁的 authority_clause_missing 会继续报。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.32-1994",
+      "provenance": {
+        "title": {
+          "property_name": "title",
+          "value": "电工术语 电力半导体器件",
+          "sources": [
+            {
+              "document": "GB/T 2900.32-1994",
+              "section": "GB/T 2900.32-1994",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "title_en": {
+          "property_name": "title_en",
+          "value": "Electrotechnical terminology - Power semiconductor devices",
+          "sources": [
+            {
+              "document": "GB/T 2900.32-1994",
+              "section": "GB/T 2900.32-1994",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "status": {
+          "property_name": "status",
+          "value": "CURRENT",
+          "sources": [
+            {
+              "document": "GB/T 2900.32-1994",
+              "section": "GB/T 2900.32-1994",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "published": {
+          "property_name": "published",
+          "value": "1994-05-16",
+          "sources": [
+            {
+              "document": "GB/T 2900.32-1994",
+              "section": "GB/T 2900.32-1994",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "implemented": {
+          "property_name": "implemented",
+          "value": "1995-01-01",
+          "sources": [
+            {
+              "document": "GB/T 2900.32-1994",
+              "section": "GB/T 2900.32-1994",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "replaces": {
+          "property_name": "replaces",
+          "value": "GB 2900.32-1982",
+          "sources": [
+            {
+              "document": "GB/T 2900.32-1994",
+              "section": "GB/T 2900.32-1994",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "由强制性 GB 转为推荐性 GB/T。参照采用 IEC 出版物 747 与 IEC 50(521)。**⚠ 引用存疑**: DERATING 引的是它的 §2.2.9 热降额因数, 但「热降额」在电源语境下更可能出自半导体变流器(GB/T 3859)或电路理论(GB/T 2900.74)那几部分。本轮**未核到 §2.2.9 的原文**, 所以只注入标准实体(它确实存在且现行), 不确认条款归属 —— 门禁的 authority_clause_missing 会继续报。",
+          "sources": [
+            {
+              "document": "GB/T 2900.32-1994",
+              "section": "GB/T 2900.32-1994",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "std::GB/T 2900.93-2015",
+      "name": "电工术语 电物理学",
+      "entity_type": "standard",
+      "text": "GB/T 2900.93-2015 电工术语 电物理学",
+      "confidence": null,
+      "source": "GB/T 2900.93-2015",
+      "section": null,
+      "metadata": {
+        "authority_kind": "standard"
+      },
+      "title": "电工术语 电物理学",
+      "title_en": "Electrotechnical terminology - Physics for electrotechnology",
+      "status": "CURRENT",
+      "published": "2015-09-11",
+      "implemented": "2016-04-01",
+      "iec_equivalent": "IEC 60050-113:2011",
+      "note": "IDT。范围是空间和时间、一般宏观概念、力、热力学、粒子物理学、固体物理学。**⚠ 引用存疑**: sym::τ_noise(噪声时间常数)引的是它, 但「噪声时间常数」不像是电物理学条目, 更可能在 GB/T 2900.74(电路理论)或专门的噪声标准里。同上: 只注入实体, 不确认条款归属。",
+      "authority_kind": "standard",
+      "authority_ref": "GB/T 2900.93-2015",
+      "provenance": {
+        "title": {
+          "property_name": "title",
+          "value": "电工术语 电物理学",
+          "sources": [
+            {
+              "document": "GB/T 2900.93-2015",
+              "section": "GB/T 2900.93-2015",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "title_en": {
+          "property_name": "title_en",
+          "value": "Electrotechnical terminology - Physics for electrotechnology",
+          "sources": [
+            {
+              "document": "GB/T 2900.93-2015",
+              "section": "GB/T 2900.93-2015",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "status": {
+          "property_name": "status",
+          "value": "CURRENT",
+          "sources": [
+            {
+              "document": "GB/T 2900.93-2015",
+              "section": "GB/T 2900.93-2015",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "published": {
+          "property_name": "published",
+          "value": "2015-09-11",
+          "sources": [
+            {
+              "document": "GB/T 2900.93-2015",
+              "section": "GB/T 2900.93-2015",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "implemented": {
+          "property_name": "implemented",
+          "value": "2016-04-01",
+          "sources": [
+            {
+              "document": "GB/T 2900.93-2015",
+              "section": "GB/T 2900.93-2015",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "iec_equivalent": {
+          "property_name": "iec_equivalent",
+          "value": "IEC 60050-113:2011",
+          "sources": [
+            {
+              "document": "GB/T 2900.93-2015",
+              "section": "GB/T 2900.93-2015",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        },
+        "note": {
+          "property_name": "note",
+          "value": "IDT。范围是空间和时间、一般宏观概念、力、热力学、粒子物理学、固体物理学。**⚠ 引用存疑**: sym::τ_noise(噪声时间常数)引的是它, 但「噪声时间常数」不像是电物理学条目, 更可能在 GB/T 2900.74(电路理论)或专门的噪声标准里。同上: 只注入实体, 不确认条款归属。",
+          "sources": [
+            {
+              "document": "GB/T 2900.93-2015",
+              "section": "GB/T 2900.93-2015",
+              "line": null,
+              "confidence": 0.95,
+              "metadata": {
+                "authority_kind": "standard"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
       "id": "std::GB 4943.1-2022",
       "name": "音视频、信息技术和通信技术设备 第1部分：安全要求",
       "entity_type": "standard",
@@ -59559,6 +59943,13 @@
       "clause": "GB/T 2900.19-2022 3.1.21.4 海拔修正因数(altitude correction factor)"
     },
     {
+      "source_id": "DERATING",
+      "target_id": "std::GB/T 2900.32-1994",
+      "relationship_type": "defined_by",
+      "confidence": null,
+      "clause": "GB/T 2900.32-1994 2.2.9 热降额因数(thermal derating factor)"
+    },
+    {
       "source_id": "YX_AC_FAIL",
       "target_id": "std::GB/Z 14429-2005",
       "relationship_type": "defined_by",
@@ -59734,6 +60125,27 @@
       "clause": "GB/Z 14429-2005"
     },
     {
+      "source_id": "SET_OCP_RETURN",
+      "target_id": "std::GB/T 14598.127-2013",
+      "relationship_type": "defined_by",
+      "confidence": null,
+      "clause": "GB/T 14598.127-2013"
+    },
+    {
+      "source_id": "SET_OVP_RETURN",
+      "target_id": "std::GB/T 14598.127-2013",
+      "relationship_type": "defined_by",
+      "confidence": null,
+      "clause": "GB/T 14598.127-2013"
+    },
+    {
+      "source_id": "SET_OTP_RETURN",
+      "target_id": "std::GB/T 14598.127-2013",
+      "relationship_type": "defined_by",
+      "confidence": null,
+      "clause": "GB/T 14598.127-2013"
+    },
+    {
       "source_id": "YK_POWER_ON",
       "target_id": "std::GB/Z 14429-2005",
       "relationship_type": "defined_by",
@@ -59781,6 +60193,13 @@
       "relationship_type": "defined_by",
       "confidence": null,
       "clause": "GB/T 2900.74-2008"
+    },
+    {
+      "source_id": "sym::τ_noise",
+      "target_id": "std::GB/T 2900.93-2015",
+      "relationship_type": "defined_by",
+      "confidence": null,
+      "clause": "GB/T 2900.93-2015"
     },
     {
       "source_id": "RATED_VALUE",
@@ -59970,6 +60389,27 @@
       "relationship_type": "defined_by",
       "confidence": null,
       "clause": "GB/T 3187-1994"
+    },
+    {
+      "source_id": "std::GB/T 14598.127-2013",
+      "target_id": "std::GB/T 14598.127-2013",
+      "relationship_type": "defined_by",
+      "confidence": null,
+      "clause": "GB/T 14598.127-2013"
+    },
+    {
+      "source_id": "std::GB/T 2900.32-1994",
+      "target_id": "std::GB/T 2900.32-1994",
+      "relationship_type": "defined_by",
+      "confidence": null,
+      "clause": "GB/T 2900.32-1994"
+    },
+    {
+      "source_id": "std::GB/T 2900.93-2015",
+      "target_id": "std::GB/T 2900.93-2015",
+      "relationship_type": "defined_by",
+      "confidence": null,
+      "clause": "GB/T 2900.93-2015"
     },
     {
       "source_id": "std::GB 4943.1-2022",
