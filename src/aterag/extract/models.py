@@ -132,6 +132,9 @@ class ReviewItem:
     rows: int = 0
     # 补齐方法 id (test_methods.yaml), 让"为何待审"可回溯到具体方法条目。
     method_ref: str = ""
+    # 引用穿透待审时的目标章节号 (方案 §11.5 规格二)。带它是为了让人不用回
+    # 原文反查是哪一节 —— 待审项里最费时间的就是「它指向哪里」。
+    ref_target: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -222,6 +225,38 @@ class TableSchemaUnmapped(LookupError):
         #: 表头签名, 供调用方聚合同一类失败
         self.signature = signature
         self.section_path = section_path
+
+
+class ReferenceTargetMissing(LookupError):
+    """引用的目标章节在文档里**根本不存在** —— fail-closed (红线 12 规格二)。
+
+    为什么必须与「存在但抽不出内容」分开: 两者今天都走
+    ``resolved=False`` + 同一条待审 note, 于是两类问题看起来一样 —— 而下一步
+    动作完全相反:
+
+    - **不存在** —— 规格书改过章节号、或这条引用本来就写错(指向外部文档)。
+      抽取照常跑下去, 那条需求的内容就会**静默丢空**: 实测 PA601 有 66 条
+      条目的判据靠引用穿透补齐, 丢一条就是丢一条真实判据。必须报错。
+    - **存在但抽不出内容** —— 目标章节里只有元数据表/纯目录页, 或内容是图表。
+      这类需要人判读, 标待审并带 ``ref_target`` 让人去补。
+
+    报错必须可操作(与 :class:`TableSchemaUnmapped` 同标准): 给出引用来源需求
+    号、被引章节号、本文档实际章节清单, 以及「引用可能指向外部文档」这个
+    **真实存在的合法情形** —— 只列章节清单会让人以为一定是系统坏了。
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        req_id: str = "",
+        ref_target: str = "",
+        source_section: str = "",
+    ) -> None:
+        super().__init__(message)
+        self.req_id = req_id
+        self.ref_target = ref_target
+        self.source_section = source_section
 
 
 class ModelNotIngested(LookupError):

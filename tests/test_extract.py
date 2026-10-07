@@ -26,6 +26,13 @@ from aterag.extract import (
 )
 from aterag.extract.api import DocProfile, SectionPrior
 from aterag.extract.assembler import assemble
+from aterag.extract.models import ReferenceTargetMissing
+from aterag.extract.resolve import (
+    ReferenceSpec,
+    find_references,
+    resolve_references,
+    to_conditions,
+)
 from aterag.ingest.entity_extract import extract_from_blocks
 from aterag.ingest.markdown_parser import parse_file, parse_markdown
 from aterag.ingest.table_schema import infer_roles, load_registry
@@ -412,6 +419,117 @@ class TestAnnotations:
         a = {"req_id": "X", "title": "t", "notes": "n1"}
         b = {"req_id": "X", "title": "t", "notes": "n2"}
         assert row_fingerprint(a) != row_fingerprint(b)
+
+
+# ---------------- 引用穿透 (方案 §11.5 规格二 第 3 条) ----------------
+class TestReferences:
+    """引用穿透此前**零测试**, 而 PA601 有 66 条判据靠它补齐。
+
+    两种「拿不到内容」必须分开: 目标章节不存在 -> 抛错 (不许静默丢判据);
+    章节存在但抽不出内容 -> 标待审并带 ref_target (人判读)。
+    """
+
+    SPEC = ReferenceSpec(
+        markers=("详见", "参见", "见"),
+        req_id_pattern=r"\b([A-Z]{2,6}[0-9A-Z]*(?:-[A-Z0-9]+)+)\b",
+    )
+
+    # 引用 4.3.9 (存在, 有属性表) / 4.3.8 (存在, 只有元数据表) / 外部标准(无章节号)
+    REF_SAMPLE = """# 引用测试规格书
+
+## 4.3 功能/性能要求
+
+### 4.3.7 SR-X-1701 版本管理功能
+
+详见4.3.9通信协议中版本管理的内容。
+
+### 4.3.6 SR-X-1702 温控策略
+
+详见4.3.8温控表。
+
+### 4.3.5 SR-X-1703 外部标准
+
+详见GB/T 12345的条款。
+
+### 4.3.9 通信协议
+
+| 基本参数 | 描述 |
+|---|---|
+| 协议版本 | PMBus 1.3 |
+
+### 4.3.8 温控表
+
+| 文件编号 | 版本号 | 变更单号 |
+|---|---|---|
+| A-01 | B | C-1 |
+"""
+
+    def _resolve(self, targets):
+        blocks = parse_markdown(self.REF_SAMPLE)
+        hits = [
+            h
+            for h in find_references(blocks, self.SPEC, section_prefixes=["4.3"])
+            if h.target in targets
+        ]
+        return resolve_references(hits, blocks, load_registry(), self.SPEC)
+
+    def test_existing_target_is_resolved_into_conditions(self):
+        hit = self._resolve({"4.3.9"})
+        assert len(hit) == 1
+        assert hit[0].resolved and hit[0].content
+        conds = to_conditions(hit)
+        assert conds and "PMBus" in conds[0].output_conditions[0].text
+
+    def test_missing_target_raises_with_actual_sections(self):
+        """指向 4.3.99 (文档里没有) -> 抛错, 且报错要可操作。
+
+        不能降级成「跳过」: 那会让这条需求的判据静默丢空, 抽取照样返回一份
+        看起来正常的结果 —— 红线 12 排除的第三种结局。
+        """
+        sample = self.REF_SAMPLE + "\n### 4.3.10 SR-X-1704 越界引用\n\n详见4.3.99别的小节。\n"
+        blocks = parse_markdown(sample)
+        hits = find_references(blocks, self.SPEC, section_prefixes=["4.3"])
+        assert {h.target for h in hits} >= {"4.3.99"}
+        with pytest.raises(ReferenceTargetMissing) as ei:
+            resolve_references(hits, blocks, load_registry(), self.SPEC)
+        err = ei.value
+        assert err.ref_target == "4.3.99"
+        msg = str(err)
+        assert "SR-X-1704" in msg, "报错要指出是哪条需求引的"
+        assert "4.3.9" in msg, "报错要列出本文档实际章节, 人才能判断是引错还是章节改过"
+        assert "本文档之外" in msg, "引用外部标准是合法情形, 报错必须承认这一点"
+
+    def test_existing_but_empty_target_is_review_not_raise(self):
+        """4.3.8 只有元数据表 -> 不抛错, 但 resolved=False 且 note 说清原因。"""
+        out = self._resolve({"4.3.8"})
+        assert len(out) == 1
+        assert out[0].resolved is False
+        assert "存在" in out[0].note and "抽不出" in out[0].note
+        assert to_conditions(out) == [], "抽不出内容就不能产条件"
+
+    def test_prefix_boundary_not_swallowed(self):
+        """引用「4.3 整章」不得把 4.39 的表也算进来。
+
+        存在性判据与内容回收都走 ``section_matches``, 而它带点边界 ——
+        若哪天改成纯 startswith, 4.39 会被 4.3 吞掉, 这条会红。
+        """
+        sample = (
+            self.REF_SAMPLE
+            + "\n### 4.3.5 SR-X-1704 整章引用\n\n详见4.3的说明。\n"
+            + "\n### 4.39 邻号章节\n\n| 基本参数 | 描述 |\n|---|---|\n| 邻号专属 | ZZTOP |\n"
+        )
+        blocks = parse_markdown(sample)
+        hits = [
+            h
+            for h in find_references(blocks, self.SPEC, section_prefixes=["4.3"])
+            if h.target == "4.3" and h.req_id == "SR-X-1704"
+        ]
+        assert len(hits) == 1, "样本没构造出目标为 4.3 的引用"
+        out = resolve_references(hits, blocks, load_registry(), self.SPEC)[0]
+        assert out.resolved
+        joined = " ".join(out.content)
+        assert "PMBus" in joined, "4.3.9 的内容应当被收进来"
+        assert "ZZTOP" not in joined, "4.39 不在 4.3 之下, 它的内容不该被吞进来"
 
 
 # ---------------- 档案 ----------------

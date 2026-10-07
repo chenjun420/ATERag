@@ -28,6 +28,7 @@ from aterag.extract.models import (
     ROLE_OTHER,
     SRC_BLOCK,
     ConditionClause,
+    ReferenceTargetMissing,
     TestCondition,
 )
 from aterag.ingest.markdown_parser import Block
@@ -154,12 +155,29 @@ def resolve_references(
     reg: SchemaRegistry,
     spec: ReferenceSpec,
 ) -> list[ReferenceHit]:
-    """穿透到被引用章节, 回收其表格行与散文作为真实内容。"""
+    """穿透到被引用章节, 回收其表格行与散文作为真实内容。
+
+    **两种「拿不到内容」必须分开**(红线 12 规格二):
+
+    - 被引用章节在文档里**根本不存在** -> 抛
+      :class:`~aterag.extract.models.ReferenceTargetMissing`。继续跑下去那条
+      需求的内容就会静默丢空(PA601 有 66 条判据靠引用穿透补齐)。
+    - 章节**存在**但回收不到内容(全是元数据表/纯目录页) -> 标待审并带
+      ``ref_target``, 由人判读, 不拦下整批抽取。
+    """
     by_section: dict[str, list[Block]] = {}
     for b in blocks:
         by_section.setdefault(b.section_path, []).append(b)
 
     for h in hits:
+        # 章节号存在性: 前缀边界与 selector.section_matches 同语义 (4.3 不吞 4.31)
+        if not _in_scope_exists(by_section, h.target):
+            raise ReferenceTargetMissing(
+                _missing_target_message(h, by_section),
+                req_id=h.req_id,
+                ref_target=h.target,
+                source_section=h.section_path,
+            )
         srcs: list[str] = []
         items: list[str] = []
         # 被引用章节本身 + 其子章节 (4.3.4.4 可能再往下分)
@@ -188,8 +206,50 @@ def resolve_references(
         h.content = items
         h.resolved = bool(items)
         if not items:
-            h.note = f"引用目标 {h.target} 在本文档内未找到可回收内容 (需人工确认)"
+            h.note = (
+                f"引用目标章节 {h.target} 存在, 但抽不出可用内容 "
+                f"(该节只有元数据表/目录页, 或判据在图表里) —— 需人工判读"
+            )
     return list(hits)
+
+
+def _in_scope_exists(by_section: Mapping[str, list[Block]], target: str) -> bool:
+    """被引用章节在文档里是否存在 (含子章节), 边界与 ``section_matches`` 一致。"""
+    return any(sec == target or sec.startswith(target + ".") for sec in by_section)
+
+
+def _missing_target_message(
+    h: ReferenceHit, by_section: Mapping[str, list[Block]]
+) -> str:
+    """报错必须可操作: 谁引的、引去哪、本文有哪些章节、两种可能怎么判。
+
+    「引用指向本文档之外」是**合法且常见**的情形(引外部标准/引另一份文件),
+    只列章节清单会让人以为是系统坏了。
+    """
+    secs = sorted(s for s in by_section if s)
+    lines = [
+        f"需求 {h.req_id or '(未取到编号)'} 引用了章节 {h.target}, 而本文档里没有这一节"
+        f" (来源章节 {h.section_path or '(无)'})。",
+        "",
+        f"  本文档实际章节 (共 {len(secs)} 个):",
+    ]
+    for s in secs[:40]:
+        mark = "  <- 被引用目标" if s == h.target else ""
+        lines.append(f"    {s}{mark}")
+    if len(secs) > 40:
+        lines.append(f"    ... 另有 {len(secs) - 40} 个未列出")
+    lines += [
+        "",
+        "  两种可能, 处置不同:",
+        "    1. 规格书改过章节号 (或这条引用指向**本文档之外**的外部标准/另一份文件)",
+        "       -> 引用指向文档外是合法的: 在 config/doc_profiles.yaml 的该型号档案",
+        "          里把这类条目登记进 review_dispositions (verdict=not_machine_readable),",
+        "          抽取会显式记为已评审处置而不是每次都炸;",
+        "    2. 章节确实存在但被改写 -> 改引用文本, 或改档案的引用识别配置。",
+        "  不接受的做法: 让它「解析不到就跳过」—— 那会让这条需求的判据静默丢空",
+        "  (PA601 有 66 条判据靠引用穿透补齐)。",
+    ]
+    return "\n".join(lines)
 
 
 def _row_to_text(row: Mapping[str, str]) -> str:

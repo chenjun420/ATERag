@@ -480,12 +480,17 @@ def extract_test_conditions(
                 refs = resolve_references(refs, blocks, load_registry(), ref_spec)
                 for h in refs:
                     if not h.resolved:
+                        # 目标章节不存在的情况已在 resolve_references 里抛错;
+                        # 到这里只可能是「章节存在但抽不出内容」(元数据表/图表
+                        # 判据), 属人判读范围。ref_target 显式带上, 让人不用
+                        # 回原文反查是哪一节。
                         prose_audit.append(
                             ReviewItem(
                                 kind="unresolved_reference",
                                 section_path=h.section_path,
                                 heading=h.heading,
                                 detail=f"{h.req_id} 引用 {h.target}: {h.note}",
+                                ref_target=h.target,
                             )
                         )
                         continue
