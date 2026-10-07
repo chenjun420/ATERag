@@ -405,6 +405,7 @@ def extract_test_conditions(
         return True
 
     conditions: list[TestCondition] = []
+    n_ref_conditions = 0  # 引用穿透产出的条件数 (在产出处计数, 不倒推)
     unresolved = 0
     n_ann_draft = 0
     for row in outcome.kept:
@@ -515,6 +516,7 @@ def extract_test_conditions(
                         )
                         continue
                     conditions.append(rc)
+                    n_ref_conditions += 1
             n_res = sum(1 for h in refs if h.resolved)
             ref_state = "enabled"
             ref_counts = {
@@ -538,6 +540,15 @@ def extract_test_conditions(
     # 规格书原有子句一律不动, 提案一律 draft, 结论一律交人工裁定。
     supp = supplement_conditions(conditions, method_book)
     render_descriptions(conditions, method_book.templates)
+
+    # **不产出无值条件**(方案 §11.5 规格二 第 2 条): 补齐之后仍一条子句都没有的
+    # 需求, 留在结果里就是一份「看起来正常」的空壳 —— 下游场景展开与评估会当它
+    # 存在, 而它其实既无判据也无测试前提。它们的原始行在主循环里已经进过
+    # needs_review(unresolved_text), 这里只负责不让空壳进结果。
+    no_clause = [c for c in conditions if not c.input_conditions and not c.output_conditions]
+    if no_clause:
+        conditions = [c for c in conditions if c.input_conditions or c.output_conditions]
+
     assessments = assess_conditions(conditions, assess_book)
     for it in supp.needs_review:
         if it not in review:
@@ -575,7 +586,11 @@ def extract_test_conditions(
             "kept": len(outcome.kept),
             "excluded": len(excluded),
             "conditions_total": len(conditions),
-            "from_reference": len(conditions) - len(outcome.kept),
+            # from_reference 在**产出处**计数, 不能用「条件数 - kept」倒推:
+            # 无值条件被摘掉后那个差值会把它算进去, 对账立刻失真。
+            "from_reference": n_ref_conditions,
+            # 补齐后仍无子句、被摘掉的需求 (原始行见 needs_review/unresolved_text)
+            "dropped_no_clause": len(no_clause),
             "excluded_by_field": outcome.reasons(),
             "priority_unclassified": outcome.unclassified_priority,
             "no_data_dims": outcome.no_data_histogram(),

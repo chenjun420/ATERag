@@ -378,6 +378,36 @@ class TestAssembler:
         asm = assemble(row, role="output_spec", limits_to="output", book=book)
         assert "limit_kind_unmapped" in asm.flags
 
+    def test_supplement_removes_the_flag_it_invalidated(self):
+        """补齐层补上子句后, ``no_<side>_condition`` 必须被摘掉。
+
+        flag 描述的是**最终状态**。留着会出现「无输出条件」与实际挂着输出子句
+        同时出现 —— 审计读到自相矛盾的标记, 而 flag 正是审计的主要依据。
+        """
+        from aterag.extract.models import TestCondition
+        from aterag.extract.supplement import MethodBook, supplement_conditions
+
+        cond = TestCondition(
+            req_id="X",
+            title="温度系数",
+            section_path="4.3.2",
+            heading="4.3.2 输出特性",
+            flags=["no_input_condition", "no_output_condition"],
+        )
+        result = supplement_conditions([cond], MethodBook.load())
+        assert result.supplemented == [cond], "样本没构造出需要补齐的条件"
+        assert "supplemented" in cond.flags
+        # 补上的那一侧: flag 必须摘掉; 没补上的那一侧: flag 必须留着
+        for side, clauses in (
+            ("input", cond.input_conditions),
+            ("output", cond.output_conditions),
+        ):
+            stale = f"no_{side}_condition"
+            if clauses:
+                assert stale not in cond.flags, f"{side} 侧已补上子句, {stale} 却还在"
+            else:
+                assert stale in cond.flags, f"{side} 侧仍无子句, {stale} 不该被摘"
+
 
 # ---------------- 表结构识别 (T1/T2) ----------------
 class TestSchema:

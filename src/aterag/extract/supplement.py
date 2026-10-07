@@ -446,6 +446,13 @@ def supplement_conditions(
                     cond.flags.append(f"method:{m.id}")
                 if "supplemented" not in cond.flags:
                     cond.flags.append("supplemented")
+                # 装配阶段打的 ``no_<side>_condition`` 在此刻已经**不成立** ——
+                # flag 描述的是最终状态, 留着等于让审计读到自相矛盾的标记
+                # (「无输出条件」与实际挂着输出子句同时出现)。本层只增不改
+                # **子句**, 但摘掉自己刚推翻的标记是它的义务。
+                stale = f"no_{side}_condition"
+                if stale in cond.flags:
+                    cond.flags.remove(stale)
                 result.supplemented.append(cond)
                 result.hits[m.id] = result.hits.get(m.id, 0) + 1
     return result
