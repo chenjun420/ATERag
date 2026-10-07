@@ -342,3 +342,69 @@ def test_requirement_row_has_variant_key_field():
 
     names = {f.name for f in dataclasses.fields(RequirementRow)}
     assert {"sr_id", "variant_key", "concept_id", "coverage_status"} <= names
+
+
+class TestAssessUnnecessaryReference:
+    """③ 引用穿透空判据 -> unnecessary(不再占 GAP 语义) + 落库锁 PENDING。"""
+
+    def _cond(self):
+        from aterag.extract.models import ConditionClause, TestCondition
+        return TestCondition(
+            req_id="SR-T-1701",
+            title="版本管理功能",
+            section_path="4.3.4.5",
+            flags=["resolved_reference", "reference_target:4.3.4.4"],
+            input_conditions=[],
+            output_conditions=[
+                ConditionClause(kind="presence", text="详见4.3.4.4", role="output")
+            ],
+        )
+
+    def test_rule_fires_unnecessary_before_still_missing(self):
+        from aterag.extract.assess import RuleBook, assess_conditions
+        book = RuleBook.load("config/test_methods.yaml")
+        items = assess_conditions([self._cond()], book)
+        assert len(items) == 1
+        assert items[0].verdict == "unnecessary"
+        assert items[0].rule_id == "reference_presence_without_criterion"
+
+    def test_hold_pending_keeps_row_out_of_covered(self):
+        from aterag.ingest.persist_requirements import (
+            COV_PENDING,
+            requirement_row,
+        )
+        row = requirement_row(self._cond(), hold_pending=True)
+        assert row.coverage_status == COV_PENDING
+        row2 = requirement_row(self._cond(), hold_pending=False)
+        # 不锁时: 子句是规则产出, 常规推导会报 COVERED —— 锁的意义正在于此
+        assert row2.coverage_status == "COVERED"
+
+    def test_rows_from_result_links_held(self):
+        from aterag.extract.assess import AssessmentItem
+        from aterag.ingest.persist_requirements import rows_from_result
+
+        class R:
+            model_id = "M"
+            conditions = [self._cond()]
+            assessments = [
+                AssessmentItem(
+                    req_id="SR-T-1701", title="版本管理功能", section_path="4.3.4.5",
+                    verdict="unnecessary", rule_id="reference_presence_without_criterion",
+                    basis="x",
+                )
+            ]
+
+        rows = rows_from_result(R())
+        assert rows[0].coverage_status == "PENDING"
+
+
+class TestRailSuspectLint:
+    """④ 输入侧量带输出轨 -> 打标只告警, 不改数据。"""
+
+    def test_flag_added_for_input_side_title(self):
+        src = open("src/aterag/extract/api.py", encoding="utf-8").read()
+        assert "rail_suspect_input_side" in src
+
+    def test_stats_counts_flag(self):
+        src = open("src/aterag/extract/api.py", encoding="utf-8").read()
+        assert '"rail_suspect_input_side": sum(' in src

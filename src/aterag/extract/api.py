@@ -523,6 +523,13 @@ def extract_test_conditions(
             cond.flags.append("annotation_draft")
         if not str(row.get("priority", "")).strip():
             cond.flags.append("priority_unclassified")
+        # 一致性 lint (只告警不改数据): 「输入侧量挂了输出轨」。
+        # 输入侧事件(如 SR-1105 输入冲击电流)挂到主轨 -54V 输出轨上没有物理意义,
+        # 它是主轨机制在子列缺省时的机械后果。不自动摘轨 —— 摘轨是判据归属决定,
+        # 由人核；这里把疑点显式打标并计数, 让「-54V 轨上挂了几条输入侧量」在同
+        # 一次运行里就看得见, 而不是等到工装按轨布通道时才由人偶然发现。
+        if cond.rail and "输入" in cond.title:
+            cond.flags.append("rail_suspect_input_side")
         # R5: 单元格短横线 = 该维度无数据 (不是"不要求"), 显式标注便于人工判断覆盖度
         no_data = outcome.no_data_dims.get(cond.req_id)
         if no_data:
@@ -688,6 +695,10 @@ def extract_test_conditions(
             "annotated": sum(1 for c in conditions if _has_annotated(c)),
             "annotation_draft": n_ann_draft,
             "annotation_stale": sum(1 for c in conditions if "annotation_stale" in c.flags),
+            # 一致性 lint 计数: 输入侧量被主轨机制挂了输出轨的行数 (只告警)
+            "rail_suspect_input_side": sum(
+                1 for c in conditions if "rail_suspect_input_side" in c.flags
+            ),
             "needs_review": len(review) + len(prose_audit),
             "reviewed_dispositions": len(reviewed),
             "unresolved_text": unresolved,

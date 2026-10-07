@@ -81,6 +81,22 @@ assess:
         title_pattern: '器件|元器件|材料|三防|环保|污染等级|认证|安规'
       hint: "材料/工艺/环保类要求, 产测不可验, 应显式判为不提取并移出产测范围"
 
+    # ---- 不必要: 引用穿透的空判据 ----
+    # 位置必须在 still_missing_side **之前**: 首命中即结论, 排后面就永远被
+    # "缺一侧"先截走, 空判据继续占着 insufficient(GAP) 的语义。
+    # 实测 SR-PA601-D54A-1701: 4.3.4.5 版本管理功能正文只有一句"详见4.3.4.4",
+    # 穿透后 spec={} 只有 presence 子句 —— 它不是"测不了", 是"不该出条件"。
+    # 落库联动: persist 层对 unnecessary 保持 PENDING(等人审), 不许冒充 COVERED。
+    - id: reference_presence_without_criterion
+      basis: "引用穿透(正文『详见X节』)只产出存在性条目且 spec 为空; 存在性不等于判据, 不占 GAP 语义 —— 需人工决定测试通道(如协议读版本)后另立判据, 或显式剔除"
+      verdict: unnecessary
+      when:
+        flags_any:
+          - resolved_reference
+        has_kind:
+          - presence
+      hint: "引用穿透的存在性条目无判据数值; 保持 PENDING 等人审, 不冒充 COVERED"
+
     # ---- 不充分: 仍缺一侧, 且业界方法也补不出 ----
     # 这是最需要人工处理的一类: 规格书未声明该侧, 且没有可引用的标准方法。
     - id: still_missing_side

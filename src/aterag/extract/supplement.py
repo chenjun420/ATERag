@@ -31,6 +31,7 @@ from typing import Any
 import yaml
 
 from aterag.extract.models import (
+    CONF_ANNOTATED,
     CONF_PROPOSED,
     SRC_METHOD,
     STATUS_APPROVED,
@@ -41,6 +42,38 @@ from aterag.extract.models import (
 )
 
 DEFAULT_METHODS_PATH = Path("config/test_methods.yaml")
+
+#: 方法签字书 (人工评审业界方法的落点)。区别于逐条需求的注记:
+#: 方法库是**配置级知识**, 签的是「这个方法成立吗」, 一次签字覆盖它命中的全部
+#: 需求行 —— 逐行签 54 次会把评审人变成盖章机器, 且方法一改就全部失效。
+#:
+#: 指纹纪律与注记同构: 签字绑定方法内容的 sha256 前 16 位, test_methods.yaml
+#: 里该方法任何改动都让签字自动失效, 必须重新评审。
+DEFAULT_SIGNOFFS_PATH = Path("data/annotations/method_signoffs.yaml")
+
+
+def method_fingerprint(method: Mapping[str, Any]) -> str:
+    """方法条目的内容指纹 (sha256 前 16 位)。
+
+    归一化: yaml.safe_dump(sort_keys=True) 保证键序无关; 这是**配置内容**的
+    指纹, 不是文件指纹 —— 相邻方法改动不牵连本条。
+    """
+    import hashlib
+
+    canon = yaml.safe_dump(dict(method), sort_keys=True, allow_unicode=True)
+    return hashlib.sha256(canon.encode("utf-8")).hexdigest()[:16]
+
+
+def load_signoffs(path: str | Path = DEFAULT_SIGNOFFS_PATH) -> dict[str, dict[str, Any]]:
+    """读方法签字书; 文件不存在 = 全部未签 (不是错误)。
+
+    返回 ``{method_id: {fingerprint, approved_by, approved_at, reason}}``。
+    """
+    p = Path(path)
+    if not p.exists():
+        return {}
+    doc = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
+    return dict(doc.get("methods") or {})
 
 #: 补齐产物的来源标记 —— 与 notes/limits/annotation/title 并列, 区分"哪来的"。
 ORIGIN_SPEC = "spec"
@@ -113,6 +146,9 @@ class TestMethod:
         knowledge_ref: 本方法对应的域知识实体 id(种子里 ``scope=condition`` 的那些)。
             把「方法」与「知识」连起来 —— 方法是可执行的步骤, 知识是「不这么做会测错
             成什么样」的说明, 两者分开存才不至于让其中一份悄悄漂移而无人察觉。
+        signoff: 已签字方法的内容指纹; 空 = 未签或签字已过期。
+            签字书在 ``data/annotations/method_signoffs.yaml`` (人工评审动作,
+            见 ``scripts/review_method.py``)。指纹不一致 = 方法改过, 签字自动失效。
     """
 
     id: str
@@ -130,6 +166,12 @@ class TestMethod:
     _role_declared: bool = False
     applies: str = APPLIES_MISSING_SIDE
     knowledge_ref: tuple[str, ...] = ()
+    signoff: str = ""
+
+    @property
+    def is_signed(self) -> bool:
+        """是否持有**当前指纹**的签字 (方法内容签后未被改动)。"""
+        return bool(self.signoff)
 
     @property
     def is_always(self) -> bool:
@@ -219,13 +261,20 @@ class MethodBook:
     path: str = ""
 
     @classmethod
-    def load(cls, path: str | Path = DEFAULT_METHODS_PATH) -> MethodBook:
+    def load(
+        cls,
+        path: str | Path = DEFAULT_METHODS_PATH,
+        signoffs_path: str | Path | None = None,
+    ) -> MethodBook:
         p = Path(path)
         if not p.exists():
             # fail-closed: 方法库缺失时不静默降级为空库, 否则补齐层会悄悄失效,
             # 表现为"单边条件一直没被补"却查不出原因。
             raise FileNotFoundError(f"业界方法库不存在: {p}")
         doc = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
+        signoffs = load_signoffs(
+            signoffs_path if signoffs_path is not None else DEFAULT_SIGNOFFS_PATH
+        )
         out: list[TestMethod] = []
         for m in doc.get("methods") or []:
             conds = tuple(
@@ -237,9 +286,14 @@ class MethodBook:
                 for c in (m.get("conditions") or [])
             )
             ap = m.get("applies_to") or {}
+            # 签字核对: 指纹一致才算签 (方法改过 = 签字失效, 必须重评)。
+            mid = str(m.get("id", ""))
+            sign = signoffs.get(mid) or {}
+            signed_fp = str(sign.get("fingerprint", ""))
+            actual_fp = method_fingerprint(m)
             out.append(
                 TestMethod(
-                    id=str(m.get("id", "")),
+                    id=mid,
                     basis=str(m.get("basis", "")),
                     verdict=str(m.get("verdict", "")),
                     supplies=str(m.get("supplies", "")),
@@ -255,6 +309,7 @@ class MethodBook:
                     knowledge_ref=tuple(
                         str(x) for x in (m.get("knowledge_ref") or ())
                     ),
+                    signoff=signed_fp if signed_fp == actual_fp else "",
                 )
             )
         templates = tuple(
@@ -462,20 +517,23 @@ def _missing_sides(cond: TestCondition) -> list[str]:
 
 
 def _clause_from(m: TestMethod, mc: MethodCondition) -> ConditionClause:
-    """方法条件 -> 提案子句。
+    """方法条件 -> 子句。
 
-    confidence 一律 proposed / status 一律 draft: 业界做法是"默认做法",
-    不是"规格书说的", 两者在追溯上不可混同, 未人审不得生效。
+    未签方法: confidence=proposed / status=draft —— 业界做法是"默认做法",
+    不是"规格书说的", 未人审不得生效。
+    已签方法(指纹一致): status=approved / confidence=annotated —— 标注为
+    "人已审的业界依据", 与规格书原文(rule)在追溯上仍可区分。
     text 用方法原文的 note, 不做改写, 保证可回溯到 config。
     """
+    signed = m.is_signed
     return ConditionClause(
         kind=mc.kind,
         text=mc.note or mc.kind,
         role=m.supplies,
         value=dict(mc.value) if mc.value else None,
         source=SRC_METHOD,
-        confidence=CONF_PROPOSED,
-        status=STATUS_DRAFT,
+        confidence=CONF_ANNOTATED if signed else CONF_PROPOSED,
+        status=STATUS_APPROVED if signed else STATUS_DRAFT,
         method_ref=m.id,
         knowledge_ref=m.knowledge_ref,
     )

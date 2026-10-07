@@ -283,12 +283,19 @@ def requirement_row(
     coverage_status: str = COV_PENDING,
     model_id: str = "",
     ordinal: int = 0,
+    hold_pending: bool = False,
 ) -> RequirementRow:
     """一条 :class:`TestCondition` -> 一行 ``test_requirement``。
 
     ``coverage_status`` **默认 PENDING**: 含未人审补齐提案的条件不能报 COVERED
     (实测 95 条里 41 条含 draft 子句), 报 COVERED 会让「覆盖率高」这个结论
     失去意义 —— 它正是本项目反复出现的那类失败: 数字好看而结论不成立。
+
+    ``hold_pending``: 评估层判 ``unnecessary``(如引用穿透的空判据)的条件
+    **锁定 PENDING**。它们的子句是规则产出(approved), 按常规推导会变 COVERED ——
+    但评估已判定「它不该以现状存在」, 在人工裁定(剔除或另立判据)之前不许报覆盖。
+    锁 PENDING 而不是降 GAP: GAP 的语义是「条件够不着判定」, 它说的是「条件
+    构造得不对」, 是另一类问题。
     """
     vec = _condition_vector(cond)
     draft_count = len(vec["draft"])
@@ -303,6 +310,9 @@ def requirement_row(
         # 放在后面判断会让它被 draft/approved 的推导结果覆盖掉(第一版就错在这),
         # 于是评估结论被静默丢弃 —— 落库后看着 COVERED, 实际判定过覆盖不到。
         status = COV_GAP
+    elif hold_pending:
+        # 评估判 unnecessary: 保持 PENDING 等人审, 锁在候选区不冒充覆盖。
+        status = COV_PENDING
     elif not approved_count:
         status = COV_GAP
     elif draft_count:
@@ -381,13 +391,19 @@ def rows_from_result(result: Any) -> list[RequirementRow]:
     """抽取结果 -> 可落库的行。
 
     ``coverage_status`` 先按条件自身的 draft/approved 形状算; 再用
-    ``assessments`` 的 ``insufficient`` 判定把确实覆盖不到的降为 ``GAP`` ——
-    「有条件」不等于「条件够」, 前者是抽取成功, 后者是产测可行。
+    ``assessments`` 的 ``insufficient`` 判定把确实覆盖不到的降为 ``GAP``,
+    用 ``unnecessary``(如引用穿透空判据)把行锁在 ``PENDING`` 等人工裁定 ——
+    「有条件」不等于「条件够」, 也不等于「条件该存在」。
     """
     insufficient = {
         getattr(a, "req_id", "")
         for a in (result.assessments or [])
         if getattr(a, "verdict", "") == "insufficient"
+    }
+    held = {
+        getattr(a, "req_id", "")
+        for a in (result.assessments or [])
+        if getattr(a, "verdict", "") == "unnecessary"
     }
     model_id = str(getattr(result, "model_id", "") or "")
     out: list[RequirementRow] = []
@@ -402,6 +418,7 @@ def rows_from_result(result: Any) -> list[RequirementRow]:
             coverage_status=COV_GAP if cond.req_id in insufficient else COV_PENDING,
             model_id=model_id,
             ordinal=ordinal,
+            hold_pending=cond.req_id in held,
         )
         out.append(row)
     assert_unique_variants(out)
