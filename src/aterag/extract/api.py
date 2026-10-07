@@ -135,15 +135,34 @@ class DocProfile:
 
     def prior_for(self, section_path: str) -> SectionPrior:
         """最长前缀匹配 (4.3.1 命中 4.3 的先验, 4.3 未配则用兜底)。"""
-        best: tuple[int, SectionPrior] | None = None
-        for sec, p in self.section_priors.items():
-            if section_matches(section_path, [sec]) and (best is None or len(sec) > best[0]):
-                best = (len(sec), p)
+        best = self.matched_prior(section_path)
         return (
             best[1]
             if best
             else SectionPrior(role=self.default_role, limits_to=self.default_limits_to)
         )
+
+    def matched_prior(self, section_path: str) -> tuple[str, SectionPrior] | None:
+        """命中 ``section_priors`` 时返回 ``(键, 先验)``, 未命中返回 None。
+
+        **分成两个方法是为了让「回落」可被观测**: :meth:`prior_for` 静默返回
+        ``default_role``, 而 ``default_role`` 与「档案里真的配了这条角色」在结果上
+        分不开。落库侧 ``_signal_type`` 现在**依赖 role** 定信号类型, 于是档案章节号
+        与型号对不上时, 该型号的**全部判据会被归成 TEST** —— 信号项静默变成电气项,
+        而 stats 里看不出任何异常。
+
+        多型号实测: PA601 档案配的是 ``4.3.1``~``4.3.5``, PN2000 配的是
+        ``2.1``~``2.5``, 两者的 ``section_path`` 字面不同。哪个型号用哪个档案是
+        ``data/registry.yaml`` 的 ``doc_profile`` 决定的; 配错档案的表现就是这里
+        全线回落。所以调用方要用 :meth:`matched_prior` 把回落**计数并报出来**。
+        """
+        best: tuple[int, str, SectionPrior] | None = None
+        for sec, p in self.section_priors.items():
+            if section_matches(section_path, [sec]) and (
+                best is None or len(sec) > best[0]
+            ):
+                best = (len(sec), sec, p)
+        return (best[1], best[2]) if best else None
 
 
 @dataclass
@@ -462,8 +481,18 @@ def extract_test_conditions(
     n_ref_conditions = 0  # 引用穿透产出的条件数 (在产出处计数, 不倒推)
     unresolved = 0
     n_ann_draft = 0
+    #: 章节号没命中档案 ``section_priors`` 的行数。见 DocProfile.matched_prior
+    #: 的 docstring: 落库侧的 ``_signal_type`` 依赖 role 定信号类型, 档案与型号的
+    #: 章节号对不上时该型号全部判据会被归成 TEST —— 信号项静默变成电气项。
+    #: 这个计数让「档案配错型号」变成 stats 里看得见的数字而不是无声的坏结果。
+    n_prior_fallback = 0
     for row in outcome.kept:
-        prior = profile.prior_for(str(row.get("section_path", "")))
+        matched = profile.matched_prior(str(row.get("section_path", "")))
+        if matched is None:
+            n_prior_fallback += 1
+            prior = profile.prior_for(str(row.get("section_path", "")))
+        else:
+            _, prior = matched
         asm = assemble(
             row, role=prior.role, limits_to=prior.limits_to, book=book, annotations=annotations
         )
@@ -641,6 +670,11 @@ def extract_test_conditions(
             "kept": len(outcome.kept),
             "excluded": len(excluded),
             "conditions_total": len(conditions),
+            # 章节号没命中档案的行数。**非 0 就是「档案配错型号」的信号**: 落库侧
+            # ``_signal_type`` 依赖 role 定信号类型, 回落时该型号全部判据会归成 TEST,
+            # 信号项静默变成电气项。这里把它显式记出来, 让配错档案能被发现。
+            # 引用穿透产出的行不在此列(它们不经过 kept 循环), 故与 rows_total 不可对账。
+            "prior_fallback": n_prior_fallback,
             # from_reference 在**产出处**计数, 不能用「条件数 - kept」倒推:
             # 无值条件被摘掉后那个差值会把它算进去, 对账立刻失真。
             "from_reference": n_ref_conditions,

@@ -27,6 +27,7 @@ from aterag.ingest.persist_requirements import (
     COV_COVERED,
     COV_GAP,
     COV_PENDING,
+    ROLE_SIGNAL_IO,
     RequirementRow,
     VariantKeyCollision,
     approved_clause_is_sound,
@@ -289,15 +290,50 @@ def test_signal_type_protection_role():
     assert requirement_row(_cond(role="protection_response")).signal_type == "PROT"
 
 
-def test_signal_type_telemetry_with_limit_is_yc():
-    row = requirement_row(_cond(limits={"min": 0.0, "unit": "V"},
-                                outs=[_clause("signal_state")]))
+def test_signal_type_telemetry_point_is_yc():
+    """遥测点 -> YC。
+
+    判据是**角色 + telemetry_value**, 不是「有没有数值限值」: PA601 的遥测点
+    (SR-1600 输入电压等) 检测范围只写在自由文本里(「0~320Vac 精度 ±3%」)而
+    ``limits`` 为空, 按限值分会把它们判成遥信 —— 那等于让工装给模拟量绑干接点。
+    """
+    row = requirement_row(_cond(
+        role=ROLE_SIGNAL_IO, limits={},
+        outs=[_clause("telemetry_value")]))
     assert row.signal_type == "YC"
 
 
-def test_signal_type_alarm_without_limit_is_yx():
-    row = requirement_row(_cond(outs=[_clause("signal_state")]))
+def test_signal_type_alarm_is_yx():
+    """告警/遥信 -> YX: ``signal_io`` 角色且没有 ``telemetry_value``。"""
+    row = requirement_row(_cond(role=ROLE_SIGNAL_IO,
+                                outs=[_clause("signal_state")]))
     assert row.signal_type == "YX"
+
+
+def test_signal_type_title_paren_signal_state_does_not_make_it_signal():
+    """**本条是 2026-10-07 修掉的缺陷本身**。
+
+    标题规则会给任何匹配的标题挂一条通用括注子句(原文 ``"开关机过冲 (期望响应)"``、
+    ``value=None``、``source=title``)。旧实现只���「有没有 ``signal_state`` 子句」判断
+    信号类, 于是 §4.3.2 的电气判据 SR-1214(开关机过冲 ±5%)、SR-1218(掉电延时
+    10mS)、SR-1223(热插拔要求)被标成 YX/YC —— 工装会去绑干接点而不是电压探头。
+    """
+    row = requirement_row(_cond(
+        role="output_spec", limits={"min": -5.0, "max": 5.0, "unit": "%"},
+        outs=[_clause("signal_state", role="output", status=STATUS_APPROVED)]))
+    assert row.signal_type == "TEST"
+
+
+def test_signal_type_telemetry_role_never_falls_back_to_test():
+    """``signal_io`` 角色的判据不得变成 TEST。
+
+    被归成 TEST 意味着工装去绑探头而不是通信/干接点通道 —— 少绑通信通道时遥测项
+    根本读不到数, 且不报错。PA601 上 SR-1600/1601/1603/1604/1606/1608/1613 这
+    7 条遥测点曾整批被归成 TEST。
+    """
+    row = requirement_row(_cond(role=ROLE_SIGNAL_IO,
+                                outs=[_clause("telemetry_value")]))
+    assert row.signal_type != "TEST"
 
 
 def test_requirement_row_has_variant_key_field():

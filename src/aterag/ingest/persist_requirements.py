@@ -229,22 +229,44 @@ def _source_ref(cond: TestCondition) -> dict[str, Any]:
     }
 
 
-def _signal_type(cond: TestCondition) -> str:
-    """按章节/条件形状推信号类型, 对齐 CHECK 约束的七种取值。
+#: ``role`` -> 信号类型的角色映射。角色名取自档案
+#: (``config/doc_profiles.yaml`` 的 ``section_priors``), 不是本文档自造的标签 ——
+#: 与 :func:`_fixture_need` 里已有的 ``cond.role in (...)`` 同一口径。
+#: 新增角色时这张表要跟着补, 由测试「所有出现过的角色都有归类」盯着。
+ROLE_PROTECTION = "protection_response"
+ROLE_SIGNAL_IO = "signal_io"
 
-    判据: 告警/遥信(有 ``signal_state`` 且无电气限值) -> YX; 有遥测量化限值 ->
-    YC; 保护 -> PROT; 遥控命令 -> YK; 其余 TEST。**宁可归 TEST** ——
-    归错类型会让信号类查询漏掉这条, 归宽只是多返回。
+
+def _signal_type(cond: TestCondition) -> str:
+    """按**章节角色**定信号类型, 对齐 CHECK 约束的七种取值。
+
+    为什么按 role 而不是靠条件子句猜: 实测 PA601 上靠 kind 猜的版本判错 14 条,
+    而且**两个方向都错**:
+
+    - §4.3.2 的电气判据(SR-1214 开关机过冲 ±5%、SR-1218 掉电延时 10mS、
+      SR-1223 热插拔要求)被标成 YX/YC。它们的 ``signal_state`` 来自标题规则的
+      通用括注(原文 ``"开关机过冲 (期望响应)"``, ``value=None``), 与规格书信号表
+      无关 —— 工装会去绑干接点, 而不是电压探头。
+    - §4.3.4.3 的 7 条**遥测点**(SR-1600 输入电压 / 1601 输出电压 / 1603 输出
+      电流 / 1604 输入功率 / 1606 环境温度 / 1608·1613 热点温度)被标成 TEST。
+      它们的检测范围只写在 ``telemetry_value`` 自由文本里(「0~320Vac 精度 ±3%」)
+      而 ``limits`` 为空, 没有任何电气限值可依。工装会去绑探头, 而这类项必须经
+      产品通信读值 —— **少绑通信通道时遥测项根本读不到数**。
+
+    YX/YC 的分界用 ``telemetry_value`` 而不是「有无数值限值」: 遥测点的检测范围在
+    PA601 上是自由文本、结构化限值为空, 按限值分会把遥测点判成遥信 —— 那等于让
+    工装给模拟量绑干接点。
+
+    **已知缺口**: §4.3.4.2 的遥控/遥调项(SR-1506 远程升级 / SR-1507 输出调压 /
+    SR-1518 混插告警指示灯遥控)本该是 YK/YT, 现按遥信记成 YX。分清它们要读信号表
+    正文, 而信号表尚未结构化(``yk_command`` / ``yt_parameter`` 点位表 0 行)。
+    记成 YX 至少落在「信号通道」而不是错记成电气项 —— **不猜, 也不假装已分清**。
     """
-    lim = cond.limits or {}
-    has_limit = any(lim.get(k) is not None for k in ("min", "typ", "max"))
-    kinds = {cl.kind for cl in cond.input_conditions + cond.output_conditions}
-    if cond.role == "protection_response":
+    if cond.role == ROLE_PROTECTION:
         return "PROT"
-    if has_limit and "signal_state" in kinds and "output_voltage" not in kinds:
-        return "YC"
-    if "signal_state" in kinds and not has_limit:
-        return "YX"
+    if cond.role == ROLE_SIGNAL_IO:
+        kinds = {cl.kind for cl in cond.input_conditions + cond.output_conditions}
+        return "YC" if "telemetry_value" in kinds else "YX"
     return "TEST"
 
 
