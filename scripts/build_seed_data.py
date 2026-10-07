@@ -276,12 +276,20 @@ AUTHORITY_KINDS = ("standard", "book", "industry", "project_defined", "unverifie
 #: - ``correction``         来自 corrections.yaml(每条自带外部权威出处)
 #: - ``convention``         本项目约定(工况词口径)。方案里没有这个概念的出处
 #: - ``standard``           真标准号
+#: - ``industry_practice``  **业界通行做法**(websearch 查证的多个来源一致)。它既不是
+#:                         本项目约定(别人也这么做), 也不是可引的标准条款(纹波测法在
+#:                         TI 应用笔记、老化时长在各厂商实践里), 所以单列一类而不是
+#:                         塞进 ``standard``—— 塞进去会让「出处必须可查」变成空话:
+#:                         读者去翻那个标准号却找不到对应条款。默认权威级
+#:                         ``industry``, 但产测工艺条目仍显式给 ``unverified``
+#:                         (见 :func:`build_production_practice` 的理由)。
 PRODUCED_BY = (
     "bootstrap_section",
     "derived_from_id",
     "correction",
     "convention",
     "standard",
+    "industry_practice",
 )
 
 #: 线索类型 -> 默认权威类型。**只有 ``standard`` 与 ``convention`` 能直接推断**:
@@ -292,6 +300,10 @@ _PRODUCED_BY_TO_AUTHORITY = {
     "correction": "standard",
     "convention": "project_defined",
     "standard": "standard",
+    # 业界做法**不是**依据本身: 多个厂商实践一致只说明「通行」, 不构成可复核
+    # 的出处。给 unverified(而非 industry)是为了让它与「有标准号但未查证」在
+    # 检索结果里可区分 —— 前者缺的是条款号, 后者缺的是整个来源。
+    "industry_practice": "unverified",
 }
 
 
@@ -486,6 +498,629 @@ def build_authoritative_terms() -> list[dict[str, Any]]:
                     # 全部区别所在(442-01-01 vs 442-01-04)。
                     authority=f"{spec['standard']} §{spec['standard_section']}",
                     confidence=confidence,
+                ),
+            }
+        )
+    return out
+
+
+#: **产测工艺(measurement practice)条目**(2026-10-07 websearch 查证)
+#:
+#: 起因(实测): PA601 规格书 182 条判据里, 124 条属于产测/安规范围, 但
+#: ``power_concept`` 里**没有任何一条**讲「怎么测」的知识 —— 只有被测的量
+#: (``VOUT_RIPPLE``/``EFFICIENCY``/``OCP_PROTECT``…)。「20MHz 限带」「并接
+#: 10uF+0.1uF 电容」「负载突变速率 0.1A/uS」这些条件只以自由文本躺在规格书备注里,
+#: 且多数型号根本没有。而这些恰恰是**换一个测法就得到不同数字**的地方。
+#:
+#: ## 为什么属于域(电源)知识而不是型号知识
+#:
+#: 产测工艺是**跨型号共用**的: 任何 -48V/-54V 通信整流器都要按 20MHz 限带测纹波、
+#: 都要四线制采样测效率。PA601 的规格书写了这些条件, 换个型号可能不写, 但**做法
+#: 不变**。所以进 ``power_concept``(域库), 不进 ``pw_<model>``(型号库)——
+#: 放型号库会导致「这套测法只在 PA601 上有记录」, 而实际每个型号都要用。
+#:
+#: ## 每条都要能回答「不这么做会测错成什么样」
+#:
+#: 只写「要用 20MHz 限带」没有信息量(读的人不知道限带是测还是不测)。每条都必须
+#: 给出**错误做法会导致的具体偏差**, 这也是 websearch 查到的业界共识。
+#:
+#: **权威级一律 ``unverified``**: 这些做法业界通行, 但本项目**没有**标准条款号
+#: 可引(纹波测法在 TI 应用笔记里, 老化时长在各厂商实践里, 都不构成可引的标准)。
+#: 按红线 5 的纪律, 拿不到条款号就不标 ``standard`` —— 标了会让「出处可查」这条
+#: 变成空话。它们的价值在于「工艺清单完整」, 不在于「可追溯到某条款」。
+PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
+    {
+        "id": "MEAS_RIPPLE_BW_LIMIT",
+        "name": "纹波测试带宽限制",
+        "en": "ripple measurement bandwidth limit",
+        "practice": (
+            "测输出纹波时示波器必须开 20MHz 带宽限制, 且探头置 1X 无衰减档、"
+            "交流耦合、接地弹簧/短地针(接地线长于 1cm 即失效)。"
+        ),
+        "why_wrong_without_it": (
+            "不限制带宽会把开关节点辐射与共模电流经长地线拾取进来。业界实测: "
+            "同一电路, 错误测法读到上百 mV 乃至数百 mV 的「纹波」, 而正确测法"
+            "为十几 mV —— **误差可达 10 倍以上**, 足以把合格品判成不合格。"
+        ),
+        "spec_example": (
+            "PA601 SR-1206 峰峰值杂音电压 -54V 轨 ≤500mVpp, 备注明确「20MHz 带宽"
+            "限制, 并接 10uF 电解电容和 0.1uF 电容测试」—— 说明客户也按这个测。"
+        ),
+        "tags": ["纹波", "测量方法"],
+    },
+    {
+        "id": "MEAS_RIPPLE_DECOUPLING_CAP",
+        "name": "纹波测试并联电容",
+        "en": "ripple test decoupling capacitor",
+        "practice": (
+            "在输出测点并接 10uF 电解电容 + 0.1uF 陶瓷电容(高频噪声旁路)后测纹波。"
+        ),
+        "why_wrong_without_it": (
+            "模块输出端的二次纹波与开关噪声在空载/轻载时最坏; 不加旁路电容测到的"
+            "是「模块自身纹波 + 探头拾取」之和, 而客户系统里实际存在的是加了电容后"
+            "的值。不加就测了个跟客户用不同的东西。"
+        ),
+        "spec_example": "PA601 SR-1206 备注: 「并接10uF 电解电容和0.1uF 电容测试」。",
+        "tags": ["纹波", "工装"],
+    },
+    {
+        "id": "MEAS_EFFICIENCY_KELVIN_4WIRE",
+        "name": "效率测试四线制采样",
+        "en": "four-wire Kelvin sampling for efficiency",
+        "practice": (
+            "测整机效率/输出电压时用四线制(Kelvin): 载流线走大电流, 检测线(仅过"
+            "测量电流, 高阻)直达 DUT 引脚, 两者物理分离; 电子负载开远程采样。"
+        ),
+        "why_wrong_without_it": (
+            "两线法把载流线的电阻压降算进被测量。行业资料给出的量级: 引线电阻 1~10mΩ, "
+            "在 600W/54V(11.1A)下 10mΩ 就是 **111mV**, 占额定输出的 0.2% —— 而"
+            "效率判据本身只有 86~93% 量级(1% 即 0.86 个百分点)。老化房实测同样问题:"
+            "老化架距电源 20m、20A、导线 0.02Ω, 压降 0.4V, 对 12V 供电件是 3% 以上,"
+            "「电源显示值」与「负载端实际值」差一大截, 工位之间工况就不公平了。"
+        ),
+        "spec_example": (
+            "PA601 SR-1210 整机效率 20%/50%/满载三档(86/91/93%), 备注「额定220Vac "
+            "输入」—— **没写采样接法**。这是规格书的缺口, 不是可省的动作。"
+        ),
+        "tags": ["效率", "四线制", "工装"],
+    },
+    {
+        "id": "MEAS_DYNAMIC_LOAD_SLEW",
+        "name": "动态响应负载跳变",
+        "en": "dynamic load step for transient response",
+        "practice": (
+            "动态响应按标准负载阶跃测: 25%→50%→25% 或 50%→75%→50%, 并记录负载"
+            "突变速率; 恢复时间按**超出输出电压范围的部分**计算, 不是等回到稳态。"
+        ),
+        "why_wrong_without_it": (
+            "**PA601 SR-1211 这条判据按字面执行会失效**: 备注写「负载突变速率"
+            "≤0.1A/uS」, 而 25%→50% 是 2.775A 台阶(54V 轨 11.1A), 按 0.1A/µs 算"
+            "斜坡需 **27.75ms**, 而被测的恢复时间是 **200µs** —— 激励比被测量慢 139 倍。"
+            "控制环带宽在 kHz 量级, 会全程跟随这个缓斜坡, 「恢复时间 ≤200µs」平凡通过,"
+            "测不出环路动态。业界做法是 10~20A/µs(对应 0.14~0.28ms 斜坡)。"
+            "**原文的 ≤ 需向中兴确认是否为 ≥ 的笔误。**"
+        ),
+        "spec_example": "PA601 SR-1211 动态响应恢复时间 -54V 轨 ≤200µs, 3.45V 轨 ≤5µs。",
+        "tags": ["动态响应", "电子负载"],
+    },
+    {
+        "id": "MEAS_PROTECT_SWEEP_LOAD",
+        "name": "保护动作值扫描",
+        "en": "protection trip point sweep",
+        "practice": (
+            "过流/过压保护动作点用**扫描法**测: 电子负载 CC 模式逐步加流(或可编程源"
+            "逐步升压)直到保护动作, 记录动作点。带容性负载的项用 **CR 模式**。"
+        ),
+        "why_wrong_without_it": (
+            "固定负载点测保护只能验「在这一档动不作动」, 验不出动作点落在区间内哪"
+            "里 —— 而区间(如 OCP 12~18A)的两端才是设计余量所在。"
+        ),
+        "spec_example": (
+            "PA601 SR-1216 带容性负载 ≤2000uF 备注「采用 CR 模式进行测试」;"
+            "SR-1309 过流保护 12~18A。"
+        ),
+        "tags": ["保护", "电子负载"],
+    },
+    {
+        "id": "MEAS_HIPOT_ISOLATE_LOAD",
+        "name": "耐压测试断开负载与通信",
+        "en": "disconnect load and comms before hipot",
+        "practice": (
+            "耐压/绝缘测试前必须断开: 电子负载、通信线、Y 电容相关回路; 接地阻抗"
+            "测试需断开全部 PE 连接并使用浮地工装。"
+        ),
+        "why_wrong_without_it": (
+            "负载与通信口的耐压等级低于被测回路, 不断开会在它们上击穿/漏电, "
+            "读数被拉高甚至损坏接口; Y 电容直通对地会绕过被测绝缘路径, 使绝缘"
+            "电阻读数完全失真。"
+        ),
+        "spec_example": (
+            "PA601 SR-2500/2501/2502 绝缘电压 4000Vdc/2500Vdc/500Vdc 1min"
+            "漏电流≤10mA —— 规格书**未写断开要求**。"
+        ),
+        "tags": ["安规", "工装"],
+    },
+    {
+        "id": "PRACT_BURN_IN_GRADED",
+        "name": "老化筛选(梯度工况)",
+        "en": "burn-in screening with graded load",
+        "practice": (
+            "产线老化按**梯度**三段: 轻载约 20%(查待机功耗/轻载异常)、半载 50~60%"
+            "(日常工作态)、满载 100%(虚焊与热衰减), CC 恒流模式, 时长行业普遍"
+            "4~8h(高可靠 12h 以上, 加速筛选 24~48h), 老化后复测全套参数。"
+        ),
+        "why_wrong_without_it": (
+            "只做满载会漏掉轻载抖动、低压不稳、待机异常; 而这些正是客户现场最先"
+            "遇到的。行业数据: 老化可拦截约 99% 的工艺缺陷产品、约 90% 潜在故障"
+            "在出厂前暴露。**不做老化的直接后果是早期失效率** —— 元件虚焊/器件"
+            "漂移在通电头几十分钟到几十小时集中爆发, 那正是客户收到货的时段。"
+        ),
+        "spec_example": (
+            "PA601 规格书**完全没有老化条款** —— SR-2200~2210 是环境/运输型式试验, "
+            "不是产线老化。这是规格书未覆盖而产线必需的一环。"
+        ),
+        "tags": ["老化", "产线工艺"],
+    },
+    {
+        "id": "PRACT_BURN_IN_4WIRE",
+        "name": "老化供电电压一致性",
+        "en": "burn-in supply voltage uniformity",
+        "practice": (
+            "多工位老化用集中供电时: 粗线走线为基 + 电源远程补偿校差 + 各工位到端"
+            "电压监测留证; 电源限流按台数留余量并配工位级熔断隔离; 不同电压等级"
+            "分组老化。"
+        ),
+        "why_wrong_without_it": (
+            "批量老化时靠电源近的工位与远的工位电压不一致, **老化条件的公平性无从"
+            "谈起** —— 等于不同产品过了不同的应力。并联母线上一台短路会独占电流"
+            "拉低其余工位电压, 一台坏件毁掉整批老化的有效性。"
+        ),
+        "spec_example": "PA601 多路输出(-54V/3.45V)需分组或分路老化, 避免互相欠压。",
+        "tags": ["老化", "工装", "供电"],
+    },
+    {
+        "id": "PRACT_REGRESSION_AFTER_BURNIN",
+        "name": "老化后复测",
+        "en": "post burn-in retest",
+        "practice": (
+            "老化结束后复测输出电压、纹波、效率, 确认长时间工作后参数不衰减;"
+            "老化全程监测输出电压与温度。"
+        ),
+        "why_wrong_without_it": (
+            "只看老化中有没有报警, 测不出「参数漂移但仍在规格内」—— 而漂移趋势是"
+            "批次性问题的早期信号。行业做法是对母线电流做趋势分析: 台阶式突变或"
+            "持续爬升往往意味某台开始异常。"
+        ),
+        "spec_example": "PA601 SR-1206 纹波、SR-1210 效率需在老化后复测。",
+        "tags": ["老化", "复测"],
+    },
+    {
+        "id": "PRACT_SAMPLING_AQL",
+        "name": "抽样检验方案",
+        "en": "AQL sampling plan",
+        "practice": (
+            "100% 电性全检 + 按 GB/T 2828.1 的 AQL 抽样做可靠性/型式试验。行业参考值:"
+            "电性类不良 AQL 0.65、外观 2.5; 可靠性抽样比例首批 1~5%、正常批次 "
+            "0.1~1%。"
+        ),
+        "why_wrong_without_it": (
+            "不区分「全检项」与「抽检项」会导致两种错: 把型式试验(EMC/环境/运输)当"
+            "产线全检项 → 产线做不出来或节拍崩溃; 或者该抽检的项目全检 → 成本失控。"
+            "PA601 182 条判据里 **39 条是型试、18 条是混合**, 只有 115 条属产测范围,"
+            "这个区分必须显式。"
+        ),
+        "spec_example": (
+            "PA601 SR-2506 放电管接地方式备注「系统生产线要求全部进行耐压测试…"
+            "原则上系统生产时可以进行抽样测试」—— 客户自己就区分了全检/抽检。"
+        ),
+        "tags": ["抽样", "产线工艺"],
+    },
+    {
+        "id": "PRACT_CALIBRATION_TRACEABILITY",
+        "name": "量具校准与溯源",
+        "en": "instrument calibration and traceability",
+        "practice": (
+            "测试脚本版本、**仪器校准状态**、环境温湿度等元数据须与测试数据一并"
+            "入档; 校准到期需在产测前拦截。测量系统分析(MSA)给出平均次数 n 与"
+            "保护带(guardband)。"
+        ),
+        "why_wrong_without_it": (
+            "行业原话: 数据的价值取决于采集的规范性 —— 元数据不入档, 数据之间"
+            "**可比性无从谈起**。没有 guardband 时, 判据贴着测量不确定度边缘, "
+            "同一台产品不同时间测会给出不同结论。"
+        ),
+        "spec_example": (
+            "PA601 全部判据**无保护带要求**, 也无校准状态字段 —— "
+            "`pw_sr5400.instrument_ledger.cal_due` 字段存在但全表 0 行。"
+        ),
+        "tags": ["校准", "MSA", "数据"],
+    },
+    {
+        "id": "PRACT_SOE_TIME_RESOLUTION",
+        "name": "保护动作时间测量",
+        "en": "protection action time measurement",
+        "practice": (
+            "保护动作时间需专用 SOE/事件顺序记录测试, 时间分辨率应与被测时间同"
+            "量级; 用通信口轮询采样测毫秒级动作时间是测不准的。"
+        ),
+        "why_wrong_without_it": (
+            "SR-1213 开机输出延迟 ≤6s(常温)/≤12s(-25℃)、SR-1211 恢复时间 ≤200µs "
+            "这类判据, 用秒级轮询根本看不到过程 —— 会把「没有动作」误判成"
+            "「动作很慢」或反之。"
+        ),
+        "spec_example": (
+            "PA601 SR-1213 开机输出延迟; 术语表已有 INSTR_SOE_TESTER(SOE测试仪)"
+            "但无任何判据引用它。"
+        ),
+        "tags": ["时间", "SOE"],
+    },
+    {
+        "id": "PRACT_POWER_STEP_VOLTAGE_BOUNDARY",
+        "name": "三边界电压扫描",
+        "en": "three-boundary voltage sweep",
+        "practice": (
+            "EOL 用可编程交流源自动扫掠 低压/额定/高压 三个边界点, 脚本化执行,"
+            "验证全输入范围内输出正常无异常保护。"
+        ),
+        "why_wrong_without_it": (
+            "只在额定电压测一遍, 测不到输入边界处的异常: 欠压时输出跌落、"
+            "过压时保护误动作、跨区间的动态不稳定。这些是客户现场最容易遇到的工况。"
+        ),
+        "spec_example": (
+            "PA601 SR-1101 输入工作电压范围 88~290Vac、SR-1102 最高极限 315Vac"
+            "—— 判据给了范围, 但**没有要求在范围内扫点**。"
+        ),
+        "tags": ["输入", "可编程源"],
+    },
+    # ---------------- 工装侧(2026-10-07 第二批 websearch) ----------------
+    {
+        "id": "FIXTURE_TEST_POINT_AND_ALIGNMENT",
+        "name": "测点与对位防呆",
+        "en": "test point and poka-yoke alignment",
+        "practice": (
+            "PCB 上为每个产测要测的信号留裸露测试点(test pad), 并留 2~3 个**非对称**"
+            "定位孔; 治具用定位销对位 + 压盖压合 pogo pin, 压不下就放不进(物理防呆)。"
+        ),
+        "why_wrong_without_it": (
+            "行业总结的失效模式: 放反/放偏还硬压 -> 戳坏板子或治具, 并测出一堆"
+            "**假 FAIL**; 测试点太小太密 -> 针顶不准, 接触时灵时不灵。治具与 PCB"
+            "设计必须**并行**: 板子画完才想起治具, 就已经没地方留测试点了。"
+        ),
+        "spec_example": (
+            "PA601 SR-1200 备注「测试点为输出端子与PCB连接部」—— 测点位置有定义, "
+            "但**无对位/防呆要求**, 而 PA601 是插拔安装的多模块结构(SR-0100)。"
+        ),
+        "tags": ["工装", "防呆", "测点"],
+    },
+    {
+        "id": "FIXTURE_PROBE_LIFE_AND_RESISTANCE",
+        "name": "探针寿命与接触电阻",
+        "en": "probe life and contact resistance",
+        "practice": (
+            "治具探针(pogo pin)按压合次数管理寿命: 每日清洁氧化层、每 5000 次"
+            "更换关键信号探针、每 20000 次做全通道接触电阻测量(应 <1Ω); 工装本身"
+            "登记接触电阻/压降并定期校准。"
+        ),
+        "why_wrong_without_it": (
+            "接触电阻随压合次数上升, 而它**直接进测量结果** —— 尤其配合四线制"
+            "以外的接法, 接触电阻压降会被算成产品误差。且接触不良表现为时好时坏,"
+            "不是稳定偏大, 极难从数据上察觉。"
+        ),
+        "spec_example": (
+            "`pw_sr5400.fixture_tp_probe.life_hours` / `wear_level` 与 "
+            "`fixture_channel_map.contact_res_mohm` 字段已存在但**全表 0 行** —— "
+            "工装侧的寿命与接触电阻管理完全没有数据。"
+        ),
+        "tags": ["工装", "接触电阻", "维护"],
+    },
+    {
+        "id": "FIXTURE_RELAY_MATRIX_ROUTING",
+        "name": "继电器矩阵信号路由",
+        "en": "relay matrix signal routing",
+        "practice": (
+            "用多通道复用继电器板/矩阵切换激励与测量通路: 负载通道切换、信号激励"
+            "切换、短接点切换, 上位机经 RS485 控制任意一组继电器动作。"
+        ),
+        "why_wrong_without_it": (
+            "继电器板是多工位共用的必备件 —— 没有它就得靠人工插拔换线, 而人工"
+            "换线是**误操作与节拍的共同瓶颈**。也因为矩阵切换会引入回路, 需要"
+            "「非测试状态下把未用工位高阻悬空」的处置, 否则工位间互相干扰。"
+        ),
+        "spec_example": (
+            "PA601 多路输出(-54V/3.45V)、多工位需求(SR-1219 均流要求两台并机、"
+            "SR-1309 测试方法「两台电源并机」)都依赖通路切换, 但知识层无此条目。"
+        ),
+        "tags": ["工装", "继电器", "切换"],
+    },
+    {
+        "id": "FIXTURE_MULTI_STATION_ISOLATION",
+        "name": "多工位隔离与接地",
+        "en": "multi-station isolation and grounding",
+        "practice": (
+            "多工位并行测试时: 每工位独立隔离电源、信号线屏蔽双绞且**单端接地**、"
+            "继电器矩阵把未用工位高阻悬空、上位机分时轮询仪器总线; 小信号工位"
+            "间距建议 ≥25cm。"
+        ),
+        "why_wrong_without_it": (
+            "行业列出的并行干扰成因: 共地引入地弹噪声、同时发起测量互相拉低、"
+            "未用工位悬空引入耦合。表现为**随机 FAIL 且难复现** —— 数据上看是产品"
+            "不良, 实际是测试系统自身的问题。"
+        ),
+        "spec_example": (
+            "PA601 SR-1110 接地方式明确「输出信号地要与 -54VRTN 完全隔离」, "
+            "工装必须能实现这个隔离, 否则测不出真实接法。"
+        ),
+        "tags": ["工装", "隔离", "接地"],
+    },
+    {
+        "id": "FIXTURE_FOUR_WIRE_CONTACT_RES",
+        "name": "工装通路压降校核",
+        "en": "fixture path voltage drop verification",
+        "practice": (
+            "工装载流回路的压降要在**设计阶段**校核并登记: 大电流路径用粗截面"
+            "铜排/多股线并联、缩短走线、必要时开检测线(remote sense)直达 DUT; "
+            "校核值存进工装的通路电阻字段并随工装版本管理。"
+        ),
+        "why_wrong_without_it": (
+            "工装压降是**系统性偏差**: 它同向叠加在每一台产品的读数上, 不会因"
+            "多测几台而抵消。行业给出的老化房实例: 20m 线缆 + 20A + 0.02Ω = 0.4V "
+            "压降, 对 12V 供电件是 3% 以上 —— 全部工位都偏低, 且靠电源近的工位"
+            "与远的工位**不等**。"
+        ),
+        "spec_example": (
+            "`pw_sr5400.fixture_channel_map.trace_res_mohm` / `trace_ind_nh` / "
+            "`trace_cap_pf` 字段已设计好但 0 行; PA601 -54V 轨 11.1A 下 1mΩ 即 11mV, "
+            "而整定值容差只有 ±0.8V。"
+        ),
+        "tags": ["工装", "压降", "四线制"],
+    },
+    {
+        "id": "MEAS_POWER_ANALYZER_NOT_DMM",
+        "name": "功率测量用功率分析仪",
+        "en": "use power analyzer not DMM for power",
+        "practice": (
+            "效率/功率用功率分析仪(同步采样电压电流)而非万用表分测再算; 测量前"
+            "做**通道相位校正**, 高频段按仪器规格加算精度; 需要时开线路滤波器。"
+        ),
+        "why_wrong_without_it": (
+            "行业给出的对比: 万用表带宽多在 40~70Hz(台式几百 kHz), 功率分析仪"
+            "1~5MHz; 对含高频谐波的 PWM 类信号, 两者有效值可差很大。而有功功率 "
+            "P=UIcosφ 里的 φ 依赖电压电流相位, **通道相位误差会直接进效率读数** ——"
+            "不做相位校正, 高频或低功率因数下效率值本身就不可信。"
+        ),
+        "spec_example": (
+            "PA601 SR-1210 整机效率 86~93%(三档负载) —— 1 个百分点就是 0.86 个"
+            "百分点, 与相位校正误差同量级; 规格书未要求仪器类型与校正步骤。"
+        ),
+        "tags": ["功率计", "效率", "相位校正"],
+    },
+    {
+        "id": "MEAS_GROUND_IMPEDANCE_METHOD",
+        "name": "接地阻抗测量方法",
+        "en": "protective earth impedance measurement",
+        "practice": (
+            "接地阻抗测保护接地端子到机壳/地的通路: 断开其它 PE 连接避免并联"
+            "分流, 用接地阻抗测试仪按规定测试电流(通常数十 A)与时间读取值。"
+        ),
+        "why_wrong_without_it": (
+            "不断开其它 PE 就测, 读数是**并联后的结果** —— 会显著偏小, 让不合格"
+            "的保护接地通过。这是安规项里典型的「测法不对反而更危险」。"
+        ),
+        "spec_example": (
+            "PA601 SR-2505 接地阻抗 <0.1Ω, 备注区分「单机测试」与「配合系统测试」"
+            "两种场景 —— 但**未写测试电流与断开要求**。"
+        ),
+        "tags": ["安规", "接地", "浮地"],
+    },
+    {
+        "id": "PRACT_THERMAL_CHAMBER_SAMPLING",
+        "name": "温度试验为抽样项",
+        "en": "thermal chamber testing is sampled",
+        "practice": (
+            "高低温工作、湿热等温度相关试验在产线上按**抽样**执行(首批/定期), "
+            "不是每台都进温箱; 温箱占用时间长、节拍不匹配, 全检会导致产能崩溃。"
+        ),
+        "why_wrong_without_it": (
+            "把型试项当全检项, 产线做不出来或节拍崩溃; 反过来把该抽检的全检, 成本"
+            "失控。这是判定「全检/抽检」边界错误最常见的后果。"
+        ),
+        "spec_example": (
+            "PA601 SR-2200 低温工作试验、SR-2201 高温工作试验、SR-2204 交变湿热 "
+            "—— 均属型式/抽样试验, 与产测项(SR-1100~1618)性质不同。"
+        ),
+        "tags": ["抽样", "环境", "节拍"],
+    },
+    {
+        "id": "PRACT_SAFETY_INTERLOCK_DISCHARGE",
+        "name": "高压测试安全联锁与放电",
+        "en": "safety interlock and discharge",
+        "practice": (
+            "耐压/高压项须配安全联锁与放电管理: 门开自动断开高压、试后自动放电"
+            "并确认残压低于阈值; 工位带急停与栅防护。"
+        ),
+        "why_wrong_without_it": (
+            "行业原话: 高压产品须配置安全联锁与放电管理。不放电的电容在产品上"
+            "留残压, 既伤操作员也可能在下一工序炸机 —— 且这类事故往往在**量产节拍"
+            "压力下**被跳过。"
+        ),
+        "spec_example": (
+            "PA601 SR-2500/2501/2502 绝缘电压 4000Vdc/2500Vdc/500Vdc —— "
+            "`pw_sr5400.fixture.interlock_type` 字段存在但 0 行。"
+        ),
+        "tags": ["安规", "安全", "联锁"],
+    },
+    {
+        "id": "PRACT_MSA_GRR_ACCEPTANCE",
+        "name": "测量系统分析 GRR 接受准则",
+        "en": "MSA gauge R&R acceptance criteria",
+        "practice": (
+            "判定准则先定后测: %GRR < 10% 公差可接受; 10~30% 需客户批准; >30% "
+            "需整改; 另需 ndc(可区分类别数) ≥ 5。交叉设计常用 10 件 × 3 人 × 2~3 次, "
+            "随机化测量顺序。"
+        ),
+        "why_wrong_without_it": (
+            "AIAG MSA 手册明确警告: **不能只用 GRR 当唯一接受准则** —— GRR 只评"
+            "随机变差, 系统性偏倚(零点漂、量程错)它测不出来。至少要同时做偏倚与 "
+            "GRR。且 MSA 是 99.73% 置信、VDA5 是约 95%, 两者数值不可直接比较。"
+        ),
+        "spec_example": (
+            "PA601 全部判据**无 MSA 要求**。以 SR-1210 效率为例: 86/91/93% 三档, "
+            "公差约 7 个百分点, 而 %GRR<10% 意味着测量系统变差要 <0.7 个百分点 —— "
+            "不验 MSA 就无法说明这套判据可重复。"
+        ),
+        "tags": ["MSA", "GRR", "判定"],
+    },
+    {
+        "id": "PRACT_GUARDBAND_CONFORMANCE",
+        "name": "保护带与符合性判定",
+        "en": "guardband and conformance decision",
+        "practice": (
+            "判据落在测量不确定度区间内时引入**保护带(guardband)**: 符合性区间"
+            "收窄或扩展, 把误判概率(判合格实为不合格/反之)压到可接受水平; 单侧"
+            "公差另用 Pgk 之类指标。"
+        ),
+        "why_wrong_without_it": (
+            "JCGM 106 指出保护带限制了基于测量信息的错误符合性判定概率。但这条"
+            "实践有个**真实代价**: 落在不确定度区的件可能被**不必要地报废或返工**。"
+            "所以保护带不是越多越好, 要按制程能力定。"
+        ),
+        "spec_example": (
+            "`pw_sr5400.test_requirement.guardband` 与 `test_case.guardband` 字段"
+            "已设计但全表 0 行; `sample_size` 同样为空。"
+        ),
+        "tags": ["判定", "保护带", "不确定度"],
+    },
+    {
+        "id": "PRACT_TRACE_METADATA_REQUIRED",
+        "name": "测试数据元数据",
+        "en": "required test metadata for traceability",
+        "practice": (
+            "每条测试记录须绑定: 序列号/批次、**测试脚本版本**、**仪器校准状态**、"
+            "环境温湿度、量具 ID, 并可导出到 MES; 数据用于批次回溯与 SPC。"
+        ),
+        "why_wrong_without_it": (
+            "行业结论: 数据的价值取决于采集的规范性 —— 元数据不入档, 数据之间"
+            "**可比性无从谈起**。批次性异常出现时要回溯该批次的测试分布, 若无"
+            "校准状态与脚本版本, 就无法区分「产品变了」与「测量系统变了」。"
+        ),
+        "spec_example": (
+            "`pw_sr5400.instrument_ledger` 有 cal_due/probe_life_hours 字段; "
+            "`test_station` 有 mes_endpoint —— 但两表均 0 行。"
+        ),
+        "tags": ["追溯", "元数据", "MES"],
+    },
+    {
+        "id": "PRACT_BATCH_RELEASE_AND_REWORK",
+        "name": "批次放行与返修闭环",
+        "en": "batch release and rework loop",
+        "practice": (
+            "批次放行依据 IQC/产测/老化/型式抽样结果; 不良品进返修(FA)并回到线上"
+            "复测, 返修品要与新品**分流**标识; 批次不良率与返修率进统计。"
+        ),
+        "why_wrong_without_it": (
+            "返修品混入正常流会让不良率失真, 且返修引入的应力没有记录 —— 下次"
+            "同类失效复发时查不出是不是返修造成的。行业做法明确要求返修品分流。"
+        ),
+        "spec_example": (
+            "PA601 SR-1618 输入继电器吸合次数、SR-1430 输入继电器健康寿命告警 —— "
+            "这类寿命计数数据正是返修闭环的输入, 但知识层与表结构里都无返修概念。"
+        ),
+        "tags": ["放行", "批次", "返修"],
+    },
+    {
+        "id": "PRACT_SPC_TREND_ON_BURNIN",
+        "name": "老化期趋势监控",
+        "en": "trend monitoring during burn-in",
+        "practice": (
+            "老化全程记录输出电压/电流/温度并做**趋势分析**: 电流随温升平滑变化"
+            "是正常; 台阶式突变或持续爬升意味某台开始异常, 配合工位电流数据定位。"
+        ),
+        "why_wrong_without_it": (
+            "只看「老化中有没有报警」会漏掉渐变型异常 —— 而渐变正是批次性问题的"
+            "早期特征。等到报警时已是一台坏件, 而不是一批趋势偏移。"
+        ),
+        "spec_example": (
+            "PA601 SR-1609 风扇转速、SR-1606 环境温度、SR-1608/1613~1616 热点温度"
+            "都是可趋势化的遥测量, 但无任何趋势判据(如斜率阈值)。"
+        ),
+        "tags": ["老化", "趋势", "SPC"],
+    },
+    {
+        "id": "PRACT_POWER_MARGIN_AND_TIERED_PROTECTION",
+        "name": "仪器功率余量与分级保护",
+        "en": "instrument power margin and tiered protection",
+        "practice": (
+            "选仪留功率余量(短时老化 70~80% 连续额定, 7×24 量产留 1.5 倍以上);"
+            "并联母线上电源限流按台数留余量 + 工位级熔断隔离, 形成**两级保护**:"
+            "电源侧保母线, 工位侧隔离单台故障。"
+        ),
+        "why_wrong_without_it": (
+            "不余量会在长时间满载下触发过热降额/过温保护, 造成老化中断、批次数据"
+            "作废。只靠电源单级限流时, 一台短路会独占电流把其余工位拉低 —— "
+            "一台坏件毁掉整批老化的有效性。"
+        ),
+        "spec_example": (
+            "PA601 -54V 轨 600W, SR-1204 备注「90~176Vac: 400W; 176~286Vac: 600W」"
+            "—— 低压输入段功率降额, 选仪须按 600W 而非 400W。"
+        ),
+        "tags": ["选型", "保护", "余量"],
+    },
+)
+
+
+def build_production_practice() -> list[dict[str, Any]]:
+    """:data:`PRODUCTION_PRACTICE` -> ``power_concept`` 实体。
+
+    **不入型号库**: 产测工艺跨型号共用(任何通信整流器都按 20MHz 限带测纹波),
+    放型号库会读成「这套测法只在 PA601 上有记录」。
+
+    ``authority_kind`` 一律 ``unverified`` 且**不给** ``authority_ref``: 这些做法
+    业界通行但本项目拿不到可引的标准条款号(纹波测法在 TI 应用笔记、老化时长在
+    各厂商实践里), 标 ``standard`` 会让「出处必须可查」变成空话。信度 0.5 —
+    比 ``unverified`` 的 0.2 高一档, 因为这些做法有**多方业界共识**支撑,
+    不是凭空来的; 但仍低于有条款号的标准级知识。
+
+    ``why_wrong_without_it`` 是本模块的核心: 每条都要能回答「不这么做会测错成
+    什么样」。只写做法不写后果, 读者无从判断能不能省这一步。
+    """
+    out: list[dict[str, Any]] = []
+    for spec in PRODUCTION_PRACTICE:
+        text = (
+            f"{spec['id']}: {spec['name']} {spec['en']} — "
+            f"做法: {spec['practice']}"
+        )
+        out.append(
+            {
+                "id": spec["id"],
+                "name": spec["name"],
+                "type": "power_concept",
+                "text": text,
+                "source": "产测工艺(websearch 查证, 2026-10-07)",
+                "properties": _props(
+                    {
+                        "zh": spec["name"],
+                        "en": spec["en"],
+                        "definition": spec["practice"],
+                        # 两段并列存: 前者是做法, 后者是「省掉的后果」。
+                        "note": (
+                            f"{spec['why_wrong_without_it']}\n"
+                            f"【规格书实例】{spec['spec_example']}"
+                        ),
+                        "practice": spec["practice"],
+                        "consequence_if_skipped": spec["why_wrong_without_it"],
+                        "spec_example": spec["spec_example"],
+                        "synonyms": [spec["name"], spec["en"]],
+                        "tags": list(spec["tags"]),
+                        "authority_kind": "unverified",
+                        "authority_ref": None,
+                        # 0.5 = 有多方业界共识但无可引条款; 见函数 docstring。
+                        "credibility": 0.5,
+                        "provenance_kind": "websearch_verified_practice",
+                    },
+                    "industry_practice",
+                    0,
+                    authority_kind="unverified",
+                    confidence=0.5,
                 ),
             }
         )
@@ -3236,6 +3871,7 @@ def main() -> int:
     entities += extract_load_conditions()
     entities += build_authoritative_terms()
     entities += build_referenced_standards()
+    entities += build_production_practice()
 
 
     deduped: dict[str, dict[str, Any]] = {}
