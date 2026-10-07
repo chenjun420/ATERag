@@ -100,7 +100,15 @@ def main() -> int:
     conds = ex.get("conditions") or []
     check("1-条件数 > 0", len(conds) > 0, f"{len(conds)} 条")
     subsecs = sorted({c["section_path"] for c in conds})
-    check("1-覆盖 4.3 全部子章", len(subsecs) == 7, str(subsecs))
+    # 期望集合来自规格书原文逐节核对(2026-10-07): D54A 有 4.3.4.1~4.3.4.6,
+    # 其中 4.3.4.5(版本管理)是一条引用穿透产出的条件; 4.3.4.4(通信协议)与
+    # 4.3.4.6(电池管理)只有协议寄存器描述、无数值判据, 抽不出条件。
+    # 以前写死 7 是漏了 4.3.4.5 —— 用集合断言, 少抽任何一节都会红。
+    EXPECTED_SUBSECS = [
+        "4.3.1", "4.3.2", "4.3.3",
+        "4.3.4.1", "4.3.4.2", "4.3.4.3", "4.3.4.5", "4.3.5",
+    ]
+    check("1-覆盖 4.3 全部子章", subsecs == EXPECTED_SUBSECS, str(subsecs))
     check("1-无 4.2/4.4 越界", not any(s.startswith(("4.2", "4.4")) for s in subsecs))
     with_in = sum(1 for c in conds if c["input_conditions"])
     with_out = sum(1 for c in conds if c["output_conditions"])

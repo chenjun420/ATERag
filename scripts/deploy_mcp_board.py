@@ -182,8 +182,17 @@ def main() -> int:
     cli = paramiko.SSHClient()
     cli.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     cli.connect(
-        HOST, username=USER, password=PWD, timeout=20, look_for_keys=False, allow_agent=False
+        HOST,
+        username=USER,
+        password=PWD or None,
+        timeout=20,
+        # 密码未配置时回退到密钥认证 (取决于部署机持有私钥)。两条路都支持,
+        # 部署才会是同模板可重复的: 否则换一台无密码缓存的机器就断
+        look_for_keys=not PWD,
+        allow_agent=False,
     )
+    if not PWD:
+        print("(BOARD_SSH_PASSWORD 未设, 使用 SSH 密钥认证)")
     try:
         # SFTP 以 SSH 用户身份写入, /opt/aterag 默认属 root -> 先授权给部署用户,
         # 安装脚本 (sudo) 会在最后把属主改回服务账号 aterag
