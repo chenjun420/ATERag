@@ -201,5 +201,28 @@ class SectionKeywordNotFound(LookupError):
     """
 
 
+class TableSchemaUnmapped(LookupError):
+    """表头不匹配任何 schema, 而这张表**有数据行** —— fail-closed。
+
+    为什么必须报错而不是跳过(红线 12): 早先一版把「未映射」与「元数据表」
+    一起用 ``if not det.produces_entities: continue`` 跳过, 两者的区别只在
+    ``det.matched`` 一个属性上:
+
+    - ``det.matched and entity == "none"`` —— 元数据表(修改记录/标准清单),
+      schema **明确声明**不产生实体。跳过是对的。
+    - ``not det.matched`` —— 表头一个 schema 都没命中。实测把「编号」改成
+      「条目号」之后, 5 个实体**只剩 1 个 Product**, 零报错零警告。
+
+    后者是模板变更(表头改名)的典型症状, 而跳过它的后果是「产出一份看起来正常
+    的结果」—— 抽取过程第三种结局, 明确被红线 12 排除。
+    """
+
+    def __init__(self, message: str, *, signature: str = "", section_path: str = "") -> None:
+        super().__init__(message)
+        #: 表头签名, 供调用方聚合同一类失败
+        self.signature = signature
+        self.section_path = section_path
+
+
 class ModelNotIngested(LookupError):
     """型号未入库 (无 blocks 侧车) —— fail-closed, 不用空结果冒充。"""

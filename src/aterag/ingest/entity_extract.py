@@ -20,9 +20,11 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
+from aterag.extract.models import TableSchemaUnmapped
 from aterag.ingest.markdown_parser import Block
 from aterag.ingest.table_schema import (
     DEFAULT_SCHEMA_PATH,
+    Detection,
     SchemaRegistry,
     TableSchema,
     is_rail_name,
@@ -158,7 +160,14 @@ def _build_signal(ctx: BuildContext, add: Callable[[Entity], None], reg: SchemaR
     sig_name = row.get("signal_name", "")
     sig_def = row.get("signal_def", "")
     pin = row.get("pin", "")
-    if not row.get("connector", "") or not (pin or sig_name):
+    # 红线 12 (2026-10-07 用户裁定): 无连接器的信号行**必须产实体**, 不得静默丢。
+    #
+    # 实测 4.2.4.3 第二张表 (信号名称|属性|电平|源/宿|说明, 11 行) 是板级总线
+    # 信号的属性/电平/说明, 无连接器维度 —— 旧条件 `not connector or not (pin or
+    # sig_name)` 把它连同内容一起扔了多年。现条件只丢「既无管脚也无信号名」的
+    # 行 (纯表头分隔行, 无可抽内容)。无管脚行的 eid 尾段为空 (`模型:信号名@`),
+    # 与带管脚实体 (`模型:信号名@S4`) 天然可区分, 不冲突。
+    if not (pin or sig_name):
         return
     model_id = ctx.base.get("model_id", "")
     add(
@@ -183,6 +192,42 @@ def _build_attribute(ctx: BuildContext, add: Callable[[Entity], None], reg: Sche
 
 def _build_none(ctx: BuildContext, add: Callable[[Entity], None], reg: SchemaRegistry):
     """元数据表 (修改记录/标准清单) —— 明确不产生实体。"""
+
+
+def _unmapped_table_message(reg: SchemaRegistry, det: Detection, section_path: str) -> str:
+    """表头未命中任何 schema 时的报错正文(红线 12: 必须可操作)。
+
+    要回答三个问题, 缺一个这条报错就只是「出错了」:
+
+    1. **是哪张表** —— 章节路径 + 表头签名(签名可直接用于聚合同一类失败)
+    2. **现在有哪些表结构可选** —— 逐个列出全部 schema 的表头, 人才能对着抄
+    3. **系统猜它是什么** —— T1 兜底角色推断(:attr:`Detection.roles`),
+       这是选新 schema 时最省事的起点
+    """
+    lines = [
+        "表头未命中任何表结构 schema, 而这张表有数据行 —— 规格书表头已变"
+        "(改名 / 加列 / 换列名)。",
+        "",
+        f"  位置: 章节 {section_path or '(无章节号)'}",
+        f"  表头签名: {det.signature}",
+        f"  判定: {det.reason}",
+        "",
+        f"  现有表结构 ({len(reg.schemas)} 个, 改 config/table_schemas.yaml 的 schemas):",
+    ]
+    for schema in reg.schemas:
+        cols = ", ".join(schema.columns) if schema.columns else "(无列映射)"
+        lines.append(f"    {schema.name:<20} [{schema.entity}] {cols}")
+    lines += [
+        "",
+        "  处置:",
+        "    1. 这是新表 -> 在 config/table_schemas.yaml 的 schemas 下加一条"
+        "(columns 的值必须在 fields 白名单内);",
+        "    2. 已有表改了表头 -> 改对应 schema 的 columns 键以匹配新表头;",
+        "    3. 这张表本就不该抽实体 -> 给它加一条 entity: none 的 schema 并声明"
+        "require, 别靠「没命中就算元数据表」—— 那正是本次修掉的静默。",
+        "    生成候选: python scripts/table_schema_report.py --propose",
+    ]
+    return "\n".join(lines)
 
 
 ENTITY_BUILDERS: dict[str, Callable[..., None]] = {
@@ -238,9 +283,24 @@ def extract_from_blocks(
             header = [_clean(c) for c in table[0]]
             has_subcol = bool(header) and len(header) != len(set(header))
             if not det.produces_entities:
-                # 未映射 / 元数据表: 行仍保留在 blocks.jsonl (无损底座),
-                # 缺口由 scripts/table_schema_report.py 显式列出
-                continue
+                # **两种「不产实体」必须分开**(红线 12):
+                #
+                # - ``det.matched`` 为真 = schema 命中但声明 entity=none ->
+                #   元数据表(修改记录/标准清单), 跳过是对的。
+                # - ``det.matched`` 为假 = 表头一个 schema 都没命中。实测把
+                #   「编号」改成「条目号」后 5 个实体只剩 1 个 Product, 而当时
+                #   这里是无条件 continue —— 零报错零警告, 产出一份看起来正常的
+                #   错误结果。那是抽取过程的第三种结局, 红线 12 明确排除。
+                if det.matched:
+                    continue
+                # 空表不报: 没有数据行就没有可丢的知识, 报它是噪音。
+                if len(table) <= 1:
+                    continue
+                raise TableSchemaUnmapped(
+                    _unmapped_table_message(reg, det, b.section_path),
+                    signature=det.signature,
+                    section_path=b.section_path,
+                )
             builder = ENTITY_BUILDERS.get(det.schema.entity)  # type: ignore[union-attr]
             if builder is None:
                 raise ValueError(

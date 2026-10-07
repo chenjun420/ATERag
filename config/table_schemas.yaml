@@ -86,6 +86,15 @@ fields:
   - normal_state
   - abnormal_state
   - abnormal_cause
+  # 范围外/已裁定丢弃表 (emc_test_table / env_test_table / metric_table) 的字段:
+  # 实体声明为 none, 字段只用于让表头显式命中 schema, 不参与任何下游抽取
+  - test_item
+  - test_condition
+  - test_level
+  - duration_s
+  - perf_criteria
+  - dev_stage
+  - prod_stage
 
 schemas:
 
@@ -142,10 +151,15 @@ schemas:
       试验条件: standard
 
   # 接口信号定义表 (4.2.4.x) —— 产生 Signal 实体
-  # 已知未覆盖: 4.2.4.3 的"信号名称|属性|电平|源/宿|说明"(11 行) 缺连接器维度,
-  # 归属 4.2 非本轮 4.3 抽取范围, 仍留在 report 待映射清单中
+  # 两组 require: 4.2.4.1/4.2.4.2 带"连接器"列走第一组; 4.2.4.3 的
+  # "信号名称|属性|电平|源/宿|说明"没有连接器维度, 第二组保证 11 行真实板级
+  # 总线信号 (SCD_A/SCL_A/BCO/PWR_PRESENT/VI_DOWN_ALM/VCC3V3/BAT_UV/GND 等)
+  # 不再整表静默丢弃 (红线 12: 模板失配必须报错, 而非静默归零)。
   signal_table:
-    match: {require: [connector, signal_name]}
+    match:
+      any_of:
+        - {require: [connector, signal_name]}
+        - {require: [signal_name, level, src_dst]}
     entity: signal
     row_strategy: anchor_align
     columns:
@@ -180,6 +194,7 @@ schemas:
         - {require: [device_key, vendor]}
         - {require: [input_type, breaker_type]}
         - {require: [std_no, std_name]}
+        - {require: [indicator, color, normal_state]}
     entity: none
     reference: true
     columns:
@@ -228,3 +243,59 @@ schemas:
       指标: metric
       量值: value
       条件: condition
+
+  # ---- 范围外表: 显式声明"已知不抽取" (红线 12: 声明需带人签字理由) ----
+  # 这些表不是"没命中"而是"命中后明确丢弃", 数据留在无损底座 blocks.jsonl 里可查。
+
+  # EMC 指标表 (4.4.2, 3 张: 电压暂降/短时中断/电压变化)
+  # 依据: EMC 域已裁定移出项目范围 —— 知识库层 build_seed_data.py 的
+  # OUT_OF_SCOPE_* 同批判据 (2026-10 走查裁定: 用户确认 1/2/3 丢弃)。
+  emc_test_table:
+    match:
+      any_of:
+        - {require: [test_item, test_level, duration_s]}
+    entity: none
+    meta: true
+    columns:
+      试验项目: test_item
+      试验条件: test_condition
+      # 注意: 表头归一化会剥掉括号注记 ("试验等级(%Ut)"->"试验等级",
+      # "持续时间(s)"->"持续时间"), key 必须写剥后的形式
+      试验等级: test_level
+      持续时间: duration_s
+      性能判据: perf_criteria
+
+  # 环境试验要求表 (4.4.3/4.4.4/4.4.5: 常规环境/包装运输/其他实验)
+  # 依据: 同上走查裁定 —— 产测条件管线只覆盖 4.3 功能/性能要求 (doc_profiles,
+  # section_keywords); 环境试验属研发验证流程, 用户确认不抽取为知识实体。
+  env_test_table:
+    match:
+      any_of:
+        - {require: [req_id, test_item]}
+    entity: none
+    meta: true
+    columns:
+      编号: req_id
+      试验项目: test_item
+      参考标准/试验参数: test_condition
+      研发阶段: dev_stage
+      试生产阶段: prod_stage
+      备注: notes
+      等级: priority
+
+  # 可靠性指标表 (4.4.1.1 预计MTBF)
+  # 依据: 同上走查裁定。该表 req_id 只在章节标题 (SR-…-2000), 行内无编号列;
+  # 用户确认不抽取。
+  metric_table:
+    match:
+      any_of:
+        - {require: [metric, value]}
+    entity: none
+    meta: true
+    columns:
+      指标: metric
+      单位: unit
+      量值: value
+      条件: condition
+      备注: notes
+      等级: priority
