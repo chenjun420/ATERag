@@ -33,6 +33,16 @@ class ProductEntry:
     #: PN2000-24A 登记在册却抛 SectionKeywordNotFound, 因为档案选择只存在于
     #: MCP 工具的可选参数里)。
     doc_profile: str = ""
+    #: **主输出轨**(如 ``-54V``)。规格书里有些参数行不标注所属轨(整机效率/
+    #: 输出功率/待机功耗/开机延迟/负载均流度), 这些行按主轨计(2026-10-07 用户裁定)。
+    #:
+    #: 为什么是型号级字段而不是 profile 级: 同模板不同型号主轨不同
+    #: (PA601-D54A=-54V, PN1000-48A=-48V), 而 profile 是跨型号共享的表结构知识。
+    #:
+    #: **留空 = 不做主轨归属**, 行保持无轨。刻意**不做自动推断**: 按「带轨行最多者」
+    #: 或「额定电流最大者」猜, 猜错会把效率/功率判据挂到不存在的输出路上, 而且
+    #: 不报错 —— 宁可缺声明而不猜。
+    main_rail: str = ""
 
 
 @dataclass
@@ -94,6 +104,7 @@ class Registry:
                 doc_number=str(p.get("doc_number", "")),
                 doc_version=str(p.get("doc_version", "")),
                 doc_profile=str(p.get("doc_profile", "")),
+                main_rail=str(p.get("main_rail", "")),
             )
         return reg
 
@@ -156,10 +167,14 @@ class Registry:
         *,
         doc_number: str = "",
         doc_version: str = "",
+        main_rail: str = "",
     ) -> None:
         self.ensure_domain(domain)
         self.products[model_id] = ProductEntry(
-            domain=domain, doc_number=doc_number, doc_version=doc_version
+            domain=domain,
+            doc_number=doc_number,
+            doc_version=doc_version,
+            main_rail=main_rail,
         )
         self.save()
 

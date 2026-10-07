@@ -16,7 +16,7 @@ LLM 仅用于产品类型分类与语义消歧 (见 ingest.classify), 不参与�
 from __future__ import annotations
 
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -42,26 +42,128 @@ _REQUIREMENT_NUM_DEFAULTS = ("min", "typ", "max")
 
 # 同一需求编号常有多行 (多档位/多电压轨/长期短期/多试验点), 只用 req_id+rail
 # 作 eid 会把它们合并 —— 实测 PA601 有 11 个编号 23 行被静默丢弃 (SR-1210 三档效率
-# 只剩一档)。故追加一个由"区分性字段"构成的短后缀: 值确定、可溯源, 且唯一。
-# 顺序经实测校准 (PA601 全文档零碰撞): 电压轨 -> 单位 -> 限值 -> 备注/要求/标准。
-# notes 排在限值之后: 备注是长句, 进 eid 可读性差且易超长。
-_VARIANT_FIELDS = ("rail", "unit", "min", "typ", "max", "notes", "requirement_text", "standard")
-_VARIANT_MAX = 24
+# 只剩一档)。故追加一个"档位后缀"保证唯一。
+#
+# ## 后缀只能由**语义**构成, 不能由判据数值构成
+#
+# 旧实现按 ("rail","unit","min","typ","max","notes","requirement_text") 取第一个
+# 非空值, 于是限值成了键的一部分: ``SR-PA601-D54A-1104@min=0.95#2``。后果是
+# **改判据就换 id** —— 判据无法版本化, 且回答不了「历史测试记录依据的是哪一版」,
+# 那正是红线 5 (出处必须可查) 要的东西。实测 PA601 上这类 id 有 57 个。
+#
+# 改为按语义顺序取: 电压轨 -> 工况标签(由既有 condition_patterns 规则抽出)
+# -> 引用标准 -> 单位, 都取不到才回落到出现序号 ``#N``。判据数值一律不进键。
+#
+# ## 工况标签复用既有规则库, 不在本模块重写正则
+#
+# 标签值来自 :func:`_semantic_tags`, 它读的是 ``config/condition_patterns.yaml``
+# 那 37 条规则 —— 与 :mod:`aterag.extract.assembler` 切条件用的是**同一份**口径。
+# 若在这里另写一套正则, 同一句话就会有两个抽取结果 (红线 4: 不接受双源)。
+_VARIANT_MAX_TAGS = 3
+_VARIANT_MAX = 96
+#: 单个标签值的长度上限。``load_step`` 那类没声明 group 的规则只能退回命中片段,
+#: 片段可能很长("...负载变化") —— 限长是为了 eid 可读, 不是防注入。
+_VARIANT_TAG_VALUE_MAX = 24
 _PLACEHOLDERS = {"", "-", "—", "/"}
 
+#: 参与 eid 档位标签的规则由配置声明 (``variant: true``), 这里不枚举 kind。
+#:
+#: **不能用 kind**: ``load`` 下同时挂着「负载百分比」「半载」「空载」「负载范围」
+#: 「阶跃」「突变速率」六条规则 —— 实测按 kind 打标会把突变速率 0.1A/uS 标成
+#: ``load=0.1``(看着像"负载 0.1%"), 把范围下界 50 标成 ``load=50``(看着像
+#: "50% 负载点")。两者都是**物理量不同的东西共用一个名字**, 而 eid 是要被
+#: 人读出来判断"这行要在什么工况测"的。规则 id 才是语义身份。
+#:
+#: 工况抽取规则库路径 (与 extract/assembler 的默认值同源, 避免两处各写一遍)。
+_DEFAULT_PATTERNS_PATH = "config/condition_patterns.yaml"
 
-def _variant_base(row: dict[str, str]) -> str:
-    """先取无需行号的稳定区分字段 (限值最易读, 其次单位/电压轨)。"""
-    for f in _VARIANT_FIELDS:
-        v = _clean(row.get(f, ""))
-        if v not in _PLACEHOLDERS:
-            return v if f in ("rail", "unit") else f"{f}={v}"
-    return "base"
+_BOOK_CACHE: dict[str, Any] = {}
 
 
-def _variant_suffix(row: dict[str, str], *, unique: str = "") -> str:
-    """档位后缀。unique 为该编号下的出现序号 (0 起), 仅在基础后缀不足以区分时追加。"""
-    base = _variant_base(row)
+def _pattern_book(model_id: str):
+    """取该型号的条件规则书 (进程内缓存; 载入失败返回 None 而非抛错)。
+
+    载入失败必须降级而不是中断抽取: 工况标签只是**锦上添花的区分度**, 缺了它
+    eid 会退到 ``#N``, 仍然唯一 (见 :func:`_variant_suffix`)。若在这里抛错,
+    一份配置写错就会让整个型号抽不出实体 —— 那是把可选增强变成硬依赖。
+    """
+    if model_id in _BOOK_CACHE:
+        return _BOOK_CACHE[model_id]
+    book = None
+    try:
+        from aterag.extract.assembler import PatternBook
+
+        book = PatternBook.load(_DEFAULT_PATTERNS_PATH)
+    except Exception:  # noqa: BLE001 - 配置缺失/损坏都不应阻断抽取
+        book = None
+    _BOOK_CACHE[model_id] = book
+    return book
+
+
+def _semantic_tags(row: dict[str, str], book: Any) -> list[str]:
+    """抽工况短标签, 如 ``load_pct_of_max=20`` / ``load_slew_rate=0.1``。
+
+    只用配置里声明了 ``variant: true`` 的规则。标签名取**规则 id**而不是 kind
+    (理由见 :data:`_VARIANT_TAG_KINDS` 上方注释)。
+
+    标签值按 ``capture`` 声明的语义取, 与 :func:`assembler._capture_value` 一致:
+    有 ``group`` 取该捕获组; 另声明了 ``group2`` 则两段都用 ``-`` 连接
+    (``load_range`` 的 50~100%); 有定值 ``value`` 用定值(``load_half`` -> 50);
+    都没有时取**命中片段本身**(已去空白, 限长)—— ``load_step`` 没声明 group,
+    但「25%~50%~25% 负载变化」这个片段本身就是工况, 比只留规则名有区分度。
+    """
+    if book is None:
+        return []
+    text = " ".join(
+        v for v in (_clean(row.get("notes", "")), _clean(row.get("requirement_text", ""))) if v
+    )
+    if not text:
+        return []
+    tags: set[str] = set()
+    for rule in book.rules:
+        if not getattr(rule, "variant", False):
+            continue
+        m = rule.regex.search(text)
+        if not m:
+            continue
+        cap = rule.capture or {}
+        parts: list[str] = []
+        for key in ("group", "group2"):
+            gi = cap.get(key)
+            if isinstance(gi, int) and 0 < gi <= (m.re.groups or 0):
+                parts.append((m.group(gi) or "").strip())
+        if not parts and cap.get("value") is not None:
+            parts.append(str(cap["value"]))
+        if not parts:
+            parts.append(_norm_tag(m.group(0)))
+        val = "-".join(p for p in parts if p)
+        tags.add(f"{rule.id}={val}" if val else rule.id)
+    # 排序保证同一组标签在任何机型上顺序一致 —— 否则 id 不可复现。
+    return sorted(tags)
+
+
+def _variant_suffix(
+    row: dict[str, str], *, unique: str = "", tags: Sequence[str] = ()
+) -> str:
+    """档位后缀: 电压轨 + 工况标签 + 标准 + 单位, 全缺才用出现序号 ``#N``。
+
+    ``#N`` 仍保留: 有些表格(如 §4.4.2 的 12 行 DIP)每行是一个**枚举出来的独立
+    工况**, 语义标签与标准都相同, 只有行序能区分 —— 那时行序就是它唯一的身份。
+    """
+    parts: list[str] = []
+    rail = _clean(row.get("rail", ""))
+    if rail and rail not in _PLACEHOLDERS:
+        parts.append(f"rail={rail}")
+    parts.extend(tags[:_VARIANT_MAX_TAGS])
+    if len(parts) < _VARIANT_MAX_TAGS:
+        std = _clean(row.get("standard", ""))
+        if std and std not in _PLACEHOLDERS:
+            parts.append(f"std={std}")
+        if len(parts) < _VARIANT_MAX_TAGS:
+            unit = _clean(row.get("unit", ""))
+            if unit and unit not in _PLACEHOLDERS:
+                parts.append(f"unit={unit}")
+    base = "+".join(parts) if parts else "base"
     if not unique:
         return base
     try:
@@ -74,6 +176,73 @@ def _variant_suffix(row: dict[str, str], *, unique: str = "") -> str:
     return base if len(base) + len(tag) > _VARIANT_MAX else base + tag
 
 
+# ---------------------------------------------------------------------------
+# 主轨归属: 未标注轨的参数行按主轨计
+# ---------------------------------------------------------------------------
+#: 主轨**不是**能从文档自动推出来的东西, 而是型号事实: PA601-D54A 主轨 -54V
+#: (11.1A), PN1000-48A 主轨 -48V (20.8A) —— 同模板不同型号主轨不同, 所以它必须
+#: 按型号声明 (``data/registry.yaml`` 的 products.<model>.main_rail``), 声明了才生效。
+#:
+#: **不自动推断**: 若按「带轨行里出现最多者」或「额定电流最大者」去猜, 猜错时
+#: 会把效率、功率、待机功耗这些判据挂到一条不存在的输出路上, 而且不报错。
+#: 宁可缺声明而不猜 —— 缺声明时下面三条规则全部不触发, 实体保持 rail=''。
+_MAIN_RAIL_SKIP_UNITS = re.compile(r"[VA]ac|Vdc", re.IGNORECASE)
+_MAIN_RAIL_SKIP_NOTES = re.compile(r"[+-]?\d+(?:\.\d+)?\s*V(?![acdAC])")
+
+
+def main_rail_declared(model_id: str) -> str:
+    """读产品注册表里该型号声明的主轨; 未声明返回 ``""``。
+
+    **走 :class:`aterag.registry.Registry` 而不是自己 yaml.safe_load** —— 注册表
+    定位有两级兜底(``settings.registry_path`` -> ``data/<basename>``), 自己读
+    相对路径 ``data/registry.yaml`` 只在 CWD 恰好是仓库根时成立, 而抽取是在
+    各种 CWD 下被调的(CLI / MCP server / 测试)。更实际的问题: 注册表**条目类型**
+    由 ``storage.model_schema`` 定义过, 绕过它读 yaml 就等于承认第二份
+    ``main_rail`` 可以存在(红线 4)。
+
+    读不到时返回空串而不是抛错: 主轨是**增强**, 缺声明时行保持无轨(不猜),
+    不该让一份配置缺失阻断整个型号的实体抽取。
+    """
+    try:
+        from aterag.config import get_settings
+        from aterag.registry import Registry
+
+        prod = Registry.load(get_settings()).products.get(model_id)
+        return _clean(str(getattr(prod, "main_rail", "") or ""))
+    except Exception:  # noqa: BLE001 - 定位失败/格式不符 => 视为未声明, 不猜
+        return ""
+
+
+def resolve_main_rail(row: dict[str, str], main_rail: str) -> str:
+    """未标注轨的参数行 -> 主轨; 有下列可判例外时**保持无轨**。
+
+    例外都必须是**从数据本身判得出**的, 不能列 id 白名单 —— 同模板的其它型号
+    (PN1000-48A / PN2000-24A)行数与 id 都不同, 白名单换个型号就失效:
+
+    1. **输入侧量**: 单位含 ``Vac``/``Vdc``。判据说的是输入电压/频率, 挂输出轨
+       没有意义 —— SR-1300 输入过压保护点、SR-1104 功率因数属此类。
+    2. **温度量**: 单位是 ``℃``。过温保护点/回差没有"哪条轨"的概念。
+    3. **跨轨项**: 备注点名了**两条以上**电压轨。SR-1222「-54V、3.45V输出要求
+       ORING」、SR-1225「3.45V和-54V不共地」、SR-1312「3.45V保护不能影响-54V的
+       输出」都是整机级关系, 归到任一单轨都是错的。
+    4. **无单位的整机级行**: 单位是占位符。SR-1223 热插拔、SR-1224 上下电时序
+       说的是整机行为, 不是某条轨上的电气量。
+    """
+    if not main_rail:
+        return ""
+    unit = _clean(row.get("unit", ""))
+    if unit in _PLACEHOLDERS:
+        return ""  # 例外 4
+    if _MAIN_RAIL_SKIP_UNITS.search(unit):
+        return ""  # 例外 1
+    if "℃" in unit or "°C" in unit:
+        return ""  # 例外 2
+    notes = _clean(row.get("notes", ""))
+    if notes and len(set(_MAIN_RAIL_SKIP_NOTES.findall(notes))) >= 2:
+        return ""  # 例外 3
+    return main_rail
+
+
 @dataclass
 class Entity:
     etype: str  # Requirement | Protection | Parameter | Interface | Signal | Attribute | Product
@@ -83,6 +252,13 @@ class Entity:
 
 def _clean(v: str) -> str:
     return (v or "").strip().replace("<br>", " ").replace("**", "")
+
+
+#: 标签值里的空白与分隔符归一 —— 同一条规则在两台机器/两个版本 yaml 上编出来
+#: 必须给同一个标签, 否则 eid 不可复现 (id 是主键的一部分)。
+def _norm_tag(v: str) -> str:
+    v = re.sub(r"\s+", "", v or "")
+    return v[:_VARIANT_TAG_VALUE_MAX]
 
 
 def _parse_num(v: str) -> float | None:
@@ -152,7 +328,13 @@ def _build_requirement(ctx: BuildContext, add: Callable[[Entity], None], reg: Sc
     rule = reg.grouping_protection
     if rule and rule.matches_section(ctx.base.get("section_path", "")):
         props["category"] = "protection"
-    add(Entity("Requirement", f"{req_id}@{_variant_suffix(row, unique=str(ctx.seq))}", props))
+    add(
+        Entity(
+            "Requirement",
+            f"{req_id}@{_variant_suffix(row, unique=str(ctx.seq), tags=_semantic_tags(row, _pattern_book(ctx.base.get('model_id', ''))))}",
+            props,
+        )
+    )
 
 
 def _build_signal(ctx: BuildContext, add: Callable[[Entity], None], reg: SchemaRegistry):
@@ -318,6 +500,10 @@ def extract_from_blocks(
             table_seq += 1
             tkey = (table_seq, b.section_path, "|".join(header))
             table_channels = channel_counter.setdefault(tkey, {})
+            # 主轨按**型号**声明 (data/registry.yaml 的 products.<model>.main_rail)。
+            # 同模板不同型号主轨不同 (PA601-D54A=-54V/11.1A, PN1000-48A=-48V/20.8A),
+            # 所以不能配在 profile 层。未声明时下面一律不挂主轨 —— 不猜。
+            main_rail = main_rail_declared(model_id)
             for cells in table[1:]:
                 row = reg.map_row(det.schema, table[0], cells)
                 if not row:
@@ -325,14 +511,23 @@ def extract_from_blocks(
                 key = (b.section_path, row.get("req_id", ""))
                 seq = seq_counter.get(key, 0)
                 seq_counter[key] = seq + 1
-                # 通道编号按该轨在本表内首次出现的次序给定。无轨行(整机级要求,
-                # 如 SR-1204 输出功率 / SR-1210 整机效率)不占通道号 —— 它适用于
-                # 全部输出轨, 编号它会让"第N通道"这个概念凭空多出不存在的一路。
+                # 通道编号按该轨在本表内首次出现的次序给定。
                 rail = _clean(row.get("rail", ""))
                 if has_subcol and not is_rail_name(rail):
                     # 子列不是轨名写法(如绝缘试验电压 4000Vdc): 该列不是输出通道,
                     # 不能据此编号 —— 否则会凭空造出不存在的输出路数。
                     rail = ""
+                if has_subcol and not rail:
+                    # 未标注轨的参数行 -> 主轨(用户裁定)。例外条件见
+                    # :func:`resolve_main_rail` 的四条, 全部从数据本身判, 不列 id。
+                    # 判据仍然只是**单轨**归属性: 跨轨项(备注点名两条轨)保持无轨。
+                    rail = resolve_main_rail(row, main_rail)
+                    if rail:
+                        # 必须**写回 row**: 下游的 props / eid / 通道号都从 row 取值,
+                        # 只改局部变量的话主轨在这一行就丢了 —— 实测过: 通道号拿到了 1,
+                        # 而 props["rail"] 仍是空, 于是 eid 里没有 rail 段, 且
+                        # "这条判据属于哪条轨"查不到。
+                        row["rail"] = rail
                 if has_subcol and rail and rail not in table_channels:
                     table_channels[rail] = len(table_channels) + 1
                 if has_subcol and rail:

@@ -86,6 +86,10 @@ class PatternRule:
     kind: str
     regex: re.Pattern[str]
     capture: Mapping[str, Any] = field(default_factory=dict)
+    #: 该规则命中**不同取值**时, 产测要在不同激励点/工况测 -> 参与 eid 档位标签。
+    #: 由 ``config/condition_patterns.yaml`` 的 ``variant: true`` 声明, 不在代码里枚举
+    #: —— 同模板不同型号的规则集可能不同, 代码写死就只对当前这份配置成立。
+    variant: bool = False
 
 
 @dataclass
@@ -130,6 +134,7 @@ class PatternBook:
                 kind=r["kind"],
                 regex=re.compile(r["pattern"]),
                 capture=r.get("capture") or {},
+                variant=bool(r.get("variant", False)),
             )
             for r in (doc.get("rules") or [])
         )

@@ -77,14 +77,25 @@ rules:
   - id: input_voltage_nominal_vac
     role: input
     kind: input_voltage
+    # variant: 参与 eid 档位标签 (实现见 ingest/entity_extract._semantic_tags)。
+    # 判据 = 这条规则命中**不同取值**时, 产测要在不同激励点测 -> 必须进 eid。
+    # 反之(措辞类/描述性子条件)一律不打, 否则 eid 会被整句污染。
+    variant: true
     pattern: '额定\s*(\d+(?:\.\d+)?)\s*Vac\s*输入'
     capture: {group: 1, unit: Vac}
   - id: input_voltage_nominal_plain
+    # variant: false —— 只说「额定输入」不带数值。与 nominal_vac 规则是同一句话的
+    # 两种写法, 但这里抽不出具体电压, 打进 eid 只会得到一个无信息量的键。
+    variant: false
     role: input
     kind: input_voltage
     pattern: '(?:额定|标称)\s*(?:\(|（)?输入'
     capture: {unit: Vac, op: nominal}
   - id: input_frequency_range
+    # variant: false —— 抽出的频率范围写在**标题行**(「交流输入频率 45~66Hz」)
+    # 而不是备注文本里, 而 eid 的标签只从备注文本抽。它进 eid 永远命中不了,
+    # 打 variant: true 会让人以为「区分频率档位」这件事已经做了。
+    variant: false
     role: input
     kind: input_frequency
     pattern: '交流输入频率[^\n]{0,20}?(\d+)\s*[~～]\s*(\d+)\s*Hz'
@@ -92,6 +103,10 @@ rules:
   # 输入电压分档 -> 档内功率上限 (SR-1204 "90~176Vac: 400W; 176~286Vac: 600W")。
   # 这类分档决定了限值在什么输入条件下成立, 是产测设定激励的关键, 必须切出来。
   - id: input_voltage_tier_power
+    # variant: false —— 抽到的是「输入电压分档 -> 输出功率」这个**映射关系**
+    # (90~176Vac:400W; 176~286Vac:600W), 不是单个测试点。同一档内多个电压值
+    # 判据相同, 把它当档位标签会让同档的不同电压长出不同 eid, 而它们本该是同一条。
+    variant: false
     role: input
     kind: input_voltage
     pattern: '(\d+)\s*[~～]\s*(\d+)\s*Vac\s*[:：]\s*(\d+)\s*W'
@@ -121,31 +136,37 @@ rules:
   - id: load_pct_of_max
     role: input
     kind: load
+    variant: true
     pattern: '(\d+)\s*%\s*最大输出负载'
     capture: {group: 1, unit: "% 最大输出"}
   - id: load_half
     role: input
     kind: load
+    variant: true
     pattern: '半载(?:输出)?'
     capture: {value: 50, unit: "% 额定"}
   - id: load_no_load
     role: input
     kind: load
+    variant: true
     pattern: '输出?空载'
     capture: {value: 0, unit: "% 额定"}
   - id: load_range
     role: input
     kind: load
+    variant: true
     pattern: '(\d+)\s*[~～]\s*(\d+)\s*%\s*负载(?:范围)?内?'
     capture: {group: 1, group2: 2, unit: "% 额定"}
   - id: load_step
     role: input
     kind: load
+    variant: true
     pattern: '\d+%\s*[~～]\s*\d+%\s*[~～]\s*\d+\s*负载变化'
     capture: {unit: "% 额定, 阶跃"}
   - id: load_slew_rate
     role: input
     kind: load
+    variant: true
     pattern: '负载突变速率\s*[≤<]\s*([\d.]+)\s*A\s*/\s*uS'
     capture: {group: 1, unit: A/uS, op: "≤"}
   - id: cap_load_crmode
@@ -162,26 +183,34 @@ rules:
   - id: temp_bound
     role: input
     kind: temperature
+    variant: true
     pattern: '温度\s*([≥≤])\s*(-?\d+)\s*℃'
     capture: {group: 2, op_from: 1, unit: "℃"}
   - id: temp_relaxed_limit
     role: input
     kind: temperature
+    variant: false
+    # **故意不打 variant**: 这是「低温放宽」子条件, 不是该行的激励点。一条纹波判据
+    # 在常温与低温各测一次时, 区分两行的是 temp_bound, 不是这条; 把它打进 eid 会让
+    # eid 带上一个「放宽」子条件, 读起来像这条判据只在低温下成立。
     pattern: '温度\s*≤\s*(-?\d+)\s*°?\s*时[，,]?\s*[^。\n]{0,30}?放宽'
     capture: {group: 1, op: "≤", unit: "℃"}
   - id: temp_ambient
     role: input
     kind: temperature
+    variant: true
     pattern: '常温'
     capture: {value: 25, unit: "℃", op: nominal}
   - id: duty_long_term
     role: input
     kind: duty
+    variant: true
     pattern: '长期工作'
     capture: {value: 长期}
   - id: duty_short_term
     role: input
     kind: duty
+    variant: true
     pattern: '短期工作'
     capture: {value: 短期}
 
