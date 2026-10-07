@@ -2,8 +2,7 @@
 Description=ATERag 知识门面 (Semantica Explorer UI + /aterag REST)
 Documentation=file:///opt/aterag/README.md
 # 只依赖本机 PostgreSQL: 图谱在**启动时**从种子 JSON + PG 现读现建
-# (aterag.kg.graph), 没有任何外部网络依赖, 也不需要 Qdrant
-# (检索与物化都不走它; ADR-014 已把 Qdrant 移出默认路径)。
+# (aterag.kg.graph), 没有任何外部网络依赖; legacy Qdrant 已随 ADR-014 整体移除。
 After=network-online.target postgresql.service
 Wants=network-online.target
 

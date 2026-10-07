@@ -282,7 +282,10 @@ async def vector_search(
         ORDER BY embedding <=> %s::vector
         LIMIT %s
     """
-    params += [literal, literal, top_k]
+    # SQL 中 %s 出现顺序: 打分向量 -> (section_path/category/priority 过滤) ->
+    # 排序向量 -> LIMIT。过滤参数先于本轮追加, 必须插在两个向量占位符之间,
+    # 直接 += 会把 '4.3.1' 这类字符串绑到 ::vector 上 (实测炸过)。
+    params = [literal, *params, literal, top_k]
     with psycopg.connect(dsn) as conn:
         rows = conn.execute(sql, params).fetchall()
     out = []

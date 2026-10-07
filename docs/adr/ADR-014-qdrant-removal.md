@@ -1,8 +1,25 @@
 # ADR-014 移除 Qdrant，检索层改由 pgvector 承担
 
-- 状态: Accepted
+- 状态: **Completed** (2026-10-07 全量落地；此前为 Accepted 中间态)
 - 日期: 2026-10-03
 - 关联: V6.0 §1.7（ADR-002）、§2.3、§3.5.2；ADR-013
+
+## 落地记录 (2026-10-07)
+
+W3 验收完成后按本 ADR 全量执行：
+
+- 代码：`Settings.retrieval_backend` / `qdrant_url` / `qdrant_collection` 字段删除；
+  `checks.py` 的 Qdrant 健康检查删除；`pipeline.py` 的 `_legacy_qdrant` /
+  `_ensure_qdrant_legacy` / `legacy_vector_search` 删除；`rag/service.py` 的
+  Qdrant 分支删除（RagService 保留，检索只走 `retrieval/hybrid.py`）。
+- 依赖：`qdrant-client` 自 `pyproject.toml` 移除；`mypy` 豁免清单同步。
+- 部署：`deploy/qdrant/`、`deploy/native/03-qdrant.sh` 删除；
+  `docker-compose.yml` 的 qdrant 服务删除；板卡上 qdrant systemd 服务停用 +
+  `/opt/qdrant`（二进制与数据盘）删除；`.env` 的 `QDRANT_*` 行清除。
+- 过时验证脚本：`verify_lightrag_deployed.py` 删除（其验证的 lightrag_vdb_*
+  表与 lightrag_vectors 集合均已是历史形态，超集由 `verify_board_rag.py` 承担）。
+- 回归：`tests/test_retrieval_hybrid.py` 的不变量测试升级为「Settings 不得
+  残留 qdrant/retrieval_backend 字段」——第二套向量存储从配置层就构造不出来。
 
 ## 背景
 

@@ -7,12 +7,26 @@ products:
     domain: power
     doc_number: ''
     doc_version: B
+    # 主轨: 未标注轨的参数行(输出功率/整机效率/待机功耗/开机输出延迟/负载均流度)
+    # 按主轨计 —— 2026-10-07 用户裁定。依据: SR-1203 输出电流 -54V 轨 11.1A
+    # vs 3.45V 轨 0.1A, -54V 是承载功率的那条, 也是带轨标注行里最多的(19 vs 15)。
+    # **不自动推断**: 主轨是型号事实, 猜错会把判据挂到不存在的输出路上且不报错。
+    main_rail: '-54V'
+    # PG schema 名: 板卡上实际部署且装了 31 张表的 schema。型号键推导出的
+    # pw_pa601_d54a 与它不是一回事 —— 现算会在同一型号名下再建一个空 schema,
+    # 数据分散两处(红线 4 拒绝的双源)。必须声明, 不提供推断兜底。
+    schema: pw_sr5400
   PN1000-48A:
     domain: power
     doc_number: ''
     doc_version: A
+    # 主轨: SR-PN1000-48A-1200 额定输出电压 -48V, SR-1203 输出电流 20.8A, 全表
+    # 只有这一条轨。同模板不同型号主轨不同, 所以这一项必须逐型号声明。
+    main_rail: '-48V'
   PN2000-24A:
     domain: power
     doc_number: ''
     doc_version: A
+    # 章节树与中兴系模板完全不同 (2 技术要求 vs 4.3 功能/性能要求),
+    # 必须绑定自己的档案, 否则抽取抛 SectionKeywordNotFound (方案 §11.4 A19)
     doc_profile: power_spec_cn_pn2000

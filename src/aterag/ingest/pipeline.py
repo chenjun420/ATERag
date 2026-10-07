@@ -28,8 +28,6 @@ from aterag.registry import Registry
 from aterag.retrieval import hybrid
 from aterag.retrieval.hybrid import chunk_uid
 
-CHUNK_COLLECTION = "aterag_chunks"
-
 
 # ---------------- PG 实体/分块存储 ----------------
 def ensure_pg_schema(dsn: str) -> None:
@@ -183,83 +181,15 @@ def ensure_chunk_key_column(conn) -> None:
     )
 
 
-# ---------------- legacy Qdrant 后端 (ADR-014 待删, 默认不走) ----------------
-def _legacy_qdrant(settings: Settings):
-    """惰性构造 Qdrant 客户端。
-
-    **必须惰性**: 模块级 ``from qdrant_client import ...`` 就是 ADR-014:37
-    禁止的破损态 —— 板卡上 Qdrant 已经不存在, 留着模块级 import 会让整个
-    ingest 在 import 期就炸。改成惰性后, 没装 qdrant 也不影响默认路径。
-    """
-    try:
-        from qdrant_client import QdrantClient
-    except ImportError as exc:  # pragma: no cover - 仅 legacy 分支
-        raise RuntimeError(
-            "retrieval_backend=qdrant 需要安装 qdrant-client。默认路径是 pgvector, "
-            "不需要 Qdrant(ADR-014: 单一 PostgreSQL 存储底座)。"
-        ) from exc
-    return QdrantClient(url=settings.qdrant_url, timeout=60)
-
-
-def _ensure_qdrant_legacy(client, dim: int) -> None:
-    """legacy 集合/索引初始化。搬运自原实现, 仅 qdrant 后端使用。"""
-    from qdrant_client.models import (
-        Distance,
-        KeywordIndexParams,
-        PayloadSchemaType,
-        VectorParams,
-    )
-
-    existing = {c.name for c in client.get_collections().collections}
-    if CHUNK_COLLECTION not in existing:
-        client.create_collection(
-            collection_name=CHUNK_COLLECTION,
-            vectors_config=VectorParams(size=dim, distance=Distance.COSINE),
-        )
-    for field, tenant in (
-        ("workspace_id", True),
-        ("section_path", False),
-        ("category", False),
-        ("priority", False),
-        ("layer", False),
-    ):
-        idx = client.get_collection(CHUNK_COLLECTION).payload_schema or {}
-        if field not in idx:
-            client.create_payload_index(
-                collection_name=CHUNK_COLLECTION,
-                field_name=field,
-                field_schema=KeywordIndexParams(type=PayloadSchemaType.KEYWORD, is_tenant=tenant),
-            )
+# ---------------- legacy Qdrant 后端已随 ADR-014 移除 ----------------
+# 以前这里有两个"待删的 legacy"函数(惰性构造 Qdrant 客户端 + legacy 集合/索引
+# 初始化)和一条检索原语 `legacy_vector_search`。W3 验收完成, 现按 ADR-014
+# 的决策一并删除: 检索层由 retrieval/hybrid.py 承担(pgvector + BM25 + RRF),
+# 单一 PostgreSQL 存储底座, 不存在第二套向量存储。
 
 
 def _index_chunks(settings: Settings, workspace: str, chunks: list[dict], vectors, *, replace: bool) -> None:
-    """把 chunk 与向量落库。默认 pgvector; ``retrieval_backend=qdrant`` 走 legacy。"""
-    if settings.retrieval_backend == "qdrant":
-        import uuid
-
-        from qdrant_client.models import FieldCondition, Filter, MatchValue, PointStruct
-
-        client = _legacy_qdrant(settings)
-        _ensure_qdrant_legacy(client, len(vectors[0]) if len(vectors) else 0)
-        if replace:
-            client.delete(
-                collection_name=CHUNK_COLLECTION,
-                points_selector=Filter(
-                    must=[FieldCondition(key="workspace_id", match=MatchValue(value=workspace))]
-                ),
-            )
-        ns = uuid.UUID("a7e2c9d4-0000-4000-8000-1a7e00000001")
-        points = [
-            PointStruct(
-                id=str(uuid.uuid5(ns, f"{workspace}:{i}")),
-                vector=v,
-                payload=c,
-            )
-            for i, (c, v) in enumerate(zip(chunks, vectors))
-        ]
-        for i in range(0, len(points), 256):
-            client.upsert(collection_name=CHUNK_COLLECTION, points=points[i : i + 256])
-        return
+    """把 chunk 与向量落库 (pgvector)。"""
     hybrid.save_chunk_vectors(settings.postgres_dsn, chunks, vectors)
 
 
@@ -461,50 +391,9 @@ async def build_domain(
 
 
 
-# 检索原语已搬到 ``retrieval.hybrid``(BM25 与 RRF 本来就是纯 PG, 与 Qdrant 无关;
-# 向量那一路从 Qdrant 换成 pgvector)。这里保留同名再导出, 免得砸掉 scripts/ 下
+# 检索原语已搬到 ``retrieval.hybrid``(BM25 与 RRF 本来就是纯 PG;
+# 向量那一路是 pgvector)。同名再导出保留, 免得砸掉 scripts/ 下
 # 直接 import 它们的验证脚本(verify_search / validate_pa601 等)。
-async def legacy_vector_search(
-    client,
-    embed: EmbeddingClient,
-    workspaces: list[str],
-    query: str,
-    top_k: int,
-    section_path: str | None = None,
-    category: str | None = None,
-    priority: str | None = None,
-) -> list[dict]:
-    """Qdrant 预过滤向量检索 —— ADR-014 待删的 legacy 路径。
-
-    只在 ``retrieval_backend="qdrant"`` 时走。默认路径是
-    ``retrieval.hybrid.vector_search``(pgvector), 不需要 Qdrant。
-    过滤语义与 pgvector 版逐项一致, 保证换后端不换检索策略。
-    """
-    from qdrant_client.models import FieldCondition, Filter, MatchValue
-
-    must = [FieldCondition(key="workspace_id", match=MatchValue(value=w)) for w in workspaces]
-    if section_path:
-        must.append(FieldCondition(key="section_path", match=MatchValue(value=section_path)))
-    if category and category != "all":
-        must.append(FieldCondition(key="category", match=MatchValue(value=category)))
-    if priority and priority != "all":
-        must.append(FieldCondition(key="priority", match=MatchValue(value=priority)))
-
-    vec = (await embed.embed([query]))[0]
-    result = client.query_points(
-        collection_name=CHUNK_COLLECTION,
-        query=vec,
-        query_filter=Filter(must=must),
-        limit=top_k,
-        with_payload=True,
-    )
-    out = []
-    for p in result.points:
-        d = dict(p.payload or {})
-        d["score"] = p.score
-        out.append(d)
-    return out
-
 
 bm25_search = hybrid.bm25_search
 rrf_fuse = hybrid.rrf_fuse

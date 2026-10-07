@@ -36,7 +36,6 @@ def _entities(md: str, model_id: str = "SYNTH-X"):  # noqa: ANN201
 
     for k, v in (
         ("POSTGRES_DSN", "postgresql://x:x@127.0.0.1/x"),
-        ("QDRANT_URL", "http://127.0.0.1:6333"),
         ("LLM_BASE", "http://x/v1"),
         ("LLM_MODEL", "x"),
         ("EMBED_BASE", "http://x"),

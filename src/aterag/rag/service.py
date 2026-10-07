@@ -58,21 +58,6 @@ class RagService:
         self.settings = settings
         self.registry = registry
         self.embed = embed
-        # legacy Qdrant 客户端**惰性**构造: 模块级 import 就是 ADR-014:37 禁止的
-        # 破损态(板卡上没有 Qdrant, 留着会让 import 期就炸)。
-        self._qdrant = None
-
-    def _qdrant_client(self):
-        if self._qdrant is None:
-            try:
-                from qdrant_client import QdrantClient
-            except ImportError as exc:  # pragma: no cover - 仅 legacy 分支
-                raise RuntimeError(
-                    "retrieval_backend=qdrant 需要安装 qdrant-client; "
-                    "默认 pgvector 不需要(ADR-014)"
-                ) from exc
-            self._qdrant = QdrantClient(url=self.settings.qdrant_url, timeout=60)
-        return self._qdrant
 
     # ---------- workspace 装配 ----------
     def resolve(self, query: str, model_id: str | None):
@@ -101,28 +86,16 @@ class RagService:
         workspaces = [w for w, _ in ws_layers]
         layer_map = {w: layer for w, layer in ws_layers}
 
-        if self.settings.retrieval_backend == "qdrant":
-            await pipeline.legacy_vector_search(
-                self._qdrant_client(),
-                self.embed,
-                workspaces,
-                query,
-                top_k=top_k * 2,
-                section_path=section_path,
-                category=category,
-                priority=priority,
-            )
-        else:
-            vector_hits = await hybrid.vector_search(
-                self.settings.postgres_dsn,
-                self.embed,
-                workspaces,
-                query,
-                top_k=top_k * 2,
-                section_path=section_path,
-                category=category,
-                priority=priority,
-            )
+        vector_hits = await hybrid.vector_search(
+            self.settings.postgres_dsn,
+            self.embed,
+            workspaces,
+            query,
+            top_k=top_k * 2,
+            section_path=section_path,
+            category=category,
+            priority=priority,
+        )
         # 未知 workspace 标 "unregistered" 而非 "model": 混入未注册 workspace 的命中
         # 会被误当成型号事实, 污染溯源分层与隔离判断
         hybrid.tag_layers(vector_hits, layer_map)

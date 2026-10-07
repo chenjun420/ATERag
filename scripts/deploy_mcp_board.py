@@ -77,7 +77,7 @@ def board_env(local_env: str) -> str:
         txt,
         flags=re.MULTILINE,
     )
-    txt = re.sub(r"^(QDRANT_URL=https?://)[^:/]+", r"\g<1>127.0.0.1", txt, flags=re.MULTILINE)
+    # QDRANT_URL 改写已随 ADR-014 移除 legacy Qdrant 一并删除
     txt = re.sub(r"^(MCP_HOST=).*$", r"\g<1>0.0.0.0", txt, flags=re.MULTILINE)
     txt = re.sub(r"^(MCP_PORT=).*$", rf"\g<1>{PORT}", txt, flags=re.MULTILINE)
     if "MCP_PORT=" not in txt:

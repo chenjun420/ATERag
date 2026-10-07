@@ -1,8 +1,8 @@
 [Unit]
 Description=ATERag MCP Server (streamable-http, 产测规格书 RAG)
 Documentation=file:///opt/aterag/README.md
-# 依赖板卡本机存储栈: PG (LightRAG 四类存储 + 业务表) 与 Qdrant (业务向量)
-After=network-online.target postgresql.service qdrant.service
+# 依赖板卡本机存储栈: PG (LightRAG 四类存储 + 业务表) 与PG (LightRAG 四类存储 + 业务表)
+After=network-online.target postgresql.service
 Wants=network-online.target
 
 [Service]

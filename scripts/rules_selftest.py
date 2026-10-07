@@ -14,7 +14,6 @@ import sys
 sys.path.insert(0, "src")
 
 os.environ.setdefault("POSTGRES_DSN", "postgresql://x:x@127.0.0.1/x")
-os.environ.setdefault("QDRANT_URL", "http://127.0.0.1:6333")
 os.environ.setdefault("LLM_BASE", "http://x/v1")
 os.environ.setdefault("LLM_MODEL", "x")
 os.environ.setdefault("EMBED_BASE", "http://x")

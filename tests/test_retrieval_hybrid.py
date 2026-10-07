@@ -201,45 +201,18 @@ def test_ensure_vector_schema_rejects_unknown_dimension() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_pgvector_is_the_default_backend() -> None:
-    """默认必须是 pgvector —— ADR-002「全栈统一 PostgreSQL」。
+def test_pgvector_is_the_only_backend() -> None:
+    """后端只有 pgvector —— ADR-002「全栈统一 PostgreSQL」。
 
-    qdrant 只作为显式 opt-in 的 legacy 保留(ADR-014 待删)。
+    ADR-014 的中间态(legacy qdrant 显式 opt-in)已随 W3 验收完成而删除:
+    Settings 不再有 `retrieval_backend` 与 `qdrant_*` 字段, 第二套向量存储
+    从配置层就构造不出来。
     """
+    import inspect
+
     from aterag.config import Settings
 
-    s = Settings(postgres_dsn="postgresql://u:p@h:5432/d")
-    assert s.retrieval_backend == "pgvector"
+    sig = inspect.signature(Settings)
+    dead = [p for p in sig.parameters if "qdrant" in p.lower() or p == "retrieval_backend"]
+    assert not dead, f"Settings 残留 legacy 字段: {dead}"
 
-
-def test_qdrant_backend_gives_actionable_error() -> None:
-    """选了 legacy 但没装 qdrant-client 时, 报错要能指路, 不能是裸 ImportError。"""
-    proc = _run(
-        """
-        import sys
-        sys.path.insert(0, "src")
-
-        class Block:
-            def find_spec(self, name, path=None, target=None):
-                if name == "qdrant_client" or name.startswith("qdrant_client."):
-                    raise ImportError("blocked: " + name)
-                return None
-
-        sys.meta_path.insert(0, Block())
-
-        from aterag.config import Settings
-        from aterag.registry import Registry
-        from aterag.models import EmbeddingClient
-        from aterag.rag.service import RagService
-
-        s = Settings(postgres_dsn="postgresql://u:p@127.0.0.1:5432/d",
-                     retrieval_backend="qdrant")
-        svc = RagService(s, Registry.load(s), EmbeddingClient(s))
-        try:
-            svc._qdrant_client()
-            print("NOERROR")
-        except RuntimeError as e:
-            print("RUNTIME:", "pgvector" in str(e))
-        """
-    )
-    assert "RUNTIME: True" in proc.stdout, f"报错不够可读:\n{proc.stdout}\n{proc.stderr}"

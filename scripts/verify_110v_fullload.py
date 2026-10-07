@@ -52,7 +52,6 @@ async def main() -> int:
         "输入工作电压范围 110Vac 标称输入电压",
         model_id="PA601-D54A",
         section_path="4.3.1",
-        use_graph=False,
     )
     all_in = all(x["section_path"].startswith("4.3.1") for x in r["results"])
     check("A-检索结果全部来自 4.3.1", bool(r["results"]) and all_in, f"hits={len(r['results'])}")

@@ -12,7 +12,6 @@
 | Apache AGE | release/PG17/1.7.0 | 源码编译 | - |
 | pg_textsearch | v1.4.0 | 源码编译 | - |
 | zhparser + SCWS 1.2.3 | 最新 | 源码编译 | - |
-| Qdrant | v1.19.1 | 官方 aarch64-musl 静态二进制 + systemd | 6333 |
 
 ## 执行步骤 (按序)
 
@@ -33,8 +32,6 @@ bash ~/aterag/native/02-build-extensions.sh
 #   find . -name '*.so' | xargs -I{} sudo install -m755 {} $PKGLIB/
 #   find . -name '*.control' -o -name '*.sql' | xargs -I{} sudo install -m644 {} /usr/share/postgresql/17/extension/
 
-# 3. Qdrant (aarch64 静态二进制 + systemd)
-bash ~/aterag/native/03-qdrant.sh
 
 # 4. PG 配置 (shared_preload=age,pg_textsearch) + 数据库/角色/扩展初始化
 bash ~/aterag/native/04-init-postgres.sh
@@ -53,8 +50,6 @@ sudo -u postgres psql -d power_specs -c "GRANT SELECT ON ag_catalog.ag_graph TO 
 ## 服务管理
 
 ```bash
-sudo systemctl status postgresql qdrant
-sudo systemctl restart postgresql qdrant
 sudo systemctl disable --now podman-restart  # 如存在
 ```
 
@@ -66,13 +61,11 @@ psql "postgresql://powerspec:<password>@localhost:5432/power_specs" -c "SELECT e
 curl -s http://localhost:6333/healthz
 
 # 开发机 (Windows)
-python deploy/qdrant/init_tenant.py   # QDRANT_VECTOR_SIZE=<实测维度> (当前 1024)
 ```
 
 ## 数据目录
 
 - PG 数据: `/var/lib/postgresql/17/main` (系统默认)
-- Qdrant 数据: `/opt/qdrant/storage`
 - 部署脚本: `~/aterag/native/`
 
 ## 已知注意点
@@ -85,7 +78,6 @@ python deploy/qdrant/init_tenant.py   # QDRANT_VECTOR_SIZE=<实测维度> (当�
    PostgreSQL 折叠大写标识符会报 `关系不存在`; 代码用 `lrag_workspace()` 归一化
 6. pg_textsearch BM25 检索需显式 `to_bm25query('查询', '索引名')`, 隐式探测对带
    WHERE 的查询不生效
-7. Qdrant 点 ID 必须确定性 (uuid5); Python `hash()` 跨进程加盐会导致重导追加重复
 8. 阿里云 MaaS embedding 走 DashScope 原生协议, 实测维度 1024 (qwen3.7-text-embedding)
 9. AGE 权限: powerspec 需 ag_catalog USAGE + ag_graph/ag_label SELECT (脚本 05 已含)
 10. Semantica 语义图 (`power_rules`) 与 LightRAG 独立: `powerspec` 非超级用户, **不能 `LOAD 'age'`**,
@@ -148,7 +140,6 @@ journalctl -u aterag-mcp -f        # 或直接 tail /var/log/aterag/mcp.err
 ## ATERag 应用层部署与验证 (存储栈就绪后)
 
 ```bash
-# 一键全链路部署 (预检 -> Qdrant -> 双型号规格书 -> Semantica -> LightRAG 领域库)
 python scripts/deploy_board.py       # 期望 DEPLOY_BOARD PASS 6/6
 
 # 启动 MCP 服务 (需先启动, 图导航服务态验证依赖它)

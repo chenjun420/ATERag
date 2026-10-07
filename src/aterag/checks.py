@@ -2,17 +2,14 @@
 
 禁止本地降级 —— 任一依赖失败即拒绝启动, 并输出可执行的诊断信息。
 
-**Qdrant 只在它是检索后端时才检查**
---------------------------------------
-实测(板卡 192.168.5.25): Qdrant 根本没部署(6333 关闭), 而
-``retrieval_backend`` 默认已是 ``pgvector``(ADR-014 W0 把 Qdrant 移出默认
-路径, 检索走 ``retrieval/hybrid.py`` 的 pgvector + BM25 + RRF)。原先这里
-无条件检查 Qdrant, 于是 ``health`` tool 在板卡上**恒返回** ``ok: false``。
+**检索后端只有 pgvector 一种**
+--------------------------------
+检索层由 ``retrieval/hybrid.py`` 承担(pgvector + BM25 + RRF), 单一
+PostgreSQL 存储底座(ADR-002/ADR-014: legacy Qdrant 已随 W3 验收移除,
+连同它的部署脚本与集合初始化)。这里只查 pgvector 的真实可用性:
 
-一个恒失败的健康检查比没有健康检查更糟: 它会被忽略, 于是**真的**故障
-(PG 连不上、LLM 挂了)也跟着一起被忽略。所以按后端开关 —— 默认路径改为查
-``_check_pgvector``: chunk 表在不在、向量列在不在、有多少行带向量。
-只查「``vector`` 扩展装着」是不够的: 表没建或列缺失时检索会**静默返回空
+``_check_pgvector`` 查的是 chunk 表在不在、向量列在不在、有多少行带向量,
+而不只是「``vector`` 扩展装着」—— 表没建或列缺失时检索会**静默返回空
 结果**, 扩展全绿而功能不可用。
 """
 
@@ -38,11 +35,7 @@ class CheckResult:
 async def run_all_checks(settings: Settings) -> list[CheckResult]:
     results: list[CheckResult] = []
     results.append(_check_postgres(settings))
-    if settings.retrieval_backend == "qdrant":
-        results.extend(await _check_qdrant(settings))
-    else:
-        # 默认后端是 pgvector, 所以查的是它 —— 而不是查一个根本没部署的 Qdrant。
-        results.append(_check_pgvector(settings))
+    results.append(_check_pgvector(settings))
     results.extend(await _check_llm(settings))
     results.extend(await _check_embedding(settings))
     results.append(_check_extraction_configs(settings))
@@ -166,56 +159,6 @@ def _check_pgvector(settings: Settings) -> CheckResult:
             )
     except Exception as e:  # noqa: BLE001
         return CheckResult("pgvector", False, f"connect failed: {e}")
-
-
-async def _check_qdrant(settings: Settings) -> list[CheckResult]:
-    import httpx
-
-    results: list[CheckResult] = []
-    try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            resp = await client.get(f"{settings.qdrant_url.rstrip('/')}/healthz")
-            results.append(
-                CheckResult("qdrant", resp.status_code == 200, f"healthz HTTP {resp.status_code}")
-            )
-            resp = await client.get(
-                f"{settings.qdrant_url.rstrip('/')}/collections/{settings.qdrant_collection}"
-            )
-            if resp.status_code == 200:
-                payload = resp.json()["result"]
-                idx = payload.get("payload_schema") or {}
-                has_tenant = "workspace_id" in idx
-                results.append(
-                    CheckResult(
-                        "qdrant_tenant_index",
-                        has_tenant,
-                        "workspace_id tenant index "
-                        + (
-                            "present"
-                            if has_tenant
-                            else "missing (run deploy/qdrant/init_tenant.py)"
-                        ),
-                    )
-                )
-                results.append(
-                    CheckResult(
-                        "qdrant_vector_dim",
-                        True,
-                        f"vectors={payload.get('vectors_count')}, "
-                        f"size={(payload.get('config', {}).get('params', {}).get('vectors', {}) or {}).get('size', '?')}",
-                    )
-                )
-            else:
-                results.append(
-                    CheckResult(
-                        "qdrant_tenant_index",
-                        False,
-                        f"collection {settings.qdrant_collection} HTTP {resp.status_code}",
-                    )
-                )
-    except Exception as e:  # noqa: BLE001
-        results.append(CheckResult("qdrant", False, f"connect failed: {e}"))
-    return results
 
 
 async def _check_llm(settings: Settings) -> list[CheckResult]:

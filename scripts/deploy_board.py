@@ -20,7 +20,6 @@ from aterag.registry import Registry
 
 STEPS: list[tuple[str, str]] = [
     ("板卡存储栈预检", "scripts/board_preflight.py"),
-    ("Qdrant 租户索引初始化", "deploy/qdrant/init_tenant.py"),
     ("PA601-D54A 规格书导入", "scripts/ingest_pa601.py"),
     ("PN1000-48A 规格书导入", "scripts/ingest_pn1000.py"),
     ("Semantica 语义图同步", "scripts/sync_semantica.py"),

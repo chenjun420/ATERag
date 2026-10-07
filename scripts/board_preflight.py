@@ -9,8 +9,6 @@ from __future__ import annotations
 
 import sys
 import time
-import urllib.error
-import urllib.request
 
 import psycopg
 
@@ -33,18 +31,9 @@ def main() -> int:
     print(f"=== 板卡预检 {host} ===")
     results: list[bool] = []
 
-    # ---- Qdrant ----
-    t0 = time.time()
-    try:
-        with urllib.request.urlopen(f"{s.qdrant_url}/healthz", timeout=10) as r:
-            body = r.read().decode().strip()
-        results.append(
-            check("Qdrant /healthz", r.status == 200, f"{body} ({time.time() - t0:.2f}s)")
-        )
-    except (urllib.error.URLError, OSError) as e:
-        results.append(check("Qdrant /healthz", False, str(e)[:80]))
-
     # ---- PG 连接 (带重试, 板卡偶发 10013) ----
+    # Qdrant 检查已随 ADR-014 移除: 检索层由 pgvector 承担, 第二套向量存储
+    # 不再是部署前提。
     conn = None
     for attempt in range(1, 6):
         try:

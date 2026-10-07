@@ -29,7 +29,6 @@ _spec.loader.exec_module(deploy)
 
 BASE_ENV = """\
 POSTGRES_DSN=postgresql://u:p@192.168.5.25:5432/power_specs
-QDRANT_URL=https://192.168.5.25:6333
 EMBED_BASE=https://ark.cn-beijing.volces.com/api/plan/v3
 EMBED_MODEL=doubao-embedding-vision
 EMBED_API_KEY=ark-test
@@ -132,8 +131,6 @@ class TestEndpointRewritesStillWork:
         monkeypatch.setattr(deploy, "EMBED_DIM", 1024)
         out = deploy.board_env(_write_env(tmp_path, BASE_ENV + "EMBED_DIM=1024\n"))
         assert "@127.0.0.1:5432" in out
-        # QDRANT_URL 已随 ADR-014 移除, 这条改写是留给旧 .env 的死代码;
-        # 只验证它若存在时不会把内网地址带上线。
         assert "192.168.5.25" not in out, "存储端点必须改回环, 否则依赖网卡地址"
         # 嵌入端点是公网服务, 不能一起改回环
         assert "ark.cn-beijing.volces.com" in out

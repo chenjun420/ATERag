@@ -36,13 +36,7 @@ dependencies = [
     # 审计时按「无 import」判为未使用是错的, 记录在此以免下次再犯。
     "asyncpg>=0.30",
     "pgvector>=0.5.0",
-    # 计划移除: qdrant-client —— 违反 ADR-002(全栈统一 PostgreSQL)。
-    # 当前 rag/service.py 仍以 Qdrant 为检索主路径, 直接删会让 import 期就炸;
-    # 按 ADR-014 决策 3 分两步走: 先建 retrieval/hybrid.py 走 pgvector,
-    # 新路径过验收后再删 rag/service.py 与本行。现在删会产出破损中间态。
-    # 目标删除时点: A-W3 完成后。届时一并删 deploy/native/03-qdrant.sh 与
-    # deploy/qdrant/。
-    "qdrant-client>=1.12",
+    # qdrant-client 已随 ADR-014 移除(检索层由 pgvector 承担, A-W3 验收完成)。
     # 模型适配 (OpenAI 兼容 / DashScope 原生)
     "httpx>=0.28",
     # 配置
@@ -156,7 +150,6 @@ module = [
     "ortools.*",
     "pgvector.*",
     "asyncpg.*",
-    "qdrant_client.*",
     "mcp.*",
 ]
 ignore_missing_imports = true
