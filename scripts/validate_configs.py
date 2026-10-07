@@ -62,6 +62,41 @@ def parse_one(path: Path) -> tuple[bool, str]:
     return True, ""
 
 
+SEED_PATH = Path("data/seed/power_domain_seed.json")
+
+
+def load_knowledge_scopes() -> dict[str, str]:
+    """种子 -> ``{知识实体 id: scope}``。
+
+    只收**带 scope 的**实体: ``scope`` 是 ``PRODUCTION_PRACTICE`` 独有的属性。
+    普通概念(``VOUT_RIPPLE`` 之类)没有 —— 它们是「被测量」而不是「怎么测」,
+    不该被这条门禁管。
+
+    属性读**记录顶层**而不是 ``properties`` 子字典: 种子的 ``_props()`` 把属性
+    扁平化进记录本身(``kg/pg_source.py`` 产出的形状与之一致), 并没有
+    ``properties`` 键。写成 ``rec["properties"]["scope"]`` 会静默返回空 dict,
+    于是门禁永远「没发现任何 scope 实体」而看起来一直通过。
+
+    种子缺失时返回空 dict, 由调用方跳过该段校验: 离线环境可能还没生成种子,
+    那时报「知识悬空」是它无法判断的错。代价是这道门禁**只在有种子的环境生效**
+    —— CI 与本地开发都满足, 所以它不会退化成「看起来一直在跑」的假门禁。
+    """
+    if not SEED_PATH.exists():
+        return {}
+    import json
+
+    data = json.loads(SEED_PATH.read_text(encoding="utf-8"))
+    out: dict[str, str] = {}
+    for rec in data.get("records") or []:
+        if not isinstance(rec, dict):
+            continue
+        scope = rec.get("practice_scope")
+        rid = rec.get("id")
+        if scope and rid:
+            out[str(rid)] = str(scope)
+    return out
+
+
 def main() -> int:
     files: list[Path] = []
     for g in CONFIG_GLOBS:
@@ -168,8 +203,18 @@ def main() -> int:
             rules = RuleBook.load(str(tm_path))
             scen = ScenarioRules.load()
             aliases = QuantityAliasBook.load("config/quantity_aliases.yaml")
+            # 域知识 <-> 方法库 的双向校验需要种子的 scope 映射。**在这里传**而不是
+            # 让 validate_extraction_configs 自己去读文件: 校验本体保持「纯函数、零
+            # IO」(见本模块 docstring), 而这道门禁必须真的被喂到数据 —— 传 None
+            # 会让它整段跳过, 那就成了「看起来一直在跑」的假门禁。
+            kscopes = load_knowledge_scopes()
             if book is not None and pb_roles:
-                validate_extraction_configs(pb, book, mbook, rules, scen, aliases)
+                validate_extraction_configs(
+                    pb, book, mbook, rules, scen, aliases, kscopes or None
+                )
+                n_kb = len(kscopes)
+                n_cond = sum(1 for v in kscopes.values() if v == "condition")
+                n_ref = len({k for m in mbook.methods for k in m.knowledge_ref})
                 print(
                     f"  {PASS} 业界方法库: {len(mbook.methods)} 条方法 / "
                     f"{len(mbook.templates)} 个描述模板 / {len(rules.rules)} 条评估规则 / "
@@ -180,6 +225,16 @@ def main() -> int:
                     f"       交叉校验通过: kind ⊆ 词表({len(book.kinds)}), "
                     f"role ∈ 档案({len(pb_roles)})"
                 )
+                if n_kb:
+                    print(
+                        f"       工艺知识接线: {n_ref}/{n_cond} 条 practice_scope=condition "
+                        f"已被方法引用 (工艺级 {n_kb - n_cond} 条不由方法消费, 属本分)"
+                    )
+                else:
+                    problems.append(
+                        "data/seed/power_domain_seed.json 缺失或无 scope 属性 -> "
+                        "工艺知识接线门禁未生效 (先跑 scripts/build_seed_data.py)"
+                    )
             else:
                 problems.append("test_methods.yaml 交叉校验跳过: 词表或档案角色未就绪")
         except Exception as e:  # noqa: BLE001

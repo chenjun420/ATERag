@@ -115,6 +115,18 @@ class TestPendingReview:
         neither can be trusted to tell them what is untested.
         """
         out = json.loads(await S.list_pending_review(model_id=model_id))
+        # 基准**必须留在 82**, 即使 ATERag 侧现在算出 91。
+        #
+        # 2026-10-07: 方法库引入 ``applies: always``(测法类工艺知识对双边齐全的
+        # 条件也生效)后, ATERag 侧 draft 子句 82 -> 91, 多出的 9 条全是按测法
+        # 要求挂上的 measurement_setup(其中 psu_output_four_wire_sense 13 条、
+        # psu_efficiency_measurement 8 条、psu_dynamic_response 6 条)。
+        #
+        # 把这里改成 91 会让本测试**变绿**, 而 ATEStudio 侧仍持 82 —— 数字好看
+        # 而两侧其实不一致, 正是这个测试存在的理由。留 82 让它 skip, 是如实报告
+        # 「跨仓契约待同步」。
+        #
+        # 待办: ATEStudio 的同名断言需在**同一次变更**里改成 91。
         studio_pending = 82  # PA601 baseline, asserted in ATEStudio's suite too
         if out["count"] != studio_pending:
             pytest.skip(

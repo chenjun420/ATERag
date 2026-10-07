@@ -83,6 +83,7 @@ def validate_extraction_configs(
     assess_rules: RuleBook,
     scenario_rules: ScenarioRules | None = None,
     quantity_aliases: QuantityAliasBook | None = None,
+    practice_scopes: Mapping[str, str] | None = None,
 ) -> None:
     """校验六份配置互相自洽, 不自洽就抛 (fail-closed)。
 
@@ -93,7 +94,11 @@ def validate_extraction_configs(
        引用档案没有的 ``role`` 则永远匹配不上;
     3. 评估规则与场景规则: 引用不存在的方法 id / 维度名;
     4. 标题别名表: 别名跨事实互斥 —— 同一条标题认两个事实时结果只取决于遍历
-       顺序, 那是巧合不是判断 (§11.7)。
+       顺序, 那是巧合不是判断 (§11.7);
+    5. 方法库 <-> 域知识: 双向, 这是「判据引用了工艺要求」可查的落点。
+       前向 —— 方法引用的知识实体不存在, 则依据悬空(红线 5);
+       **反向 —— ``scope=condition`` 的知识没被任何方法引用, 即「入库了但没人用」**。
+       反向才是关键: 前向只防拼错, 反向才驱动补齐工作。
     """
     problems: list[str] = []
 
@@ -120,11 +125,36 @@ def validate_extraction_configs(
                 problems.append(f"profile {name} 的 {sec}.limits_to 非法: {pr.limits_to}")
 
     roles = role_vocabulary(profiles)
+    # 域知识 <-> 方法库 的双向校验。
+    #
+    # ``practice_scopes`` 是「知识实体 id -> practice_scope」, 由调用方从种子 JSON
+    # 读出。传 None 则**整段跳过**而不是判定通过: 离线环境可能没有种子, 那时报
+    # 「知识悬空」是它无法判断的错。但反过来说, 在拿得到种子的环境里传 None 就是
+    # 静默放弃这道门禁 —— 所以 ``scripts/validate_configs.py`` 必须真的传进来。
+    known_knowledge = frozenset(practice_scopes or ())
     try:
-        methods.validate(patterns.kinds, roles)
+        methods.validate(patterns.kinds, roles, known_knowledge)
         methods.validate_templates()
     except ValueError as e:
         problems.append(f"test_methods.yaml: {e}")
+    if practice_scopes:
+        # 反向: practice_scope=condition 的知识必须被至少一个方法引用。
+        #
+        # 这条是任务②的核心断言 —— 它把「工艺知识入库但没人用」从一句口头判断变成
+        # 一条会失败的校验。practice_scope 正是为此存在: 产线工艺级(老化/AQL/MSA/
+        # 工装)没被引用是本分, 混进这个集合报出来就全是噪声, 于是门禁被架空。
+        referenced = {kr for m in methods.methods for kr in m.knowledge_ref}
+        orphans = sorted(
+            kid for kid, sc in practice_scopes.items()
+            if sc == "condition" and kid not in referenced
+        )
+        if orphans:
+            problems.append(
+                f"域知识有 {len(orphans)} 条 practice_scope=condition 的工艺知识未被任何"
+                f"方法引用: {orphans} —— 它们决定「判据怎么测」, 不接线就等于入库了但不起"
+                "作用; 要么在 test_methods.yaml 里加方法并写 knowledge_ref, "
+                "要么把 practice_scope 改成 process (确属产线工艺级)"
+            )
     try:
         assess_rules.validate()
     except ValueError as e:

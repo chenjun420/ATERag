@@ -199,12 +199,17 @@ methods:
   - id: isolation_ground_bonding
     basis: "IEC 62368-1 / GB 4943.3 绝缘与接地连续性常规测量"
     verdict: numeric
+    applies: always
+    knowledge_ref: [MEAS_HIPOT_ISOLATE_LOAD, MEAS_GROUND_IMPEDANCE_METHOD]
     applies_to:
       title_pattern: '接地|共地|绝缘|金属化孔|保护地'
     supplies: input
     conditions:
       - kind: measurement_setup
-        value: {note: "绝缘电阻测试: 加规定试验电压并计时, 判据按安规限值"}
+        value:
+          note: "绝缘电阻测试: 加规定试验电压并计时, 判据按安规限值"
+          isolate_before_hypot: "耐压前须断开负载与通信线 —— 否则通信隔离器件上的弱电回路会被加上试验电压, 既损件又读不出真实绝缘"
+          pe_measure: "接地阻抗测保护接地端子到机壳的通路, 断开其它 PE 连接避免并联分流(不断开则读数偏小, 不合格的保护接地会通过)"
     measurement_hints:
       note: "具体试验电压/限值属安规域, 不在电气性能表内, 需引用安规测试项"
 
@@ -212,6 +217,8 @@ methods:
   - id: protection_cross_check
     basis: "行业通行: 单路保护激励时其余各路输出应保持正常"
     verdict: numeric
+    applies: always
+    knowledge_ref: [MEAS_PROTECT_SWEEP_LOAD]
     applies_to:
       title_pattern: '保护时|保护.*相关|各路输出之间|交叉'
     supplies: input
@@ -220,6 +227,9 @@ methods:
         value: {note: "对被测轨施加过压/过流/短路激励至保护动作"}
       - kind: load
         value: {note: "其余各轨置额定负载, 监测其输出是否维持"}
+      - kind: measurement_setup
+        value: {note: "保护动作值须扫描逼近而非单点验证: 逐步加大激励直到动作, 取实际动作点与规格书阈值比较",
+                note_single_point: "只测「刚好动作」的那一点无法区分阈值漂移与随机动作"}
 
   # ============ 失效隔离 (4.3.5 "单模块故障不能影响系统") ============
   # 这类条目的判据是"其余部分照常工作", 属故障注入 + 交叉观测, 与绝缘测量无关。
@@ -252,10 +262,37 @@ methods:
       - kind: load
         value: {note: "该条目的额定负载档 (满载或条目自身规定档位)"}
 
+  # ============ 输出电压/电流: 四线制取样 ============
+  # 与 psu_efficiency_measurement 分开: 那条约束的是**仪器**(功率分析仪而非万用表),
+  # 只对功率量成立; 这条约束的是**取样点** —— 输出电压/电流必须直接取在 DUT 端子
+  # 上, 不能经工装大电流通路。
+  #
+  # 量级依据(MEAS_EFFICIENCY_KELVIN_4WIRE): 引线与工装通路电阻 1~10mΩ, 在
+  # -54V 轨 11.1A 下就是 11~111mV, 而输出电压整定值容差只有 ±0.8V —— 通路电阻
+  # 造成的偏差与容差同量级, 且**同向叠加在每台产品上**, 不会因多测几台而抵消。
+  # 规格书 SR-1200 备注已写明「测试点为输出端子与PCB连接部」, 即本条的前提。
+  - id: psu_output_four_wire_sense
+    basis: "开关电源输出量测量通行做法: 电压/电流在 DUT 端子处 Kelvin 取样, 不经工装大电流铜排"
+    verdict: numeric
+    applies: always
+    knowledge_ref: [MEAS_EFFICIENCY_KELVIN_4WIRE]
+    applies_to:
+      title_pattern: '输出电压|输出电流|稳压|稳流|整定值'
+    supplies: input
+    conditions:
+      - kind: measurement_setup
+        value:
+          sense_point: "电压探针落在 DUT 输出端子(与 PCB 连接部), 不落在工装接线端"
+          note: "四线制: 取样线与供电大电流通路分开; 大电流路径用粗截面铜排并开检测线(remote sense)直达 DUT"
+
   # ============ 输出特性: 输入电压扫描 (效率/稳压类需跨档) ============
   - id: psu_output_vin_sweep
     basis: "产测通行: 效率/功率因数/稳压精度需在输入电压低/标/高三点验证"
     verdict: numeric
+    # knowledge_ref 挂在**这条**而不是 psu_efficiency_measurement: 那条补的是测法,
+    # 这条补的是激励点(三个边界)。同一判据要同时成立, 而触发条件不同。
+    # 保持 on_missing_side —— 三个边界是激励前提, 不是测法; 规格书已给定时不该覆盖。
+    knowledge_ref: [PRACT_POWER_STEP_VOLTAGE_BOUNDARY]
     applies_to:
       title_pattern: '效率|功率因数|稳压|稳度|精度'
     supplies: input
@@ -267,9 +304,16 @@ methods:
 
   # ============ 纹波/杂音: 补测量条件 ============
   # 规格书多只给"峰峰值 ≤ 50mV", 不写带宽与探头条件 —— 不补则测量值不可比。
+  #
+  # applies: always —— 20MHz 限带与弹簧地是**测法**而不是**前提**: 无论规格书
+  # 有没有把激励条件写全, 按别的带宽测出来的纹波都与这条判据不可比。标成
+  # always 之前它只在「缺侧」的行上生效, 于是同一判据的不同档位测法不同
+  # (实测 SR-1211 的 -54V 行无 measurement_setup、3.45V 行有)。
   - id: psu_ripple_measurement
     basis: "开关电源纹波测量通行规范: 20MHz 带宽限制 + 弹簧地/短接地线探头"
     verdict: numeric
+    applies: always
+    knowledge_ref: [MEAS_RIPPLE_BW_LIMIT, MEAS_RIPPLE_DECOUPLING_CAP]
     applies_to:
       title_pattern: '纹波|杂音|杂讯|峰峰值|波纹'
     supplies: input
@@ -279,12 +323,42 @@ methods:
       - kind: load
         value: {note: "满载 (纹波随负载上升, 满载为最恶劣点)"}
       - kind: measurement_setup
-        value: {bandwidth_hz: 20000000, probe: "弹簧地或接地线<2cm, 避免长地线引入假纹波"}
+        value:
+          bandwidth_hz: 20000000
+          probe: "弹簧地或接地线<2cm, 避免长地线引入假纹波"
+          decoupling_cap: "10uF 电解 + 0.1uF 瓷介 并接在被测点, 抵消探针引线电感"
+
+  # ============ 效率/功率: 四线制 + 功率分析仪 ============
+  # 单独一条而不并进 psu_output_vin_sweep: 后者补的是**激励**(在哪些电压点、
+  # 哪些负载点测), 这条补的是**测法**。两者对同一条效率判据都成立但缺一不可。
+  #
+  # 实测 SR-1210 整机效率 3 个档位**全部**没有 measurement_setup —— 而效率恰是
+  # 最依赖测法的一类: 600W/54V(11.1A) 下引线电阻 10mΩ 就是 111mV, 而效率判据
+  # 本身只有 86~93% 量级; 且 P=UIcosφ 里的相位误差会直接进效率读数。
+  - id: psu_efficiency_measurement
+    basis: "开关电源效率测量通行做法: Kelvin 四线制取样 + 功率分析仪同步采样电压电流"
+    verdict: numeric
+    applies: always
+    knowledge_ref: [MEAS_EFFICIENCY_KELVIN_4WIRE, MEAS_POWER_ANALYZER_NOT_DMM]
+    applies_to:
+      title_pattern: '效率|功率因数|输入电流|输出功率'
+    supplies: input
+    conditions:
+      - kind: measurement_setup
+        value:
+          note: "四线制(Kelvin): 电压取样线与电流取样线分开走线, 电压探针直接落在 DUT 输出端子上, 不经工装大电流通路"
+          instrument: "功率分析仪(同步采样电压电流), 不用万用表分测再算"
+          phase_correction: "测量前做通道相位校正; 高频段按仪器规格加算精度"
 
   # ============ 动态响应: 补负载阶跃激励 ============
   - id: psu_dynamic_response
     basis: "产测通行: 动态响应在负载阶跃 (25%/50%/75%/100%) 下用示波器观测"
     verdict: numeric
+    # always 的理由同纹波: 触发方式与采样覆盖是**怎么测**, 与规格书有没有把
+    # 激励写全无关。实测动态类 5 条里 2 条缺 measurement_setup —— 缺的正是那些
+    # 规格书已给出激励的档位, 于是同一判据两档的触发设置不同。
+    applies: always
+    knowledge_ref: [MEAS_DYNAMIC_LOAD_SLEW]
     applies_to:
       title_pattern: '动态响应|恢复时间|过冲|瞬态|跌落响应'
     supplies: input
@@ -292,7 +366,8 @@ methods:
       - kind: load
         value: {note: "负载阶跃: 25%→50%→75%→100% 与反向阶跃"}
       - kind: measurement_setup
-        value: {note: "示波器触发于负载变化沿, 采样覆盖响应全过程"}
+        value: {note: "示波器触发于负载变化沿, 采样覆盖响应全过程",
+              slew_rate: "阶跃斜率须远快于被测响应时间(业界 10~20A/uS); 斜率慢于被测量时控制环全程跟随, 判据平凡通过"}
     measurement_hints:
       note: "过冲/恢复时间判据以规格书为准, 本方法只补激励与观测方式"
 
@@ -300,6 +375,8 @@ methods:
   - id: psu_timing_measurement
     basis: "产测通行: 时序/上升时间/延迟在输入电压跌落或负载变化沿触发观测"
     verdict: numeric
+    applies: always
+    knowledge_ref: [PRACT_SOE_TIME_RESOLUTION]
     applies_to:
       title_pattern: '上升时间|下降时间|时序|延时|延迟|启动时间|关机时间'
     supplies: input
@@ -307,7 +384,9 @@ methods:
       - kind: input_voltage
         value: {note: "额定输入; 启动类用输入跌落沿触发, 关机类用输入撤除触发"}
       - kind: measurement_setup
-        value: {note: "同时观测输入与输出, 判据取 10%~90% 电平点 (规格书另有定义以其为准)"}
+        value:
+          note: "同时观测输入与输出, 判据取 10%~90% 电平点 (规格书另有定义以其为准)"
+          time_resolution: "采样间隔须显著小于被判据(如恢复时间 200uS 则取 <=10uS); 否则测的是仪器插值而非产品行为"
 
   # ============ 输入特性: 默认响应判据 ============
   # 4.3.1 输入特性给了限值 (属激励域), 响应侧是"产品应正常工作" —— 补显式判据。

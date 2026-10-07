@@ -531,6 +531,7 @@ def build_authoritative_terms() -> list[dict[str, Any]]:
 PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     {
         "id": "MEAS_RIPPLE_BW_LIMIT",
+        "practice_scope": "condition",
         "name": "纹波测试带宽限制",
         "en": "ripple measurement bandwidth limit",
         "practice": (
@@ -550,6 +551,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "MEAS_RIPPLE_DECOUPLING_CAP",
+        "practice_scope": "condition",
         "name": "纹波测试并联电容",
         "en": "ripple test decoupling capacitor",
         "practice": (
@@ -565,6 +567,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "MEAS_EFFICIENCY_KELVIN_4WIRE",
+        "practice_scope": "condition",
         "name": "效率测试四线制采样",
         "en": "four-wire Kelvin sampling for efficiency",
         "practice": (
@@ -586,6 +589,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "MEAS_DYNAMIC_LOAD_SLEW",
+        "practice_scope": "condition",
         "name": "动态响应负载跳变",
         "en": "dynamic load step for transient response",
         "practice": (
@@ -605,6 +609,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "MEAS_PROTECT_SWEEP_LOAD",
+        "practice_scope": "condition",
         "name": "保护动作值扫描",
         "en": "protection trip point sweep",
         "practice": (
@@ -623,6 +628,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "MEAS_HIPOT_ISOLATE_LOAD",
+        "practice_scope": "condition",
         "name": "耐压测试断开负载与通信",
         "en": "disconnect load and comms before hipot",
         "practice": (
@@ -642,6 +648,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "PRACT_BURN_IN_GRADED",
+        "practice_scope": "process",
         "name": "老化筛选(梯度工况)",
         "en": "burn-in screening with graded load",
         "practice": (
@@ -663,6 +670,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "PRACT_BURN_IN_4WIRE",
+        "practice_scope": "process",
         "name": "老化供电电压一致性",
         "en": "burn-in supply voltage uniformity",
         "practice": (
@@ -680,6 +688,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "PRACT_REGRESSION_AFTER_BURNIN",
+        "practice_scope": "process",
         "name": "老化后复测",
         "en": "post burn-in retest",
         "practice": (
@@ -696,6 +705,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "PRACT_SAMPLING_AQL",
+        "practice_scope": "process",
         "name": "抽样检验方案",
         "en": "AQL sampling plan",
         "practice": (
@@ -717,6 +727,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "PRACT_CALIBRATION_TRACEABILITY",
+        "practice_scope": "process",
         "name": "量具校准与溯源",
         "en": "instrument calibration and traceability",
         "practice": (
@@ -737,6 +748,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "PRACT_SOE_TIME_RESOLUTION",
+        "practice_scope": "condition",
         "name": "保护动作时间测量",
         "en": "protection action time measurement",
         "practice": (
@@ -756,6 +768,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "PRACT_POWER_STEP_VOLTAGE_BOUNDARY",
+        "practice_scope": "condition",
         "name": "三边界电压扫描",
         "en": "three-boundary voltage sweep",
         "practice": (
@@ -775,6 +788,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     # ---------------- 工装侧(2026-10-07 第二批 websearch) ----------------
     {
         "id": "FIXTURE_TEST_POINT_AND_ALIGNMENT",
+        "practice_scope": "process",
         "name": "测点与对位防呆",
         "en": "test point and poka-yoke alignment",
         "practice": (
@@ -794,6 +808,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "FIXTURE_PROBE_LIFE_AND_RESISTANCE",
+        "practice_scope": "process",
         "name": "探针寿命与接触电阻",
         "en": "probe life and contact resistance",
         "practice": (
@@ -815,6 +830,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "FIXTURE_RELAY_MATRIX_ROUTING",
+        "practice_scope": "process",
         "name": "继电器矩阵信号路由",
         "en": "relay matrix signal routing",
         "practice": (
@@ -834,6 +850,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "FIXTURE_MULTI_STATION_ISOLATION",
+        "practice_scope": "process",
         "name": "多工位隔离与接地",
         "en": "multi-station isolation and grounding",
         "practice": (
@@ -854,6 +871,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "FIXTURE_FOUR_WIRE_CONTACT_RES",
+        "practice_scope": "process",
         "name": "工装通路压降校核",
         "en": "fixture path voltage drop verification",
         "practice": (
@@ -876,6 +894,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "MEAS_POWER_ANALYZER_NOT_DMM",
+        "practice_scope": "condition",
         "name": "功率测量用功率分析仪",
         "en": "use power analyzer not DMM for power",
         "practice": (
@@ -896,6 +915,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "MEAS_GROUND_IMPEDANCE_METHOD",
+        "practice_scope": "condition",
         "name": "接地阻抗测量方法",
         "en": "protective earth impedance measurement",
         "practice": (
@@ -914,6 +934,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "PRACT_THERMAL_CHAMBER_SAMPLING",
+        "practice_scope": "process",
         "name": "温度试验为抽样项",
         "en": "thermal chamber testing is sampled",
         "practice": (
@@ -932,6 +953,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "PRACT_SAFETY_INTERLOCK_DISCHARGE",
+        "practice_scope": "process",
         "name": "高压测试安全联锁与放电",
         "en": "safety interlock and discharge",
         "practice": (
@@ -951,6 +973,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "PRACT_MSA_GRR_ACCEPTANCE",
+        "practice_scope": "process",
         "name": "测量系统分析 GRR 接受准则",
         "en": "MSA gauge R&R acceptance criteria",
         "practice": (
@@ -972,6 +995,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "PRACT_GUARDBAND_CONFORMANCE",
+        "practice_scope": "process",
         "name": "保护带与符合性判定",
         "en": "guardband and conformance decision",
         "practice": (
@@ -992,6 +1016,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "PRACT_TRACE_METADATA_REQUIRED",
+        "practice_scope": "process",
         "name": "测试数据元数据",
         "en": "required test metadata for traceability",
         "practice": (
@@ -1011,6 +1036,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "PRACT_BATCH_RELEASE_AND_REWORK",
+        "practice_scope": "process",
         "name": "批次放行与返修闭环",
         "en": "batch release and rework loop",
         "practice": (
@@ -1029,6 +1055,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "PRACT_SPC_TREND_ON_BURNIN",
+        "practice_scope": "process",
         "name": "老化期趋势监控",
         "en": "trend monitoring during burn-in",
         "practice": (
@@ -1047,6 +1074,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
     },
     {
         "id": "PRACT_POWER_MARGIN_AND_TIERED_PROTECTION",
+        "practice_scope": "process",
         "name": "仪器功率余量与分级保护",
         "en": "instrument power margin and tiered protection",
         "practice": (
@@ -1082,6 +1110,16 @@ def build_production_practice() -> list[dict[str, Any]]:
 
     ``why_wrong_without_it`` 是本模块的核心: 每条都要能回答「不这么做会测错成
     什么样」。只写做法不写后果, 读者无从判断能不能省这一步。
+
+    **``practice_scope`` 区分两层, 不能省**: 这批知识不是同一层次的东西。纹波 20MHz 限带
+    决定的是「这条判据怎么测」, 应当被 ``config/test_methods.yaml`` 的方法引用
+    并落进 ``condition_vector``; 而老化梯度/AQL 抽样/MSA GRR 管的是「产线怎么
+    管控」, 落进某条判据的测试条件里属于错位 —— 一条判据的测试条件里出现「按
+    1.5 倍余量选仪器」是噪声, 不是条件。
+
+    有了 ``practice_scope``, 知识层才能被反向断言: ``scope=condition`` 的必须被至少一个
+    方法引用, 否则就是「入库了但没人用」; 而 ``practice_scope=process`` 的没被引用是本分。
+    没有它只能报一个总计数, 而计数驱动不了任何补齐工作。
     """
     out: list[dict[str, Any]] = []
     for spec in PRODUCTION_PRACTICE:
@@ -1111,6 +1149,10 @@ def build_production_practice() -> list[dict[str, Any]]:
                         "spec_example": spec["spec_example"],
                         "synonyms": [spec["name"], spec["en"]],
                         "tags": list(spec["tags"]),
+                        # condition = 这条知识决定「判据怎么测」, 应被方法引用;
+                        # process = 管「产线怎么管控」, 不进 condition_vector。
+                        # 见本函数 docstring: 没有它反向门禁只能报计数。
+                        "practice_scope": spec["practice_scope"],
                         "authority_kind": "unverified",
                         "authority_ref": None,
                         # 0.5 = 有多方业界共识但无可引条款; 见函数 docstring。

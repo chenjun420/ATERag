@@ -62,6 +62,12 @@ class ConditionClause:
     # 补齐该子句的方法 id (test_methods.yaml 的 methods[].id), 空=非补齐产物。
     # 溯源用: 让"这条常识前提出自哪条标准"可查, 评审时可核对依据。
     method_ref: str = ""
+    # 该方法背后的域知识实体 id (种子里 practice_scope=condition 的那些)。
+    #
+    # 与 method_ref 分开存而不是让下游反查方法库: 方法是可执行步骤, 知识是
+    # 「不这么做会测错成什么样」的说明。落库后要能只凭一行就答出「这条判据依赖
+    # 哪些工艺要求」, 而不至于为了查它去 JOIN 配置。
+    knowledge_ref: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

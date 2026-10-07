@@ -44406,6 +44406,7 @@
         "纹波",
         "测量方法"
       ],
+      "practice_scope": "condition",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -44551,6 +44552,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "condition",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -44609,6 +44625,7 @@
         "纹波",
         "工装"
       ],
+      "practice_scope": "condition",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -44754,6 +44771,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "condition",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -44813,6 +44845,7 @@
         "四线制",
         "工装"
       ],
+      "practice_scope": "condition",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -44959,6 +44992,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "condition",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -45017,6 +45065,7 @@
         "动态响应",
         "电子负载"
       ],
+      "practice_scope": "condition",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -45162,6 +45211,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "condition",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -45220,6 +45284,7 @@
         "保护",
         "电子负载"
       ],
+      "practice_scope": "condition",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -45365,6 +45430,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "condition",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -45423,6 +45503,7 @@
         "安规",
         "工装"
       ],
+      "practice_scope": "condition",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -45568,6 +45649,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "condition",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -45626,6 +45722,7 @@
         "老化",
         "产线工艺"
       ],
+      "practice_scope": "process",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -45771,6 +45868,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "process",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -45830,6 +45942,7 @@
         "工装",
         "供电"
       ],
+      "practice_scope": "process",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -45976,6 +46089,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "process",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -46034,6 +46162,7 @@
         "老化",
         "复测"
       ],
+      "practice_scope": "process",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -46179,6 +46308,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "process",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -46237,6 +46381,7 @@
         "抽样",
         "产线工艺"
       ],
+      "practice_scope": "process",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -46382,6 +46527,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "process",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -46441,6 +46601,7 @@
         "MSA",
         "数据"
       ],
+      "practice_scope": "process",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -46587,6 +46748,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "process",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -46645,6 +46821,7 @@
         "时间",
         "SOE"
       ],
+      "practice_scope": "condition",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -46790,6 +46967,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "condition",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -46848,6 +47040,7 @@
         "输入",
         "可编程源"
       ],
+      "practice_scope": "condition",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -46993,6 +47186,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "condition",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -47052,6 +47260,7 @@
         "防呆",
         "测点"
       ],
+      "practice_scope": "process",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -47198,6 +47407,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "process",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -47257,6 +47481,7 @@
         "接触电阻",
         "维护"
       ],
+      "practice_scope": "process",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -47403,6 +47628,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "process",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -47462,6 +47702,7 @@
         "继电器",
         "切换"
       ],
+      "practice_scope": "process",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -47608,6 +47849,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "process",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -47667,6 +47923,7 @@
         "隔离",
         "接地"
       ],
+      "practice_scope": "process",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -47813,6 +48070,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "process",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -47872,6 +48144,7 @@
         "压降",
         "四线制"
       ],
+      "practice_scope": "process",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -48018,6 +48291,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "process",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -48077,6 +48365,7 @@
         "效率",
         "相位校正"
       ],
+      "practice_scope": "condition",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -48223,6 +48512,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "condition",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -48282,6 +48586,7 @@
         "接地",
         "浮地"
       ],
+      "practice_scope": "condition",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -48428,6 +48733,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "condition",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -48487,6 +48807,7 @@
         "环境",
         "节拍"
       ],
+      "practice_scope": "process",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -48633,6 +48954,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "process",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -48692,6 +49028,7 @@
         "安全",
         "联锁"
       ],
+      "practice_scope": "process",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -48838,6 +49175,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "process",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -48897,6 +49249,7 @@
         "GRR",
         "判定"
       ],
+      "practice_scope": "process",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -49043,6 +49396,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "process",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -49102,6 +49470,7 @@
         "保护带",
         "不确定度"
       ],
+      "practice_scope": "process",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -49248,6 +49617,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "process",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -49307,6 +49691,7 @@
         "元数据",
         "MES"
       ],
+      "practice_scope": "process",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -49453,6 +49838,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "process",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -49512,6 +49912,7 @@
         "批次",
         "返修"
       ],
+      "practice_scope": "process",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -49658,6 +50059,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "process",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -49717,6 +50133,7 @@
         "趋势",
         "SPC"
       ],
+      "practice_scope": "process",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -49863,6 +50280,21 @@
             }
           ]
         },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "process",
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
         "credibility": {
           "property_name": "credibility",
           "value": 0.5,
@@ -49922,6 +50354,7 @@
         "保护",
         "余量"
       ],
+      "practice_scope": "process",
       "authority_kind": "unverified",
       "credibility": 0.5,
       "provenance_kind": "websearch_verified_practice",
@@ -50056,6 +50489,21 @@
             "保护",
             "余量"
           ],
+          "sources": [
+            {
+              "document": "",
+              "section": null,
+              "line": null,
+              "confidence": 0.5,
+              "metadata": {
+                "authority_kind": "unverified"
+              }
+            }
+          ]
+        },
+        "practice_scope": {
+          "property_name": "practice_scope",
+          "value": "process",
           "sources": [
             {
               "document": "",

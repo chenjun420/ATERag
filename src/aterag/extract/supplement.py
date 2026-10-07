@@ -52,6 +52,32 @@ ROLE_ANY_EXCEPT = "any_except_other"  # 适用于 role_exclude 之外的任何�
 #: 方法条目里 supplies 的合法取值。
 SUPPLIES_SIDES = ("input", "output")
 
+#: 方法的适用时机。
+#:
+#: ``on_missing_side`` —— 只在对应侧为空时补(默认)。这是「补缺侧」的语义:
+#:    已有条件说明规格书把前提写清楚了, 再补一遍只会与原文争。
+#:
+#: ``always`` —— 对**每一条**匹配的条件都挂上, 哪怕双边齐全。这类方法挂的是
+#:    ``measurement_setup``: 它回答的是「这个量怎么测」而不是「测的前提是什么」。
+#:
+#: 为什么必须区分: 2026-10-07 实测 PA601 95 条条件里 85 条双边齐全, 而补齐层对
+#: 它们直接 ``continue`` —— 于是测法类工艺知识(纹波 20MHz 限带、四线制、触发采样)
+#: 只落在缺侧的那 10 条上。后果是**同一条判据的不同档位测法不同**:
+#: SR-1211「动态响应恢复时间」的 -54V 行无 ``measurement_setup``、3.45V 行有;
+#: SR-1210「整机效率」3 行全无(而效率恰恰最依赖四线制与功率分析仪)。
+#: 测量值因此不可比 —— 这正是「工艺知识入库但不起作用」的实质形态。
+APPLIES_MISSING_SIDE = "on_missing_side"
+APPLIES_ALWAYS = "always"
+APPLIES_WHEN = (APPLIES_MISSING_SIDE, APPLIES_ALWAYS)
+
+#: ``applies: always`` 的方法必须挂至少一条 ``measurement_setup``。
+#:
+#: 这条约束是安全阀: 「总是生效」若允许挂 ``input_voltage``/``load``, 就会把
+#: 「额定输入+额定负载」撒到每一条 output_spec 条件上, 包括那些规格书已给出更
+#: 具体激励的条目 —— 那会把精确前提覆盖成泛用前提。限死为「只约束怎么测」后,
+#: always 的作用域天然安全。
+ALWAYS_REQUIRES_SETUP = "measurement_setup"
+
 #: 描述模板允许的占位符。
 _PLACEHOLDER_RE = re.compile(r"\{([a-z_]+)\}")
 
@@ -83,6 +109,10 @@ class TestMethod:
         applies_to: 匹配条件 kinds/title_pattern/standard_cites/role
         supplies: 补哪一侧 (input | output)
         conditions: 待补条件清单
+        applies: 适用时机 on_missing_side | always(见 :data:`APPLIES_WHEN`)。
+        knowledge_ref: 本方法对应的域知识实体 id(种子里 ``scope=condition`` 的那些)。
+            把「方法」与「知识」连起来 —— 方法是可执行的步骤, 知识是「不这么做会测错
+            成什么样」的说明, 两者分开存才不至于让其中一份悄悄漂移而无人察觉。
     """
 
     id: str
@@ -98,6 +128,13 @@ class TestMethod:
     measurement_hints: dict[str, Any] = field(default_factory=dict)
     #: role 是否在 YAML 里被显式声明 (决定它算兜底还是具体选择器)
     _role_declared: bool = False
+    applies: str = APPLIES_MISSING_SIDE
+    knowledge_ref: tuple[str, ...] = ()
+
+    @property
+    def is_always(self) -> bool:
+        """是否对每条匹配条件都生效(与「只补缺侧」相对)。"""
+        return self.applies == APPLIES_ALWAYS
 
     def matches(self, cond: TestCondition) -> bool:
         """按 kinds > title_pattern > standard_cites > role 的顺序匹配。
@@ -214,6 +251,10 @@ class MethodBook:
                     role_exclude=str(ap.get("role_exclude", "")),
                     _role_declared="role" in ap,
                     measurement_hints=dict(m.get("measurement_hints") or {}),
+                    applies=str(m.get("applies", APPLIES_MISSING_SIDE)),
+                    knowledge_ref=tuple(
+                        str(x) for x in (m.get("knowledge_ref") or ())
+                    ),
                 )
             )
         templates = tuple(
@@ -232,14 +273,22 @@ class MethodBook:
         self,
         known_kinds: frozenset[str],
         known_roles: frozenset[str] = frozenset(),
+        known_knowledge: frozenset[str] = frozenset(),
     ) -> None:
-        """交叉校验: 引用的 kind 必须在封闭词表内, role 必须是合法角色名。
+        """交叉校验: 引用的 kind 必须在封闭词表内, role 必须是合法角色名,
+        ``knowledge_ref`` 必须指向真实存在的域知识实体。
 
         这是两仓对接的第一道闸 —— 方法库引用了词表外的 kind, 下游 ATEStudio
         就无法为它翻译出执行动作, 而这类断裂在运行期只会表现为"用例缺步骤"。
 
         known_roles 由调用方从 doc_profiles.yaml 的 section_priors 传入 (不在此处
         硬编码角色表 —— 角色是文档档案的知识, 换文档就该换档案, 不是换代码)。
+
+        known_knowledge 由调用方从种子 JSON 传入, 取 ``scope=condition`` 的实体 id。
+        传空集合则**跳过**该检查而不是判定通过: 离线环境可能还没有种子, 那时不该
+        报「知识引用悬空」这种它无法判断的错。但反过来, 在有种子的环境里传空集合
+        就是**静默放弃**检查, 所以调用方(:func:`validate_extraction_configs`)在
+        拿得到种子时必须真的传进来。
         """
         bad: list[str] = []
         for m in self.methods:
@@ -271,6 +320,27 @@ class MethodBook:
                     f"methods[{m.id}] 同时声明了具体选择器与 role: {ROLE_ANY}, "
                     "意图不明确 (命中靠选择器, 未命中靠 any 兜底) -> 请显式二选一"
                 )
+            if m.applies not in APPLIES_WHEN:
+                bad.append(
+                    f"methods[{m.id}].applies 非法: {m.applies} "
+                    f"(应为 {' / '.join(APPLIES_WHEN)})"
+                )
+            elif m.is_always and not any(
+                c.kind == ALWAYS_REQUIRES_SETUP for c in m.conditions
+            ):
+                # 少了这条, `applies: always` 会把「额定输入+额定负载」撒到每条
+                # output_spec 上, 覆盖掉规格书给出的更具体前提。
+                bad.append(
+                    f"methods[{m.id}] 声明 applies: {APPLIES_ALWAYS} 但没有 "
+                    f"{ALWAYS_REQUIRES_SETUP} 条件 —— always 只允许约束「怎么测」, "
+                    "不许覆盖激励前提(否则精确前提会被泛用前提顶替)"
+                )
+            for kr in m.knowledge_ref:
+                if known_knowledge and kr not in known_knowledge:
+                    bad.append(
+                        f"methods[{m.id}].knowledge_ref 引用了不存在的知识实体: {kr} "
+                        "(种子缺该 id, 或 scope 不是 condition)"
+                    )
             for k in m.kinds:
                 if k not in known_kinds:
                     bad.append(f"methods[{m.id}].applies_to.kinds 引用词表外的 kind: {k}")
@@ -337,6 +407,22 @@ class MethodBook:
                 best, best_rank = m, rank
         return best
 
+    def pick_always(self, cond: TestCondition, side: str) -> TestMethod | None:
+        """取最精确的「总是生效」方法 (``applies: always``), 无则 None。
+
+        与 :meth:`pick` 同一套 specificity 排序 —— 否则两条 always 方法同时匹配时
+        谁生效取决于配置里的书写顺序, 那不是判断。
+        """
+        best: TestMethod | None = None
+        best_rank = -1
+        for m in self.methods:
+            if not m.is_always or m.supplies != side or not m.matches(cond):
+                continue
+            rank = m.specificity(cond)
+            if rank > best_rank:
+                best, best_rank = m, rank
+        return best
+
     def methods_for_side(self, side: str) -> tuple[TestMethod, ...]:
         """声明补某侧的方法 (按文件顺序), 供 CLI --list 展示。"""
         return tuple(m for m in self.methods if m.supplies == side)
@@ -391,6 +477,7 @@ def _clause_from(m: TestMethod, mc: MethodCondition) -> ConditionClause:
         confidence=CONF_PROPOSED,
         status=STATUS_DRAFT,
         method_ref=m.id,
+        knowledge_ref=m.knowledge_ref,
     )
 
 
@@ -405,17 +492,64 @@ def _review_for_curve(cond: TestCondition, m: TestMethod) -> ReviewItem:
     )
 
 
+def _mark(cond: TestCondition, flag: str) -> None:
+    if flag not in cond.flags:
+        cond.flags.append(flag)
+
+
+def _attach_setup(
+    cond: TestCondition, m: TestMethod, side: str, result: SupplementResult
+) -> bool:
+    """只挂方法的 ``measurement_setup`` 子句, 返回是否真的新增。
+
+    ``applies: always`` 的语义**只覆盖这一条**: 「这个量怎么测」与「测的前提
+    是否已写清」无关, 所以它对每条匹配条件都成立; 而同一方法里的
+    ``input_voltage``/``load`` 仍是「缺侧才补」—— 否则「额定输入+满载」会撒到
+    每一条匹配条件上, 把规格书给出的更具体激励顶替成泛用值。
+    """
+    target = cond.input_conditions if side == "input" else cond.output_conditions
+    if any(c.kind == ALWAYS_REQUIRES_SETUP for c in target):
+        return False
+    mc = next(
+        (x for x in m.conditions if x.kind == ALWAYS_REQUIRES_SETUP),
+        None,
+    )
+    if mc is None:
+        return False
+    target.append(_clause_from(m, mc))
+    _mark(cond, f"method:{m.id}")
+    _mark(cond, "supplemented")
+    result.hits[m.id] = result.hits.get(m.id, 0) + 1
+    return True
+
+
 def supplement_conditions(
     conditions: Sequence[TestCondition],
     book: MethodBook,
 ) -> SupplementResult:
-    """对单边条件按业界方法补齐缺侧 (原地追加, 返回补过的需求)。
+    """补齐缺侧, 并为**每条**条件挂上适用的测法约束 (原地追加)。
 
-    已双边齐全的需求不进入本流程; 已有子句不改动 —— 本层只做"补", 不做"改"。
+    两趟, 顺序不能换:
+
+    1. ``applies: always`` 的测法方法 —— 对每条匹配条件都挂 ``measurement_setup``,
+       不看缺不缺侧。这趟修的是「工艺知识入库但不起作用」: 实测 PA601 95 条条件里
+       85 条双边齐全, 补齐层对它们直接跳过, 于是同一条判据的不同档位测法不同
+       (SR-1211 的 -54V 行无 measurement_setup、3.45V 行有), 读数不可比。
+    2. 缺侧补齐 —— 按 ``specificity`` 取最精确的方法补空着的那一侧。
+
+    **缺侧在第 1 趟之前快照**, 否则第 1 趟挂上的 ``measurement_setup`` 会让那一侧
+    「看起来已填」, 于是规格书没声明激励的那一侧被误判为已填 —— 补齐层自己的产物
+    反过来抑制了它该做的事。
+
+    已有子句不改动 —— 本层只做"补", 不做"改"。
     """
     result = SupplementResult()
     for cond in conditions:
         missing = _missing_sides(cond)
+        for side in SUPPLIES_SIDES:
+            m = book.pick_always(cond, side)
+            if m is not None and _attach_setup(cond, m, side, result):
+                result.supplemented.append(cond)
         if not missing:
             continue
         for side in missing:
@@ -426,9 +560,6 @@ def supplement_conditions(
             # 曲线判据的方法照样能给出可机读的测试前提(参考电压/负载/上电时刻),
             # 丢掉它们等于把本来可执行的条件退回人工。只有当曲线方法连条件都没写
             # (判据与条件均未声明) 时才是纯待审项。
-            if m.verdict == "curve" and not m.conditions:
-                result.needs_review.append(_review_for_curve(cond, m))
-                continue
             if m.verdict == "curve":
                 result.needs_review.append(_review_for_curve(cond, m))
             if not m.conditions:
@@ -442,10 +573,8 @@ def supplement_conditions(
                 target.append(_clause_from(m, mc))
                 added = True
             if added:
-                if f"method:{m.id}" not in cond.flags:
-                    cond.flags.append(f"method:{m.id}")
-                if "supplemented" not in cond.flags:
-                    cond.flags.append("supplemented")
+                _mark(cond, f"method:{m.id}")
+                _mark(cond, "supplemented")
                 # 装配阶段打的 ``no_<side>_condition`` 在此刻已经**不成立** ——
                 # flag 描述的是最终状态, 留着等于让审计读到自相矛盾的标记
                 # (「无输出条件」与实际挂着输出子句同时出现)。本层只增不改

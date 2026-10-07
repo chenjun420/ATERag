@@ -105,6 +105,9 @@ def _clause_payload(clauses: list[Any]) -> tuple[list[dict[str, Any]], bool]:
                 "confidence": cl.confidence,
                 "status": cl.status,
                 "method_ref": cl.method_ref or None,
+                # 工艺要求 id: 落库后只凭这一行就能答出「这条判据依赖哪些业界
+                # 工艺知识」, 不必为了查它去 JOIN test_methods.yaml。
+                "knowledge_ref": list(getattr(cl, "knowledge_ref", ()) or ()) or None,
                 # 业界补齐的子句带一条**完整原文**, 只截断会丢掉「为什么这么做」
                 # 的后半段 —— 而那恰恰是补齐提案要人审的内容。
                 "proposal_note": (str(cl.value.get("note") or "")[:_CLAUSE_NOTE_MAX]
