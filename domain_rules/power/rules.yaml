@@ -924,6 +924,133 @@ rules:
       contact_resistance_margin: 0.03
     expect:
       violation: true
+# ---- 工装负载与故障注入 (方案 §4.5 改「产测工装夹具」后补, 2026-10-07) ----
+#
+# 此前 K-FIX-001~018 只覆盖探针/精度/公差链/寿命, **完全没有负载与故障注入**,
+# 而这两块才是产测工装的主体: 判据激励靠负载, 验保护靠故障注入。
+# 以下 5 条的出处均为厂商公开技术资料/应用笔记(可访问网址), 按红线 5 逐条标注。
+- id: K-FIX-019
+  statement: '电子负载瞬态能力匹配: 测负载瞬态恢复时间时, 负载的 rise time 须至少比被测电源快 5 倍, 否则负载自身的响应会混入被测的瞬态恢复时间, 测得的不是产品指标'
+  category: fixture
+  scope: load
+  derive:
+    output: max_load_risetime
+    expr: dut_response_time / 5
+    inputs:
+    - dut_response_time
+  variables:
+    max_load_risetime: s
+    dut_response_time: s
+  source:
+    name: Power Supply Testing (with Electronic Loads) - 负载 rise time 须快于被测 5 倍 (TestWorld)
+    url: https://www.testworld.com/wp-content/uploads/power-supply-testing.pdf
+    retrieved: 2026-10-07
+  confidence: 0.85
+  test:
+    given:
+      dut_response_time: 0.0005
+    expect:
+      max_load_risetime: 0.0001
+- id: K-FIX-020
+  statement: '电子负载容量与保护: 负载额定电压/电流/功率须覆盖被测最大需求, 且必须自带过压/过流/过功率/过温保护与反接保护 —— 无保护的负载在被测异常时会把故障转嫁到工装'
+  category: fixture
+  scope: load
+  derive:
+    output: load_current_margin
+    expr: load_current_rating / dut_rated_current
+    inputs:
+    - load_current_rating
+    - dut_rated_current
+  variables:
+    load_current_margin: 倍
+    load_current_rating: A
+    dut_rated_current: A
+  source:
+    name: Electronic Load Fundamentals - 容量须覆盖被测最大电压/电流/功率, 须确认 OVP/OCP/OPP/OTP (Keysight)
+    url: https://www.keysight.com/fr/en/assets/7018-06481/white-papers/5992-3625.pdf
+    retrieved: 2026-10-07
+  confidence: 0.85
+  test:
+    given:
+      load_current_rating: 12
+      dut_rated_current: 11.1
+    expect:
+      load_current_margin: 1.0810810810810811
+- id: K-FIX-021
+  statement: '故障注入工装须能注入三类故障: 开路、通道间短路、对电源轨或地短路。缺任一类即覆盖不到对应的保护验证路径(漏插/虚接/对地短路是三类不同失效)。逐项判定取最小值: 0 表示有缺口, 1 表示三类全覆盖'
+  category: fixture
+  scope: fault_injection
+  derive:
+    output: fault_coverage_complete
+    expr: min(can_inject_open, can_inject_short_inter_channel, can_inject_short_to_rail)
+    inputs:
+    - can_inject_open
+    - can_inject_short_inter_channel
+    - can_inject_short_to_rail
+  variables:
+    fault_coverage_complete: '1=三类全覆盖 0=有缺口'
+    can_inject_open: '1/0'
+    can_inject_short_inter_channel: '1/0'
+    can_inject_short_to_rail: '1/0'
+  source:
+    name: PXI Fault Insertion Switch 40-199/40-190C - 三类故障注入(开路/通道间短路/对电源与地短路) (Pickering)
+    url: https://www.pickeringtest.com/portal/web/256/content/downloads/datasheets/40-199D.pdf
+    retrieved: 2026-10-07
+  confidence: 0.9
+  test:
+    given:
+      can_inject_open: 1
+      can_inject_short_inter_channel: 1
+      can_inject_short_to_rail: 0
+    expect:
+      fault_coverage_complete: 0
+- id: K-FIX-022
+  statement: '故障注入通道须声明断电默认态: 常闭(Normally Closed)= 默认通路连续, 常开(Normally Open)= 默认断开。默认态决定「未注入故障时通路是否连续」, 声明缺失会让保护验证的基线判错 —— 同一台工装两种理解会得出相反的合格判据'
+  category: fixture
+  scope: fault_injection
+  derive:
+    output: default_path_continuous
+    expr: 1 if default_state == 'normally_closed' else 0
+    inputs:
+    - default_state
+  variables:
+    default_path_continuous: '1=常闭 0=常开'
+    default_state: "'normally_closed' 或 'normally_open'"
+  source:
+    name: PXI Fault Insertion Switch 40-190C - 常闭/常开贯穿继电器版本决定默认通路 (Pickering)
+    url: https://www.pickeringtest.com/portal/web/256/content/downloads/datasheets/40-42-190CD.pdf
+    retrieved: 2026-10-07
+  confidence: 0.9
+  test:
+    given:
+      default_state: normally_open
+    expect:
+      default_path_continuous: 0
+- id: K-FIX-023
+  statement: '切换容量须按故障类型分别校核(冷切换与热切换额定不同); 注入短路故障时通道承受的电流远高于正常通路, 通道额定与故障总线额定须 ≥ 注入故障电流 —— 用正常工况额定选通道会在注入瞬间超出能力'
+  category: fixture
+  scope: fault_injection
+  derive:
+    output: switch_current_margin
+    expr: switch_current_rating / injected_fault_current
+    inputs:
+    - switch_current_rating
+    - injected_fault_current
+  variables:
+    switch_current_margin: 倍
+    switch_current_rating: A
+    injected_fault_current: A
+  source:
+    name: PXI Fault Insertion Switch 40-199 - 通道 10A 冷/热切换, 故障总线 20A(每总线两条 10A) (Pickering)
+    url: https://www.pickeringtest.com/portal/web/256/content/downloads/datasheets/40-199D.pdf
+    retrieved: 2026-10-07
+  confidence: 0.85
+  test:
+    given:
+      switch_current_rating: 10
+      injected_fault_current: 20
+    expect:
+      switch_current_margin: 0.5
 - id: K-PWR-101
   statement: 降压变换器输出纹波 = 电容纹波 ΔV_cap = ΔI_L/(8·f_sw·C_out) + ESR 纹波 ΔV_ESR = ΔI_L·ESR; 纹波电流 ΔI_L 为电感峰峰纹波
   category: ripple

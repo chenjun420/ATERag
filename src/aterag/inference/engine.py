@@ -30,7 +30,19 @@ _SAFE_ENV = {
     "e": math.e,
 }
 
-_DENY_RE = re.compile(r"__|import|exec|eval|open|compile|globals|getattr|setattr")
+#: 表达式里的禁用 token。
+#:
+#: **必须带标识符边界**: 原先是无边界的 ``search``, 于是 ``can_inject_open``
+#: (故障注入「开路」判据的输入名) 因为含子串 ``open`` 被判成「调用 open」而整条
+#: 规则不可用。安全机制制造假阳性比没有机制更糟 —— 它逼着人改掉正常的变量名。
+#:
+#: 双重防护: ``eval`` 的 globals 已把 ``__builtins__`` 置空, 所以 ``open`` 这类
+#: 内置函数本就不可达; 这条正则只是挡 ``__``/``getattr`` 这类属性逃逸。
+_DENY_RE = re.compile(
+    r"__"
+    r"|(?<![A-Za-z0-9_])(import|exec|eval|open|compile|globals|getattr|setattr)"
+    r"(?![A-Za-z0-9_])"
+)
 
 # 输入名别名: 规则输出名 -> 规则入参名的桥接
 _INPUT_ALIASES = {

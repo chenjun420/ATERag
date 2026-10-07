@@ -497,11 +497,23 @@ async def get_fixture_spec(model_id: str, query: str = "探针选型 工装参�
     for ft, inp in (
         ("probe_selection", {"current": facts["current"]}),
         ("fixture_precision", {"param_tolerance": 0.3}),
+        # 工装负载余量: 只填 DUT 侧, 负载额定是工装台账数据。
+        # 缺的那半不填默认值 —— 填了就等于「负载够用」被当成算过的结论。
+        ("load_current_margin", {"dut_rated_current": facts["current"]}),
     ):
         try:
             out[ft] = eng.calculate(ft, inp)
         except (KeyError, ValueError) as e:
             out[ft] = {"error": str(e)}
+    # 工装侧输入缺失的公式: 逐条点名缺什么。「没列」与「不适用」在返回值上
+    # 一模一样, 而人无法区分 —— 所以缺也要出现在输出里。
+    out["needs_fixture_input"] = {
+        "max_load_risetime": "dut_response_time (被测电源瞬态响应时间; 规格书未给)",
+        "fault_coverage_complete": "can_inject_open / can_inject_short_inter_channel / can_inject_short_to_rail (工装能力台账)",
+        "default_path_continuous": "default_state (故障注入通道默认态; 工装台账)",
+        "switch_current_margin": "switch_current_rating / injected_fault_current (切换矩阵额定; 工装台账)",
+        "note": "用 calculate(formula_type=..., inputs={...}) 显式传入即可算",
+    }
     # 公差链: 无型号公差数据时不计算, 显式说明缺什么 (原实现硬编码 [0.3, 0.3] 示例值)
     out["tolerance"] = {
         "status": "not_computed",
@@ -509,6 +521,27 @@ async def get_fixture_spec(model_id: str, query: str = "探针选型 工装参�
         "required_input": "components=[各测点公差百分比, ...]",
         "note": "如需计算请用 calculate(formula_type='tolerance', inputs={'components': [...]}) 显式传入",
     }
+    # fixture 类目规则清单: 此前 18 条 K-FIX 一条都不可达 —— 规则在库里有出处有
+    # selftest, 但调用方只被告知其中 2 条能算。「有什么可用」必须是可查的事实。
+    from aterag.inference.rules import load_domain_rules
+
+    fx_rules, _shapes = load_domain_rules(
+        settings.domain_rules_dir, registry.products[model_id].domain
+    )
+    out["fixture_rules"] = [
+        {
+            "id": r.get("id"),
+            "statement": r.get("statement"),
+            "scope": r.get("scope"),
+            "computable": bool((r.get("derive") or {}).get("expr")),
+            "constraint": bool((r.get("constraint") or {}).get("shape")),
+            "confidence": r.get("confidence"),
+            "source": (r.get("source") or {}).get("name"),
+            "url": (r.get("source") or {}).get("url"),
+        }
+        for r in fx_rules
+        if r.get("category") == "fixture"
+    ]
     hits = await get_rag().search(query, model_id=model_id, top_k=5)
     out["references"] = hits["results"]
     return json.dumps(out, ensure_ascii=False, default=str)

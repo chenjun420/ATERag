@@ -83,6 +83,14 @@ def formula_type_to_rule_id(formula_type: str) -> str:
         "required_resolution": "K-FIX-015",
         "kelvin_measured_resistance": "K-FIX-009",
         "effective_clearance": "K-FIX-012",
+        # 工装负载与故障注入 (方案 §4.5 改「产测工装夹具」, 2026-10-07 补)。
+        # 此前 fixture 类目只覆盖探针/精度/公差链, 负载与故障注入这两块主体
+        # 一条都没有 —— 而判据激励靠负载、验保护靠故障注入。
+        "max_load_risetime": "K-FIX-019",
+        "load_current_margin": "K-FIX-020",
+        "fault_coverage_complete": "K-FIX-021",
+        "default_path_continuous": "K-FIX-022",
+        "switch_current_margin": "K-FIX-023",
         "availability": "K-REL-001",
         # 批次2/3: DC-DC 与输出规格
         "output_ripple": "K-PWR-101",
