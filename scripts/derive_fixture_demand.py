@@ -5,13 +5,18 @@
     .venv\\Scripts\\python.exe scripts\\derive_fixture_demand.py -m PA601-D54A
     .venv\\Scripts\\python.exe scripts\\derive_fixture_demand.py -m PA601-D54A --json
 
-## 为什么不直接往 ``fixture`` / ``fixture_channel_map`` 写行
+## 为什么不写 ``fixture`` / ``fixture_channel_map`` 行
 
-那两张表要的是**接线决策**: 哪个物理通道接哪个点位、工装形态选哪个、通道数多少。
-``fixture_channel_map`` 的 ``ck_exactly_one_target`` 要求每通道恰好映射一个点位,
-点位来自 ``yx_point`` / ``yc_point`` / ``yk_command`` / ``yt_parameter`` /
-``protection_setting``。本脚本会实测这些表并把缺口列出来 —— **有缺口时写工装行等于
-伪造产品数据**, 所以本脚本只读不写。
+``fixture_channel_map`` 只承载**信号接线**类通道(干接点/电平/模拟量/电流环), 每行
+``ck_exactly_one_target`` 恰好指向一个结构化点位。两点边界:
+
+- 电气测量判据(TEST/PROT)的物理通路(探头/AC 源/负载/故障注入)**不进这张表**,
+  它们的工装设计不受点位表影响;
+- 信号类条目(YX/YC/YK/YT)多为**总线功能** —— 遥控遥调是通信端口上的命令/参数,
+  不需要给每个点位布一条物理线; 但要把每点位的逻辑通道行落进去, 需要
+  ``yx_point`` / ``yc_point`` / ``yk_command`` / ``yt_parameter`` /
+  ``protection_setting`` 有数据。本脚本实测这些表并把缺口列出来 —— **有缺口时
+   造点位等于伪造产品数据**, 所以本脚本只读不写。
 
 需求 ≠ 设计: 推导结果回答「必须能做什么」, 不回答「买什么 / 怎么接线」。
 """
@@ -81,9 +86,11 @@ def _blockers(counts: dict[str, int]) -> list[str]:
     empty_points = [t for t in POINT_TABLES if counts.get(t, 0) <= 0]
     if empty_points:
         out.append(
-            f"通道绑定无法进行: 点位表 {empty_points} 全为空。"
-            "fixture_channel_map 的 ck_exactly_one_target 要求每通道恰好映射一个点位, "
-            "没有点位就绑不了 —— 需先从规格书信号表结构化出点位。"
+            f"信号类通道映射无法落行: 点位表 {empty_points} 全为空(信号表未结构化)。"
+            "信号类判据(YX/YC 及遥控遥调)大多是总线功能 —— 工装接一条通信通道,"
+            "不需按点位布线; 但逻辑通道行(每点位一行, P13 恰好一点位)要落进 "
+            "fixture_channel_map 就需要点位定义。电气度量判据(TEST/PROT)的探头/"
+            "负载/注入通路不受此限。"
         )
     if counts.get("fixture", 0) <= 0:
         out.append(
