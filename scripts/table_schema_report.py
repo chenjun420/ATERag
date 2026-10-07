@@ -209,9 +209,6 @@ def build_proposals(agg: dict, reg: SchemaRegistry, use_llm: bool) -> dict:
     for sig, e in agg.items():
         if e["schema"] or e["meta"]:
             continue
-        name = "auto_" + "_".join(str(e["roles"][0].role), str(len(sig)), f"{len(fields)}").replace(
-            " ", ""
-        )
         name = f"auto_{len(schemas) + 1:02d}_{'_'.join(r.role for r in e['roles'][:2])}"
         skeleton: dict = {
             "match": {"require": []},
