@@ -700,6 +700,112 @@ def build_referenced_standards() -> list[dict[str, Any]]:
     return out
 
 
+#: **零引用且未查证的标准实体** —— 按**规则**算, 不维护 id 清单(2026-10-07)。
+#:
+#: 实测 133 个标准实体里 **109 个完全无人引用**: 无关系边, 且其它记录的
+#: ``source`` / ``clause`` / ``authority_ref`` / ``text`` / ``title`` / ``note`` /
+#: ``scope`` 里都不出现其编号。其中 106 个是 ``unverified``(从没查证过)。
+#:
+#: 它们是从方案 md 的标准表抄进来、此后**从未被任何东西用到**的清单条目。按已用过的
+#: 处置逻辑(6 条同名重复概念、:data:`LIFETIME` 无标准术语依据 + 零消费者 -> 移除),
+#: 「零引用 + 未查证」就是移除条件。
+#:
+#: ## 为什么按规则算而不是列清单
+#:
+#: 109 个 id 的硬编码清单会**烂掉**: 将来有人引用了其中一条, 清单不会知道, 于是
+#: 一条**有引用**的标准被静默删掉, 而它的引用者变成悬空。按规则算则每次生成都
+#: 重新判定, 「被引用了」立刻生效。
+#:
+#: ## 「零引用」怎么判 —— 只看实体, 不看关系
+#:
+#: :func:`build_relationships` 建指向标准的边**只有一条路径**: 某实体的
+#: ``authority_kind == "standard"`` 且 ``authority_ref`` 抽出的标准号命中。所以
+#: 「有没有边指向它」等价于「有没有别的实体的 ``authority_ref`` 命中它」—— 用
+#: 实体就能判, 不必等关系建完(关系是在实体过滤**之后**才建的)。
+#:
+#: ## 额外一道: 编号在**文本**里出现过的**保留**
+#:
+#: 只判 ``authority_ref`` 会漏掉一种情况: 某条记录在 ``source`` 或 ``note`` 里
+#: 提了这个标准号(人读得懂, 机器解析不了)。那种情况下标准实体虽无边, 但它是
+#: **可被人查到的线索**。实测这类只有 1 条(``IPC-2221`` 被 ``CONFORMAL_COATING``
+#: 引), 保留它。
+#:
+#: **非 ``unverified`` 的一律保留** —— ``industry`` / ``standard`` 级说明有人工
+#: 判断过, 那个判断不因为「当前零引用」而失效。
+_TEXT_CITATION_FIELDS = (
+    "source", "clause", "authority_ref", "text", "title", "note", "scope",
+)
+
+
+def find_dead_standards(entities: list[dict[str, Any]]) -> list[str]:
+    """:data:`DEAD_STANDARD` 规则的实现 -> 移除候选 id 列表。
+
+    判据三条全中才算「死」: ``unverified`` + 无 ``authority_ref`` 命中 + 编号在
+    别处文本里不出现。
+
+    **属性在这个阶段还是嵌套的** —— ``prune_non_executable`` 里的 ``props_of``
+    正是 ``e.get("properties") or {}``, 扁平化发生在更后面。所以这里必须走
+    ``properties``, 直接读 ``e["authority_kind"]`` 恒为 ``None``, 规则会**静默
+    返回空** —— 实测踩过一次: 条件永不成立, 移除数 0, 而生成日志里连一行都没有。
+    """
+    def p(e: dict[str, Any]) -> dict[str, Any]:
+        return e.get("properties") or {}
+
+    stds = {str(e["id"]): e for e in entities if e.get("type") == "standard"}
+    if not stds:
+        return []
+
+    cited_by_ref: set[str] = set()
+    cited_in_text: set[str] = set()
+    for e in entities:
+        eid = str(e.get("id") or "")
+        if eid in stds:
+            continue  # 标准自己的 title/source 里当然有它自己的编号
+        props = p(e)
+        aref = props.get("authority_ref")
+        if isinstance(aref, str):
+            m = _STD_ID_RE.match(aref)
+            if m:
+                head = re.sub(r"\s+", " ", m.group(0)).strip()
+                cited_by_ref.add(f"std::{head}")
+        for f in _TEXT_CITATION_FIELDS:
+            v = str(props.get(f) or "")
+            if not v:
+                continue
+            for sid, se in stds.items():
+                if str(sid.removeprefix("std::")) in v or str(se.get("name") or "") in v:
+                    cited_in_text.add(sid)
+
+    dead: list[str] = []
+    for sid, e in sorted(stds.items()):
+        if p(e).get("authority_kind") != "unverified":
+            continue
+        if sid in cited_by_ref or sid in cited_in_text:
+            continue
+        dead.append(sid)
+    return dead
+
+
+def _out_of_scope_extra(entities: list[dict[str, Any]]) -> frozenset[str]:
+    """零引用未查证标准 -> 移出范围。**在生成时判定并计数**, 不静默丢。"""
+    dead = find_dead_standards(entities)
+    if dead:
+        print(
+            f"  [移出范围] 零引用且未查证的标准 {len(dead)} 条"
+            f"(零关系边 + 别处文本无引用 + authority_kind=unverified), "
+            f"示例 {dead[:5]}"
+        )
+    return frozenset(dead)
+
+
+def _out_of_scope_static() -> frozenset[str]:
+    return frozenset(
+        OUT_OF_SCOPE_ENTITY_IDS
+        | OUT_OF_SCOPE_FORMULA_IDS
+        | DUPLICATE_CONCEPT_IDS
+    )
+
+
 def strip_conflated_synonyms(entities: list[dict[str, Any]]) -> list[str[str]]:
     """摘掉 :data:`CONFLATED_SYNONYMS` 里那些把额定/标称混同的别名。
 
@@ -2936,11 +3042,7 @@ def prune_non_executable(
 
     # 范围排除**先于**可执行性判定: 被移出范围的实体不该再参与
     # 「谁引用了谁」的分析, 否则已删公式留下的记号会把它也拖下水。
-    _out_of_scope = (
-        OUT_OF_SCOPE_ENTITY_IDS
-        | OUT_OF_SCOPE_FORMULA_IDS
-        | DUPLICATE_CONCEPT_IDS
-    )
+    _out_of_scope = _out_of_scope_static() | _out_of_scope_extra(entities)
     kept_entities = [
         e
         for e in entities
