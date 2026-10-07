@@ -28,6 +28,10 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, "src")
+# scripts/ 自身: --accept-proposals 要复用 llm_draft_annotations 的溯源校验口径。
+# 刻意 import 那个模块而不是把 validate_draft 复制一份 —— 两份校验必然漂,
+# 而漂掉的那份只在合并路径上生效, 审起来毫无痕迹。
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.stdout.reconfigure(encoding="utf-8")
 
 import yaml  # noqa: E402
@@ -205,6 +209,72 @@ def cmd_check(model_id: str, ann: AnnotationBook) -> int:
     return 0
 
 
+def cmd_accept_proposals(model_id: str) -> int:
+    """把 LLM 起草的提案并入 conditions.yaml (仍为 draft, 需再签字)。
+
+    **为什么不直接读两个文件** (红线 4): 若让抽取同时读 ``proposals/`` 与
+    ``conditions.yaml``, 一条注记就有两处可改, 而运行时用哪份取决于读了哪个 ——
+    副本漂移的起点。合并后运行时只读一个文件, 提案目录不参与运行期。
+
+    **为什么不直接置 approved**: 签字是人的动作。LLM 起草 + 自动签字等于
+    「编造的判据一路绿灯进产线」。
+    """
+    import llm_draft_annotations as drafts
+
+    settings = get_settings()
+    # 提案目录与注记文件共用**同一个** root —— 各读各的 Settings 会让配置一改
+    # 两者就分家 (一个还找得到、另一个找不到), 而症状只是「没有提案文件」。
+    p = drafts.proposals_dir(settings.annotations_dir) / f"{model_id}.proposals.yaml"
+    if not p.exists():
+        print(f"[FAIL] 没有提案文件: {p}")
+        print(f"     先跑 scripts/llm_draft_annotations.py -m {model_id}")
+        return 1
+    pdoc = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
+    entries = pdoc.get("entries") or {}
+    if not entries:
+        print(f"[FAIL] 提案文件里没有草案条目: {p}")
+        return 1
+
+    target = Path(settings.annotations_dir) / f"{model_id}.conditions.yaml"
+    if target.exists():
+        tdoc = yaml.safe_load(target.read_text(encoding="utf-8")) or {}
+    else:
+        tdoc = {"version": 1, "model_id": model_id, "entries": {}}
+    texisting = tdoc.setdefault("entries", {})
+
+    added = updated = skipped = 0
+    for req_id, spec in entries.items():
+        if texisting.get(req_id, {}).get("status") == "approved":
+            skipped += 1
+            print(f"  {PASS} {req_id} 已签字, 跳过 (不用草案覆盖人工结论)")
+            continue
+        incoming = dict(spec)
+        # 无论提案里写了什么, 合并进来一律 draft: 签字只能由 --approve 产生。
+        incoming["status"] = "draft"
+        incoming.pop("approved_by", None)
+        incoming.pop("approved_at", None)
+        if req_id in texisting:
+            updated += 1
+        else:
+            added += 1
+        texisting[req_id] = incoming
+
+    tdoc["entries"] = texisting
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        "# 人工语义注记: 语义更准但规则切不出的需求, 按内容指纹自动失效。\n"
+        "# status=draft 仍生效 (置信度 proposed), 但 CI --check 会红; approved 为已签字。\n"
+        "# 评审: scripts/review_annotation.py -m <model> --show <REQ_ID>\n"
+        + yaml.safe_dump(tdoc, allow_unicode=True, sort_keys=False),
+        encoding="utf-8",
+    )
+    print(f"\n已并入 {target}: 新增 {added} 条, 覆盖 {updated} 条, 跳过已签字 {skipped} 条")
+    print("全部为 status=draft —— 置信度 proposed, 下游须按 proposed 过滤")
+    if added or updated:
+        print("下一步: 逐条 --show 核对 -> --approve 签字 -> 提交后 CI 才会绿")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="人工注记评审")
     ap.add_argument(
@@ -215,6 +285,11 @@ def main() -> int:
     )
     ap.add_argument("--list", action="store_true", help="列出全部注记")
     ap.add_argument("--show", metavar="REQ_ID", help="并排显示原文/规则结果/注记草案")
+    ap.add_argument(
+        "--accept-proposals",
+        action="store_true",
+        help="把 LLM 起草的提案并入 conditions.yaml (仍为 draft, 需再 --approve 签字)",
+    )
     ap.add_argument("--approve", metavar="REQ_ID", help="签字通过")
     ap.add_argument("--by", default="", help="评审人 (配合 --approve)")
     ap.add_argument("--check", action="store_true", help="CI 门禁: 有未评审注记则失败")
@@ -244,6 +319,8 @@ def main() -> int:
 
     if args.check:
         return cmd_check(args.model, ann)
+    if args.accept_proposals:
+        return cmd_accept_proposals(args.model)
     if args.approve:
         if not args.by:
             print("[FAIL] --approve 必须同时给 --by <评审人> (签字要留痕)")
