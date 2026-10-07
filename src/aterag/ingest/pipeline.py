@@ -26,6 +26,7 @@ from aterag.ingest.table_schema import load_registry
 from aterag.models import EmbeddingClient, LLMClient
 from aterag.registry import Registry
 from aterag.retrieval import hybrid
+from aterag.retrieval.hybrid import chunk_uid
 
 CHUNK_COLLECTION = "aterag_chunks"
 
@@ -117,20 +118,69 @@ def delete_workspace_chunks(dsn: str, workspace_id: str) -> int:
 
 
 def save_chunks_rows(dsn: str, rows: list[dict]) -> int:
+    """只写 chunk 行 (不写向量)。
+
+    **必须同时写 ``chunk_key`` 并按它 upsert** —— 早先这里只 INSERT 且不写
+    ``chunk_key``, 而 ``save_chunk_vectors`` 是按 ``chunk_key`` upsert 的。两者
+    连用时前者的行 ``chunk_key IS NULL``, upsert 的 ON CONFLICT 匹配不到, 于是
+    **同一份内容落了两行**(板卡实测 PA601-D54A 106 -> 212 行, 其中 106 行既无
+    key 也无向量)。NULL 不等于 NULL, 所以按 key 去重的
+    ``DELETE ... USING`` 也清不掉它们 —— 脏数据只能手工删。
+
+    upsert 而非 INSERT 也让重跑真正幂等: 调用方不必先删整个 workspace。
+    """
     with psycopg.connect(dsn) as conn:
+        ensure_chunk_key_column(conn)
         for r in rows:
+            key = r.get("chunk_key") or chunk_uid(
+                r["workspace_id"], r.get("section_path") or "", r["content"]
+            )
             conn.execute(
                 """
                 INSERT INTO aterag_chunks
-                    (workspace_id, layer, section_path, heading, category,
+                    (chunk_key, workspace_id, layer, section_path, heading, category,
                      priority, rail, req_id, content)
-                VALUES (%(workspace_id)s, %(layer)s, %(section_path)s, %(heading)s,
-                        %(category)s, %(priority)s, %(rail)s, %(req_id)s, %(content)s)
+                VALUES (%(chunk_key)s, %(workspace_id)s, %(layer)s, %(section_path)s,
+                        %(heading)s, %(category)s, %(priority)s, %(rail)s, %(req_id)s,
+                        %(content)s)
+                ON CONFLICT (chunk_key) DO UPDATE SET
+                    layer       = EXCLUDED.layer,
+                    section_path= EXCLUDED.section_path,
+                    heading     = EXCLUDED.heading,
+                    category    = EXCLUDED.category,
+                    priority    = EXCLUDED.priority,
+                    rail        = EXCLUDED.rail,
+                    req_id      = EXCLUDED.req_id,
+                    content     = EXCLUDED.content
                 """,
-                r,
+                {**r, "chunk_key": key},
             )
         conn.commit()
     return len(rows)
+
+
+def ensure_chunk_key_column(conn) -> None:
+    """``chunk_key`` 列 + 唯一索引 (幂等)。
+
+    早先这个列由 :func:`hybrid.ensure_vector_schema` 顺带建, 于是「只写行不写向量」
+    的路径(:func:`save_chunks_rows`)在列还不存在时写不了 key。这里独立出来, 让
+    两条路径对列的依赖各自成立 —— 否则又变成一处「先跑谁」隐式约定。
+
+    建唯一索引前先清历史重复行: 老数据里可能已有同 key 多行(见
+    :func:`save_chunks_rows` 的说明), 保留 id 最小的一条 —— 有向量那条, 因为
+    upsert 时向量后写、id 更大。
+    """
+    conn.execute("ALTER TABLE aterag_chunks ADD COLUMN IF NOT EXISTS chunk_key text")
+    conn.execute(
+        """
+        DELETE FROM aterag_chunks a USING aterag_chunks b
+         WHERE a.chunk_key = b.chunk_key AND a.id > b.id
+        """
+    )
+    conn.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_aterag_chunks_key "
+        "ON aterag_chunks (chunk_key)"
+    )
 
 
 # ---------------- legacy Qdrant 后端 (ADR-014 待删, 默认不走) ----------------

@@ -134,8 +134,18 @@ def ensure_vector_schema(dsn: str, dim: int) -> None:
                 "WHERE attrelid = 'public.aterag_chunks'::regclass "
                 "AND attname = 'embedding' AND NOT attisdropped"
             ).fetchone()
-            # vector 的 atttypmod 就是维度; 传统 typmod 是「维度 + 4」
-            cur_dim = (row[0] - 4) if row and row[0] and row[0] > 0 else None
+            # pgvector 的 ``atttypmod`` **就是维度本身**。实测 (pgvector 0.8.6,
+            # 板卡 power_specs): ``vector(3)`` -> 3、``vector(1024)`` -> 1024,
+            # 不是「维度 + VARHDRSZ」。
+            #
+            # 早先这里写的是 ``typmod - 4`` (按「typmod = 维度 + 4」的旧假设),
+            # 于是 1024 维的列被读成 1020 -> 每次 ingest 都判定「维度不一致」->
+            # 执行下面的 DROP COLUMN -> **静默清空整张表的向量**(所有 workspace)。
+            # 而 ``aterag_chunks`` 是**所有 workspace 共享的单表**, 所以清空的是
+            # 全库向量, 不是「每型号百级」—— 那个「重建代价可忽略」的论证前提是错的。
+            #
+            # typmod 为 0 或负表示「无维度限制的 vector」, 视为未建。
+            cur_dim = row[0] if row and row[0] and row[0] > 0 else None
 
         if cur_dim is not None and cur_dim != dim:
             conn.execute("DROP INDEX IF EXISTS idx_aterag_chunks_vec")
@@ -146,9 +156,10 @@ def ensure_vector_schema(dsn: str, dim: int) -> None:
             )
 
         # 2) 确定性主键 + 回填 + 唯一索引
-        conn.execute(
-            "ALTER TABLE aterag_chunks ADD COLUMN IF NOT EXISTS chunk_key text"
-        )
+        # 去重与建索引收敛到 pipeline.ensure_chunk_key_column —— 早先这里与
+        # save_chunks_rows 各写一份, 两份必然漂(实测漂过一次)。
+        from aterag.ingest.pipeline import ensure_chunk_key_column
+
         n_missing = conn.execute(
             "SELECT count(*) FROM aterag_chunks WHERE chunk_key IS NULL"
         ).fetchone()[0]
@@ -162,17 +173,7 @@ def ensure_vector_schema(dsn: str, dim: int) -> None:
                     "UPDATE aterag_chunks SET chunk_key = %s WHERE id = %s",
                     (chunk_uid(ws, sp or "", content), cid),
                 )
-        # 已有重复(同一内容出现多行)时唯一索引会失败; 保留 id 最小的一条
-        conn.execute(
-            """
-            DELETE FROM aterag_chunks a USING aterag_chunks b
-             WHERE a.chunk_key = b.chunk_key AND a.id > b.id
-            """
-        )
-        conn.execute(
-            "CREATE UNIQUE INDEX IF NOT EXISTS idx_aterag_chunks_key "
-            "ON aterag_chunks (chunk_key)"
-        )
+        ensure_chunk_key_column(conn)
 
         # 3) 向量索引。HNSW 优于 IVFFlat: 规格书库规模(每型号百级 chunk)
         #    远未触及两者瓶颈, 而 HNSW 不需要先训 centroids。
