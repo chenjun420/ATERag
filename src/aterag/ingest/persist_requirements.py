@@ -45,6 +45,7 @@ from aterag.extract.models import (
     STATUS_APPROVED,
     TestCondition,
 )
+from aterag.fixture.demand import CAPABILITY_BY_KIND
 from aterag.ingest.entity_extract import variant_suffix_for
 
 #: ``coverage_status`` 取值域(CHECK 约束: PENDING | COVERED | GAP)
@@ -170,31 +171,15 @@ def _instrument_need(cond: TestCondition) -> dict[str, Any]:
     """
     need: set[str] = set()
     for cl in cond.input_conditions + cond.output_conditions:
-        k = cl.kind
-        if k in ("input_voltage", "input_frequency"):
-            need.add("programmable_ac_source")
-        if k == "load":
-            need.add("programmable_dc_load")
-        if k == "test_mode":
-            need.add("programmable_dc_load")  # CR/CP 模式只有电子负载有
-        if k in ("output_voltage", "output_current", "output_power", "ripple", "timing"):
-            need.add("dmm")
-        if k in ("ripple", "timing"):
-            need.add("oscilloscope")
-        if k == "efficiency":
-            need.add("power_analyzer")
-        if k == "power_factor":
-            need.add("power_analyzer")
-        if k == "signal_state":
-            need.add("protocol_analyzer")
-        if k == "protection_action":
-            need.add("protection_tester")
-        if k == "thermal":
-            need.add("thermal_chamber")
+        need.update(CAPABILITY_BY_KIND.get(cl.kind, ()))
     return {
         "required": sorted(need),
         "derived": True,
         "note": "由条件子句 kind 推导的能力需求, 非型号选型结果",
+        # 映射口径由 fixture.demand 独占(见该模块「单一实现」纪律)。这里带上表名
+        # 与函数名, 是为了让「这份需求从哪来」可追 —— 两处各拼一次必然漂, 而漂掉的
+        # 那份不报错、只是让工装软件少提一项需求。
+        "derived_from": "aterag.fixture.demand.CAPABILITY_BY_KIND",
     }
 
 
