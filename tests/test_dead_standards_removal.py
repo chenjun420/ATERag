@@ -118,29 +118,132 @@ class TestRemovedStandardsAreGone:
             "std::GB/T 2900.89-2012",
             "std::GB/T 14598.127-2013",
             "std::YD/T 4523-2023",
-            "std::IPC-2221",
+            # 注意: 原先这里还有 std::IPC-2221, 已于 2026-10-08 移出范围,
+            # 见 TestOutOfScopeRemovesItself —— 它的唯一引用方也出范围了。
         ):
             assert sid in ids, f"{sid} 被误删 —— 它有真实引用"
 
 
-class TestTextCitationProtectsAStandard:
-    def test_ipc2221_is_kept_because_it_is_cited_in_text(self, seed_records) -> None:
-        """``IPC-2221`` 没有任何 ``authority_ref`` 指向它, 但 ``CONFORMAL_COATING``
-        的 ``source``/``authority_ref`` 文本里提到了它 —— 规则第 3 条判据保住它。
+class TestOutOfScopeRemovesItself:
+    """出范围的东西必须真的消失 —— 包括被它「文字引用」保活的标准。
 
-        反过来验证: 若只判「无边」, 它就会被删, 而人从 ``CONFORMAL_COATING``
-        的出处文本里找不到对应实体。
-        """
+    为什么这条要存在
+    ------------------
+    ``CONFORMAL_COATING``(三防涂覆)与 ``std::IPC-2221``(印制板**设计**标准)已于
+    2026-10-08 移出范围: 属PCB 设计/组装侧, 不是电源产品产测侧。详见
+    ``build_seed_data.OUT_OF_SCOPE_ENTITY_IDS``。
+
+    这里最要紧的是: ``find_dead_standards`` 的第 3 条判据**会**因为
+    ``CONFORMAL_COATING`` 的 ``source``/``authority_ref`` 文本提到 ``IPC-2221``
+    而保住那个标准实体。**「有人提到它」不等于「该有它」** —— 提到它的那条知识
+    本身就不在范围内。所以范围排除必须发生在这层之前。
+
+    这条测试把上一轮那条「靠文本引用保住 IPC-2221」的断言**反过来**: 不是绕过它,
+    而是断言它现在应该消失。留着旧断言会让「删掉出范围的东西」这个动作无法被测出来。
+    """
+
+    def test_coating_and_its_standard_are_gone(self, seed_records) -> None:
         ids = {r.get("id") for r in seed_records}
-        assert "std::IPC-2221" in ids, "IPC-2221 被删了 —— 文本引用没保住它"
-        coating = next(
-            (r for r in seed_records if r.get("id") == "CONFORMAL_COATING"), None
+        assert "CONFORMAL_COATING" not in ids, "三防涂覆应已移出范围"
+        assert "std::IPC-2221" not in ids, (
+            "PCB 设计标准应随其唯一引用方一起移出范围 —— "
+            "若它还在, 说明范围排除没跑在文字引用豁免之前"
         )
-        assert coating is not None, "CONFORMAL_COATING 本身不该消失"
-        assert "IPC-2221" in json.dumps(coating, ensure_ascii=False), (
-            "CONFORMAL_COATING 记录里已经没有 IPC-2221 的文本引用了 —— "
-            "那么保住该标准实体的理由消失, 测试应改成断言它被移除"
+
+    def test_no_dangling_reference_to_them(self, seed_records) -> None:
+        """移出范围不得留下悬空引用 —— 否则门禁会开始报 authority_ref_resolvable。"""
+        blob = json.dumps(seed_records, ensure_ascii=False)
+        assert "CONFORMAL_COATING" not in blob, "有记录还引用着已移出范围的三防涂覆"
+        assert "IPC-2221" not in blob, "有记录还引用着已移出范围的 IPC-2221"
+
+    def test_pollution_degree_stays(self, seed_records) -> None:
+        """同源的 ``POLLUTION_DEGREE`` 必须留下 —— 它确实在产测判据链上。
+
+        污染等级定爬电距离 → 爬电距离定耐压限值 → 实测值对照判合格, 这是
+        产测判读耐压/漏电流**实测结果**的输入。与三防涂覆的区别就在这里:
+        涂层是设计侧属性(要走两步才能影响产测), 污染等级直接进判据。
+        """
+        pd = next(
+            (r for r in seed_records if r.get("id") == "POLLUTION_DEGREE"), None
         )
+        assert pd is not None, "污染等级不该跟着三防涂覆一起被移出"
+        assert pd.get("clause"), "污染等级应保留已核实的条款号"
+
+
+class TestTextCitationExemptionIsNotAPass:
+    def test_text_citation_exemption_cannot_resurrect_out_of_scope(
+        self, builder
+    ) -> None:
+        """规则层面的红线: 范围排除集合里必须含这两条, 且排除发生在文字引用豁免之前。
+
+        用本文件已有的 ``builder`` fixture 拿模块, **不要**在这里再 ``import
+        build_seed_data`` —— 那会用第二个模块名把整个 5000 行脚本**再执行一遍**
+        (模块级要构造全部实体字面量), 实测足以让单文件测试跑到超时。
+        """
+        oos = builder.OUT_OF_SCOPE_ENTITY_IDS
+        assert "CONFORMAL_COATING" in oos, "三防涂覆必须在范围排除集合里"
+        assert "std::IPC-2221" in oos, "PCB 设计标准必须在范围排除集合里"
+
+    def test_static_scope_set_beats_text_citation_exemption(
+        self, builder, seed_records
+    ) -> None:
+        """静态范围集合**压得住**「文本提及豁免」—— 这才是真正起作用的机制。
+
+        真实结构(别照抄我最初写错的猜测): ``find_dead_standards`` 不是在
+        ``prune_non_executable`` 之前跑的独立一步, 它是被
+        :func:`_out_of_scope_extra` **在同一个函数里**调用的, 合并方式是::
+
+            _out_of_scope = _out_of_scope_static() | _out_of_scope_extra(entities)
+
+        所以决定性的不是先后顺序, 而是**静态集合是并集的一侧**。光靠「零引用 +
+        文本无提及」的动态检测救不回 ``std::IPC-2221`` —— 提到它的
+        ``CONFORMAL_COATING`` 那一刻还在库里(两者在同一趟里被过滤),
+        第 3 条判据会把它豁免掉。真正让它消失的是它**同时**在静态集合里。
+
+        这条测试就断言这个优先级: 构造一个会「文本提及 IPC-2221」的实体集,
+        动态检测应当**不**判它死(豁免生效), 而合并后的集合仍必须含它。
+        """
+        ents = [dict(r) for r in seed_records if r.get("id") and not r.get("source_id")]
+        ents.append(
+            {
+                "id": "TMP_TEXT_CITER",
+                "name": "tmp",
+                "type": "power_concept",
+                "text": "临时: 引用 IPC-2221 印制板设计",
+                "properties": {
+                    "authority_kind": "standard",
+                    # **必须放在 properties 里**: find_dead_standards 的文本豁免
+                    # 扫的是 props[f] for f in _TEXT_CITATION_FIELDS, 顶层
+                    # ``text``/``name`` 不在其中(踩过一次: 豁免静默不生效)。
+                    "source": "临时记录: 引用 IPC-2221 印制板设计标准",
+                },
+            }
+        )
+        # 零引用 + unverified 的标准实体。**不能从 seed_records 里取** ——
+        # std::IPC-2221 已经真的被移出范围了(上面那条测试就断言它不在),
+        # 这正是本测试要模拟的那个状态。
+        ents.append(
+            {
+                "id": "std::IPC-2221",
+                "name": "IPC-2221",
+                "type": "standard",
+                "text": "IPC-2221 印制板设计",
+                "properties": {"authority_kind": "unverified", "source": "临时构造"},
+            }
+        )
+
+        dead = builder.find_dead_standards(ents)
+        assert "std::IPC-2221" not in dead, (
+            "本测试的前提是文本豁免确实生效; 若它不再生效, 说明豁免规则变了, "
+            "下面那条优先级断言的前提也不成立"
+        )
+
+        merged = builder._out_of_scope_static() | builder._out_of_scope_extra(ents)
+        assert "std::IPC-2221" in merged, (
+            "静态范围集合必须压住文本提及豁免 —— 否则出范围的东西会被一条"
+            "同样出范围的知识以文字形式救回来"
+        )
+        assert "CONFORMAL_COATING" in merged
 
 
 class TestNonUnverifiedSurvives:

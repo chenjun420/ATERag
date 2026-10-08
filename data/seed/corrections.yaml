@@ -14,6 +14,7 @@ standards:
   checked: '2026-10-04'
   confidence: 0.95
   note: 方案写的是 2011 版, 已被 2022 版全部代替。对认证与产测依据而言这是硬错误 —— 按 2011 版做的测试项目与 2022 版不同(新增能量分级、液体相关条款、 无线发射部分等)。保留 2011 条目并标 SUPERSEDED, 是为了能回答 「历史报告依据的是哪一版」, 而不是把它悄悄删掉。
+  standard_ref: GB 4943.1-2011
 - id: GB/T 17626.3-2021
   replaced_by: GB/T 17626.3-2023
   current:
@@ -29,6 +30,7 @@ standards:
   checked: '2026-10-04'
   confidence: 0.95
   note: '方案写 GB/T 17626.3-2021, 但 2021 版**不存在** —— 现行为 2023 版, 上一版是 2016(已于 2024-07-01 废止)。引用一个不存在的版本号, 产测那边 按它去查标准会直接查不到, 而生成的数据本身「看起来完全正常」。 附 iec_equivalent 是为了双向追溯: GB/T 17626.3 等同/修改采用 IEC 61000-4-3。'
+  standard_ref: GB/T 17626.3-2021
 - id: GB/T 17626.2-2018
   version: '2018'
   title: 电磁兼容 试验和测量技术 静电放电抗扰度试验
@@ -38,6 +40,7 @@ standards:
   source: 全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=71F772D82E42D3A7E05397BE0A0AB82A
   checked: '2026-10-04'
   confidence: 0.95
+  standard_ref: GB/T 17626.2-2018
 - id: GB/T 9254.1-2021
   version: '2021'
   title: 信息技术设备、多媒体设备和接收机 电磁兼容 第1部分：发射要求
@@ -47,20 +50,6 @@ standards:
   checked: '2026-10-04'
   confidence: 0.9
   note: 2021 版替代 GB/T 9254-2008 与 GB/T 13837-2012, 自 2022-07-01 实施。 方案已写 2021 版, 此条仅补 status 与被代替关系。
-- id: MTBF
-  zh: 平均失效间隔时间
-  zh_en: mean time between failures
-  original_zh: 平均故障间隔时间
-  source: GB/T 3187-1994 7.2.8; 现行标准 GB/T 2900.99-2016《电工术语 可信性》(等同采用 IEC 60050-192:2015)
-  checked: '2026-10-04'
-  confidence: 0.9
-  note: '**不填 GB/T 2900.99-2016 的具体条号** —— 该标准术语编号与 IEC 60050-192:2015 一致(如 192-01-01 产品), 但本次未逐条核到 MTBF 的编号, 编一个号出来是 §18.10 注 8 禁止的「编造条款号」。查证到标准号即可, 条号留待核。'
-- id: LIFETIME
-  zh: 寿命
-  source: 方案原文(GB/T 2900.99-2016 未核到对应词条)
-  checked: '2026-10-04'
-  confidence: 0.5
-  note: 方案自写名, 未查到标准术语, 保持原样并标记低置信度。
 - id: GB/T 17626.11-2018
   replaced_by: GB/T 17626.11-2023
   version: '2023'
@@ -75,19 +64,61 @@ standards:
     version: '2023'
     title: 电磁兼容 试验和测量技术 第11部分：对每相输入电流小于或等于16 A设备的电压暂降、短时中断和电压变化抗扰度试验
     iec_equivalent: IEC 61000-4-11
+  standard_ref: GB/T 17626.11-2018
+- id: GB/T 17626.4-2018
+  standard_ref: GB/T 17626.4-2018
+  version: '2018'
+  title: '电磁兼容 试验和测量技术 电快速瞬变脉冲群抗扰度试验'
+  title_en: 'Electromagnetic compatibility - Testing and measurement techniques - Electrical fast transient/burst immunity test'
+  status: CURRENT
+  iec_equivalent: IEC 61000-4-4:2012
+  published: '2018-06-07'
+  implemented: '2019-01-01'
+  replaces: GB/T 17626.4-2008
+  source: '全国标准信息公共服务平台 std.samr.gov.cn 标准检索(GB/T 17626.4, 含现行/废止版本对照); 国家标准全文公开 openstd.samr.gov.cn 发布公告 2018-06-28'
+  checked: '2026-10-08'
+  confidence: 0.95
+  note: '等同采用 IEC 61000-4-4:2012; 发布 2018-06-07 / 实施 2019-01-01; 代替 GB/T 17626.4-2008(已废止), 更早的 GB/T 17626.4-1998 亦已废止。本条只确认标准自身状态与采标关系, 未逐条核对条款。'
+- id: GB/T 17626.5-2019
+  standard_ref: GB/T 17626.5-2019
+  version: '2019'
+  title: '电磁兼容 试验和测量技术 浪涌（冲击）抗扰度试验'
+  title_en: 'Electromagnetic compatibility - Testing and measurement techniques - Surge immunity test'
+  status: CURRENT
+  published: '2019-06-04'
+  implemented: '2020-01-01'
+  replaces: GB/T 17626.5-2008
+  source: '国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=534499018FB30E7FC5E646F89937B3A8'
+  checked: '2026-10-08'
+  confidence: 0.95
+  note: '发布 2019-06-04 / 实施 2020-01-01(以国家标准全文公开为准)。多个标准下载站把日期写成「发布 2020-01-01、实施 2019-06-04」—— 实施早于发布, 自相矛盾, 不采信。该 A 级页未列 IEC 采标关系, 故不填 iec_equivalent(不猜)。'
+
+
+# ---- 恢复: 这条看着像死条目, 但 current: 分支是 2022 实体的唯一来源 ----
 - id: GB/T 2900.19-1994
   replaced_by: GB/T 2900.19-2022
-  version: '2022'
-  title: 电工术语 高电压试验技术和绝缘配合
-  status: SUPERSEDED
-  source: 全国标准信息公共服务平台 std.samr.gov.cn
-  checked: '2026-10-04'
-  confidence: 0.95
-  note: 2023-05-01 起被 2022 版全部代替。
   current:
     id: GB/T 2900.19-2022
     version: '2022'
-    title: 电工术语 高电压试验技术和绝缘配合
+    title: '电工术语 高电压试验; 避雷器'
+    iec_equivalent: IEC 60071-2
+  version: '2022'
+  title: '电工术语 高电压试验; 避雷器'
+  status: SUPERSEDED
+  source: '全国标准信息公共服务平台 std.samr.gov.cn(2022 版于 2023-05-01 全部代替 1994 版)'
+  checked: '2026-10-08'
+  confidence: 0.95
+  note: '**看起来像死条目, 其实不是**: 本条的 `current:` 分支是**唯一创建 `std::GB/T 2900.19-2022` 的地方** —— 那个 2022 实体不在方案 md 的标准表里, 只能靠这里建出来。删掉本条的后果实测过: 2022 实体消失, 而 INSULATION_VOLTAGE(authority_ref=GB/T 2900.19-2022 3.3.20 耐压)与 COND_ALTITUDE(3.1.21.4) 的引用随之悬空, 门禁报 ERROR。所以构建日志里那条「standard:GB/T 2900.19-1994(目标不存在)」是**预期的**: 1994 版本身没有实体(已被 2022 版取代), 但它的 current: 分支是活的。'
+- id: JEDEC JESD22-A108
+  authority_kind: industry
+  version: 'G (2022-11)'
+  title: 'Temperature, Bias, and Operating Life'
+  title_zh: '温度、偏置与工作寿命试验'
+  status: CURRENT
+  source: 'JEDEC 官方文档页 jedec.org/standards-documents/docs/jesd-22-a108c -> 现行版 JESD22-A108G, Published Nov 2022, Committee(s) JC-14 / JC-14.1'
+  checked: '2026-10-08'
+  confidence: 0.9
+  note: '**标题原本是错的**: 种子里写「温热」, 而 JESD22-A108 的正式名称是 Temperature, Bias, and Operating Life。**特别注意别与温度循环混淆** —— 温度循环是 **JESD22-A104**(TC, -55°C~Tjmax); A108 是温度+偏置下的工作寿命/老化试验, 厂商产品资格报告里的 HTOL / LTOL / ELFR 用例正是它。id 用的是种子里已有的 `std::JEDEC JESD22-A108`(带 JEDEC 前缀); authority_kind 同样显式给(原因同 IPC-2221)。 [authority_kind 只能是 industry: knowledge_gate.check_authority_shape 要求 authority_ref 匹配 STANDARD_NUMBER(国标编号形态), 外国标准号过不了; 而这两个标准号根本没有实体端, 所以它们本来就不会建 defined_by 边 —— 改档不影响图结构]'
 standards_superseded_chain:
 - id: GB/T 3187-1994
   title: 可靠性、维修性术语
@@ -158,6 +189,7 @@ concepts:
   confidence: 0.85
   source: 全国标准信息公共服务平台 std.samr.gov.cn (GB/T 17626.2 / .4 / .5 / .11 条目)
   checked: '2026-10-04'
+  clause: '3.3.20'
 - id: COND_VIN_NOM
   zh: 标称输入电压
   note: 方案原文该行 ID 为 COND_VIN_NOM(标称)而中文写作「额定输入电压」—— 两者混用。此处按 ID 语义统一为「标称」, 并保留原措辞供审计。
@@ -171,12 +203,14 @@ concepts:
   source: 全国标准信息公共服务平台 std.samr.gov.cn; GB/T 17626 各标准正文「试验设备」条款
   checked: '2026-10-04'
   confidence: 0.88
+  clause: '6.2'
 - id: INSTR_EFT_GENERATOR
   zh: 电快速瞬变脉冲群发生器
   standard_ref: GB/T 17626.4-2018 6.2 脉冲群发生器
   source: 全国标准信息公共服务平台 std.samr.gov.cn; GB/T 17626 各标准正文「试验设备」条款
   checked: '2026-10-04'
   confidence: 0.88
+  clause: '6.2'
 - id: INSTR_SURGE_GENERATOR
   zh: 浪涌(冲击)组合波发生器
   standard_ref: GB/T 17626.5-2019 组合波发生器
@@ -196,11 +230,12 @@ concepts:
   checked: '2026-10-04'
   confidence: 0.88
 - id: INSTR_EMC_RECEIVER
-  zh: 骚扰接收机
-  standard_ref: GB/T 17626 系列测量设备条款
-  source: 全国标准信息公共服务平台 std.samr.gov.cn; GB/T 17626 各标准正文「试验设备」条款
-  checked: '2026-10-04'
-  confidence: 0.88
+  zh: '骚扰接收机'
+  standard_ref: 'GB/T 17626 系列 试验设备条款(第6章)'
+  source: '全国标准信息公共服务平台 std.samr.gov.cn; GB/T 17626.11-2008/IEC 61000-4-11:2004 正文目录逐字: 「6 试验设备 / 6.1 试验发生器 / 6.1.1 发生器的性能和特性」'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: '**这一条仍然是悬空引用, 而且是有意保留的**。骚扰接收机在 GB/T 17626 各分册的试验设备章里都出现(不是一个分册专有的设备), 所以引「系列」在语义上是对的; 已逐字核到的是第 6 章 = 试验设备(GB/T 17626.11-2008), 但**接收机具体在 6.x 哪一小节未核到**, 于是不填 clause。宁可让门禁继续报这条, 也不猜一个小节号 —— 猜出来的条款号过得了形态校验, 但复核时会指向错的地方, 那比没有条款号更坏。'
 - id: PROT_REVERSE
   zh: 反向电压保护
   clause: "3.66"
@@ -237,6 +272,7 @@ concepts:
   source: 全国标准信息公共服务平台 / 国家标准馆 ndls.org.cn; GB/Z 14429-2005《远动设备及系统 第1-3部分:总则 术语》(IEC TR 60870-1-3:1997)
   checked: '2026-10-04'
   confidence: 0.9
+  clause: '2.1.45'
 - id: COND_ALTITUDE
   zh: 海拔高度
   standard_ref: GB/T 2900.19-2022 3.1.21.4 海拔修正因数(altitude correction factor)
@@ -244,6 +280,7 @@ concepts:
   checked: '2026-10-04'
   confidence: 0.85
   note: 方案写「海拔高度」是通行叫法; 标准给的是**海拔修正因数** —— 用于按运行海拔修正绝缘强度。产测做高海拔降额试验时按后者算。
+  clause: '3.1.21.4'
 - id: DERATING
   zh: 降额
   standard_ref: GB/T 2900.32-1994 2.2.9 热降额因数(thermal derating factor)
@@ -251,20 +288,15 @@ concepts:
   checked: '2026-10-04'
   confidence: 0.85
   note: 电力半导体器件语境下的规范名是「热降额因数」。
+  clause: '2.2.9'
 - id: POLLUTION_DEGREE
-  zh: 污染等级
-  standard_ref: IEC 60664-1 污染等级(pollution degree)1/2/3; 经 GB 4943.1-2022 引用
-  source: 全国标准信息公共服务平台; GB 4943.1-2022 / IEC 62368-1:2018 爬电距离与电气间隙章节(引用 IEC 60664-1)
-  checked: '2026-10-04'
-  confidence: 0.85
-  note: 污染等级直接决定爬电距离与电气间隙, 是安规设计的输入。
-- id: CONFORMAL_COATING
-  zh: 三防涂覆
-  standard_ref: IEC 60664-1 / IPC-2221B 涂覆(coating)对爬电距离与污染等级的影响
-  source: 全国标准信息公共服务平台; GB 4943.1-2022 / IEC 62368-1:2018 爬电距离与电气间隙章节(引用 IEC 60664-1)
-  checked: '2026-10-04'
-  confidence: 0.85
-  note: 标准与工业界的用法是「涂覆」/「conformal coating」; 「三防处理」是口语, 且「三防」含义随厂商而变。
+  zh: '污染等级'
+  clause: '3.1.25'
+  standard_ref: 'IEC 60664-1:2020 3.1.25 污染等级(pollution degree)'
+  source: 'IEC webstore.iec.ch/en/publication/59671(Ed 3.0, 2020-05-26, TC 109, stability date 2028) + ANSI webstore 预览页条款正文逐字: "3.1.25 pollution degree — numeral characterizing the expected pollution of the micro-environment [SOURCE: IEC 60050-581:2008, 581-21-07, modified]"; 4.5.2 Degrees of pollution in the micro-environment'
+  checked: '2026-10-08'
+  confidence: 0.9
+  note: '**条款号是逐字取自标准正文, 不是推断**。原引用是「IEC 60664-1 污染等级(pollution degree)1/2/3; 经 GB 4943.1-2022 引用」—— 一条引用里塞了两条标准(且 IEC 号没写年份), 提取器取不到任何可解析的标准号, 门禁因此报悬空引用。现在改指 IEC 60664-1:2020 3.1.25。**注意分级**: 3.1.25 定义的是「污染等级的数值」这个概念本身, 1/2/3 各级的具体划分与对应爬电距离在 4.5.2 与附录表格里, 不是 3.1.25。'
 - id: INSULATION_VOLTAGE
   zh: 绝缘试验电压
   standard_ref: GB/T 2900.19-2022 3.3.20 耐受电压(withstand voltage)
@@ -332,6 +364,2151 @@ concepts:
   checked: '2026-10-05'
   confidence: 0.9
   note: "过温保护属温度类元件, 标准 3.10 的过/欠电压说明不直接适用; 但「复归系数=返回电压/启动电压」这一定义式对任何保护型元件通用。**与「回差」(HYSTERESIS)是两个不同的量**: 本条是比值, 回差是差值。方案 md 原本给本条加了别名「OCP回差/OVP回差/OTP回差」, 已按标准删除 —— 比值与差值互换会让保护整定算错。YD/T 1817-2017 的「保护点及回差」用的才是差值语义。**另注意** GB/T 14598.127-2013 3.6「返回时间 disengaging time」与 3.7「复归时间 reset time」是两个不同词条(起始触发点不同: 前者从「输入激励量产生能引起返回的规定变化」起算, 后者从「特性量发生变化」起算), 勿并。zh 保留业界通行的「返回系数」以便检索, 标准正名存 standard_term, 两套名字都在 synonyms 里。"
+- id: COND_VIN_MIN
+  standard_ref: GB 4943.1-2022
+  clause: 1.4.5
+  source: 'GB 4943.1 信息技术设备的安全 第1部分 通用要求 条文(电源容差/额定电压容差); 全国标准信息公共服务平台 std.samr.gov.cn 标准状态页'
+  checked: '2026-10-08'
+  confidence: 0.8
+  note: 'GB 4943.1 规定额定电压的容差(相对 IEC 60950-1 的 +6%/-10%, 我国改为 +10%/-10%), 即输入电压下限的判定依据。本条只挂「下限由哪个标准判」, 不给具体数值 —— 数值随型号而异, 由规格书给出。'
+- id: COND_VIN_MAX
+  standard_ref: GB 4943.1-2022
+  clause: 1.4.5
+  source: 'GB 4943.1 信息技术设备的安全 第1部分 通用要求 条文(电源容差/额定电压容差); 全国标准信息公共服务平台 std.samr.gov.cn 标准状态页'
+  checked: '2026-10-08'
+  confidence: 0.8
+  note: '同 COND_VIN_MIN —— 上限由 GB 4943.1 的额定电压容差判。不给数值, 数值随型号而异。'
+- id: COND_COOLING_FORCED
+  standard_ref: GB 4943.1-2022
+  source: 'GB 4943.1 信息技术设备的安全 第1部分 通用要求 温升试验(强制风冷条件下测温升); 全国标准信息公共服务平台 std.samr.gov.cn 标准状态页'
+  checked: '2026-10-08'
+  confidence: 0.75
+  note: '散热方式决定用哪套温升限值(强制风冷 vs 自然冷却), 判据在 GB 4943.1 温升条款。这是判定口径的归属, 不是「强制风冷」这个词的定义出处。'
+- id: COND_COOLING_NATURAL
+  standard_ref: GB 4943.1-2022
+  source: 'GB 4943.1 信息技术设备的安全 第1部分 通用要求 温升试验(自然冷却条件下测温升); 全国标准信息公共服务平台 std.samr.gov.cn 标准状态页'
+  checked: '2026-10-08'
+  confidence: 0.75
+  note: '同 COND_COOLING_FORCED —— 散热方式归属 GB 4943.1 温升条款。'
+- id: EFFICIENCY
+  standard_ref: YD/T 4523-2023
+  source: 'YD/T 4523-2023 通信电源术语和定义(通信行业标准, 效率属通信电源基础术语); 全国标准信息公共服务平台 行业标准备案页'
+  checked: '2026-10-08'
+  confidence: 0.75
+  note: '「整机效率」的判定口径(额定点效率 + 测法)归 YD/T 4523《通信电源术语和定义》; 具体限值随型号与工况, 由规格书与 YD/T 983 等产品标准给出。未逐条核对条款号。'
+
+
+entities:
+
+# ---- 从 dead 的 standards 段迁过来: MTBF 改的是符号的中文名 ----
+- id: sym::MTBF
+  authority_kind: standard
+  authority_ref: GB/T 3187-1994
+  zh: '平均失效前时间'
+  source: 'GB/T 3187-1994 7.2.8; 参照 GB/T 2900.99-2016《电工术语 第99部分》(IEC 60050-192:2015)'
+  checked: '2026-10-08'
+  confidence: 0.9
+  note: '平均失效间隔时间在通用说明里含义并不统一: 译「平均/额定/定时间隔」。未找到 GB/T 2900.99-2016 的对应词条(该标准未收录本术语), 规范术语见 18.10 与注 8 禁止术语表。**这条原先被放在 standards 段** —— 但 sym::MTBF 是**符号**不是标准, 放错段的后果是每次构建都报「目标不存在」被静默跳过, 而 sym::MTBF 其实一直存在。'
+
+# ---- AXIOM (15 条) ----
+- id: A-1
+  authority_kind: industry
+  source: '电路与电子学教科书的基本定律与公理体系(基尔霍夫电流/电压定律、欧姆定律、叠加与替代定理、戴维南/诺顿定理、麦克斯韦方程组、功率守恒等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '**公理与定理的依据是学科本身, 不是任何标准条款** —— 这是它们与「公式」的根本区别。挂标准号反而可疑: 没人能指出「基尔霍夫电流定律定义在 GB/T xxxx 的第 y 条」。故 authority_kind=industry, 且 industry 不建边, 所以图里不会出现「公理 derived_by 标准」这种假边。confidence 0.7 —— 依据是公认的教科书体系, 但不是可引条款。'
+- id: A-2
+  authority_kind: industry
+  source: '电路与电子学教科书的基本定律与公理体系(基尔霍夫电流/电压定律、欧姆定律、叠加与替代定理、戴维南/诺顿定理、麦克斯韦方程组、功率守恒等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '**公理与定理的依据是学科本身, 不是任何标准条款** —— 这是它们与「公式」的根本区别。挂标准号反而可疑: 没人能指出「基尔霍夫电流定律定义在 GB/T xxxx 的第 y 条」。故 authority_kind=industry, 且 industry 不建边, 所以图里不会出现「公理 derived_by 标准」这种假边。confidence 0.7 —— 依据是公认的教科书体系, 但不是可引条款。'
+- id: A-3
+  authority_kind: industry
+  source: '电路与电子学教科书的基本定律与公理体系(基尔霍夫电流/电压定律、欧姆定律、叠加与替代定理、戴维南/诺顿定理、麦克斯韦方程组、功率守恒等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '**公理与定理的依据是学科本身, 不是任何标准条款** —— 这是它们与「公式」的根本区别。挂标准号反而可疑: 没人能指出「基尔霍夫电流定律定义在 GB/T xxxx 的第 y 条」。故 authority_kind=industry, 且 industry 不建边, 所以图里不会出现「公理 derived_by 标准」这种假边。confidence 0.7 —— 依据是公认的教科书体系, 但不是可引条款。'
+- id: A-4
+  authority_kind: industry
+  source: '电路与电子学教科书的基本定律与公理体系(基尔霍夫电流/电压定律、欧姆定律、叠加与替代定理、戴维南/诺顿定理、麦克斯韦方程组、功率守恒等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '**公理与定理的依据是学科本身, 不是任何标准条款** —— 这是它们与「公式」的根本区别。挂标准号反而可疑: 没人能指出「基尔霍夫电流定律定义在 GB/T xxxx 的第 y 条」。故 authority_kind=industry, 且 industry 不建边, 所以图里不会出现「公理 derived_by 标准」这种假边。confidence 0.7 —— 依据是公认的教科书体系, 但不是可引条款。'
+- id: A-5
+  authority_kind: industry
+  source: '电路与电子学教科书的基本定律与公理体系(基尔霍夫电流/电压定律、欧姆定律、叠加与替代定理、戴维南/诺顿定理、麦克斯韦方程组、功率守恒等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '**公理与定理的依据是学科本身, 不是任何标准条款** —— 这是它们与「公式」的根本区别。挂标准号反而可疑: 没人能指出「基尔霍夫电流定律定义在 GB/T xxxx 的第 y 条」。故 authority_kind=industry, 且 industry 不建边, 所以图里不会出现「公理 derived_by 标准」这种假边。confidence 0.7 —— 依据是公认的教科书体系, 但不是可引条款。'
+- id: A-6
+  authority_kind: industry
+  source: '电路与电子学教科书的基本定律与公理体系(基尔霍夫电流/电压定律、欧姆定律、叠加与替代定理、戴维南/诺顿定理、麦克斯韦方程组、功率守恒等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '**公理与定理的依据是学科本身, 不是任何标准条款** —— 这是它们与「公式」的根本区别。挂标准号反而可疑: 没人能指出「基尔霍夫电流定律定义在 GB/T xxxx 的第 y 条」。故 authority_kind=industry, 且 industry 不建边, 所以图里不会出现「公理 derived_by 标准」这种假边。confidence 0.7 —— 依据是公认的教科书体系, 但不是可引条款。'
+- id: A-7
+  authority_kind: industry
+  source: '电路与电子学教科书的基本定律与公理体系(基尔霍夫电流/电压定律、欧姆定律、叠加与替代定理、戴维南/诺顿定理、麦克斯韦方程组、功率守恒等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '**公理与定理的依据是学科本身, 不是任何标准条款** —— 这是它们与「公式」的根本区别。挂标准号反而可疑: 没人能指出「基尔霍夫电流定律定义在 GB/T xxxx 的第 y 条」。故 authority_kind=industry, 且 industry 不建边, 所以图里不会出现「公理 derived_by 标准」这种假边。confidence 0.7 —— 依据是公认的教科书体系, 但不是可引条款。'
+- id: A-8
+  authority_kind: industry
+  source: '电路与电子学教科书的基本定律与公理体系(基尔霍夫电流/电压定律、欧姆定律、叠加与替代定理、戴维南/诺顿定理、麦克斯韦方程组、功率守恒等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '**公理与定理的依据是学科本身, 不是任何标准条款** —— 这是它们与「公式」的根本区别。挂标准号反而可疑: 没人能指出「基尔霍夫电流定律定义在 GB/T xxxx 的第 y 条」。故 authority_kind=industry, 且 industry 不建边, 所以图里不会出现「公理 derived_by 标准」这种假边。confidence 0.7 —— 依据是公认的教科书体系, 但不是可引条款。'
+- id: A-9
+  authority_kind: industry
+  source: '电路与电子学教科书的基本定律与公理体系(基尔霍夫电流/电压定律、欧姆定律、叠加与替代定理、戴维南/诺顿定理、麦克斯韦方程组、功率守恒等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '**公理与定理的依据是学科本身, 不是任何标准条款** —— 这是它们与「公式」的根本区别。挂标准号反而可疑: 没人能指出「基尔霍夫电流定律定义在 GB/T xxxx 的第 y 条」。故 authority_kind=industry, 且 industry 不建边, 所以图里不会出现「公理 derived_by 标准」这种假边。confidence 0.7 —— 依据是公认的教科书体系, 但不是可引条款。'
+- id: A-10
+  authority_kind: industry
+  source: '电路与电子学教科书的基本定律与公理体系(基尔霍夫电流/电压定律、欧姆定律、叠加与替代定理、戴维南/诺顿定理、麦克斯韦方程组、功率守恒等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '**公理与定理的依据是学科本身, 不是任何标准条款** —— 这是它们与「公式」的根本区别。挂标准号反而可疑: 没人能指出「基尔霍夫电流定律定义在 GB/T xxxx 的第 y 条」。故 authority_kind=industry, 且 industry 不建边, 所以图里不会出现「公理 derived_by 标准」这种假边。confidence 0.7 —— 依据是公认的教科书体系, 但不是可引条款。'
+- id: A-12
+  authority_kind: industry
+  source: '电路与电子学教科书的基本定律与公理体系(基尔霍夫电流/电压定律、欧姆定律、叠加与替代定理、戴维南/诺顿定理、麦克斯韦方程组、功率守恒等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '**公理与定理的依据是学科本身, 不是任何标准条款** —— 这是它们与「公式」的根本区别。挂标准号反而可疑: 没人能指出「基尔霍夫电流定律定义在 GB/T xxxx 的第 y 条」。故 authority_kind=industry, 且 industry 不建边, 所以图里不会出现「公理 derived_by 标准」这种假边。confidence 0.7 —— 依据是公认的教科书体系, 但不是可引条款。'
+- id: A-13
+  authority_kind: industry
+  source: '电路与电子学教科书的基本定律与公理体系(基尔霍夫电流/电压定律、欧姆定律、叠加与替代定理、戴维南/诺顿定理、麦克斯韦方程组、功率守恒等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '**公理与定理的依据是学科本身, 不是任何标准条款** —— 这是它们与「公式」的根本区别。挂标准号反而可疑: 没人能指出「基尔霍夫电流定律定义在 GB/T xxxx 的第 y 条」。故 authority_kind=industry, 且 industry 不建边, 所以图里不会出现「公理 derived_by 标准」这种假边。confidence 0.7 —— 依据是公认的教科书体系, 但不是可引条款。'
+- id: A-14
+  authority_kind: industry
+  source: '电路与电子学教科书的基本定律与公理体系(基尔霍夫电流/电压定律、欧姆定律、叠加与替代定理、戴维南/诺顿定理、麦克斯韦方程组、功率守恒等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '**公理与定理的依据是学科本身, 不是任何标准条款** —— 这是它们与「公式」的根本区别。挂标准号反而可疑: 没人能指出「基尔霍夫电流定律定义在 GB/T xxxx 的第 y 条」。故 authority_kind=industry, 且 industry 不建边, 所以图里不会出现「公理 derived_by 标准」这种假边。confidence 0.7 —— 依据是公认的教科书体系, 但不是可引条款。'
+- id: A-15
+  authority_kind: industry
+  source: '电路与电子学教科书的基本定律与公理体系(基尔霍夫电流/电压定律、欧姆定律、叠加与替代定理、戴维南/诺顿定理、麦克斯韦方程组、功率守恒等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '**公理与定理的依据是学科本身, 不是任何标准条款** —— 这是它们与「公式」的根本区别。挂标准号反而可疑: 没人能指出「基尔霍夫电流定律定义在 GB/T xxxx 的第 y 条」。故 authority_kind=industry, 且 industry 不建边, 所以图里不会出现「公理 derived_by 标准」这种假边。confidence 0.7 —— 依据是公认的教科书体系, 但不是可引条款。'
+- id: A-11
+  authority_kind: industry
+  source: '电路与电子学教科书的基本定律与公理体系(基尔霍夫电流/电压定律、欧姆定律、叠加与替代定理、戴维南/诺顿定理、麦克斯韦方程组、功率守恒等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '**公理与定理的依据是学科本身, 不是任何标准条款** —— 这是它们与「公式」的根本区别。挂标准号反而可疑: 没人能指出「基尔霍夫电流定律定义在 GB/T xxxx 的第 y 条」。故 authority_kind=industry, 且 industry 不建边, 所以图里不会出现「公理 derived_by 标准」这种假边。confidence 0.7 —— 依据是公认的教科书体系, 但不是可引条款。'
+
+# ---- COND (8 条) ----
+- id: COND_TEMP_REF_Ta
+  authority_kind: industry
+  source: '电源产品规格书的工况定义惯例(容性/感性/阻性负载、输出负载百分比、相对湿度、环境温度 Ta / 壳温 Tc / 结温 Tj 三个温度参考点)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '工况项与温度参考符号是电源/电子行业的产品规格书通行写法。**记号(Ta/Tc/Tj)是本项目的写法**, 各厂商另有 θa/θc/Tj 等写法; 数值随型号而异, 由规格书给出。'
+- id: COND_TEMP_REF_Tc
+  authority_kind: industry
+  source: '电源产品规格书的工况定义惯例(容性/感性/阻性负载、输出负载百分比、相对湿度、环境温度 Ta / 壳温 Tc / 结温 Tj 三个温度参考点)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '工况项与温度参考符号是电源/电子行业的产品规格书通行写法。**记号(Ta/Tc/Tj)是本项目的写法**, 各厂商另有 θa/θc/Tj 等写法; 数值随型号而异, 由规格书给出。'
+- id: COND_TEMP_REF_Tj
+  authority_kind: industry
+  source: '电源产品规格书的工况定义惯例(容性/感性/阻性负载、输出负载百分比、相对湿度、环境温度 Ta / 壳温 Tc / 结温 Tj 三个温度参考点)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '工况项与温度参考符号是电源/电子行业的产品规格书通行写法。**记号(Ta/Tc/Tj)是本项目的写法**, 各厂商另有 θa/θc/Tj 等写法; 数值随型号而异, 由规格书给出。'
+- id: COND_IOUT_PCT
+  authority_kind: industry
+  source: '电源产品规格书的工况定义惯例(容性/感性/阻性负载、输出负载百分比、相对湿度、环境温度 Ta / 壳温 Tc / 结温 Tj 三个温度参考点)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '工况项与温度参考符号是电源/电子行业的产品规格书通行写法。**记号(Ta/Tc/Tj)是本项目的写法**, 各厂商另有 θa/θc/Tj 等写法; 数值随型号而异, 由规格书给出。'
+- id: COND_LOAD_TYPE_R
+  authority_kind: industry
+  source: '电源产品规格书的工况定义惯例(容性/感性/阻性负载、输出负载百分比、相对湿度、环境温度 Ta / 壳温 Tc / 结温 Tj 三个温度参考点)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '工况项与温度参考符号是电源/电子行业的产品规格书通行写法。**记号(Ta/Tc/Tj)是本项目的写法**, 各厂商另有 θa/θc/Tj 等写法; 数值随型号而异, 由规格书给出。'
+- id: COND_LOAD_TYPE_C
+  authority_kind: industry
+  source: '电源产品规格书的工况定义惯例(容性/感性/阻性负载、输出负载百分比、相对湿度、环境温度 Ta / 壳温 Tc / 结温 Tj 三个温度参考点)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '工况项与温度参考符号是电源/电子行业的产品规格书通行写法。**记号(Ta/Tc/Tj)是本项目的写法**, 各厂商另有 θa/θc/Tj 等写法; 数值随型号而异, 由规格书给出。'
+- id: COND_LOAD_TYPE_L
+  authority_kind: industry
+  source: '电源产品规格书的工况定义惯例(容性/感性/阻性负载、输出负载百分比、相对湿度、环境温度 Ta / 壳温 Tc / 结温 Tj 三个温度参考点)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '工况项与温度参考符号是电源/电子行业的产品规格书通行写法。**记号(Ta/Tc/Tj)是本项目的写法**, 各厂商另有 θa/θc/Tj 等写法; 数值随型号而异, 由规格书给出。'
+- id: COND_HUMIDITY
+  authority_kind: industry
+  source: '电源产品规格书的工况定义惯例(容性/感性/阻性负载、输出负载百分比、相对湿度、环境温度 Ta / 壳温 Tc / 结温 Tj 三个温度参考点)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '工况项与温度参考符号是电源/电子行业的产品规格书通行写法。**记号(Ta/Tc/Tj)是本项目的写法**, 各厂商另有 θa/θc/Tj 等写法; 数值随型号而异, 由规格书给出。'
+
+# ---- INSTR (13 条) ----
+- id: INSTR_OSCILLOSCOPE
+  authority_kind: industry
+  source: '仪器厂商产品类别与计量术语惯例(可编程直流/交流电源、电子负载、功率分析仪、示波器、差分与电流探头、频率响应分析仪、继电保护测试仪、规约分析仪、温箱、时间同步测试仪、万用表)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这些是**产测仪器类别名**, 依据是厂商产品线划分与计量领域通用叫法。每个类别的性能要求另有各自信标/校准规范, 但「这一类仪器叫什么、测什么」不是标准条款。'
+- id: INSTR_MULTIMETER
+  authority_kind: industry
+  source: '仪器厂商产品类别与计量术语惯例(可编程直流/交流电源、电子负载、功率分析仪、示波器、差分与电流探头、频率响应分析仪、继电保护测试仪、规约分析仪、温箱、时间同步测试仪、万用表)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这些是**产测仪器类别名**, 依据是厂商产品线划分与计量领域通用叫法。每个类别的性能要求另有各自信标/校准规范, 但「这一类仪器叫什么、测什么」不是标准条款。'
+- id: INSTR_ELECTRONIC_LOAD
+  authority_kind: industry
+  source: '仪器厂商产品类别与计量术语惯例(可编程直流/交流电源、电子负载、功率分析仪、示波器、差分与电流探头、频率响应分析仪、继电保护测试仪、规约分析仪、温箱、时间同步测试仪、万用表)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这些是**产测仪器类别名**, 依据是厂商产品线划分与计量领域通用叫法。每个类别的性能要求另有各自信标/校准规范, 但「这一类仪器叫什么、测什么」不是标准条款。'
+- id: INSTR_POWER_ANALYZER
+  authority_kind: industry
+  source: '仪器厂商产品类别与计量术语惯例(可编程直流/交流电源、电子负载、功率分析仪、示波器、差分与电流探头、频率响应分析仪、继电保护测试仪、规约分析仪、温箱、时间同步测试仪、万用表)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这些是**产测仪器类别名**, 依据是厂商产品线划分与计量领域通用叫法。每个类别的性能要求另有各自信标/校准规范, 但「这一类仪器叫什么、测什么」不是标准条款。'
+- id: INSTR_AC_SOURCE
+  authority_kind: industry
+  source: '仪器厂商产品类别与计量术语惯例(可编程直流/交流电源、电子负载、功率分析仪、示波器、差分与电流探头、频率响应分析仪、继电保护测试仪、规约分析仪、温箱、时间同步测试仪、万用表)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这些是**产测仪器类别名**, 依据是厂商产品线划分与计量领域通用叫法。每个类别的性能要求另有各自信标/校准规范, 但「这一类仪器叫什么、测什么」不是标准条款。'
+- id: INSTR_DC_SOURCE
+  authority_kind: industry
+  source: '仪器厂商产品类别与计量术语惯例(可编程直流/交流电源、电子负载、功率分析仪、示波器、差分与电流探头、频率响应分析仪、继电保护测试仪、规约分析仪、温箱、时间同步测试仪、万用表)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这些是**产测仪器类别名**, 依据是厂商产品线划分与计量领域通用叫法。每个类别的性能要求另有各自信标/校准规范, 但「这一类仪器叫什么、测什么」不是标准条款。'
+- id: INSTR_THERMAL_CHAMBER
+  authority_kind: industry
+  source: '仪器厂商产品类别与计量术语惯例(可编程直流/交流电源、电子负载、功率分析仪、示波器、差分与电流探头、频率响应分析仪、继电保护测试仪、规约分析仪、温箱、时间同步测试仪、万用表)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这些是**产测仪器类别名**, 依据是厂商产品线划分与计量领域通用叫法。每个类别的性能要求另有各自信标/校准规范, 但「这一类仪器叫什么、测什么」不是标准条款。'
+- id: INSTR_CURRENT_PROBE
+  authority_kind: industry
+  source: '仪器厂商产品类别与计量术语惯例(可编程直流/交流电源、电子负载、功率分析仪、示波器、差分与电流探头、频率响应分析仪、继电保护测试仪、规约分析仪、温箱、时间同步测试仪、万用表)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这些是**产测仪器类别名**, 依据是厂商产品线划分与计量领域通用叫法。每个类别的性能要求另有各自信标/校准规范, 但「这一类仪器叫什么、测什么」不是标准条款。'
+- id: INSTR_DIFFERENTIAL_PROBE
+  authority_kind: industry
+  source: '仪器厂商产品类别与计量术语惯例(可编程直流/交流电源、电子负载、功率分析仪、示波器、差分与电流探头、频率响应分析仪、继电保护测试仪、规约分析仪、温箱、时间同步测试仪、万用表)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这些是**产测仪器类别名**, 依据是厂商产品线划分与计量领域通用叫法。每个类别的性能要求另有各自信标/校准规范, 但「这一类仪器叫什么、测什么」不是标准条款。'
+- id: INSTR_FRA
+  authority_kind: industry
+  source: '仪器厂商产品类别与计量术语惯例(可编程直流/交流电源、电子负载、功率分析仪、示波器、差分与电流探头、频率响应分析仪、继电保护测试仪、规约分析仪、温箱、时间同步测试仪、万用表)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这些是**产测仪器类别名**, 依据是厂商产品线划分与计量领域通用叫法。每个类别的性能要求另有各自信标/校准规范, 但「这一类仪器叫什么、测什么」不是标准条款。'
+- id: INSTR_PROTECTION_TESTER
+  authority_kind: industry
+  source: '仪器厂商产品类别与计量术语惯例(可编程直流/交流电源、电子负载、功率分析仪、示波器、差分与电流探头、频率响应分析仪、继电保护测试仪、规约分析仪、温箱、时间同步测试仪、万用表)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这些是**产测仪器类别名**, 依据是厂商产品线划分与计量领域通用叫法。每个类别的性能要求另有各自信标/校准规范, 但「这一类仪器叫什么、测什么」不是标准条款。'
+- id: INSTR_PROTOCOL_ANALYZER
+  authority_kind: industry
+  source: '仪器厂商产品类别与计量术语惯例(可编程直流/交流电源、电子负载、功率分析仪、示波器、差分与电流探头、频率响应分析仪、继电保护测试仪、规约分析仪、温箱、时间同步测试仪、万用表)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这些是**产测仪器类别名**, 依据是厂商产品线划分与计量领域通用叫法。每个类别的性能要求另有各自信标/校准规范, 但「这一类仪器叫什么、测什么」不是标准条款。'
+- id: INSTR_TIME_SYNC_TESTER
+  authority_kind: industry
+  source: '仪器厂商产品类别与计量术语惯例(可编程直流/交流电源、电子负载、功率分析仪、示波器、差分与电流探头、频率响应分析仪、继电保护测试仪、规约分析仪、温箱、时间同步测试仪、万用表)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这些是**产测仪器类别名**, 依据是厂商产品线划分与计量领域通用叫法。每个类别的性能要求另有各自信标/校准规范, 但「这一类仪器叫什么、测什么」不是标准条款。'
+
+# ---- MISC (6 条) ----
+- id: TEMP_COEFFICIENT
+  authority_kind: industry
+  source: '电源工程惯例(混插策略、输入冲击电流、ORing 双路切换要求、失效隔离、待机功耗、温度系数)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品的通用工程项, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。'
+- id: STANDBY_POWER
+  authority_kind: industry
+  source: '电源工程惯例(混插策略、输入冲击电流、ORing 双路切换要求、失效隔离、待机功耗、温度系数)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品的通用工程项, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。'
+- id: INRUSH_CURRENT
+  authority_kind: industry
+  source: '电源工程惯例(混插策略、输入冲击电流、ORing 双路切换要求、失效隔离、待机功耗、温度系数)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品的通用工程项, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。'
+- id: HOT_SWAP_POLICY
+  authority_kind: industry
+  source: '电源工程惯例(混插策略、输入冲击电流、ORing 双路切换要求、失效隔离、待机功耗、温度系数)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品的通用工程项, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。'
+- id: FAILURE_ISOLATION
+  authority_kind: industry
+  source: '电源工程惯例(混插策略、输入冲击电流、ORing 双路切换要求、失效隔离、待机功耗、温度系数)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品的通用工程项, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。'
+- id: ORING_REQUIREMENT
+  authority_kind: industry
+  source: '电源工程惯例(混插策略、输入冲击电流、ORing 双路切换要求、失效隔离、待机功耗、温度系数)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品的通用工程项, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。'
+
+# ---- PRACTICE (30 条) ----
+- id: MEAS_RIPPLE_BW_LIMIT
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: MEAS_RIPPLE_DECOUPLING_CAP
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: MEAS_EFFICIENCY_KELVIN_4WIRE
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: MEAS_DYNAMIC_LOAD_SLEW
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: MEAS_PROTECT_SWEEP_LOAD
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: MEAS_HIPOT_ISOLATE_LOAD
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: PRACT_BURN_IN_GRADED
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: PRACT_BURN_IN_4WIRE
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: PRACT_REGRESSION_AFTER_BURNIN
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: PRACT_SAMPLING_AQL
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: PRACT_CALIBRATION_TRACEABILITY
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: PRACT_SOE_TIME_RESOLUTION
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: PRACT_POWER_STEP_VOLTAGE_BOUNDARY
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: FIXTURE_TEST_POINT_AND_ALIGNMENT
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: FIXTURE_PROBE_LIFE_AND_RESISTANCE
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: FIXTURE_RELAY_MATRIX_ROUTING
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: FIXTURE_MULTI_STATION_ISOLATION
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: FIXTURE_FOUR_WIRE_CONTACT_RES
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: MEAS_POWER_ANALYZER_NOT_DMM
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: MEAS_GROUND_IMPEDANCE_METHOD
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: PRACT_THERMAL_CHAMBER_SAMPLING
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: PRACT_SAFETY_INTERLOCK_DISCHARGE
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: PRACT_MSA_GRR_ACCEPTANCE
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: PRACT_GUARDBAND_CONFORMANCE
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: PRACT_TRACE_METADATA_REQUIRED
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: PRACT_BATCH_RELEASE_AND_REWORK
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: PRACT_SPC_TREND_ON_BURNIN
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: PRACT_POWER_MARGIN_AND_TIERED_PROTECTION
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: MEAS_LOAD_SHARE_SYNC_SAMPLING
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+- id: MEAS_TEMPCO_CHAMBER_SWEEP
+  authority_kind: industry
+  source: '产测工艺惯例与厂商应用笔记(产线通行做法, 多个来源一致); 种子里这批自带 credibility=0.5 与 provenance_kind=websearch_verified_practice'
+  checked: '2026-10-08'
+  confidence: 0.5
+  note: '**依据就是业界通行做法**: 这类条目讲的是「产线怎么做才不漏检/不误判」(老化梯度、GRR 接受准则、AQL 抽样、保护带、SOE 时间分辨率、安全联锁与放电…)。它们既不是本项目的约定(别人也这么做), 也不是可引的标准条款 —— 塞进 standard_ref 会让「出处必须可查」变成空话: 读者去翻那个标准号却找不到对应条款。confidence 沿用其 credibility 0.5。'
+
+# ---- PROT (12 条) ----
+- id: OVP_PROTECT
+  authority_kind: industry
+  source: '电源保护功能的通用命名惯例(输入/输出过压与欠压保护、过流、过功率、静态过压、过压保护点/欠压保护点、保护延时、过温动作值)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '保护功能名与定值项是电源行业通用叫法(OVP/UVP/OCP/OPP/OTP)。各家的动作值与延时判据另有产品标准, 本条不声称某个定值公式定义在哪一条。'
+- id: UVLO_PROTECT
+  authority_kind: industry
+  source: '电源保护功能的通用命名惯例(输入/输出过压与欠压保护、过流、过功率、静态过压、过压保护点/欠压保护点、保护延时、过温动作值)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '保护功能名与定值项是电源行业通用叫法(OVP/UVP/OCP/OPP/OTP)。各家的动作值与延时判据另有产品标准, 本条不声称某个定值公式定义在哪一条。'
+- id: STATIC_OVP
+  authority_kind: industry
+  source: '电源保护功能的通用命名惯例(输入/输出过压与欠压保护、过流、过功率、静态过压、过压保护点/欠压保护点、保护延时、过温动作值)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '保护功能名与定值项是电源行业通用叫法(OVP/UVP/OCP/OPP/OTP)。各家的动作值与延时判据另有产品标准, 本条不声称某个定值公式定义在哪一条。'
+- id: PROT_OCP
+  authority_kind: industry
+  source: '电源保护功能的通用命名惯例(输入/输出过压与欠压保护、过流、过功率、静态过压、过压保护点/欠压保护点、保护延时、过温动作值)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '保护功能名与定值项是电源行业通用叫法(OVP/UVP/OCP/OPP/OTP)。各家的动作值与延时判据另有产品标准, 本条不声称某个定值公式定义在哪一条。'
+- id: PROT_OVP
+  authority_kind: industry
+  source: '电源保护功能的通用命名惯例(输入/输出过压与欠压保护、过流、过功率、静态过压、过压保护点/欠压保护点、保护延时、过温动作值)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '保护功能名与定值项是电源行业通用叫法(OVP/UVP/OCP/OPP/OTP)。各家的动作值与延时判据另有产品标准, 本条不声称某个定值公式定义在哪一条。'
+- id: PROT_UVP
+  authority_kind: industry
+  source: '电源保护功能的通用命名惯例(输入/输出过压与欠压保护、过流、过功率、静态过压、过压保护点/欠压保护点、保护延时、过温动作值)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '保护功能名与定值项是电源行业通用叫法(OVP/UVP/OCP/OPP/OTP)。各家的动作值与延时判据另有产品标准, 本条不声称某个定值公式定义在哪一条。'
+- id: PROT_OPP
+  authority_kind: industry
+  source: '电源保护功能的通用命名惯例(输入/输出过压与欠压保护、过流、过功率、静态过压、过压保护点/欠压保护点、保护延时、过温动作值)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '保护功能名与定值项是电源行业通用叫法(OVP/UVP/OCP/OPP/OTP)。各家的动作值与延时判据另有产品标准, 本条不声称某个定值公式定义在哪一条。'
+- id: PROT_INPUT_OVP
+  authority_kind: industry
+  source: '电源保护功能的通用命名惯例(输入/输出过压与欠压保护、过流、过功率、静态过压、过压保护点/欠压保护点、保护延时、过温动作值)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '保护功能名与定值项是电源行业通用叫法(OVP/UVP/OCP/OPP/OTP)。各家的动作值与延时判据另有产品标准, 本条不声称某个定值公式定义在哪一条。'
+- id: PROT_INPUT_UVP
+  authority_kind: industry
+  source: '电源保护功能的通用命名惯例(输入/输出过压与欠压保护、过流、过功率、静态过压、过压保护点/欠压保护点、保护延时、过温动作值)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '保护功能名与定值项是电源行业通用叫法(OVP/UVP/OCP/OPP/OTP)。各家的动作值与延时判据另有产品标准, 本条不声称某个定值公式定义在哪一条。'
+- id: SET_OCP_DELAY
+  authority_kind: industry
+  source: '电源保护功能的通用命名惯例(输入/输出过压与欠压保护、过流、过功率、静态过压、过压保护点/欠压保护点、保护延时、过温动作值)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '保护功能名与定值项是电源行业通用叫法(OVP/UVP/OCP/OPP/OTP)。各家的动作值与延时判据另有产品标准, 本条不声称某个定值公式定义在哪一条。'
+- id: SET_OVP_DELAY
+  authority_kind: industry
+  source: '电源保护功能的通用命名惯例(输入/输出过压与欠压保护、过流、过功率、静态过压、过压保护点/欠压保护点、保护延时、过温动作值)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '保护功能名与定值项是电源行业通用叫法(OVP/UVP/OCP/OPP/OTP)。各家的动作值与延时判据另有产品标准, 本条不声称某个定值公式定义在哪一条。'
+- id: SET_OTP_TRIP
+  authority_kind: industry
+  source: '电源保护功能的通用命名惯例(输入/输出过压与欠压保护、过流、过功率、静态过压、过压保护点/欠压保护点、保护延时、过温动作值)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '保护功能名与定值项是电源行业通用叫法(OVP/UVP/OCP/OPP/OTP)。各家的动作值与延时判据另有产品标准, 本条不声称某个定值公式定义在哪一条。'
+
+# ---- THEOREM (14 条) ----
+- id: thm::T1
+  authority_kind: industry
+  source: '电路与电子学教科书的定理体系(戴维南定理、诺顿定理、最大功率传输定理、奈奎斯特采样定理、拉普拉斯/傅里叶变换相关定理、稳定性判据等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '同公理: 定理的依据是学科本身而非标准条款。挂标准号会造出「定理 defined_by 标准」的假关系。authority_kind=industry, 不建边。'
+- id: thm::T10
+  authority_kind: industry
+  source: '电路与电子学教科书的定理体系(戴维南定理、诺顿定理、最大功率传输定理、奈奎斯特采样定理、拉普拉斯/傅里叶变换相关定理、稳定性判据等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '同公理: 定理的依据是学科本身而非标准条款。挂标准号会造出「定理 defined_by 标准」的假关系。authority_kind=industry, 不建边。'
+- id: thm::T3
+  authority_kind: industry
+  source: '电路与电子学教科书的定理体系(戴维南定理、诺顿定理、最大功率传输定理、奈奎斯特采样定理、拉普拉斯/傅里叶变换相关定理、稳定性判据等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '同公理: 定理的依据是学科本身而非标准条款。挂标准号会造出「定理 defined_by 标准」的假关系。authority_kind=industry, 不建边。'
+- id: thm::T4
+  authority_kind: industry
+  source: '电路与电子学教科书的定理体系(戴维南定理、诺顿定理、最大功率传输定理、奈奎斯特采样定理、拉普拉斯/傅里叶变换相关定理、稳定性判据等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '同公理: 定理的依据是学科本身而非标准条款。挂标准号会造出「定理 defined_by 标准」的假关系。authority_kind=industry, 不建边。'
+- id: thm::T7
+  authority_kind: industry
+  source: '电路与电子学教科书的定理体系(戴维南定理、诺顿定理、最大功率传输定理、奈奎斯特采样定理、拉普拉斯/傅里叶变换相关定理、稳定性判据等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '同公理: 定理的依据是学科本身而非标准条款。挂标准号会造出「定理 defined_by 标准」的假关系。authority_kind=industry, 不建边。'
+- id: thm::T23
+  authority_kind: industry
+  source: '电路与电子学教科书的定理体系(戴维南定理、诺顿定理、最大功率传输定理、奈奎斯特采样定理、拉普拉斯/傅里叶变换相关定理、稳定性判据等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '同公理: 定理的依据是学科本身而非标准条款。挂标准号会造出「定理 defined_by 标准」的假关系。authority_kind=industry, 不建边。'
+- id: thm::T2
+  authority_kind: industry
+  source: '电路与电子学教科书的定理体系(戴维南定理、诺顿定理、最大功率传输定理、奈奎斯特采样定理、拉普拉斯/傅里叶变换相关定理、稳定性判据等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '同公理: 定理的依据是学科本身而非标准条款。挂标准号会造出「定理 defined_by 标准」的假关系。authority_kind=industry, 不建边。'
+- id: thm::T20
+  authority_kind: industry
+  source: '电路与电子学教科书的定理体系(戴维南定理、诺顿定理、最大功率传输定理、奈奎斯特采样定理、拉普拉斯/傅里叶变换相关定理、稳定性判据等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '同公理: 定理的依据是学科本身而非标准条款。挂标准号会造出「定理 defined_by 标准」的假关系。authority_kind=industry, 不建边。'
+- id: thm::T21
+  authority_kind: industry
+  source: '电路与电子学教科书的定理体系(戴维南定理、诺顿定理、最大功率传输定理、奈奎斯特采样定理、拉普拉斯/傅里叶变换相关定理、稳定性判据等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '同公理: 定理的依据是学科本身而非标准条款。挂标准号会造出「定理 defined_by 标准」的假关系。authority_kind=industry, 不建边。'
+- id: thm::T12
+  authority_kind: industry
+  source: '电路与电子学教科书的定理体系(戴维南定理、诺顿定理、最大功率传输定理、奈奎斯特采样定理、拉普拉斯/傅里叶变换相关定理、稳定性判据等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '同公理: 定理的依据是学科本身而非标准条款。挂标准号会造出「定理 defined_by 标准」的假关系。authority_kind=industry, 不建边。'
+- id: thm::T19
+  authority_kind: industry
+  source: '电路与电子学教科书的定理体系(戴维南定理、诺顿定理、最大功率传输定理、奈奎斯特采样定理、拉普拉斯/傅里叶变换相关定理、稳定性判据等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '同公理: 定理的依据是学科本身而非标准条款。挂标准号会造出「定理 defined_by 标准」的假关系。authority_kind=industry, 不建边。'
+- id: thm::T13
+  authority_kind: industry
+  source: '电路与电子学教科书的定理体系(戴维南定理、诺顿定理、最大功率传输定理、奈奎斯特采样定理、拉普拉斯/傅里叶变换相关定理、稳定性判据等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '同公理: 定理的依据是学科本身而非标准条款。挂标准号会造出「定理 defined_by 标准」的假关系。authority_kind=industry, 不建边。'
+- id: thm::T18
+  authority_kind: industry
+  source: '电路与电子学教科书的定理体系(戴维南定理、诺顿定理、最大功率传输定理、奈奎斯特采样定理、拉普拉斯/傅里叶变换相关定理、稳定性判据等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '同公理: 定理的依据是学科本身而非标准条款。挂标准号会造出「定理 defined_by 标准」的假关系。authority_kind=industry, 不建边。'
+- id: thm::T25
+  authority_kind: industry
+  source: '电路与电子学教科书的定理体系(戴维南定理、诺顿定理、最大功率传输定理、奈奎斯特采样定理、拉普拉斯/傅里叶变换相关定理、稳定性判据等)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '同公理: 定理的依据是学科本身而非标准条款。挂标准号会造出「定理 defined_by 标准」的假关系。authority_kind=industry, 不建边。'
+
+# ---- VOUT (5 条) ----
+- id: TRIPPLE_OUTPUT
+  authority_kind: industry
+  source: '开关电源产品规格书的通用输出规格项惯例(输出电压范围、额定输出电压、输出纹波、上升时间、整定值)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '输出规格项是产品技术条件里的固定栏目。具体限值随型号与产品标准而异, 由规格书给出 —— 本条挂的是「这类规格项属哪一类惯例」。'
+- id: VOUT_NOM
+  authority_kind: industry
+  source: '开关电源产品规格书的通用输出规格项惯例(输出电压范围、额定输出电压、输出纹波、上升时间、整定值)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '输出规格项是产品技术条件里的固定栏目。具体限值随型号与产品标准而异, 由规格书给出 —— 本条挂的是「这类规格项属哪一类惯例」。'
+- id: VOUT_TRIM
+  authority_kind: industry
+  source: '开关电源产品规格书的通用输出规格项惯例(输出电压范围、额定输出电压、输出纹波、上升时间、整定值)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '输出规格项是产品技术条件里的固定栏目。具体限值随型号与产品标准而异, 由规格书给出 —— 本条挂的是「这类规格项属哪一类惯例」。'
+- id: VOUT_RANGE
+  authority_kind: industry
+  source: '开关电源产品规格书的通用输出规格项惯例(输出电压范围、额定输出电压、输出纹波、上升时间、整定值)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '输出规格项是产品技术条件里的固定栏目。具体限值随型号与产品标准而异, 由规格书给出 —— 本条挂的是「这类规格项属哪一类惯例」。'
+- id: VOUT_RISE_TIME
+  authority_kind: industry
+  source: '开关电源产品规格书的通用输出规格项惯例(输出电压范围、额定输出电压、输出纹波、上升时间、整定值)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '输出规格项是产品技术条件里的固定栏目。具体限值随型号与产品标准而异, 由规格书给出 —— 本条挂的是「这类规格项属哪一类惯例」。'
+formulas:
+- id: F_L.5.1_DIAGNOSTIC_COVERAGE
+  standard_ref: GB/T 20438.2-2017
+  source: 'GB/T 20438.2-2017 功能安全 第2部分(IEC 61508-2) Route 1H 硬件失效容限章节: 给出诊断覆盖率 DC 与安全失效分数 SFF 的计算式, 以及按 SIL 的 PFH 区间; IEC 官方 functional safety 说明与 Analog Devices 对 61508-1/2 条款的解读均引这两式'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'Route 1H 明确给出该量的计算式与 SIL 对应表。种子里的公式与之一致。'
+- id: F_L.5.2_SAFE_FAILURE_FRACTION
+  standard_ref: GB/T 20438.2-2017
+  source: 'GB/T 20438.2-2017 功能安全 第2部分(IEC 61508-2) Route 1H 硬件失效容限章节: 给出诊断覆盖率 DC 与安全失效分数 SFF 的计算式, 以及按 SIL 的 PFH 区间; IEC 官方 functional safety 说明与 Analog Devices 对 61508-1/2 条款的解读均引这两式'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'Route 1H 明确给出该量的计算式与 SIL 对应表。种子里的公式与之一致。'
+- id: F_L.5.3_PFH
+  standard_ref: GB/T 20438.2-2017
+  source: 'GB/T 20438.2-2017 功能安全 第2部分(IEC 61508-2) Route 1H 硬件失效容限章节: 给出诊断覆盖率 DC 与安全失效分数 SFF 的计算式, 以及按 SIL 的 PFH 区间; IEC 官方 functional safety 说明与 Analog Devices 对 61508-1/2 条款的解读均引这两式'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'Route 1H 明确给出该量的计算式与 SIL 对应表。种子里的公式与之一致。'
+- id: F_L.5.4_PFH_1002
+  standard_ref: GB/T 20438.2-2017
+  source: 'GB/T 20438.2-2017 功能安全 第2部分(IEC 61508-2) Route 1H 硬件失效容限章节: 给出诊断覆盖率 DC 与安全失效分数 SFF 的计算式, 以及按 SIL 的 PFH 区间; IEC 官方 functional safety 说明与 Analog Devices 对 61508-1/2 条款的解读均引这两式'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'Route 1H 明确给出该量的计算式与 SIL 对应表。种子里的公式与之一致。'
+- id: F_L.5.5_PFH_1001
+  standard_ref: GB/T 20438.2-2017
+  source: 'GB/T 20438.2-2017 功能安全 第2部分(IEC 61508-2) Route 1H 硬件失效容限章节: 给出诊断覆盖率 DC 与安全失效分数 SFF 的计算式, 以及按 SIL 的 PFH 区间; IEC 官方 functional safety 说明与 Analog Devices 对 61508-1/2 条款的解读均引这两式'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'Route 1H 明确给出该量的计算式与 SIL 对应表。种子里的公式与之一致。'
+- id: F_L.5.6_PFH_1001D
+  standard_ref: GB/T 20438.2-2017
+  source: 'GB/T 20438.2-2017 功能安全 第2部分(IEC 61508-2) Route 1H 硬件失效容限章节: 给出诊断覆盖率 DC 与安全失效分数 SFF 的计算式, 以及按 SIL 的 PFH 区间; IEC 官方 functional safety 说明与 Analog Devices 对 61508-1/2 条款的解读均引这两式'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'Route 1H 明确给出该量的计算式与 SIL 对应表。种子里的公式与之一致。'
+- id: F_L.5.7_DIAGNOSTIC_MEASURES
+  standard_ref: GB/T 20438.2-2017
+  source: 'GB/T 20438.2-2017 功能安全 第2部分(IEC 61508-2) Route 1H 硬件失效容限章节: 给出诊断覆盖率 DC 与安全失效分数 SFF 的计算式, 以及按 SIL 的 PFH 区间; IEC 官方 functional safety 说明与 Analog Devices 对 61508-1/2 条款的解读均引这两式'
+  checked: '2026-10-08'
+  confidence: 0.75
+  note: '诊断措施与 DC 的对应关系在 Route 1H 里按元件类型(Type A/B)列出。本条给的是判据归属, 具体措施清单未逐条核对。'
+- id: F_N.7.1_FMEDA_PROCESS
+  standard_ref: GB/T 20438.2-2017
+  source: 'GB/T 20438.2-2017 功能安全 第2部分(IEC 61508-2) Route 1H 硬件失效容限章节: 给出诊断覆盖率 DC 与安全失效分数 SFF 的计算式, 以及按 SIL 的 PFH 区间; IEC 官方 functional safety 说明与 Analog Devices 对 61508-1/2 条款的解读均引这两式'
+  checked: '2026-10-08'
+  confidence: 0.8
+  note: 'FMEDA(失效模式影响与诊断分析)与「SIL 对应的 MTBF 区间」出自 GB/T 20438.2; 后者正是不能拿普通 MTBF 数字直接当 SIL 依据的原因。'
+- id: F_N.7.2_SIL_MTBF_DISTINCT
+  standard_ref: GB/T 20438.2-2017
+  source: 'GB/T 20438.2-2017 功能安全 第2部分(IEC 61508-2) Route 1H 硬件失效容限章节: 给出诊断覆盖率 DC 与安全失效分数 SFF 的计算式, 以及按 SIL 的 PFH 区间; IEC 官方 functional safety 说明与 Analog Devices 对 61508-1/2 条款的解读均引这两式'
+  checked: '2026-10-08'
+  confidence: 0.8
+  note: 'FMEDA(失效模式影响与诊断分析)与「SIL 对应的 MTBF 区间」出自 GB/T 20438.2; 后者正是不能拿普通 MTBF 数字直接当 SIL 依据的原因。'
+- id: F_S.5_EFFICIENCY_CURVE
+  standard_ref: DL/T 781-2001
+  source: 'DL/T 781-2001 电力用高频开关整流模块 标准正文: 5.7.2 输出电压调节范围 90%~130%、5.7.3 稳流精度、5.7.4 稳压精度、5.7.5 纹波系数、5.7.7 限流及限压、5.7.8 效率与功率因数(效率>=90%, PF>=0.9)、5.7.9 并机均流(不平衡度<=±5%额定电流)、5.2.1 交流输入电压波动 ±15%、6.2.11 效率试验 η=Wz/Wj×100%、6.2.12 并机均流试验 不平衡度=(极限值-平均值)/额定值×100%'
+  checked: '2026-10-08'
+  confidence: 0.8
+  note: '效率与损耗的算式在 DL/T 781-2001 的 6.2.11 明确写出(η=Wz/Wj×100%), 限值在 5.7.8。 【条款号 5.7.x / 6.2.x 来自 2001 版正文; 现行版是 DL/T 781-2021(2021-06-04 实施), 条款号未重新核对 —— 引 2001 版是因为实际读到的就是那一版。】'
+- id: F_S.5.1_LOSS_BUDGET_TABLE
+  standard_ref: DL/T 781-2001
+  source: 'DL/T 781-2001 电力用高频开关整流模块 标准正文: 5.7.2 输出电压调节范围 90%~130%、5.7.3 稳流精度、5.7.4 稳压精度、5.7.5 纹波系数、5.7.7 限流及限压、5.7.8 效率与功率因数(效率>=90%, PF>=0.9)、5.7.9 并机均流(不平衡度<=±5%额定电流)、5.2.1 交流输入电压波动 ±15%、6.2.11 效率试验 η=Wz/Wj×100%、6.2.12 并机均流试验 不平衡度=(极限值-平均值)/额定值×100%'
+  checked: '2026-10-08'
+  confidence: 0.8
+  note: '效率与损耗的算式在 DL/T 781-2001 的 6.2.11 明确写出(η=Wz/Wj×100%), 限值在 5.7.8。 【条款号 5.7.x / 6.2.x 来自 2001 版正文; 现行版是 DL/T 781-2021(2021-06-04 实施), 条款号未重新核对 —— 引 2001 版是因为实际读到的就是那一版。】'
+- id: F_S.1.2_INPUT_POWER_BUDGET
+  standard_ref: DL/T 781-2001
+  source: 'DL/T 781-2001 电力用高频开关整流模块 标准正文: 5.7.2 输出电压调节范围 90%~130%、5.7.3 稳流精度、5.7.4 稳压精度、5.7.5 纹波系数、5.7.7 限流及限压、5.7.8 效率与功率因数(效率>=90%, PF>=0.9)、5.7.9 并机均流(不平衡度<=±5%额定电流)、5.2.1 交流输入电压波动 ±15%、6.2.11 效率试验 η=Wz/Wj×100%、6.2.12 并机均流试验 不平衡度=(极限值-平均值)/额定值×100%'
+  checked: '2026-10-08'
+  confidence: 0.8
+  note: '效率与损耗的算式在 DL/T 781-2001 的 6.2.11 明确写出(η=Wz/Wj×100%), 限值在 5.7.8。 【条款号 5.7.x / 6.2.x 来自 2001 版正文; 现行版是 DL/T 781-2021(2021-06-04 实施), 条款号未重新核对 —— 引 2001 版是因为实际读到的就是那一版。】'
+- id: F_Q.2_CURRENT_SHARING
+  standard_ref: DL/T 781-2001
+  source: 'DL/T 781-2001 电力用高频开关整流模块 标准正文: 5.7.2 输出电压调节范围 90%~130%、5.7.3 稳流精度、5.7.4 稳压精度、5.7.5 纹波系数、5.7.7 限流及限压、5.7.8 效率与功率因数(效率>=90%, PF>=0.9)、5.7.9 并机均流(不平衡度<=±5%额定电流)、5.2.1 交流输入电压波动 ±15%、6.2.11 效率试验 η=Wz/Wj×100%、6.2.12 并机均流试验 不平衡度=(极限值-平均值)/额定值×100%'
+  checked: '2026-10-08'
+  confidence: 0.75
+  note: '均流不平衡度的算式在 DL/T 781-2001 的 6.2.12 明确写出, 判据在 5.7.9。 【条款号 5.7.x / 6.2.x 来自 2001 版正文; 现行版是 DL/T 781-2021(2021-06-04 实施), 条款号未重新核对 —— 引 2001 版是因为实际读到的就是那一版。】'
+- id: F_Q.2.1_SHARING_RANGE
+  standard_ref: DL/T 781-2001
+  source: 'DL/T 781-2001 电力用高频开关整流模块 标准正文: 5.7.2 输出电压调节范围 90%~130%、5.7.3 稳流精度、5.7.4 稳压精度、5.7.5 纹波系数、5.7.7 限流及限压、5.7.8 效率与功率因数(效率>=90%, PF>=0.9)、5.7.9 并机均流(不平衡度<=±5%额定电流)、5.2.1 交流输入电压波动 ±15%、6.2.11 效率试验 η=Wz/Wj×100%、6.2.12 并机均流试验 不平衡度=(极限值-平均值)/额定值×100%'
+  checked: '2026-10-08'
+  confidence: 0.75
+  note: '均流不平衡度的算式在 DL/T 781-2001 的 6.2.12 明确写出, 判据在 5.7.9。 【条款号 5.7.x / 6.2.x 来自 2001 版正文; 现行版是 DL/T 781-2021(2021-06-04 实施), 条款号未重新核对 —— 引 2001 版是因为实际读到的就是那一版。】'
+- id: F_Q.1.3_SHARING_ACCURACY
+  standard_ref: DL/T 781-2001
+  source: 'DL/T 781-2001 电力用高频开关整流模块 标准正文: 5.7.2 输出电压调节范围 90%~130%、5.7.3 稳流精度、5.7.4 稳压精度、5.7.5 纹波系数、5.7.7 限流及限压、5.7.8 效率与功率因数(效率>=90%, PF>=0.9)、5.7.9 并机均流(不平衡度<=±5%额定电流)、5.2.1 交流输入电压波动 ±15%、6.2.11 效率试验 η=Wz/Wj×100%、6.2.12 并机均流试验 不平衡度=(极限值-平均值)/额定值×100%'
+  checked: '2026-10-08'
+  confidence: 0.75
+  note: '均流不平衡度的算式在 DL/T 781-2001 的 6.2.12 明确写出, 判据在 5.7.9。 【条款号 5.7.x / 6.2.x 来自 2001 版正文; 现行版是 DL/T 781-2021(2021-06-04 实施), 条款号未重新核对 —— 引 2001 版是因为实际读到的就是那一版。】'
+- id: F_Q.1.1_DROOP_CHARACTERISTIC
+  standard_ref: DL/T 781-2001
+  source: 'DL/T 781-2001 电力用高频开关整流模块 标准正文: 5.7.2 输出电压调节范围 90%~130%、5.7.3 稳流精度、5.7.4 稳压精度、5.7.5 纹波系数、5.7.7 限流及限压、5.7.8 效率与功率因数(效率>=90%, PF>=0.9)、5.7.9 并机均流(不平衡度<=±5%额定电流)、5.2.1 交流输入电压波动 ±15%、6.2.11 效率试验 η=Wz/Wj×100%、6.2.12 并机均流试验 不平衡度=(极限值-平均值)/额定值×100%'
+  checked: '2026-10-08'
+  confidence: 0.75
+  note: '均流不平衡度的算式在 DL/T 781-2001 的 6.2.12 明确写出, 判据在 5.7.9。 【条款号 5.7.x / 6.2.x 来自 2001 版正文; 现行版是 DL/T 781-2021(2021-06-04 实施), 条款号未重新核对 —— 引 2001 版是因为实际读到的就是那一版。】'
+- id: F_Q.1.2_DROOP_SHARING_ERROR
+  standard_ref: DL/T 781-2001
+  source: 'DL/T 781-2001 电力用高频开关整流模块 标准正文: 5.7.2 输出电压调节范围 90%~130%、5.7.3 稳流精度、5.7.4 稳压精度、5.7.5 纹波系数、5.7.7 限流及限压、5.7.8 效率与功率因数(效率>=90%, PF>=0.9)、5.7.9 并机均流(不平衡度<=±5%额定电流)、5.2.1 交流输入电压波动 ±15%、6.2.11 效率试验 η=Wz/Wj×100%、6.2.12 并机均流试验 不平衡度=(极限值-平均值)/额定值×100%'
+  checked: '2026-10-08'
+  confidence: 0.75
+  note: '均流不平衡度的算式在 DL/T 781-2001 的 6.2.12 明确写出, 判据在 5.7.9。 【条款号 5.7.x / 6.2.x 来自 2001 版正文; 现行版是 DL/T 781-2021(2021-06-04 实施), 条款号未重新核对 —— 引 2001 版是因为实际读到的就是那一版。】'
+- id: F_S.1_INPUT_CURRENT
+  standard_ref: DL/T 781-2001
+  source: 'DL/T 781-2001 电力用高频开关整流模块 标准正文: 5.7.2 输出电压调节范围 90%~130%、5.7.3 稳流精度、5.7.4 稳压精度、5.7.5 纹波系数、5.7.7 限流及限压、5.7.8 效率与功率因数(效率>=90%, PF>=0.9)、5.7.9 并机均流(不平衡度<=±5%额定电流)、5.2.1 交流输入电压波动 ±15%、6.2.11 效率试验 η=Wz/Wj×100%、6.2.12 并机均流试验 不平衡度=(极限值-平均值)/额定值×100%'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '输入电压范围与欠压/过压保护的判据在 DL/T 781-2001 的 5.2.1 与 5.7.10。 【条款号 5.7.x / 6.2.x 来自 2001 版正文; 现行版是 DL/T 781-2021(2021-06-04 实施), 条款号未重新核对 —— 引 2001 版是因为实际读到的就是那一版。】'
+- id: F_S.1.1_AC_RMS_CURRENT
+  standard_ref: DL/T 781-2001
+  source: 'DL/T 781-2001 电力用高频开关整流模块 标准正文: 5.7.2 输出电压调节范围 90%~130%、5.7.3 稳流精度、5.7.4 稳压精度、5.7.5 纹波系数、5.7.7 限流及限压、5.7.8 效率与功率因数(效率>=90%, PF>=0.9)、5.7.9 并机均流(不平衡度<=±5%额定电流)、5.2.1 交流输入电压波动 ±15%、6.2.11 效率试验 η=Wz/Wj×100%、6.2.12 并机均流试验 不平衡度=(极限值-平均值)/额定值×100%'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: '输入电压范围与欠压/过压保护的判据在 DL/T 781-2001 的 5.2.1 与 5.7.10。 【条款号 5.7.x / 6.2.x 来自 2001 版正文; 现行版是 DL/T 781-2021(2021-06-04 实施), 条款号未重新核对 —— 引 2001 版是因为实际读到的就是那一版。】'
+- id: F_R.1_CROSS_REGULATION
+  standard_ref: DL/T 781-2001
+  source: 'DL/T 781-2001 电力用高频开关整流模块 标准正文: 5.7.2 输出电压调节范围 90%~130%、5.7.3 稳流精度、5.7.4 稳压精度、5.7.5 纹波系数、5.7.7 限流及限压、5.7.8 效率与功率因数(效率>=90%, PF>=0.9)、5.7.9 并机均流(不平衡度<=±5%额定电流)、5.2.1 交流输入电压波动 ±15%、6.2.11 效率试验 η=Wz/Wj×100%、6.2.12 并机均流试验 不平衡度=(极限值-平均值)/额定值×100%'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '该标准正文未逐条列出这两式, 但同属「多路整流输出的精度与功率分配」判据族, 归同一份标准。 【条款号 5.7.x / 6.2.x 来自 2001 版正文; 现行版是 DL/T 781-2021(2021-06-04 实施), 条款号未重新核对 —— 引 2001 版是因为实际读到的就是那一版。】'
+- id: F_R.3.3_POWER_BUDGET
+  standard_ref: DL/T 781-2001
+  source: 'DL/T 781-2001 电力用高频开关整流模块 标准正文: 5.7.2 输出电压调节范围 90%~130%、5.7.3 稳流精度、5.7.4 稳压精度、5.7.5 纹波系数、5.7.7 限流及限压、5.7.8 效率与功率因数(效率>=90%, PF>=0.9)、5.7.9 并机均流(不平衡度<=±5%额定电流)、5.2.1 交流输入电压波动 ±15%、6.2.11 效率试验 η=Wz/Wj×100%、6.2.12 并机均流试验 不平衡度=(极限值-平均值)/额定值×100%'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '该标准正文未逐条列出这两式, 但同属「多路整流输出的精度与功率分配」判据族, 归同一份标准。 【条款号 5.7.x / 6.2.x 来自 2001 版正文; 现行版是 DL/T 781-2021(2021-06-04 实施), 条款号未重新核对 —— 引 2001 版是因为实际读到的就是那一版。】'
+- id: F_E.9_CLEARANCE_CREEPAGE
+  standard_ref: GB 4943.1-2022
+  source: 'GB 4943.1-2022 音视频/信息技术/通信技术设备 第1部分: 安全要求(电气间隙与爬电距离条款, 含附录F 测量方法与附录G 最小电气间隙的确定)'
+  checked: '2026-10-08'
+  confidence: 0.8
+  note: '电气间隙/爬电距离的判据与测量方法在 GB 4943.1 附录F/G。未逐条核对条款号。'
+- id: F_K.3_GAIN_MARGIN
+  standard_ref: YD/T 731-2018
+  source: 'YD/T 731-2018 通信用48V整流器(现行, 代替 YD/T 731-2008/2002/1994; 发布 2018-04-29 / 实施 2018-06-30); 全国标准信息公共服务平台 行业标准备案页'
+  checked: '2026-10-08'
+  confidence: 0.65
+  note: '相位裕度/增益裕度/建立时间是开关电源稳定性判据。**本条是跨标准归属**: YD/T 731-2018 规定了整流器应满足的动态响应判据, 但这几个式子本身是控制理论公式, 标准正文未必列出公式编号。'
+- id: F_K.3_PHASE_MARGIN
+  standard_ref: YD/T 731-2018
+  source: 'YD/T 731-2018 通信用48V整流器(现行, 代替 YD/T 731-2008/2002/1994; 发布 2018-04-29 / 实施 2018-06-30); 全国标准信息公共服务平台 行业标准备案页'
+  checked: '2026-10-08'
+  confidence: 0.65
+  note: '相位裕度/增益裕度/建立时间是开关电源稳定性判据。**本条是跨标准归属**: YD/T 731-2018 规定了整流器应满足的动态响应判据, 但这几个式子本身是控制理论公式, 标准正文未必列出公式编号。'
+- id: F_K.3.3_SETTLING_TIME
+  standard_ref: YD/T 731-2018
+  source: 'YD/T 731-2018 通信用48V整流器(现行, 代替 YD/T 731-2008/2002/1994; 发布 2018-04-29 / 实施 2018-06-30); 全国标准信息公共服务平台 行业标准备案页'
+  checked: '2026-10-08'
+  confidence: 0.65
+  note: '相位裕度/增益裕度/建立时间是开关电源稳定性判据。**本条是跨标准归属**: YD/T 731-2018 规定了整流器应满足的动态响应判据, 但这几个式子本身是控制理论公式, 标准正文未必列出公式编号。'
+- id: F_K.8_1_MEASUREMENT_PM
+  standard_ref: YD/T 731-2018
+  source: 'YD/T 731-2018 通信用48V整流器(现行, 代替 YD/T 731-2008/2002/1994; 发布 2018-04-29 / 实施 2018-06-30); 全国标准信息公共服务平台 行业标准备案页'
+  checked: '2026-10-08'
+  confidence: 0.65
+  note: '相位裕度/增益裕度/建立时间是开关电源稳定性判据。**本条是跨标准归属**: YD/T 731-2018 规定了整流器应满足的动态响应判据, 但这几个式子本身是控制理论公式, 标准正文未必列出公式编号。'
+- id: F_K.8_2_MEASUREMENT_GM
+  standard_ref: YD/T 731-2018
+  source: 'YD/T 731-2018 通信用48V整流器(现行, 代替 YD/T 731-2008/2002/1994; 发布 2018-04-29 / 实施 2018-06-30); 全国标准信息公共服务平台 行业标准备案页'
+  checked: '2026-10-08'
+  confidence: 0.65
+  note: '相位裕度/增益裕度/建立时间是开关电源稳定性判据。**本条是跨标准归属**: YD/T 731-2018 规定了整流器应满足的动态响应判据, 但这几个式子本身是控制理论公式, 标准正文未必列出公式编号。'
+- id: F_S.4_INPUT_HARMONIC_RMS
+  standard_ref: GB/T 14549-1993
+  source: 'GB/T 14549-1993 电能质量 公用电网谐波(现行, 发布 1993-07-31 / 实施 1994-03-01; CCS F20; 术语含「基波(分量)」「谐波(分量)」); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=10A576E61901DA59E9A6AC555C2BAFD1'
+  checked: '2026-10-08'
+  confidence: 0.75
+  note: '谐波电压/电流的允许值与测量口径在 GB/T 14549。注: 该标准上次复审 2021-12-03 结论「修订」, 修订计划 20062742-T-469 已终止 —— 引用现行版, 不代表将来不被替代。'
+- id: F_S.4.1_PF_HARMONIC_TRADEOFF
+  standard_ref: GB/T 14549-1993
+  source: 'GB/T 14549-1993 电能质量 公用电网谐波(现行, 发布 1993-07-31 / 实施 1994-03-01; CCS F20; 术语含「基波(分量)」「谐波(分量)」); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=10A576E61901DA59E9A6AC555C2BAFD1'
+  checked: '2026-10-08'
+  confidence: 0.75
+  note: '谐波电压/电流的允许值与测量口径在 GB/T 14549。注: 该标准上次复审 2021-12-03 结论「修订」, 修订计划 20062742-T-469 已终止 —— 引用现行版, 不代表将来不被替代。'
+- id: F_W.11.18_THD_LIMIT_POWER
+  standard_ref: GB/T 14549-1993
+  source: 'GB/T 14549-1993 电能质量 公用电网谐波(现行, 发布 1993-07-31 / 实施 1994-03-01; CCS F20; 术语含「基波(分量)」「谐波(分量)」); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=10A576E61901DA59E9A6AC555C2BAFD1'
+  checked: '2026-10-08'
+  confidence: 0.75
+  note: '谐波电压/电流的允许值与测量口径在 GB/T 14549。注: 该标准上次复审 2021-12-03 结论「修订」, 修订计划 20062742-T-469 已终止 —— 引用现行版, 不代表将来不被替代。'
+- id: F_E.27_DEBOUNCE
+  standard_ref: GB/Z 14429-2005
+  source: 'GB/Z 14429-2005 远动设备及系统 第1-3部分: 术语(遥信去抖、事件顺序记录 SOE、时间同步属远动术语; 该标准已是种子锚点)'
+  checked: '2026-10-08'
+  confidence: 0.65
+  note: '遥信去抖/SOE 分辨率/时间同步属远动术语, 归 GB/Z 14429。记号与下标是本项目的写法, 标准里没有 t_debounce 这类记号 —— 本条挂的是「这类时序量归哪本术语标准」。'
+- id: F_E.27_SOE_RESOLUTION
+  standard_ref: GB/Z 14429-2005
+  source: 'GB/Z 14429-2005 远动设备及系统 第1-3部分: 术语(遥信去抖、事件顺序记录 SOE、时间同步属远动术语; 该标准已是种子锚点)'
+  checked: '2026-10-08'
+  confidence: 0.65
+  note: '遥信去抖/SOE 分辨率/时间同步属远动术语, 归 GB/Z 14429。记号与下标是本项目的写法, 标准里没有 t_debounce 这类记号 —— 本条挂的是「这类时序量归哪本术语标准」。'
+- id: F_E.27_TIME_SYNC
+  standard_ref: GB/Z 14429-2005
+  source: 'GB/Z 14429-2005 远动设备及系统 第1-3部分: 术语(遥信去抖、事件顺序记录 SOE、时间同步属远动术语; 该标准已是种子锚点)'
+  checked: '2026-10-08'
+  confidence: 0.65
+  note: '遥信去抖/SOE 分辨率/时间同步属远动术语, 归 GB/Z 14429。记号与下标是本项目的写法, 标准里没有 t_debounce 这类记号 —— 本条挂的是「这类时序量归哪本术语标准」。'
+- id: F_M.2_DEBOUNCE
+  standard_ref: GB/Z 14429-2005
+  source: 'GB/Z 14429-2005 远动设备及系统 第1-3部分: 术语(遥信去抖、事件顺序记录 SOE、时间同步属远动术语; 该标准已是种子锚点)'
+  checked: '2026-10-08'
+  confidence: 0.65
+  note: '遥信去抖/SOE 分辨率/时间同步属远动术语, 归 GB/Z 14429。记号与下标是本项目的写法, 标准里没有 t_debounce 这类记号 —— 本条挂的是「这类时序量归哪本术语标准」。'
+- id: F_M.2.1_DEBOUNCE_BOUND
+  standard_ref: GB/Z 14429-2005
+  source: 'GB/Z 14429-2005 远动设备及系统 第1-3部分: 术语(遥信去抖、事件顺序记录 SOE、时间同步属远动术语; 该标准已是种子锚点)'
+  checked: '2026-10-08'
+  confidence: 0.65
+  note: '遥信去抖/SOE 分辨率/时间同步属远动术语, 归 GB/Z 14429。记号与下标是本项目的写法, 标准里没有 t_debounce 这类记号 —— 本条挂的是「这类时序量归哪本术语标准」。'
+- id: F_M.2.2_IIR_TAU
+  standard_ref: GB/Z 14429-2005
+  source: 'GB/Z 14429-2005 远动设备及系统 第1-3部分: 术语(遥信去抖、事件顺序记录 SOE、时间同步属远动术语; 该标准已是种子锚点)'
+  checked: '2026-10-08'
+  confidence: 0.65
+  note: '遥信去抖/SOE 分辨率/时间同步属远动术语, 归 GB/Z 14429。记号与下标是本项目的写法, 标准里没有 t_debounce 这类记号 —— 本条挂的是「这类时序量归哪本术语标准」。'
+- id: F_M.2.3_MEDIAN_DELAY
+  standard_ref: GB/Z 14429-2005
+  source: 'GB/Z 14429-2005 远动设备及系统 第1-3部分: 术语(遥信去抖、事件顺序记录 SOE、时间同步属远动术语; 该标准已是种子锚点)'
+  checked: '2026-10-08'
+  confidence: 0.65
+  note: '遥信去抖/SOE 分辨率/时间同步属远动术语, 归 GB/Z 14429。记号与下标是本项目的写法, 标准里没有 t_debounce 这类记号 —— 本条挂的是「这类时序量归哪本术语标准」。'
+- id: F_M.2.4_DEBOUNCE_COUNTER
+  standard_ref: GB/Z 14429-2005
+  source: 'GB/Z 14429-2005 远动设备及系统 第1-3部分: 术语(遥信去抖、事件顺序记录 SOE、时间同步属远动术语; 该标准已是种子锚点)'
+  checked: '2026-10-08'
+  confidence: 0.65
+  note: '遥信去抖/SOE 分辨率/时间同步属远动术语, 归 GB/Z 14429。记号与下标是本项目的写法, 标准里没有 t_debounce 这类记号 —— 本条挂的是「这类时序量归哪本术语标准」。'
+- id: F_M.2_SOE_RESOLUTION
+  standard_ref: GB/Z 14429-2005
+  source: 'GB/Z 14429-2005 远动设备及系统 第1-3部分: 术语(遥信去抖、事件顺序记录 SOE、时间同步属远动术语; 该标准已是种子锚点)'
+  checked: '2026-10-08'
+  confidence: 0.65
+  note: '遥信去抖/SOE 分辨率/时间同步属远动术语, 归 GB/Z 14429。记号与下标是本项目的写法, 标准里没有 t_debounce 这类记号 —— 本条挂的是「这类时序量归哪本术语标准」。'
+- id: F_M.2_TIME_SYNC
+  standard_ref: GB/Z 14429-2005
+  source: 'GB/Z 14429-2005 远动设备及系统 第1-3部分: 术语(遥信去抖、事件顺序记录 SOE、时间同步属远动术语; 该标准已是种子锚点)'
+  checked: '2026-10-08'
+  confidence: 0.65
+  note: '遥信去抖/SOE 分辨率/时间同步属远动术语, 归 GB/Z 14429。记号与下标是本项目的写法, 标准里没有 t_debounce 这类记号 —— 本条挂的是「这类时序量归哪本术语标准」。'
+- id: F_M.2.5_SAMPLE_PERIOD_CONSTRAINT
+  standard_ref: GB/Z 14429-2005
+  source: 'GB/Z 14429-2005 远动设备及系统 第1-3部分: 术语(遥信去抖、事件顺序记录 SOE、时间同步属远动术语; 该标准已是种子锚点)'
+  checked: '2026-10-08'
+  confidence: 0.65
+  note: '遥信去抖/SOE 分辨率/时间同步属远动术语, 归 GB/Z 14429。记号与下标是本项目的写法, 标准里没有 t_debounce 这类记号 —— 本条挂的是「这类时序量归哪本术语标准」。'
+- id: F_E.10_DERATING
+  standard_ref: GB 4943.1-2022
+  source: 'GB 4943.1-2022(元件与材料的降额/安全温度判据条款)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '降额是安全类判据。本条未在原文里核对到具体降额条款号, 只是把「降额判据归安全标准」这件事挂上。补核时应确认条款后再上调。'
+- id: F_H.16.1_INSTRUMENT_MATCH
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_H.16.2_GAP_REPORT
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_L.1_ALARM_MARGIN
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.1.2_ALARM_THRESHOLD_ORDER
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.2.1_OC_SETTING
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.2.2_SENSITIVITY_COEF
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.2.3_INSTANTANEOUS_SETTING
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.2.4_VOLTAGE_RESTRRAINT
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.2.5_INVERSE_TIME
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.2_RETURN_RATIO
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.2.6_PROTECTION_BANDWIDTH
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.2.7_DEADBAND_MIN
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.2_SETTING_RANGE
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.2.8_TELEMETRY_RANGE_MATCH
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.3_COORDINATION
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.3.2_CTI_MIN
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.3.3_CURRENT_GRADING
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.3.4_CURRENT_GRADING_FULL
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.3.5_TEN_PERCENT_RULE
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.3.6_CT_SATURATION_COND
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.3.7_DEADBAND_FREE_GRADING
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.4_TRIP_TIME_CONSTRAINT
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.4.2_SOA_ALLOWABLE_TIME
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.4.3_TOTAL_TRIP_TIME
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.6.1_SETTING_READBACK
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.8.1_I2T
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_L.8.2_CASCADE_COORDINATION
+  authority_kind: industry
+  source: '继电保护整定惯例与工程实践(报警裕度、OC 定值与灵敏度、瞬时段、电压闭锁、反时限、保护带宽与死区、返回系数、梯级配合、十%规则、CT 饱和判据、SOA 允许时间、总跳闸时间、I²t 级联)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是保护整定与级联配合的工程惯例。GB/T 14285 那类是电网继电保护口径, 套到电源产品上会误导, 所以不挂; 它们有整定实践依据但无可引的电源产品标准条款。'
+- id: F_M.1.1_STD_UNCERTAINTY_A
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1.2_STD_UNCERTAINTY_B
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1.3_COMBINED_UNCERTAINTY
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1.4_EXPANDED_UNCERTAINTY
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1.5_RELATIVE_UNCERTAINTY
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1.6_TOTAL_MEASUREMENT_UNCERTAINTY
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1_YC_ACCURACY
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1.7_TUR_RECOMMENDED
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1.8_TUR_RANGE_DEPENDENT
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1.11_GAGE_RR
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1.12_NDC
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1.14_QUANTIZATION
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1.15_ADC_SNR
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1.16_ADC_ENOB
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1.17_APERTURE_ERROR
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1.18_APERTURE_PHASE
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1.19_DNL_INL
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1_SAMPLING
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1.20_MEASUREMENT_BANDWIDTH
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1_REFRESH_RATE
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1.21_DEADBAND
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.1.22_ALARM_HYSTERESIS
+  standard_ref: GB/T 27418-2017
+  source: 'GB/T 27418-2017 测量不确定度评定和表示(现行, 发布 2017-12-29 / 实施 2018-07-01, CCS A50 / ICS 01.040.17, 修改采用 ISO/IEC Guide 98-3:2008, 归口 TC261, 上次复审 2025-04-30 继续有效); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 另 CNAS-CL01-G003:2021《测量不确定度的要求》明确以 GB/T 27418 为制定依据'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'A 类(标准不确定度)、B 类、合成、扩展、相对不确定度是 GB/T 27418 的核心内容(该标准术语表直接含「测量不确定度」「标准不确定度」「合成标准不确定度」)。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」—— 正是产测场景; CNAS-CL01-G003 还要求实验室的评定程序符合 GB/T 27418, 所以这一族对产测是强制要求。'
+- id: F_M.2.6_SYNC_PRECISION_TABLE
+  authority_kind: industry
+  source: '工业采集与通信监控工程惯例(去抖边界/IIR 时间常数/中值滤波/去抖计数/采样周期约束/同步精度表/双点/抖动预算/线路监视/EOL 电阻、重试策略、看门狗可行性与窗口看门狗、CRC8 校验、读回校验、通信超时)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '属工业监控组态与固件可靠性惯例, 无单一标准条款。注: 远动术语部分已在上一批挂到 GB/Z 14429-2005, 这里只覆盖剩下的采集/通信/固件类。'
+- id: F_M.2.7_JITTER_BUDGET
+  authority_kind: industry
+  source: '工业采集与通信监控工程惯例(去抖边界/IIR 时间常数/中值滤波/去抖计数/采样周期约束/同步精度表/双点/抖动预算/线路监视/EOL 电阻、重试策略、看门狗可行性与窗口看门狗、CRC8 校验、读回校验、通信超时)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '属工业监控组态与固件可靠性惯例, 无单一标准条款。注: 远动术语部分已在上一批挂到 GB/Z 14429-2005, 这里只覆盖剩下的采集/通信/固件类。'
+- id: F_M.2.8_LINE_SUPERVISION
+  authority_kind: industry
+  source: '工业采集与通信监控工程惯例(去抖边界/IIR 时间常数/中值滤波/去抖计数/采样周期约束/同步精度表/双点/抖动预算/线路监视/EOL 电阻、重试策略、看门狗可行性与窗口看门狗、CRC8 校验、读回校验、通信超时)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '属工业监控组态与固件可靠性惯例, 无单一标准条款。注: 远动术语部分已在上一批挂到 GB/Z 14429-2005, 这里只覆盖剩下的采集/通信/固件类。'
+- id: F_M.2.9_EOL_RESISTOR
+  authority_kind: industry
+  source: '工业采集与通信监控工程惯例(去抖边界/IIR 时间常数/中值滤波/去抖计数/采样周期约束/同步精度表/双点/抖动预算/线路监视/EOL 电阻、重试策略、看门狗可行性与窗口看门狗、CRC8 校验、读回校验、通信超时)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '属工业监控组态与固件可靠性惯例, 无单一标准条款。注: 远动术语部分已在上一批挂到 GB/Z 14429-2005, 这里只覆盖剩下的采集/通信/固件类。'
+- id: F_M.2.10_SUPERVISION_POWER
+  authority_kind: industry
+  source: '工业采集与通信监控工程惯例(去抖边界/IIR 时间常数/中值滤波/去抖计数/采样周期约束/同步精度表/双点/抖动预算/线路监视/EOL 电阻、重试策略、看门狗可行性与窗口看门狗、CRC8 校验、读回校验、通信超时)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '属工业监控组态与固件可靠性惯例, 无单一标准条款。注: 远动术语部分已在上一批挂到 GB/Z 14429-2005, 这里只覆盖剩下的采集/通信/固件类。'
+- id: F_M.3_COMM_TIMEOUT
+  authority_kind: industry
+  source: '工业采集与通信监控工程惯例(去抖边界/IIR 时间常数/中值滤波/去抖计数/采样周期约束/同步精度表/双点/抖动预算/线路监视/EOL 电阻、重试策略、看门狗可行性与窗口看门狗、CRC8 校验、读回校验、通信超时)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '属工业监控组态与固件可靠性惯例, 无单一标准条款。注: 远动术语部分已在上一批挂到 GB/Z 14429-2005, 这里只覆盖剩下的采集/通信/固件类。'
+- id: F_M.3.1_RETRY_POLICY
+  authority_kind: industry
+  source: '工业采集与通信监控工程惯例(去抖边界/IIR 时间常数/中值滤波/去抖计数/采样周期约束/同步精度表/双点/抖动预算/线路监视/EOL 电阻、重试策略、看门狗可行性与窗口看门狗、CRC8 校验、读回校验、通信超时)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '属工业监控组态与固件可靠性惯例, 无单一标准条款。注: 远动术语部分已在上一批挂到 GB/Z 14429-2005, 这里只覆盖剩下的采集/通信/固件类。'
+- id: F_M.3_WATCHDOG
+  authority_kind: industry
+  source: '工业采集与通信监控工程惯例(去抖边界/IIR 时间常数/中值滤波/去抖计数/采样周期约束/同步精度表/双点/抖动预算/线路监视/EOL 电阻、重试策略、看门狗可行性与窗口看门狗、CRC8 校验、读回校验、通信超时)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '属工业监控组态与固件可靠性惯例, 无单一标准条款。注: 远动术语部分已在上一批挂到 GB/Z 14429-2005, 这里只覆盖剩下的采集/通信/固件类。'
+- id: F_M.3.2_WDT_FEASIBILITY
+  authority_kind: industry
+  source: '工业采集与通信监控工程惯例(去抖边界/IIR 时间常数/中值滤波/去抖计数/采样周期约束/同步精度表/双点/抖动预算/线路监视/EOL 电阻、重试策略、看门狗可行性与窗口看门狗、CRC8 校验、读回校验、通信超时)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '属工业监控组态与固件可靠性惯例, 无单一标准条款。注: 远动术语部分已在上一批挂到 GB/Z 14429-2005, 这里只覆盖剩下的采集/通信/固件类。'
+- id: F_M.3.3_WINDOW_WDT
+  authority_kind: industry
+  source: '工业采集与通信监控工程惯例(去抖边界/IIR 时间常数/中值滤波/去抖计数/采样周期约束/同步精度表/双点/抖动预算/线路监视/EOL 电阻、重试策略、看门狗可行性与窗口看门狗、CRC8 校验、读回校验、通信超时)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '属工业监控组态与固件可靠性惯例, 无单一标准条款。注: 远动术语部分已在上一批挂到 GB/Z 14429-2005, 这里只覆盖剩下的采集/通信/固件类。'
+- id: F_M.3.4_CRC8_PEC
+  authority_kind: industry
+  source: '工业采集与通信监控工程惯例(去抖边界/IIR 时间常数/中值滤波/去抖计数/采样周期约束/同步精度表/双点/抖动预算/线路监视/EOL 电阻、重试策略、看门狗可行性与窗口看门狗、CRC8 校验、读回校验、通信超时)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '属工业监控组态与固件可靠性惯例, 无单一标准条款。注: 远动术语部分已在上一批挂到 GB/Z 14429-2005, 这里只覆盖剩下的采集/通信/固件类。'
+- id: F_M.3.5_READBACK_VERIFY
+  authority_kind: industry
+  source: '工业采集与通信监控工程惯例(去抖边界/IIR 时间常数/中值滤波/去抖计数/采样周期约束/同步精度表/双点/抖动预算/线路监视/EOL 电阻、重试策略、看门狗可行性与窗口看门狗、CRC8 校验、读回校验、通信超时)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '属工业监控组态与固件可靠性惯例, 无单一标准条款。注: 远动术语部分已在上一批挂到 GB/Z 14429-2005, 这里只覆盖剩下的采集/通信/固件类。'
+- id: F_M.5_CLOCK_JITTER_SNR
+  authority_kind: industry
+  source: '工业采集与通信监控工程惯例(去抖边界/IIR 时间常数/中值滤波/去抖计数/采样周期约束/同步精度表/双点/抖动预算/线路监视/EOL 电阻、重试策略、看门狗可行性与窗口看门狗、CRC8 校验、读回校验、通信超时)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '属工业监控组态与固件可靠性惯例, 无单一标准条款。注: 远动术语部分已在上一批挂到 GB/Z 14429-2005, 这里只覆盖剩下的采集/通信/固件类。'
+- id: F_N.3_DERATING
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_N.3.1_MLCC_DC_BIAS
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_N.4.1_EXPONENTIAL_R
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_N.4.2_MTBF
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_N.4.4_PART_STRESS_MODEL
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_N.4.5_ARRHENIUS
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_N.4.6_TEMP_DOUBLE_RULE
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_N.4.7_COFFIN_MANSON
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_N.4.8_SERIES_SYSTEM
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_N.4.9_PARALLEL_SYSTEM
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_N.4.10_REDUNDANCY_NO_MTBF_GAIN
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_N.6.1_BATHTUB_CURVE
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_N.6.2_WEIBULL
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_Q.3.1_N_PLUS_ONE
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_Q.3.2_REDISTRIBUTION
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_Q.3.3_N_PLUS_TWO
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_Q.4.1_ORING_DROP
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_Q.4.2_FAILOVER_WINDOW
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_Q.4.3_FAILOVER_HOLDUP
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_Q.5.1_HOT_SWAP_INRUSH
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_Q.5.2_CONTACT_RESISTANCE_LOSS
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_Q.6.1_FAULT_TREE_ISOLATION
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_R.2.1_MAGAMP_ANGLE
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_R.2.2_POST_REG_LOSS
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_R.3.1_SIMULTANEITY_FACTOR
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_R.3.2_DIVERSITY_FACTOR
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_R.3.4_LDO_LOSS
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_R.4.1_SEQUENCING
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_R.4.2_TRACKING_TOLERANCE
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_R.4.3_CHANNEL_CONSISTENCY
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_S.2_DERATING_CURVE
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_S.2.1_BOOST_PEAK_LIMIT
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_S.2.2_DERATING_CORNER
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_S.3_HOLDOVER_TIME
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_S.3.1_BROWN_ALARM_LEAD
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_E.1_OHM_LAW
+  standard_ref: GB/T 2900.1-2008
+  source: 'GB/T 2900.1-2008 电工术语 基本术语(现行, 发布 2008-06-18 / 实施 2009-05-01, CCS K04 / ICS 01.040.29, 归口 TC232, 上次复审 2022-01-06 继续有效); 全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=71F772D7F523D3A7E05397BE0A0AB82A'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '基尔霍夫电流/电压定律、有效值、功率这些量的名称与符号归 GB/T 2900.1《电工术语 基本术语》。要说清: 欧姆定律与基尔霍夫定律本身是物理定律, 不是该标准的条款 —— 本条挂的是「这类基本电学量的术语与符号出处」。'
+- id: F_E.2
+  standard_ref: GB/T 2900.1-2008
+  source: 'GB/T 2900.1-2008 电工术语 基本术语(现行, 发布 2008-06-18 / 实施 2009-05-01, CCS K04 / ICS 01.040.29, 归口 TC232, 上次复审 2022-01-06 继续有效); 全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=71F772D7F523D3A7E05397BE0A0AB82A'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '基尔霍夫电流/电压定律、有效值、功率这些量的名称与符号归 GB/T 2900.1《电工术语 基本术语》。要说清: 欧姆定律与基尔霍夫定律本身是物理定律, 不是该标准的条款 —— 本条挂的是「这类基本电学量的术语与符号出处」。'
+- id: F_E.3_KCL
+  standard_ref: GB/T 2900.1-2008
+  source: 'GB/T 2900.1-2008 电工术语 基本术语(现行, 发布 2008-06-18 / 实施 2009-05-01, CCS K04 / ICS 01.040.29, 归口 TC232, 上次复审 2022-01-06 继续有效); 全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=71F772D7F523D3A7E05397BE0A0AB82A'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '基尔霍夫电流/电压定律、有效值、功率这些量的名称与符号归 GB/T 2900.1《电工术语 基本术语》。要说清: 欧姆定律与基尔霍夫定律本身是物理定律, 不是该标准的条款 —— 本条挂的是「这类基本电学量的术语与符号出处」。'
+- id: F_E.4_KVL
+  standard_ref: GB/T 2900.1-2008
+  source: 'GB/T 2900.1-2008 电工术语 基本术语(现行, 发布 2008-06-18 / 实施 2009-05-01, CCS K04 / ICS 01.040.29, 归口 TC232, 上次复审 2022-01-06 继续有效); 全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=71F772D7F523D3A7E05397BE0A0AB82A'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '基尔霍夫电流/电压定律、有效值、功率这些量的名称与符号归 GB/T 2900.1《电工术语 基本术语》。要说清: 欧姆定律与基尔霍夫定律本身是物理定律, 不是该标准的条款 —— 本条挂的是「这类基本电学量的术语与符号出处」。'
+- id: F_E.13_AVAILABLE
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_E.18
+  standard_ref: GB/T 2900.1-2008
+  source: 'GB/T 2900.1-2008 电工术语 基本术语(现行, 发布 2008-06-18 / 实施 2009-05-01, CCS K04 / ICS 01.040.29, 归口 TC232, 上次复审 2022-01-06 继续有效); 全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=71F772D7F523D3A7E05397BE0A0AB82A'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '基尔霍夫电流/电压定律、有效值、功率这些量的名称与符号归 GB/T 2900.1《电工术语 基本术语》。要说清: 欧姆定律与基尔霍夫定律本身是物理定律, 不是该标准的条款 —— 本条挂的是「这类基本电学量的术语与符号出处」。'
+- id: F_E.28_YC_ACCURACY
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_E.28_TUR
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_E.28_QUANTIZATION
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_E.28_SAMPLING
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_E.28_REFRESH_RATE
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_E.29_COMM_TIMEOUT
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_E.29_WATCHDOG
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_E.30_ALARM_MARGIN
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_E.30_RETURN_RATIO
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_E.30_COORDINATION
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_E.30_I2T
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_E.30_TRIP_TIME
+  authority_kind: industry
+  source: '开关电源与通信电源工程惯例(交流输入电流与输入功率预算、升压峰值限制、降额曲线与拐点、brownout 报警迟滞、保持时间、输入谐波与功率因数折中、损耗预算、效率曲线、多路输出的交叉调整/跟踪容差/通道一致性/上电时序/磁放大角度、后级调整损耗、同时系数与差异系数、MLCC 直流偏压、通信电源双路冗余与热插拔工程惯例(下垂均流、N+1/N+X、ORing 切换、热插拔涌流、故障树隔离))'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '这批是电源产品设计与验收的通行做法, 有工程指南与厂商应用笔记依据, 但没有哪一条国标把它们逐条列出。注: 输入谐波的限值另有 GB/T 14549 依据, 效率/均流的算式另有 DL/T 781 依据(均已挂)。'
+- id: F_M.2.7_DOUBLE_POINT
+  authority_kind: industry
+  source: '工业采集与通信监控工程惯例(去抖边界/IIR 时间常数/中值滤波/去抖计数/采样周期约束/同步精度表/双点/抖动预算/线路监视/EOL 电阻、重试策略、看门狗可行性与窗口看门狗、CRC8 校验、读回校验、通信超时)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: '属工业监控组态与固件可靠性惯例, 无单一标准条款。注: 远动术语部分已在上一批挂到 GB/Z 14429-2005, 这里只覆盖剩下的采集/通信/固件类。'
+- id: F_W.3.1_FOURIER_SERIES
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.2_FOURIER_COEFF_A
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.3_FOURIER_COEFF_B
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.4_FOURIER_COEFF_DC
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.5_FOURIER_TRANSFORM
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.6_FOURIER_INVERSE
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.7_PARSEVAL
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.8_TRANSLATION
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.9_TIME_SCALE
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.10_CONVOLUTION
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.11_DIFF_INTEGRATION
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.12_SPECTRAL_LEAKAGE
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.13_WINDOW_FUNCTION
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.14_GATE_EFFECT
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.15_LAPLACE_TRANSFORM
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.16_LAPLACE_INVERSE
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.17_INITIAL_VALUE
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.18_FINAL_VALUE
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.19_LAPLACE_RULES
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.20_LAPLACE_SHIFT
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.21_ROUTH_HURWITZ
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.22_BLOCK_ALGEBRA
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.23_Z_TRANSFORM
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.24_Z_INVERSE
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.25_Z_DELAY
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.26_Z_CONVOLUTION
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.27_Z_STABILITY
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.28_JURY
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.29_SPLIT_REAL_IMAG
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.30_SAMPLING_THEOREM
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.31_ALIASING
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.32_RECONSTRUCTION_FILTER
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.33_HOLDFREQUENCY
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.3.34_SINC_INTERP
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.6.1_LOGIC_THRESHOLD
+  authority_kind: industry
+  source: '工程数学与信号/系统教科书(傅里叶级数与变换、拉普拉斯变换、卷积、采样定理、混叠、Z 变换、Routh-Hurwitz 与 Jury 稳定性判据)、数字逻辑设计惯例与器件手册(逻辑阈值)'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '这些是数学工具与逻辑设计惯例, 不是任何电源标准的条款 —— 挂标准号才是假的。它们有教科书与手册依据但无可引标准条款, 故 authority_kind=industry(该档按定义不建边)。'
+- id: F_W.9.1_THD
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.9.2_THD_N
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.9.3_SINAD
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.9.4_SNR
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.9.5_SNR_QUANTIZATION
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.9.6_ENOB
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.9.7_QUANT_NOISE_POWER
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.9.8_INL
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.9.9_DNL
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.9.10_EFFECTIVE_BITS_ISO
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.9.11_NOISE_FIGURE
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.9.12_THERMAL_NOISE
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.9.13_JOHNSON_NOISE_IL
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.9.14_SHOT_NOISE
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.9.15_FLICKER_NOISE
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.9.16_AVG_NOISE
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.9.18_ENBW
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.11.1_RMS_DEF
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.11.2_RMS_DISCRETE
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.11.3_AVG_RECTIFYING
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.11.4_TRUE_RMS_VS_AVG
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.11.5_SAMPLE_HOLD
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.11.6_APERTURE_ERROR
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.11.7_APERTURE_JITTER
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.11.8_SHUNT_MEASUREMENT
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.11.9_KELVIN
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.11.10_DMM_INPUT_R
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.11.11_LOADING_ERROR
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.11.12_SIMULTANEOUS_SAMPLING
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.11.13_ANTIALIAS_FILTER
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.11.14_ANALOG_FRONTEND_NOISE
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.11.15_BURDEN_VOLTAGE
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.11.16_CT_TRANSFER
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.11.17_HALL_SENSOR
+  authority_kind: industry
+  source: 'ADC/DAC 厂商数据手册与测量惯例(THD、THD+N、SINAD、SNR、ENOB、INL、DNL、ENBW、Johnson/散粒/闪烁噪声)、电测量惯例与仪器厂商手册(RMS 真有效值、采样孔径误差与抖动、分流器与四线制 Kelvin、负载效应、互感器传变、霍尔传感器)'
+  checked: '2026-10-08'
+  confidence: 0.55
+  note: 'ADC 指标的算法定义各家手册表述有差异(JCWM 与厂商手册的权重约定不同), 电测量方法学也是各家实践共同定义 —— 没有一条可引的国标条款, 因此保持 industry 而不是硬挂一个标准号。'
+- id: F_W.12.1_EXPONENTIAL
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_W.12.2_WEIBULL
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_W.12.3_NORMAL
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_W.12.4_LOGNORMAL
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_W.12.5_BATHTUB
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_W.12.6_HAZARD_RATE
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_W.12.7_ARRHENIUS
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_W.12.8_COFFIN_MANSON
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_W.12.9_ARRHENIUS_CAFFIN
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_W.12.10_TEMP_DOUBLE
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_W.12.11_SERIES_SYSTEM
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_W.12.12_PARALLEL_SYSTEM
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_W.12.13_SERIES_PARALLEL
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_W.12.14_K_FACTOR
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_W.12.15_FMEDA
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_W.12.16_FAIL_RATE_CONVERSION
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+- id: F_W.12.17_AGING_RATE
+  standard_ref: GB/T 3187-1994
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语(种子里已是锚点, MTTF/MTBF/MTTR 三条符号已挂在它上面); 分布函数与加速模型另见可靠性工程手册体系'
+  checked: '2026-10-08'
+  confidence: 0.6
+  note: '失效率、可靠度、浴盆曲线等可靠性特征量由 GB/T 3187 界定。但要说清: 指数/威布尔/正态/对数正态这几种分布函数本身与 Arrhenius/Coffin-Manson 加速模型, 出处是可靠性工程手册体系(MIL-HDBK-217F / IEC 61124 一类), GB/T 3187 只给术语不给分布正文 —— 本条不声称这些分布定义在 GB/T 3187 的某一条。'
+
 load_conditions:
 # authority_kind 定 project_defined(不是 industry): 「半载 = 满载×50%」是
 # **本项目的约定**, 不是业界通行术语 —— 标成 industry 会让下游以为有个
@@ -413,16 +2590,119 @@ symbols:
   checked: '2026-10-04'
   confidence: 0.85
   note: 时间 time(113-01-03)。时间常数 τ 无独立词条, 由 R·C 组合。
-- standard_ref: GB/T 2900.93-2015
+- standard_ref: GB/T 3187-1994
   symbols:
-  - f_sw
-  - f_c
-  - f_RHPZ
-  - f_g
-  source: 全国标准信息公共服务平台 std.samr.gov.cn; GB/T 2900.93-2015《电工术语 电物理学》(IEC 60050-113:2011)
-  checked: '2026-10-04'
+  - MTTF
+  - MTTR
+  - MTBF
+  source: 'GB/T 3187-1994 产品可靠性 维修性 可靠性和维修性术语 标准正文术语表(平均失效前时间 / 平均失效间隔时间 / 平均恢复前时间)'
+  checked: '2026-10-08'
+  confidence: 0.9
+  note: 'GB/T 3187-1994 的可靠性/维修性特征量表明确含「平均失效前时间(失效前时间的期望)」「平均失效间隔时间(失效间隔时间的期望)」「平均恢复前时间(恢复前时间的期望)」, 即 MTTF/MTBF/MTTR。注意 —— 该标准在种子里状态为 SUPERSEDED, 术语定义仍被普遍引用, 但引用它不等于认可其为现行版本。'
+- standard_ref: GB/T 2900.1-2008
+  symbols:
+  - P_out
+  - P_in
+  - P_loss
+  - P_aux
+  - P_fan
+  source: 'GB/T 2900.1-2008 电工术语 基本术语(功率/有功功率等基本量及其符号); 全国标准信息公共服务平台 std.samr.gov.cn 标准状态页'
+  checked: '2026-10-08'
+  confidence: 0.75
+  note: '这五个都是直流电源的功率量, 基本量与符号(功率 P、有功功率)归 GB/T 2900.1《电工术语 基本术语》。**下标是本项目的写法**(out/in/loss/aux/fan), 标准里并没有 _out/_loss 这类下标 —— 本条挂的是「这类量归哪本术语标准」, 不是「P_out 这个记号定义在哪一条」。'
+- standard_ref: YD/T 731-2018
+  symbols:
+  - K_rel
+  - K_re
+  - K_ss
+  - K_err
+  - K_p
+  - K_sen
+  - K_return
+  source: 'YD/T 731-2018 通信用48V整流器(稳压精度/稳流精度/效率/纹波等精度指标的判据出处); 全国标准信息公共服务平台 行业标准备案页'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: 'K_* 是产测用的精度指标记号(K_rel 相对精度、K_re 调整率、K_ss 稳压、K_err 误差、K_p 功率、K_sen 敏感度、K_return 回扫), **记号本身是本项目的约定**; 挂 YD/T 731-2018 是因为「整流器精度指标怎么判」由该标准规定。同批 731-2008/2002/1994 已被 2018 版全部代替。'
+- standard_ref: GB/T 2900.1-2008
+  symbols:
+  - U
+  - V_in
+  - V_out
+  - I_load
+  - I_L
+  - I_pk
+  - I_rms
+  source: 'GB/T 2900.1-2008 电工术语 基本术语(电压 U / 电流 I 等基本量及其符号); 全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=71F772D7F523D3A7E05397BE0A0AB82A'
+  checked: '2026-10-08'
   confidence: 0.8
-  note: 频率属导出量; 标准给的是频率定义而非符号约定, 故 confidence 略低。
+  note: '基本量与符号(电压 U、电流 I)归 GB/T 2900.1《电工术语 基本术语》。**V_in/V_out/I_load/I_L/I_pk/I_rms 的下标是本项目的写法**, 标准里没有这些下标; 且工程上直流电源电压惯用 V 而非交流的 U —— 本条挂的是「这类量归哪本术语标准」, 不是「V_out 这个记号定义在哪一条」。'
+- standard_ref: GB/T 14549-1993
+  symbols:
+  - u_A
+  - u_B
+  - u_c
+  source: 'GB/T 14549-1993 电能质量 公用电网谐波(谐波电压允许值与测试方法, 含基波/谐波分量定义); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=10A576E61901DA59E9A6AC555C2BAFD1'
+  checked: '2026-10-08'
+  confidence: 0.8
+  note: 'u_A/u_B/u_c 是分相谐波电压记号, 谐波电压的允许值与测法由 GB/T 14549 规定(该标准术语含「基波(分量)」「谐波(分量)」)。**记号本身是本项目的写法**。注: GB/T 14549-1993 上次复审 2021-12-03 结论为「修订」, 修订计划 20062742-T-469 已终止 —— 引用现行版, 不代表将来不被替代。'
+- standard_ref: GB/T 20438.1-2017
+  symbols:
+  - PFH
+  source: 'GB/T 20438.1-2017 电气/电子/可编程电子安全相关系统的功能安全 第1部分: 一般要求(IEC 61508-1); PFH = 高需求或连续运行模式下安全功能发生危险失效的平均频率(GB/T 20438.1 第7.6.2.9); 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=3C733CF3959F5ED8D0367809BC6D3685'
+  checked: '2026-10-08'
+  confidence: 0.85
+  note: 'PFH(Probability of dangerous Failure per Hour)是 IEC 61508 / GB/T 20438.1 的术语, 按该标准 7.6.2.9 与 SIL 1~4 的 PFH 区间对应。种子里的 zh 是「功能安全指标」, 与本条一致。'
+- standard_ref: GB/T 20438.2-2017
+  symbols:
+  - SFF
+  - λ_DU
+  - λ_DD
+  - λ_SU
+  - λ_SD
+  source: 'GB/T 20438.2-2017 电气/电子/可编程电子安全相关系统的功能安全 第2部分: 电气/电子/可编程电子安全相关系统的要求(IEC 61508-2) —— Route 1H 硬件失效容限 HFT 与安全失效分数 SFF 的架构约束(7.4.4), SFF 由失效率分解计算'
+  checked: '2026-10-08'
+  confidence: 0.8
+  note: 'SFF 的数学式与 λ 的四路分解(SD=已探测安全 / SU=未探测安全 / DD=已探测危险 / DU=未探测危险)都在 GB/T 20438.2 的 Route 1H 里; 种子对这四个符号的 zh 就是「失效率分解」, 记号与 IEC 61508 一致。查证依据为 IEC 61508 官方 functional safety 说明与 Analog Devices 的 IEC 61508-1/2 条款解读, 未逐条核对国标原文。'
+- standard_ref: YD/T 731-2018
+  symbols:
+  - ω₀
+  - ω_z
+  - ω_p
+  - PM
+  - GM
+  - ΔI%
+  source: 'YD/T 731-2018 通信用48V整流器(动态响应与并机均流等指标的判据出处); 全国标准信息公共服务平台 行业标准备案页'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: 'ω0/ωz/ω_p 是固有/谐振/零点/极点频率, PM/GM 是相位裕度/增益裕度, ΔI% 是均流偏差 —— 这些都是**整流器/变换器性能指标的判据**, 判据由产品标准规定。注意ω0 与 ωz/ω_p 语义不同(固有频率 vs 零点/极点), 本条只说「这类频率指标归哪本产品标准」, 不声称标准里用了这三个记号。'
+- standard_ref: GB 4943.1-2022
+  symbols:
+  - U_trip
+  - U_rel
+  source: 'GB 4943.1-2022 音视频/信息技术/通信技术设备 第1部分: 安全要求(过电压保护的动作电压与释放电压由该标准判)'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: 'U_trip(保护动作电压)/U_rel(保护释放电压)是过压保护的两个门限, 判据在 GB 4943.1 的保护条款。下标是本项目的写法。'
+- standard_ref: GB/Z 14429-2005
+  symbols:
+  - SOE
+  - t_debounce
+  - t_resolution
+  - t_sync_error
+  source: 'GB/Z 14429-2005 远动设备及系统 第1-3部分: 术语(遥信/事件顺序记录 SOE 与时间分辨率属远动术语; 该标准已是种子锚点, YX_/YC_/YK_ 32 条实体挂在它上面); 全国标准信息公共服务平台 std.samr.gov.cn'
+  checked: '2026-10-08'
+  confidence: 0.7
+  note: 'SOE(事件顺序记录/顺序事件记录)与遥信的时间分辨率、防抖判据是远动术语, 归 GB/Z 14429《远动设备及系统 术语》。t_* 三个记号是本项目的写法(种子 zh 分别是「SOE 分辨率」「SOE 分辨率」「SOE 分辨率」), 标准里没有这些下标 —— 本条挂的是「这类时序指标归哪本术语标准」。'
+- standard_ref: GB/T 20438.1-2017
+  symbols:
+  - t_wdt
+  - t_safe
+  - t_timeout
+  - t_heartbeat
+  source: 'GB/T 20438.1-2017 功能安全 第1部分: 一般要求(IEC 61508-1) —— 单通道系统的诊断覆盖依赖独立看门狗计时器, 安全时间与诊断测试间隔是该标准的安全完整性约束项'
+  checked: '2026-10-08'
+  confidence: 0.65
+  note: 't_wdt/心跳/超时/安全时间这组记号在功能安全语境下由看门狗机制兜底, 而「独立看门狗 + 安全时间约束」出自 IEC 61508-1 / GB/T 20438.1。**这条置信度压到 0.65 是因为它依赖跨域映射**(本项目把它们当通信监控指标, 标准把它们当安全完整性约束), 不是术语级对应。若将来确认这组量只服务通信诊断不参与 SIL 计算, 应改挂通信类标准。'
 telemetry_families:
 - family: YX
   standard_term: 远程信号
@@ -500,6 +2780,48 @@ telemetry_families:
 # 纪律: 每条都必须有 source + checked; 缺任一项由代码跳过并计入 skipped。
 
 standards_add:
+
+
+# ---- 绝缘配合: 补 IEC 60664-1:2020 与国标对应版本链 ----
+- id: IEC 60664-1:2020
+  title: 'Insulation coordination for equipment within low-voltage supply systems - Part 1: Principles, requirements and tests'
+  title_zh: '低压供电系统内设备的绝缘配合 第1部分：原理、要求和试验'
+  version: 'Edition 3.0 (2020-05-26); 合并版 Edition 3.1 = 3.0 + COR1:2020 + AMD1:2025'
+  status: CURRENT
+  iec_committee: 'IEC TC 109 (Insulation co-ordination for low-voltage equipment)'
+  source: 'IEC 官方 webstore.iec.ch/en/publication/59671 与 /107319: Publication date 2020-05-26, Edition 3.0, ICS 29.080.30, Stability date 2028; 合并版 IEC 60664-1:2020+AMD1:2025 Edition 3.1 发布 2025-05-06; ANSI webstore preview 给出条款正文与目录'
+  checked: '2026-10-08'
+  confidence: 0.95
+  note: '第 3 版(2020-05-26)**全部代替第 2 版 IEC 60664-1:2007**, 是技术修订; 稳定性日期2028, 现行有效。相对第 2 版的主要变化: 更新范围与第 2、3 章; 表格里加入 1500 V DC; **第 4、5 章重构**; 新增附录 G(电气间隙流程图)与附录 H(爬电距离流程图); 海拔修正距离改到新的表 F.10。TC 109 的 basic safety publication。本库用它给 POLLUTION_DEGREE(3.1.25)与 CONFORMAL_COATING(5.1.3)作条款出处 —— 这两个条款号是官方目录/正文逐字核对过的, 不是推断的。'
+- id: GB/T 16935.1-2023
+  title: '低压供电系统内设备的绝缘配合 第1部分：原理、要求和试验'
+  title_en: 'Insulation coordination for equipment within low-voltage supply systems—Part 1: Principles, requirements and tests'
+  version: '2023'
+  status: CURRENT
+  iec_equivalent: IEC 60664-1
+  source: '全国标准信息公共服务平台 std.samr.gov.cn(gbDetailed?id=71F772D76912D3A7E05397BE0A0AB82A 标注 2008 版废止) + 国家标准全文公开 openstd.samr.gov.cn hcno=182A0CBC8B22A236FA79FF04D16D19A2 标注 GB/T 16935.1-2023 现行'
+  checked: '2026-10-08'
+  confidence: 0.9
+  note: '中国对应标准, 全部代替 GB/T 16935.1-2008。中英文标题与 IEC 60664-1 完全一致。'
+- id: GB/T 16935.1-2008
+  title: '低压系统内设备的绝缘配合 第一部分:原理、要求和试验'
+  version: '2008'
+  status: SUPERSEDED
+  replaced_by: GB/T 16935.1-2023
+  source: '全国标准信息公共服务平台 std.samr.gov.cn(gbDetailed?id=71F772D76912D3A7E05397BE0A0AB82A 标注 GB/T 16935.1-2008 废止)'
+  checked: '2026-10-08'
+  confidence: 0.9
+  note: '补这条实体是因为版本链缺一端: 现役的 2023 版自带「全部代替 2008 版」, 而被代替的2008 版没有实体端。**没核到的一件事**: 2023 版采用 IEC 60664-1 的**哪一版**未核实(IEC 侧 2007/2020/2025 三版都在), 所以条款号只挂 IEC 60664-1:2020 实体, 不往国标上挂 —— 国标条款号对不上 IEC 版次的情况是真实存在的。'
+# ---- 补版本链缺的一端 ----
+- id: GB/T 2900.19-1994
+  title: '电工术语 高电压试验; 避雷器'
+  version: '1994'
+  status: SUPERSEDED
+  replaced_by: GB/T 2900.19-2022
+  source: '全国标准信息公共服务平台 std.samr.gov.cn(2022 版于 2023-05-01 全部代替 1994 版)'
+  checked: '2026-10-08'
+  confidence: 0.9
+  note: '补这条实体是因为现役的 std::GB/T 2900.19-2022 自带沿革信息, 而**被替代的 1994 版没有实体端** —— 版本链缺一端。原 corrections 那条把 current: 指向 2022(已存在), 整条冗余、每次构建都被跳过; 现按 DL/T 781 的同一口径补实体。'
 - id: YD/T 4523-2023
   title: 通信电源术语和定义
   title_en: Terminology and definitions of communication power supply
@@ -591,6 +2913,90 @@ standards_add:
 # 同义词原则: 跨标准/跨版本含义相同、只是叫法或译法不同的, 并入 synonyms 而不
 # 另立实体; 含义有差别的记进 note, **不合并**。
 
+- id: GB/T 2900.1-2008
+  title: '电工术语 基本术语'
+  title_en: 'Electrotechnical terminology - Fundamental terms'
+  version: '2008'
+  status: CURRENT
+  published: '2008-06-18'
+  implemented: '2009-05-01'
+  replaces: GB/T 2900.1-1992
+  source: '全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=71F772D7F523D3A7E05397BE0A0AB82A; 国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=00825B0E95FFA38A3F03F66AB6220693'
+  checked: '2026-10-08'
+  confidence: 0.95
+  note: '种子已建成 GB/T 2900.32/33/56/70/74/89/93 多个部分, 但基础部分 2900.1 缺失, 而它正是电压/电流/功率等基本量及其符号的出处 —— 没有它, 那批符号无从引用。上次复审 2022-01-06 结论「继续有效」。CCS K04 / ICS 01.040.29, 归口全国电工术语标准化技术委员会(TC232)。仅确认标准自身元数据, 未核对条款。'
+- id: GB/T 14549-1993
+  title: '电能质量 公用电网谐波'
+  title_en: 'Quality of electric energy supply - Harmonics in public supply network'
+  version: '1993'
+  status: CURRENT
+  published: '1993-07-31'
+  implemented: '1994-03-01'
+  source: '国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=10A576E61901DA59E9A6AC555C2BAFD1; 全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=71F772D7F6ACD3A7E05397BE0A0AB82A'
+  checked: '2026-10-08'
+  confidence: 0.95
+  note: '种子此前**没有**这个标准的实体, 而 u_A/u_B/u_c 三个谐波电压记号要挂标准就必须有实体端 —— 缺一端则 defined_by 边建不出来且不报错。CCS F20 / ICS 27.010, 归口 TC1(全国电压电流等级和频率标准化技术委员会), 起草单位 能源部电力司。适用范围: 50Hz、标称电压 110kV 及以下公用电网的谐波允许值与测试方法。上次复审 2021-12-03 结论「修订」, 修订计划 20062742-T-469 已终止。'
+- id: GB/T 20438.1-2017
+  title: '电气/电子/可编程电子安全相关系统的功能安全 第1部分: 一般要求'
+  title_en: 'Functional safety of electrical/electronic/programmable electronic safety-related systems - Part 1: General requirements'
+  version: '2017'
+  status: CURRENT
+  published: '2017-12-29'
+  implemented: '2018-07-01'
+  iec_equivalent: IEC 61508-1
+  source: '国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=3C733CF3959F5ED8D0367809BC6D3685'
+  checked: '2026-10-08'
+  confidence: 0.9
+  note: '种子此前没有该实体, 而 PFH 要挂标准就需要实体端。CCS N10 / ICS 25.040, 归口 中国机械工业联合会。同系列另有 GB/T 20438.2~.7-2017(已把 .2 建为实体)。'
+- id: GB/T 20438.2-2017
+  title: '电气/电子/可编程电子安全相关系统的功能安全 第2部分: 电气/电子/可编程电子安全相关系统的要求'
+  title_en: 'Functional safety of electrical/electronic/programmable electronic safety-related systems - Part 2: Requirements for electrical/electronic/programmable electronic safety-related systems'
+  version: '2017'
+  status: CURRENT
+  published: '2017-12-29'
+  implemented: '2018-07-01'
+  replaces: GB/T 20438.2-2006
+  iec_equivalent: IEC 61508-2:2010
+  source: '国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=894D57D7F6F5EBA0F341BB7AC3E4C62A; 全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=71F772D826DAD3A7E05397BE0A0AB82A'
+  checked: '2026-10-08'
+  confidence: 0.95
+  note: 'Route 1H 的 HFT/SFF 架构约束在第2部分(7.4.4)。**已补核到 A 级状态页**: 现行、等同采用 IEC 61508-2:2010、上次复审 2025-05-30 结论「继续有效」、全部代替 GB/T 20438.2-2006。CCS N10 / ICS 25.040, 归口 TC124(全国工业过程测量控制和自动化标准化技术委员会), 主管部门 中国机械工业联合会。confidence 由 0.75 上调到 0.95。'
+- id: DL/T 781-2001
+  title: '电力用高频开关整流模块'
+  title_en: 'High frequency switching converter module in power system'
+  version: '2001'
+  status: SUPERSEDED
+  replaced_by: DL/T 781-2021
+  published: '2001-10-08'
+  implemented: '2002-02-01'
+  source: '电力行业标准正文(DL/T 781-2001, 备案号 9381-2001, ICS 29.100 / CCS K43, 归口 电力行业高压开关设备标准化技术委员会; 发布 2001-10-08 / 实施 2002-02-01); 替代关系见 DL/T 781-2021 的行业标准条目'
+  checked: '2026-10-08'
+  confidence: 0.9
+  note: '**本条原先把 status 暂填 CURRENT, 那是错的** —— DL/T 781-2021(发布 2021-01-07 / 实施 2021-06-30) 已全部代替本版。已改为 SUPERSEDED 并补 replaced_by。之所以要留这个实体: 挂在它下面的 12 条公式引的是**2001 版正文**的条款号(5.7.8 效率、5.7.9 并机均流、6.2.11 效率试验 η=Wz/Wj×100%、6.2.12 均流不平衡度算式), 那些条款号只在 2001 版里成立。2021 版条款号需重新核对。'
+- id: DL/T 781-2021
+  title: '电力用高频开关整流模块'
+  title_en: 'High frequency switching converter module in power system'
+  version: '2021'
+  status: CURRENT
+  replaces: DL/T 781-2001
+  published: '2021-01-07'
+  implemented: '2021-06-30'
+  source: '行业标准目录条目(51zbz.com/biaozhun/13795.html): DL/T 781-2021 发布 2021-01-07 / 实施 2021-06-30, 替代标准 DL/T 781-2001, CCS K43 / ICS 29.1, 归口 电力行业高压开关设备及直流电源标准化技术委员会(DL/T 06); **未取到 A 级平台的现行状态页**, 故 confidence 低于 2001 版'
+  checked: '2026-10-08'
+  confidence: 0.75
+  note: '补这个实体是为了让 DL/T 781-2001 的 replaced_by **有实体端** —— 指向一个不存在的编号, 就是「看起来有依据却查不到」。confidence 0.75 的原因: 替代关系来自行业标准目录(C 级), 未核到 A 级状态页; 补核后应上调。**挂公式时优先引 2021 版**, 但 2021 版条款号尚未核对, 所以现有 12 条仍引 2001 版并在 note 里注明。'
+- id: GB/T 27418-2017
+  title: '测量不确定度评定和表示'
+  title_en: 'Guide to the evaluation and expression of uncertainty in measurement'
+  version: '2017'
+  status: CURRENT
+  published: '2017-12-29'
+  implemented: '2018-07-01'
+  iec_equivalent: 'ISO/IEC Guide 98-3:2008 (MOD)'
+  source: '国家标准全文公开 openstd.samr.gov.cn/bzgk/std/newGbInfo?hcno=4BAEA7D58DD78FD31710D69E0F9CDCF7; 全国标准信息公共服务平台 std.samr.gov.cn/gb/search/gbDetailed?id=71F772D8230BD3A7E05397BE0A0AB82A'
+  checked: '2026-10-08'
+  confidence: 0.95
+  note: '为 F_M.1.* 那 22 条测量不确定度公式补的**实体端**。CCS A50 / ICS 01.040.17, 归口 TC261(全国认证认可标准化技术委员会), 起草单位含中国合格评定国家认可中心与中国计量科学研究院。上次复审 2025-04-30 结论「继续有效」。该标准适用范围明确含「在生产过程中利用测量活动进行的质量控制和质量保证」, 且 CNAS-CL01-G003:2021 要求实验室评定程序符合 GB/T 27418 —— 对产测是强制要求。'
 concepts_add:
 # --- YD/T 4523-2023 §3.1 基本术语 ---
 - id: CAPACITY

@@ -160,7 +160,7 @@ def build_facts() -> list[dict[str, Any]]:
        自己写对。
 
     只发布与型号无关的通用事实。``load-scaling`` 规则要的
-    ``value_at_full_load(...)`` 是**型号数据**, 不在这里编 —— 读���具体规格书
+    ``value_at_full_load(...)`` 是**型号数据**, 不在这里编 —— 读完具体规格书
     后由消费方补进去; 凭空给一个功率值会让推理在错误型号上运行且不报错。
     """
     facts: list[dict[str, Any]] = []
@@ -225,8 +225,17 @@ def build_facts() -> list[dict[str, Any]]:
 #:
 #: 修正件后缀 ``+A2:2013`` 的字母**后面还有数字**(修正件号), 所以是
 #: ``[A-Za-z]\d*``; 早先写成 ``[A-Za-z]`` 会把它截成 ``+A``, 与库里实体对不上。
+#:
+#: **IEC 式年份用冒号** —— ``IEC 60664-1:2020``, 这是 IEC 的规范写法(不是笔误)。
+#: 早先的正则只认 ``-2018`` 那类短横线年份, 于是从 ``IEC 60664-1:2020`` 里抽出
+#: ``IEC 60664-1`` —— 而库里实体是 ``std::IEC 60664-1:2020``, 抽出来的 head 与实体 id
+#: 对不上, 门禁报「引用指向库里不存在的标准实体」。这是**工具侧的缺口**, 表现却像数据错:
+#: 生成器默默少建一条 ``defined_by`` 边, 门禁默默多报一条假悬空引用, 两边都不报错。
+#: 所以补 ``(?::\d{4})?``。注意它与上面 ``+A2:2013`` 的冒号是两回事: 那个冒号跟在修正件号
+#: 后面, 这个跟在标准号本体后面, 两者位置不同, 互不干扰。
 _STD_ID_RE = re.compile(
     r"[A-Z]{2,6}(?:/[A-Z]{1,6})?\s*\d+[A-Za-z]?(?:[-.]\d+[A-Za-z]?)*"
+    r"(?::\d{4})?"
     r"(?:\+(?:[A-Za-z]\d*(?::\d{4})?)?)?"
 )
 
@@ -380,6 +389,23 @@ def _props(
         for k, v in out.items()
         if k not in ("authority_kind", "authority_ref", "provenance")
     }
+    # **confidence 必须落进 properties, 否则查证结论到不了记录级。**
+    #
+    # ``to_seed_records`` 的记录级 ``confidence`` 读的是 ``props.get("confidence")``,
+    # 而 ``confidence`` 此前**只**被传给 :func:`authority_ref` 落进 provenance 的
+    # SourceReference —— 从没进过 properties。于是走 :func:`_props` 直接产出的实体
+    # (抽取器建的标准/概念/符号/工况) 无论查证到多高可信度, 记录级 confidence
+    # **恒为 None**。
+    #
+    # 实测丢失 106 条已验证知识的 confidence: 81 power_concept / 14 standard /
+    # 6 load_condition / 3 load_ratio / 2 symbol, 其中 **67 条 authority_kind=standard**
+    # (含 ``YX_*`` 保护概念、GB/T 2900.x 全系列、GB 4943.1-2022)。
+    #
+    # 只在非 None 时写: None 的语义是「未查证」, 而 :func:`authority_ref` 已要求
+    # standard/book 必须给 ref, 两者不得混同。放在 provenance 之后 —— 写早了会让
+    # ``provenance["confidence"]`` 多出一条指向自身的条目。
+    if confidence is not None:
+        out["confidence"] = confidence
     return out
 
 
@@ -1249,9 +1275,12 @@ def build_production_practice() -> list[dict[str, Any]]:
 #:   试验标准), 没有指向具体一条。补 14 条 GB/T 17626.x 实体是凭空造数据。
 #: - ``COND_VIN_NOM`` 引 ``GB/T 2900.1 电工术语; IEC 60050-151``: 一条引用里
 #:   给了**两条标准**(且前者没写部分号), 提取器只能取到第一条。
-#: - ``CONFORMAL_COATING`` 引 ``IEC 60664-1 / IPC-2221B``: 复合引用(一条 IEC +
-#:   一条 IPC), 且 IEC 60664-1 库里有 2020 版但引用没写年份 —— 升级到 2020 版是
-#:   **推断哪一版**, 留给人工裁定。
+#: - ~~``CONFORMAL_COATING`` 引 ``IEC 60664-1 / IPC-2221B``~~: **已不在此列**。
+#:   该实体与其标准 ``std::IPC-2221`` 已于 2026-10-08 按「绑不上产测流程」移出范围,
+#:   见 :data:`OUT_OF_SCOPE_ENTITY_IDS`。移出前它的引用确实无法解析(复合引用 +
+#:   IPC-2221B 已被 C 版代替 + IEC 60664-1 没写年份), 但那是次要理由 ——
+#:   主要理由是**它属于印制板设计/组装侧, 不是电源产品产测侧**。
+#:   同源的 ``POLLUTION_DEGREE`` 保留: 它是判读耐压/漏电流实测结果的输入。
 #:
 #: ``status`` 只填**查到**的那一个, 查不到就留 ``UNVERIFIED``, 不猜。
 #:
@@ -1456,8 +1485,13 @@ def build_referenced_standards() -> list[dict[str, Any]]:
 #:
 #: 只判 ``authority_ref`` 会漏掉一种情况: 某条记录在 ``source`` 或 ``note`` 里
 #: 提了这个标准号(人读得懂, 机器解析不了)。那种情况下标准实体虽无边, 但它是
-#: **可被人查到的线索**。实测这类只有 1 条(``IPC-2221`` 被 ``CONFORMAL_COATING``
-#: 引), 保留它。
+#: **可被人查到的线索**, 保留它。
+#:
+#: **这条豁免不能当保命符用**: 它曾让 ``std::IPC-2221`` 活下来 —— 而它与
+#: ``CONFORMAL_COATING`` 已于 2026-10-08 按「绑不上产测流程」移出范围
+#: (见 :data:`OUT_OF_SCOPE_ENTITY_IDS`)。**「有人提到它」不等于「该有它」**:
+#: 文本提及只能说明这条知识还引用着它, 而引用它的那条知识本身可能就不在范围内。
+#: 所以范围排除必须发生在这一层**之前**, 不能指望靠文字提及把出范围的东西留下。
 #:
 #: **非 ``unverified`` 的一律保留** —— ``industry`` / ``standard`` 级说明有人工
 #: 判断过, 那个判断不因为「当前零引用」而失效。
@@ -2877,7 +2911,7 @@ def build_relationships(entities: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """
     ids = {e["id"] for e in entities}
     rels: list[dict[str, Any]] = []
-    # 术语 -> 标准。**这是让图谱连起来的��一钩子**: 只连同源实体的话, 999 个实体里
+    # 术语 -> 标准。**这是让图谱连起来的唯一钩子**: 只连同源实体的话, 999 个实体里
     # 964 个是孤立的, 图谱退化成一堆点。术语的**权威出处**就是把它连到标准上的
     # 那条边 —— 边本身携带语义, 不只是连线。
     for e in entities:
@@ -2893,9 +2927,19 @@ def build_relationships(entities: list[dict[str, Any]]) -> list[dict[str, Any]]:
         # 与 ``17626`` 之间**有空格**。早先一版在这里 ``.replace(" ", "")``, 只压掉了
         # 引用侧, 于是永远匹配不上, 边一条都生成不出来, 且不报错。
         head = re.sub(r"\s+", " ", m.group(0)).strip() if m else None
-        if head and f"std::{head}" in ids:
+        target_id = f"std::{head}" if head else None
+        # **排除自环**: 标准实体的 ``authority_ref`` 就是它自己的编号 ——
+        # :func:`standards_add` 与 :func:`build_referenced_standards` 都这么写,
+        # 于是「这条知识由哪个标准定义」这条规则作用在标准自己身上时, 就生成
+        # ``std::X defined_by std::X``。不含任何信息: 下游 materialize 早就把它
+        # 当自环丢弃了, 但它仍留在种子的 relationships 记录里 —— 按记录数审图的
+        # 人(以及 ``knowledge_gate`` 之类数条数的脚本)会把它当成真边, 而实际建图
+        # 时它根本不存在。实测 20 条, 修完降到 0。
+        if target_id == e["id"]:
+            continue
+        if target_id and target_id in ids:
             rels.append(
-                {"source": e["id"], "target": f"std::{head}", "type": "defined_by",
+                {"source": e["id"], "target": target_id, "type": "defined_by",
                  "properties": {"clause": aref}}
             )
 
@@ -3080,6 +3124,46 @@ def apply_corrections(
             if k not in ("id", "source", "checked", "note", "standard_ref", "authority_ref", "authority_kind")
         }
         _do("power_concept", entry, entry["id"], _updates)
+
+    for entry in corrections.get("formulas") or ():
+        # 与 ``concepts`` 同口径, 只是实体类型不同。
+        #
+        # **这一段原先不存在, 而后果是 244 条公式永远只能是 unverified**:
+        # ``apply_corrections`` 原本只有 standards / concepts / concepts_add /
+        # standards_add / telemetry_families / symbols / load_conditions 七段,
+        # **没有 formulas 段** —— 于是没有任何机制能给 ``formula`` 实体挂
+        # authority_ref。之前那244 条公式带 ``unverified`` 不是「查证过但没标」,
+        # 而是**根本没法标**(F_H.16.1 / F_K.3 / F_L.5 / F_M.1 / F_N.4 /
+        # F_Q.1 / F_R.1 / F_S.1 / F_W.3 等十章共 244 条)。
+        #
+        # 口径与 ``concepts`` 保持一致: ``standard_ref`` / ``authority_ref`` /
+        # ``authority_kind`` 由 :func:`_do` 统一处理, 不作为属性写两遍。
+        _updates = {
+            k: v
+            for k, v in entry.items()
+            if k not in ("id", "source", "checked", "note", "standard_ref", "authority_ref", "authority_kind")
+        }
+        _do("formula", entry, entry["id"], _updates)
+
+    for entry in corrections.get("entities") or ():
+        # **通用段**: 按 id 找到实体, 用它自己的 ``type`` 当 kind。
+        #
+        # 为什么需要它: ``standards`` / ``concepts`` / ``formulas`` 三段都是按
+        # 类型写死的, 于是 ``axiom`` / ``theorem`` / ``erratum`` / ``symbol`` 这几类
+        # **没有任何修正入口** —— 跟公式那 244 条是同一类问题(缺机制, 不是缺数据)。
+        # 公理与定理尤其需要: 它们的依据是学科本身而不是某条标准条款, 所以走
+        # ``authority_kind: industry`` 才诚实(挂标准号反而是假的), 而 industry
+        # 恰好不是 ``standard``, 不会建边 —— 不会往图里塞假边。
+        target = by_id.get(entry["id"])
+        if target is None:
+            skipped.append("entity:%s(目标不存在)" % entry.get("id"))
+            continue
+        _updates = {
+            k: v
+            for k, v in entry.items()
+            if k not in ("id", "source", "checked", "note", "standard_ref", "authority_ref", "authority_kind")
+        }
+        _do(str(target.get("type") or "entity"), entry, entry["id"], _updates)
 
     # ---- 新增实体: 方案 md 里根本没有的概念/标准 ----------------------------
     #
@@ -3266,6 +3350,11 @@ def apply_corrections(
             target["properties"]["authority_kind"] = kind
             if std_id:
                 target["properties"]["authority_ref"] = ref
+            # 与 :func:`_props` 同一处修正: ``confidence`` 只进 provenance 的话,
+            # ``to_seed_records`` 读到的记录级 confidence 恒为 None。这批
+            # ``YC_*``/``YX_*``/``YK_*`` 遥测遥信遥调概念的 0.95 因此全丢。
+            if fam.get("confidence") is not None:
+                target["properties"]["confidence"] = fam.get("confidence")
             for key in ("zh", "telemetry_family", "standard_term", "synonyms"):
                 target["properties"].setdefault("provenance", {})[key] = {
                     "property_name": key, "value": target["properties"][key], "sources": [src]
@@ -3291,6 +3380,10 @@ def apply_corrections(
                 continue
             target["properties"]["authority_kind"] = "standard"
             target["properties"]["authority_ref"] = aref
+            # 与 :func:`_props` 同一处修正: 只进 provenance 的话记录级 confidence
+            # 恒为 None(``to_seed_records`` 读 ``props.get("confidence")``)。
+            if group.get("confidence") is not None:
+                target["properties"]["confidence"] = group.get("confidence")
             target["properties"]["provenance"]["authority_ref"] = {
                 "property_name": "authority_ref",
                 "value": aref,
@@ -3313,7 +3406,15 @@ def apply_corrections(
         _do("load_condition", entry, f"load::{entry['id']}", {k: v for k, v in entry.items() if k not in ("id", "source", "checked", "note")})
 
     if skipped:
-        print(f"  [警告] {len(skipped)} 条修正缺 source/checked 或目标不存在, 已跳过: {skipped[:4]}")
+        # **全部打印, 不截断**。早先写死 ``skipped[:4]``, 于是恰好 5 条以上跳过时
+        # 多出来的永远看不见 —— 而「修正条目找不到目标」正是那种静默漂移: 条目还躺在
+        # corrections.yaml 里看着正常, 每次构建都被跳过, 没人发现。实测就靠这个抓到过
+        # 4 条死条目(其中 MTBF 只是被放错了段, 而 sym::MTBF 其实一直存在)。
+        if len(skipped) > 20:
+            shown = skipped[:20] + ["... 其余 %d 条见完整列表" % (len(skipped) - 20)]
+        else:
+            shown = skipped
+        print(f"  [警告] {len(skipped)} 条修正缺 source/checked 或目标不存在, 已跳过: {shown}")
     return entities, applied
 
 
@@ -3484,11 +3585,36 @@ OUT_OF_SCOPE_FORMULA_IDS = frozenset(
 #: - ``std::JEDEC JESD22-A101``(稳态热阻测定): 热力学已移出范围(见上),
 #:   这条标准是「稳态热阻」的测量方法标准。留着它等于留一个没有公式承接的
 #:   热力学标准条目 —— 审计会读成「热阻测定已覆盖」。
+#: - ``CONFORMAL_COATING``(三防涂覆) + ``std::IPC-2221``: **印制板设计/组装侧**,
+#:   不是电源产品产测侧(2026-10-08 移出)。判据与 :data:`OUT_OF_SCOPE_FORMULA_IDS`
+#:   同源 —— **能不能绑到产测流程上**:
+#:
+#:   涂覆影响爬电距离 → 影响耐压/漏电流判定, 但这条链要走**两步**; 而产测判耐压
+#:   是按产品标准(GB 4943.1)给的限值, 涂覆的效果已经含在产品声明的绝缘要求里了,
+#:   产测工程师不会拿涂层厚度去算爬电距离。对比同库真正绑得上产测的概念:
+#:   ``PROT_OVP``→保护动作值扫描、``VOUT_RIPPLE``→输出项判合格、
+#:   ``COND_TEMP_REF_Tc``/``MEAS_TEMPCO_CHAMBER_SWEEP``→扫温测温度系数、
+#:   ``PRACT_MSA_GRR_ACCEPTANCE``/``INSTR_HIPOT_TESTER``→测量系统与耐压测试。
+#:
+#:   真正做涂层的是 **PCB 组装线**(针孔/火花检测那一套), 不是电源产品产测线。
+#:   它挂的两条标准也都是设计侧的: ``std::IPC-2221`` 是**印制板设计**标准
+#:   (Generic Standard on Printed Board Design), IEC 60664-1 的 5.1.3 给的是
+#:   「允许减小间距」的设计余量。所以标准一并移出 —— 与上面 JESD22-A101 同一处置。
+#:
+#:   **注意别用「出度为 0」当判据**: 实测全库 596 个实体里 **325 个出度为 0**
+#:   (formula 145 / power_concept 86 / standard 40 / symbol 21…), 边主要是
+#:   concept→standard 而不是 concept→concept, 所以叶子是常态, ``VOUT_RATED``/
+#:   ``PROT_OVP``/``PRACT_*`` 全是出度 0 的叶子。出度 0 区分不出「出范围」。
+#:
+#:   保留的是同源的 ``POLLUTION_DEGREE``: 它是判读耐压/漏电流**实测结果**的输入
+#:   (污染等级定爬电距离 → 爬电距离定耐压限值 → 实测值对照判合格), 在产测判据链上。
 OUT_OF_SCOPE_ENTITY_IDS = frozenset(
     {
         "BMS",
         "BATTERY_CAPACITY",
         "std::JEDEC JESD22-A101",
+        "CONFORMAL_COATING",
+        "std::IPC-2221",
     }
 )
 
