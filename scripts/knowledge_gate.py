@@ -19,6 +19,14 @@ property_coverage 这类指标。本项目**故意没有类/属性本体层**(�
   知识层的合法状态, 只影响可信度), 所以 WARN;
 - 孤儿记录 —— 依赖「引用字段是否列全」这个前提, 列漏了就误报, 放 INFO。
 
+**还有一类是「退化」而不是「缺陷」**
+--------------------------------------------------
+上面三类查的都是「现在有没有坏东西」。:func:`check_authority_coverage` 查的是
+另一件事: **好状态有没有被悄悄退回去**。只查「坏」的话, 「全绿」既可能意味着
+「干净」也可能意味着「空」—— 这两件事在门禁眼里长得一模一样, 于是改善不可见,
+**回退也不可见**。这条检查把 unverified 占比 / confidence 覆盖率 / 自环数
+三个比例钉成契约(见该函数的常量与注释), 达标时不制造噪声, 只在越过阈值时报 WARN。
+
 **只用确定性判据**: 不猜、不补、不改数据。发现的问题要么在源头修,
 要么显式记成已知缺口。
 """
@@ -146,8 +154,14 @@ STANDARD_NUMBER = re.compile(r"^[A-Z]{2,4}(/([A-Z]|T|Z))?\s+\d")
 #: 生成器默默少建一条 ``defined_by`` 边, 门禁默默放过一条悬空引用。
 #: ``tests/test_gate_std_id_head.py`` 对真实种子的每个 ``authority_ref`` 断言
 #: 两者给出同一个 head —— 那条测试就是防漂的。
+#:
+#: **IEC 式年份 ``IEC 60664-1:2020`` 的冒号年份已一并支持**(与
+#: ``build_seed_data._STD_ID_RE`` 同步改)。只认 ``-2018`` 那类短横线年份时, 从
+#: ``IEC 60664-1:2020`` 抽出的是 ``IEC 60664-1``, 与实体 id ``std::IEC 60664-1:2020``
+#: 对不上 —— 生成器少建边、门禁多报一条**假**悬空引用, 而两边都不报错。
 STANDARD_ID_HEAD = re.compile(
     r"[A-Z]{2,6}(?:/[A-Z]{1,6})?\s*\d+[A-Za-z]?(?:[-.]\d+[A-Za-z]?)*"
+    r"(?::\d{4})?"
     r"(?:\+(?:[A-Za-z]\d*(?::\d{4})?)?)?"
 )
 
@@ -535,12 +549,28 @@ def check_authority_clause_missing(records: list[dict[str, Any]], report: GateRe
 
     判 WARN 而不是 ERROR: 引到哪一条需要人工逐条核(有的概念本就是整条标准的
     通则, 没有单一条款), 但**这件事必须被看见** —— 不看见就成了「已核对过」。
+
+    **标准实体本身被排除在外**(实测 30 条, 全部是 ``std::*``)
+    ----------------------------------------------------------
+    标准实体的 ``authority_ref`` 装的是**查证来源串**而不是条款引用, 实测形态:
+    ``全国标准信息公共服务平台 std.samr.gov.cn/``、``GB/T 17626.4-2018``、
+    ``JEDEC 官方文档页 jedec.org/...``。也就是说它的「出处」就是它自己。
+    而一条标准文档**不存在「自己内部的条款号」** —— 要求 ``std::GB/T 17626.4-2018``
+    填 ``clause``, 在语义上就是要求「GB/T 17626.4 的第几章」, 这个问题没有答案。
+
+    早先没排除时这 30 条混在真缺口里, 有两个坏处: 一是把**门禁自身无法满足的项**
+    当成待办, 逼人去补一个不存在的字段; 二是让按类型分的缺口统计失真(标准实体
+    占了 30/227)。这条判据要的是「引了这条标准但没说是哪一条」, 而标准实体
+    根本没引别的东西。
     """
     by_type: dict[str, int] = {}
     samples: dict[str, list[str]] = {}
+    by_std: Counter[str] = Counter()
     for rec in records:
         if _authority_kind(rec) != "standard":
             continue
+        if str(rec.get("entity_type") or "") == "standard":
+            continue  # 标准实体的出处是它自己, 没有「内部条款」可言
         ref = str(rec.get("authority_ref") or "")
         if not ref or STANDARD_ID_HEAD.match(ref) is None:
             continue
@@ -549,13 +579,20 @@ def check_authority_clause_missing(records: list[dict[str, Any]], report: GateRe
         etype = str(rec.get("entity_type") or "?")
         by_type[etype] = by_type.get(etype, 0) + 1
         samples.setdefault(etype, []).append(str(rec.get("id") or "<no-id>"))
+        head = STANDARD_ID_HEAD.match(ref)
+        by_std[head.group(0) if head else "(形态不识别的引用)"] += 1
     for etype, n in sorted(by_type.items()):
+        # **按标准分组**而不是只给总数: 一个「169」不驱动任何补齐工作 ——
+        # 它既没说哪几条标准最值得先补, 也没说补一条要付多少代价。按标准分组后
+        # 「GB/T 3187-1994 占 33 条、GB/T 27418-2017 占 22 条」就自带优先级。
+        top = "、".join("%s %d 条" % (s, c) for s, c in by_std.most_common(6))
         report.add(
             "authority_clause_missing",
             "WARN",
             etype,
             f"{n} 条 standard 级引用不带条款号(示例 {samples[etype][:3]})—— "
-            f"「引了这条标准」不等于「核到了这一条」, 复核时会卡在这里",
+            f"「引了这条标准」不等于「核到了这一条」, 复核时会卡在这里。"
+            f"按标准分: {top}" + ("…" if len(by_std) > 6 else ""),
         )
 
 
@@ -687,6 +724,95 @@ def _live_count(dsn: str, table: str) -> int:
     return int(row[0]) if row else 0
 
 
+# ============================================================================
+# 知识覆盖度 (2026-10-08 新增)
+# ============================================================================
+#
+# 为什么要有这条
+# --------------
+# 2026-10 那一轮补数据把种子的权威分层从「unverified 431 / standard 127 /
+# industry 16」改成「unverified 28 / standard 289 / industry 264」, 孤立率从 74.0%
+# 降到 48.1%(越过 SPARSE_GRAPH_RATIO, sparseness_warning 于是消失)。
+#
+# **那次改善当时没有任何东西盯着** —— 门禁没有这一项, 于是:
+#   - 改善本身不可见(没人知道跨过了阈值);
+#   - **回退也不可见**(把实体倒回 unverified、把 confidence 删掉, 门禁照样全绿)。
+# 这正是本文件开头那条纪律说的「永远不红的门禁会被整体忽略」的另一面:
+# 只查「坏」不查「退化」, 那么好状态和坏状态长得一样。
+#
+# 所以这里查的是**比例**而不是绝对数 —— 绝对数会随种子增长漂移, 比例不会。
+# 阈值取得比现状**宽**一截(现状 unverified 4.7%, 阈值 15%), 这样它拦的是
+# 「大批东西被倒回未查证」而不是「多了一条新知识就红」。
+
+#: ``unverified`` 实体占比上限。现状 28/592 = 4.7%。定 15% 是为了给「新增但
+#: 还没查证的知识」留出空间 —— 未查证本身不是错误(可能确实查不到标准条款),
+#: 但**占比**高到一定程度就说明查证工作停了。
+UNVERIFIED_RATIO_MAX = 0.15
+
+#: 带 ``confidence`` 的实体占比下限。现状 564/593 = 95.3% —— 定 90% 而不是 95%,
+#: 因为那 0.28pp 的余量太薄: 再多一条实体没 confidence 就会翻红, 于是这条检查会被
+#: 当成噪声忽略, 那比没有更糟。定 90% 拦的是「成批回退」, 不是「多一条」。
+#:
+#: 残留的 28 条无 confidence 是**合理**的: 21 个本项目自定义记号(``d_env``/``k_sim``/
+#: ``CTI``/``TUR``… 挂标准号是假的) + 7 条 erratum(我们自己对方案原文的修正记录)。
+#: 它们不是「忘了填」, 是「按设计就没有标准可引」。
+CONFIDENCE_COVER_MIN = 0.90
+
+
+def check_authority_coverage(records: list[dict[str, Any]], report: GateReport) -> None:
+    """权威分层与 confidence 覆盖率 (比例判据, 不是绝对数)。
+
+    **只报 stats 不报 finding 的情况是有意的**: 达标时不制造噪声, 让「退化」这条
+    finding 真正醒目。判 WARN 不判 ERROR —— 与 :func:`check_graph_structure` 同一
+    纪律: 覆盖率不足是「工作没做完」, 不是「数据坏了」, 判 ERROR 会让门禁习惯性红。
+    """
+    ents = [r for r in records if not _is_relation(r)]
+    rels_recs = [r for r in records if _is_relation(r)]
+    total = len(ents)
+    if not total:
+        report.add("authority_coverage", "ERROR", "<no-entity>", "记录里没有实体")
+        return
+
+    ak = Counter(str(_authority_kind(r)) for r in ents)
+    with_conf = sum(1 for r in ents if r.get("confidence") is not None)
+    unv = ak.get("unverified", 0)
+    unv_ratio = unv / total
+    conf_ratio = with_conf / total
+
+    # 关系记录里的自环: 不含信息, 且 materialize 建图时会丢弃 —— 于是「记录数」
+    # 与「实际建边数」永远对不上, 按记录数审图的人会把它当成真边。必须可见。
+    self_loops = sum(1 for r in rels_recs
+                     if str(r.get("source_id")) == str(r.get("target_id")))
+
+    report.stats.update(
+        {
+            "authority_by_kind": dict(ak.most_common()),
+            "unverified_ratio": round(unv_ratio, 4),
+            "confidence_cover": round(conf_ratio, 4),
+            "relation_self_loops": self_loops,
+        }
+    )
+
+    if unv_ratio > UNVERIFIED_RATIO_MAX:
+        report.add(
+            "authority_coverage", "WARN", "<seed>",
+            "unverified 占比 %.1f%% 超过上限 %.0f%% (%d/%d) —— 查证工作可能停了"
+            % (unv_ratio * 100, UNVERIFIED_RATIO_MAX * 100, unv, total),
+        )
+    if conf_ratio < CONFIDENCE_COVER_MIN:
+        report.add(
+            "authority_coverage", "WARN", "<seed>",
+            "confidence 覆盖率 %.1f%% 低于下限 %.0f%% —— 缺失的语义是「未查证」"
+            % (conf_ratio * 100, CONFIDENCE_COVER_MIN * 100),
+        )
+    if self_loops:
+        report.add(
+            "authority_coverage", "WARN", "<seed>",
+            "关系记录里有 %d 条自环(source==target) —— 建图时会被丢弃, "
+            "使「关系记录数」与「实际建边数」对不上" % self_loops,
+        )
+
+
 def run_gate(records: list[dict[str, Any]]) -> GateReport:
     """跑全部门禁检查, 返回报告。**不修改任何数据**。"""
     report = GateReport()
@@ -698,6 +824,7 @@ def run_gate(records: list[dict[str, Any]]) -> GateReport:
     check_authority_clause_missing(records, report)
     check_reportables(records, ids, report)
     check_graph_structure(records, report)
+    check_authority_coverage(records, report)
     by_type = Counter(str(r.get("entity_type")) for r in records)
     # ``update`` 而不是赋值: :func:`check_ids` 已经往 stats 里放了
     # ``bare_name_ids``, 赋值会把它抹掉 —— 而那条正是「已登记的裸名 id

@@ -1,13 +1,18 @@
 """图分析层 (方案 §4.4) 的不变量测试。
 
-**这一节最要紧的是「诚实」**: 当前种子极稀疏 (641 节点 / 65 边 / 87% 孤立),
+**这一节最要紧的是「诚实」**: 早先的种子极稀疏 (2026-09 时是「641 节点 / 65 边 /
+87% 孤立」), 补数据后已降到 2026-10-08 实测 591 节点 /
+274 边 / 47.5% 孤立 —— 也就是**降到了 `SPARSE_GRAPH_RATIO = 0.5` 以下**,
+于是 sparseness_warning 按设计消失了。别照抄注释里的数字, 实测
+`analytics.topology()`; 下面的测试断言的是**规则**(警告有无必须与实测孤立率一致),
+不是某个固定数字),
 中心性与追溯的产出天然信息量有限。所以测试钉的不是「算出了洞察」, 而是:
 
 1. 产出**如实反映稀疏度** —— 输出里必须带 sparsity 说明, 否则通过 MCP 拿到一片
    0 排名的人会以为那些标准不重要, 而事实是它们只是没进任何边。
 2. **方向语义正确** —— ``has_theorem`` 边上「谁推出 T1」必须反着走。方向读反
    不报错, 只给出一个看起来合理的空答案, 那种错最难发现。
-3. 找不到节点时给**可操作**的提示, 不是「共 641 个节点」这种没用的话。
+3. 找不到节点时给**可操作**的提示, 不是「共 N 个节点」这种没用的话。
 4. 图建不起来判 ERROR 而不是跳过 —— 跳过会把「查不了」报成「没问题」。
 """
 
@@ -273,8 +278,20 @@ class TestMcpTools:
         d = json.loads(asyncio.run(server.analyze_graph("centrality")))
         assert d["metric"] == "centrality"
         assert d["topology"]["nodes"] > 0
-        assert d["sparseness_warning"], "稀疏的图上必须带稀疏度警告"
-        assert "孤立" in d["sparseness_warning"]
+        # 断言的是**规则**而不是当前数字: 警告的有无必须与实测孤立率一致。
+        # 早先这里写死 `assert d["sparseness_warning"]`, 而那时种子孤立率 74% 远高于
+        # SPARSE_GRAPH_RATIO; 补数据后孤立率降到 50% 以下, 警告按设计消失 —— 旧断言
+        # 于是把「稀疏度已经改善」报成失败。钉死数字等于把数据现状写成契约。
+        ratio = d["topology"]["isolated_nodes"] / d["topology"]["nodes"]
+        if ratio > server.SPARSE_GRAPH_RATIO:
+            assert d["sparseness_warning"], (
+                "孤立率 %.1f%% 高于阈值 %.0f%%, 必须带稀疏度警告"
+                % (ratio * 100, server.SPARSE_GRAPH_RATIO * 100))
+            assert "孤立" in d["sparseness_warning"]
+        else:
+            assert d["sparseness_warning"] is None, (
+                "孤立率 %.1f%% 已低于阈值 %.0f%%, 不该再报警告 —— 否则警告成了噪声"
+                % (ratio * 100, server.SPARSE_GRAPH_RATIO * 100))
 
     def test_trace_dependency_both_directions_reachable(self):
         import asyncio
@@ -285,7 +302,19 @@ class TestMcpTools:
         down = json.loads(asyncio.run(server.trace_dependency("thm::T1")))
         assert up["direction"] == "upstream" and up["direct"]
         assert down["direction"] == "downstream"
-        assert up["sparseness_warning"]
+        # 同上: 断言规则, 不断言「当前一定稀疏」。
+        #
+        # ``trace_dependency`` 的返回里**没有** topology(只有 sparseness_warning,
+        # 而 analyze_graph 会带 topology) —— 这是两个工具的输出不对称, 所以这里直接
+        # 从种子算孤立率, 而不是从返回值里取。要对齐这个不对称见 server.py 的
+        # trace_dependency: 是否该把 topology 一并返回。
+        from aterag.kg import analytics
+
+        _ents, _rels = load_seed_records(str(SEED))
+        _topo = analytics.topology(analytics.graph_from_records([*_ents, *_rels]))
+        ratio = _topo["isolated_nodes"] / _topo["nodes"]
+        assert (up["sparseness_warning"] is not None) == (
+            ratio > server.SPARSE_GRAPH_RATIO), "追溯输出与实测稀疏度不一致"
 
     def test_unknown_metric_is_an_error_not_empty_success(self):
         import asyncio
@@ -377,10 +406,28 @@ class TestKnowledgeGateIntegration:
         rep = knowledge_gate.GateReport()
         ents, rels = load_seed_records(str(SEED))
         knowledge_gate.check_graph_structure([*ents, *rels], rep)
+        # 核心不变量: 稀疏永远不判 ERROR。永远红的门禁会被整体忽略。
         assert rep.count("ERROR") == 0, [f.detail for f in rep.findings if f.severity == "ERROR"]
         checks = {f.check for f in rep.findings}
-        assert "graph_structure" in checks
         assert "graph_thin_covered" in checks
+        # graph_structure 这条**只在稀疏时**出现 —— 判据同样是规则不是数字。
+        # 种子补数据后孤立率已低于阈值, 该 finding 合法消失; 但若哪天又稀疏回去,
+        # 它必须回来, 且只能是 WARN。早先写死 `assert "graph_structure" in checks`
+        # 把「当时的稀疏度」当成了契约。
+        import json as _json
+
+        topo = _json.loads(knowledge_gate.json.dumps(rep.stats))
+        isolated = topo["graph_isolated"]
+        total = topo["graph_nodes"]
+        sparse = isolated / total > 0.5
+        if sparse:
+            assert "graph_structure" in checks, "稀疏度超阈值时必须报 graph_structure"
+        else:
+            assert "graph_structure" not in checks, (
+                "孤立率 %.1f%% 已低于阈值, 不该再报 graph_structure" % (100.0 * isolated / total))
+        for f in rep.findings:
+            if f.check == "graph_structure":
+                assert f.severity != "ERROR", "稀疏判成了 ERROR"
 
     def test_unbuildable_graph_is_error_not_skip(self, monkeypatch):
         """图建不起来是真问题 —— 跳过等于把「查不了」报成「没问题」。"""
