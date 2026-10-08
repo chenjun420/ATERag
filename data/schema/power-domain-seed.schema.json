@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://aterag.local/schemas/power-domain-seed-1.json",
   "title": "电源产品通用知识初始数据",
-  "description": "交付物。供 Semantica 做 foundation graph / Datalog 推理 / SHACL 校验 / 追溯审计, 供 LightRAG 抽实体与关系。不由流水线生成, 直接编辑本文件与 corrections.yaml。",
+  "description": "交付物。**实际消费者**: Semantica Explorer 的 ContextGraph(经 build_context_graph) + provenance 谱系入库(seed_loader) + 追溯审计(l0_term.trace); SHACL 约束另见 domain_rules/*/rules.yaml 的 constraint.shape 段。**本文件不由流水线生成** —— scripts/build_seed_data.py 从方案 md + corrections.yaml 重新生成它, 改这个文件会在下次生成时被覆盖。rules/facts 两段的 Datalog 引擎消费者在生产面上为零(仅 tests/ 与 scripts/verify_joint_reasoning.py)。LightRAG 已按 ADR-014 移除。",
   "type": "object",
   "required": [
     "schema_version",
@@ -159,7 +159,7 @@
     },
     "facts": {
       "type": "array",
-      "description": "Datalog 事实。**必须显式随数据发布**: Semantica 的 load_from_graph 从图里只能产一元事实(type+id), 产不出 load_ratio(full_load, 1.0) 这类二元事实。只发规则不发事实会让规则集变成死的 —— 语法校验全过、add_rule() 不报错, 而 derive_all() 永远为空。",
+      "description": "Datalog 事实。技术说明成立: Semantica 的 load_from_graph 从图里只能产一元事实(type+id), 产不出 load_ratio(full_load, 1.0) 这类二元事实; 只发规则不发事实会让规则集变成死的(语法校验全过、add_rule() 不报错, 而 derive_all() 永远为空)。**但这条约束当前没有生产动机** —— DatalogReasoner 在本仓库零生产调用方, facts 段只被 tests/test_datalog_facts.py 消费。另: 现有 facts 里**没有 value_at_full_load**, 因此 load-scaling 规则推不出结果(已被 test_datalog_facts.py 钉住为空)。",
       "items": {
         "type": "object",
         "required": [

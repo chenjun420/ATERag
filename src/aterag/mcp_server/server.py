@@ -75,8 +75,13 @@ mcp = MCPServer(
     version="0.1.0",
     instructions=(
         "产测规格书 RAG 服务: 型号隔离 + 产品类型域隔离 + 章节级过滤 + "
-        "Datalog 公式计算 + SHACL 约束验证 + 决策溯源。"
+        "规则驱动公式计算 + SHACL 约束验证 + 决策溯源。"
         "model_id 可省略 (从 query 自动识别)。"
+        "公式计算走 InferenceEngine + domain_rules/*/rules.yaml 的声明式 "
+        "derive.expr(安全表达式求值), **不含 Datalog 引擎**; "
+        "SHACL 由 pyshacl 执行(约束在 rules.yaml 的 constraint.shape 段); "
+        "决策溯源落 l0_term.provenance, get_decision_provenance/explain_decision "
+        "可按 decision_id 复查。",
     ),
 )
 
@@ -114,7 +119,7 @@ class FactUnavailable(RuntimeError):
 def _model_facts(
     model_id: str, required: tuple[str, ...] = (), aliases: "QuantityAliasBook | None" = None
 ) -> dict:
-    """从 PG 实体提取型号关键数值供 Datalog 推导。
+    """从 PG 实体提取型号关键数值, 供 InferenceEngine 的公式求值使用。
 
     反幻觉约定:
     - 数值只能来自 ``aterag_entities`` 的结构化字段, 任何分支都不得填默认值
@@ -768,8 +773,9 @@ def _kg_graph():
     """从种子构建分析用图 (方案 §4.4)。
 
     每次重建而不是缓存: ``materialize.py`` 已论证「落盘/缓存 = 第二份副本,
-    忘了同步就出现界面旧知识/推理新知识」, 而本图只有 641 节点 / 65 边, 重建是
-    毫秒级 —— 为省这点时间引入副本不划算。
+    忘了同步就出现界面旧知识/推理新知识」, 而本图只有 594 节点 / 275 边
+    (2026-10-08 实测 594 节点/275 边; 早先注释写的 641/65 是旧种子), 重建是毫秒级 ——
+    为省这点时间引入副本不划算。
 
     种子路径走 :class:`Registry` 解析出的同一套兜底规则, 而不是自己拼
     ``registry_path`` 的父目录 —— 那只在本机成立(``data/``), 换个部署目录就找不到,
@@ -851,6 +857,9 @@ async def trace_dependency(
       upstream   —— 谁引用了我 (某定理由哪条公理推出; **has_theorem 边要反着走**)
 
     方向读反不会报错, 只会得到一个看起来合理的空答案 —— 所以两个方向都显式返回。
+
+    返回里带 ``topology``(与 ``analyze_graph`` 同形状), 这样接收方能自己核对
+    ``sparseness_warning`` 与当前稀疏度是否一致, 而不是只能相信我们给的警告。
     """
     from aterag.kg import analytics
 
@@ -875,6 +884,11 @@ async def trace_dependency(
         )
     return json.dumps(
         {
+            # 与 :func:`analyze_graph` 同形状: 两个工具都给 topology。
+            # 早先只有 analyze_graph 给, 于是拿到 trace 结果的人**无法核对**
+            # sparseness_warning 是不是与当前稀疏度一致 —— 而那正是这个警告存在的
+            # 理由(别把「没进边」读成「不重要」)。给了原始数据, 接收方才可能自行判断。
+            "topology": topo,
             "sparseness_warning": _sparseness_note(topo),
             **res,
         },

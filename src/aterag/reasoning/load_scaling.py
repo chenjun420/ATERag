@@ -43,9 +43,16 @@
 
 **与 SHACL 的分工**
 ------------------
-本模块**不判断**「半载是否等于满载的一半」—— 那是 ``LoadScalingShape`` 的职责
-(``data/seed/power_domain_shapes.ttl``)。本模块只负责算出候选值, 让 shape
-去判。这样两个机制不会各判一次而结论可能相反。
+本模块**不判断**「半载是否等于满载的一半」。判据在
+``domain_rules/power/rules.yaml`` 的 ``constraint.shape`` 段, 由
+:class:`aterag.inference.InferenceEngine` 的 ``validate()`` 走 **pyshacl** 执行。
+本模块只负责算出候选值, 让约束去判 —— 两个机制各判一次而结论可能相反。
+
+**不是** ``data/seed/power_domain_shapes.ttl``: 那个文件里的
+``LoadScalingShape`` 在本仓库**零代码消费者**(只有
+``scripts/build_constraints.py`` 生成它、``tests/test_shacl_constraints.py`` 测它),
+且它的 7/9 个 NodeShape target ``ex:ModelSpec``, 而种子里没有 model_spec 数据,
+所以即便跑起来对真实数据也恒不触发。
 """
 
 from __future__ import annotations

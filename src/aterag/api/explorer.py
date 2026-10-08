@@ -27,7 +27,15 @@ Explorer。若顺序反过来, ``Mount("/")`` 会吞掉一切。
 --------------
 :mod:`aterag.kg.graph` 在**启动时**从种子 JSON + PG 现读现建, 不落盘(理由见
 该模块 docstring 与 :mod:`aterag.kg.materialize`)。代价是每次重启重建
-(实测 1257 节点 / 306 边, 秒级), 收益是不存在第二份副本。
+(种子侧实测 869 条记录 / 594 实体, 秒级), 收益是不存在第二份副本。
+(早先写的「1257 节点 / 306 边」含 PG 型号数据且已过期, 别照抄。)
+
+**与 MCP 分析面不是同一张图**
+------------------------------
+本模块走 ``build_graph(dsn)``, 读**种子 + PG 型号数据**; 而
+:func:`aterag.mcp_server.server._kg_graph` 只读**种子**。所以 Explorer 与 MCP
+``analyze_graph`` / ``trace_dependency`` 报出的节点/边规模本就不同, 对不上时先
+确认查的是哪个面, 别当数据不一致的 bug 去查。
 """
 
 from __future__ import annotations

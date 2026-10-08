@@ -1,5 +1,19 @@
 # ATERag 交付报告 (2026-09-29)
 
+> **时效声明(2026-10-08 补)** —— 本文件是**当时那个时点**的验收记录, 数字与结论
+> 只对 2026-09-29 成立, **不要当现状读**。此后已变、且与本文件冲突的地方:
+>
+> | 本文件写的 | 现状(2026-10-08 实测) |
+> |---|---|
+> | 领域规则库 125 规则 / 78 SHACL; 规则自验 115/115 | **130 规则 = 53 derive + 77 SHACL constraint**; 自验 `130/130`(`scripts/rules_selftest.py` 实测输出 `rules=130 selftest=130/130`)。SHACL 的 77 当时就写对了, **总数(125/115)与 derive 数(37)当时就是错的** |
+> | Qdrant 初始化脚本 `deploy/qdrant/init_tenant.py` ✅ 已执行 | 该目录**已不存在**。Qdrant 按 ADR-014 移除, 检索层由 pgvector 承担 —— `src/aterag/retrieval/hybrid.py`(pgvector + BM25 + RRF) 自称「全系统唯一的检索实现」 |
+> | 端点连通 (PG/Qdrant/LLM/Embedding) | Qdrant 已无 |
+> | MCP 13 工具全部走 LightRAG + Qdrant + Datalog + SHACL, 不查 Semantica | LightRAG/Qdrant 已按 ADR-014 移除; **DatalogReasoner 在生产面零调用**(只在 `tests/` 与 `scripts/verify_joint_reasoning.py`); SHACL 由 **pyshacl** 执行而非 Semantica 的校验器。「不查 Semantica」这半句仍然成立 |
+> | MCP Server 13 工具 | 现状 17~20 个 `@mcp.tool()` |
+> | Semantica 语义图双写 378 节点/460 边 | `scripts/sync_semantica.py` **无 systemd 挂载**, 且 `deploy/native/06-install-aterag.sh:109` 自认「缺 ApacheAgeStore 的加载器」 |
+>
+> 能力现状见 `README.md` 顶部的对照表。
+
 ## 交付物清单
 
 | 交付物 | 位置 | 状态 |

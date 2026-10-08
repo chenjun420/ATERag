@@ -1,36 +1,36 @@
 # ATERag 产测规格书 RAG 服务
 
-规格书驱动的产测智能体 RAG 服务: 型号隔离 + 产品类型域隔离 + 章节级过滤 + Datalog 公式推理 + SHACL 约束验证 + 决策溯源, 经 MCP (streamable-http) 对外服务。
+规格书驱动的产测智能体 RAG 服务: 型号隔离 + 产品类型域隔离 + 章节级过滤 + 规则驱动公式计算 + SHACL 约束验证 + 决策溯源, 经 MCP (streamable-http) 对外服务。
+
+三项能力的**真实实现**（别按名字想当然）：
+
+| 能力 | 实际实现 | 不是 |
+|---|---|---|
+| 公式计算 | `InferenceEngine` + `domain_rules/*/rules.yaml` 的声明式 `derive.expr`(安全表达式求值), 130 条规则自校(`scripts/rules_selftest.py`) | **不含 Datalog 引擎** —— semantica 的 `DatalogReasoner` 在本项目只被 `tests/` 与 `scripts/verify_joint_reasoning.py` 使用 |
+| SHACL 约束验证 | `pyshacl`, 约束内嵌在 `rules.yaml` 的 `constraint.shape` 段(77 条) | 不是 semantica 的校验器 |
+| 决策溯源 | 落 `l0_term.provenance`(`ProvenanceManager` + psycopg), 进程重启后仍可按 decision_id 查 | 不是进程内存里的 trace |
 
 ## 架构
 
 ```
-MCP 客户端 (需求/用例/代码/参数 Agent)
-        │ streamable-http
-        ▼
-┌─────────────────────────────────────────────┐
-│ MCP Server (8 业务工具 + 5 管理工具)          │
-├─────────────────────────────────────────────┤
-│ RagService  两层装配 [model, _domain_T] │
-│   ├─ Qdrant 预过滤向量检索 (章节/类别/优先级)   │
-│   ├─ PG pg_textsearch BM25 (zhparser 中文)     │
-│   ├─ RRF 融合                                 │
-│   └─ LightRAG mix (图导航, 型号 workspace)     │
-├─────────────────────────────────────────────┤
-│ InferenceEngine                              │
-│   └─ domain_rules/power/rules.yaml        │
-│   │    115 规则 (37 公式 derive + 77 SHACL)      │
-│   ├─ 多步推导链 (缺失输入自动派生)              │
-│   └─ 决策溯源 (前提逐条标注 layer)             │
-├─────────────────────────────────────────────┤
-│ 存储: 192.168.5.25                            │
-│   PG17 (vector/AGE/pg_textsearch/zhparser)    │
-│   Qdrant v1.19.1 (workspace is_tenant 索引)   │
-├─────────────────────────────────────────────┤
-│ 模型: 阿里云 MaaS (供应商可换)                 │
-│   LLM qwen3.7-flash (OpenAI 兼容协议)          │
-│   Embedding qwen3.7-text-embedding (1024维)   │
-└─────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────┐
+│ MCP Server (8 业务工具 + 5 管理工具)             │
+│ RagService  两层装配 [model, _domain_T]          │
+│   ├─ pgvector 向量检索 (章节/类别/优先级预过滤)  │
+│   ├─ PG pg_textsearch BM25 (zhparser 中文)       │
+│   ├─ RRF 融合 (k=60)                             │
+│   └─ 知识图谱导航 (型号/域隔离)                  │
+│ InferenceEngine                                  │
+│   └─ domain_rules/power/rules.yaml               │
+│   │    130 规则 (53 公式 derive + 77 SHACL)      │
+│   ├─ 多步推导链 (缺失输入自动派生)               │
+│   └─ 决策溯源 (前提逐条标注 layer)               │
+│ 存储: 192.168.5.25                               │
+│   PG17 (vector/age/pg_textsearch/zhparser)       │
+│ 模型: 阿里云 MaaS (供应商可换)                   │
+│   LLM qwen3.7-flash (OpenAI 兼容协议)            │
+│   Embedding qwen3.7-text-embedding (1024维)      │
+└──────────────────────────────────────────────────┘
 ```
 
 ## 知识隔离 (三级)
@@ -55,8 +55,10 @@ cp .env.example .env   # 填入 API Key (Key 禁止提交 git)
 # 3. 部署存储栈 (192.168.5.25, 见 deploy/native/README)
 # ... 一次性执行 01~05 脚本
 
-# 4. 初始化 Qdrant (维度自动探测, 当前 1024)
-QDRANT_VECTOR_SIZE=1024 python deploy/qdrant/init_tenant.py
+# 4. (原「初始化 Qdrant」一步已删除)
+#    Qdrant 按 ADR-014 整层退场, 向量列在 PG 里(pgvector), 由上面第 3 步的
+#    01~05 脚本一并建好(扩展名是 vector 不是 pgvector, 后者不存在)。
+#    维度探测改看 aterag_chunks 的向量列, 见 `python -m aterag.storage.cli`。
 
 # 5. 导入规格书 (自动识别型号/类型/实体)
 python scripts/ingest_pa601.py
@@ -95,7 +97,7 @@ tail -f /var/log/aterag/mcp.err       # 日志
 ## 一键部署 / 一键验证 (板卡 192.168.5.25)
 
 ```bash
-python scripts/deploy_board.py    # 全链路部署: 预检->Qdrant->双型号->Semantica->LightRAG
+python scripts/deploy_board.py    # 全链路部署: 预检->存储栈->双型号->Semantica
 python scripts/verify_all.py      # 全链路验证: 17 个套件
 ```
 

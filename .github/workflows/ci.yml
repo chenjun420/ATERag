@@ -65,10 +65,10 @@ jobs:
           cache: pip
       - run: python -m pip install --upgrade pip
       # 不再手工维护"最小依赖清单": verify_no_hardcoded 会经 server.py 连锁引入
-      # mcp / lightrag, 手工清单必然随代码演进而失效。直接装项目本身。
+      # mcp 客户端库等重依赖, 手工清单必然随代码演进而失效。直接装项目本身。
       - name: Install project
         run: pip install -e .
-      - name: "Rule self-test (125 rules: derive + SHACL)"
+      - name: "Rule self-test (130 rules: 53 derive + 77 SHACL)"
         env:
           PYTHONIOENCODING: utf-8
         run: python scripts/rules_selftest.py power

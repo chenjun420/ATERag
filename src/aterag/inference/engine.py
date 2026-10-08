@@ -125,7 +125,9 @@ class InferenceEngine:
         var_names = derive.get("inputs", [])
         missing = [v for v in var_names if v not in given]
         if missing:
-            # 多步推导: 缺失输入尝试由其他规则递归派生 (Datalog 链式语义)
+            # 多步推导: 缺失输入尝试由其他规则递归派生 (语义上同 Datalog 的链式
+            # 合一, 但**实现是本模块自己的递归**, 不经过 DatalogReasoner —— 别把
+            # 这行注释读成「这里跑的是 Datalog 引擎」)
             for v in missing:
                 derived = self._derive_input(v, depth=0, chain=set())
                 given[v] = derived
