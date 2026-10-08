@@ -27,6 +27,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -40,7 +41,11 @@ def say(m: str = "") -> None:
     OUT.append(m)
 
 
-DSN = "postgresql://powerspec:<password>@192.168.5.25:5432/power_specs"
+# DSN 从环境读: 硬编码口令曾经把生产 PG 密码写进仓库 —— 凭据属于环境,
+# 不属于源码。本地跑: $env:POSTGRES_DSN='...'; 缺省回落到 .env (get_settings)。
+from aterag.config import get_settings  # noqa: E402
+
+DSN = os.environ.get("POSTGRES_DSN") or get_settings().postgres_dsn
 SHAPES = "data/seed/power_domain_shapes.ttl"
 
 # =====================================================================
