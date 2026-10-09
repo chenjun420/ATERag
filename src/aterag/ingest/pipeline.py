@@ -176,19 +176,13 @@ def ensure_chunk_key_column(conn) -> None:
         """
     )
     conn.execute(
-        "CREATE UNIQUE INDEX IF NOT EXISTS idx_aterag_chunks_key "
-        "ON aterag_chunks (chunk_key)"
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_aterag_chunks_key ON aterag_chunks (chunk_key)"
     )
 
 
-# ---------------- legacy Qdrant 后端已随 ADR-014 移除 ----------------
-# 以前这里有两个"待删的 legacy"函数(惰性构造 Qdrant 客户端 + legacy 集合/索引
-# 初始化)和一条检索原语 `legacy_vector_search`。W3 验收完成, 现按 ADR-014
-# 的决策一并删除: 检索层由 retrieval/hybrid.py 承担(pgvector + BM25 + RRF),
-# 单一 PostgreSQL 存储底座, 不存在第二套向量存储。
-
-
-def _index_chunks(settings: Settings, workspace: str, chunks: list[dict], vectors, *, replace: bool) -> None:
+def _index_chunks(
+    settings: Settings, workspace: str, chunks: list[dict], vectors, *, replace: bool
+) -> None:
     """把 chunk 与向量落库 (pgvector)。"""
     hybrid.save_chunk_vectors(settings.postgres_dsn, chunks, vectors)
 
@@ -286,7 +280,9 @@ async def ingest_spec(
         doc_version = vm.group(1)
 
     domain = await classify_product_type(text, registry, llm)
-    registry.register_product(model_id, domain, doc_number="", doc_version=doc_version)
+    # ``doc_number`` 传 None 而不是 "": 规格书没识别出编号时「没提」与「显式清空」
+    # 必须分开 —— 清空会抹掉注册表里已有的声明。
+    registry.register_product(model_id, domain, doc_number=None, doc_version=doc_version)
 
     blocks = parse_markdown(text)
     entities = extract_from_blocks(
@@ -388,7 +384,6 @@ async def build_domain(
 
     registry.set_domain_populated(domain)
     return {"domain": domain, "rules_chunks": len(rule_docs and blocks), "chunks": len(chunks)}
-
 
 
 # 检索原语已搬到 ``retrieval.hybrid``(BM25 与 RRF 本来就是纯 PG;

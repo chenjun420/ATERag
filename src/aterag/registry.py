@@ -22,6 +22,176 @@ import yaml
 from aterag.config import Settings
 
 
+def _yaml_scalar(value: object) -> str:
+    """标量的 YAML 字面量形态(与 ``safe_dump`` 写标量时的输出一致)。
+
+    走 ``safe_dump([value])`` 而不是 ``safe_dump({value: None})``: 后者产出的是
+    flow 映射(``{key: null}``), 按第一个 ``:`` 切会切在错误的位置, 得到
+    ``null}`` 这种垃圾 —— 而且它只在真被调用时才炸, 属于最难查的那类。
+    单元素列表的 dump 去掉两侧方括号后就是标量本身。
+    """
+    dumped = yaml.safe_dump([value], allow_unicode=True, default_flow_style=True).strip()
+    assert dumped.startswith("[") and dumped.endswith("]"), dumped
+    return dumped[1:-1].strip()
+
+
+def _parse_registry_blocks(lines: list[str]) -> tuple[list, list] | None:
+    """把 YAML 行解析成 ``(文件头, [(段名, [entry 块])])``; 形态不符返回 None。
+
+    entry 块 = ``(条目名, 前导注释行, [(字段名, 值文本, 缩进, 字段前注释)])``。
+    注释按「归属于其后第一个字段」切分 —— 段名/条目名前的注释归条目, 字段前的
+    注释归该字段。
+    """
+
+    def ind(s: str) -> int:
+        return len(s) - len(s.lstrip(" "))
+
+    head: list[str] = []
+    sections: list[tuple[str, list]] = []
+    cur_sec: list | None = None
+    cur_entry: list | None = None
+    pending: list[str] = []
+
+    for line in lines:
+        s = line.strip()
+        if not s or s.startswith("#"):
+            pending.append(line)
+            continue
+        d = ind(line)
+        if d == 0:
+            if not s.endswith(":"):
+                return None
+            cur_sec = [s[:-1], [], pending]
+            pending = []
+            sections.append(cur_sec)
+            cur_entry = None
+            continue
+        if cur_sec is None:
+            return None
+        if d == 2:
+            if not s.endswith(":"):
+                return None
+            cur_entry = [s[:-1], [], pending, []]
+            pending = []
+            cur_sec[1].append(cur_entry)
+            continue
+        if d >= 4:
+            if cur_entry is None or ":" not in s:
+                return None
+            k = s.partition(":")[0].strip()
+            # 存**整行原文**而不只是值: 值没变时要原样写回, 否则
+            # ``main_rail: '-54V'`` 会被重新序列化成 ``main_rail: -54V`` ——
+            # 语义等价, 但每次导入都在 diff 里留一道无意义的改动, 而这个文件
+            # 是每次导入都会重写的。
+            cur_entry[3].append([k, line, d, pending])
+            pending = []
+            continue
+        return None
+    return head, sections
+
+
+def _same_yaml_value(raw_line: str, new_value: object) -> bool:
+    """这一行的**当前值**是否已经等于新值 —— 是则整行原样保留。
+
+    比解析后的值而不是比重新序列化后的文本: ``main_rail: '-54V'`` 与
+    ``main_rail: -54V`` 解析后同值, 但文本不同。这个文件每次导入都会被重写,
+    按文本比就会让每轮部署的 diff 里都留下一道无意义的引号改动 —— 而 diff 一旦
+    被习惯性忽略, 真改动也会跟着被扫掉。
+
+    ``safe_load`` 吃整行得到的是 ``{字段名: 值}``, 所以要取出那个值再比; 取不到
+    (行形态异常) 时按「变了」处理, 宁可多改一次也不漏。
+    """
+    try:
+        parsed = yaml.safe_load(raw_line)
+    except yaml.YAMLError:
+        return False
+    if not isinstance(parsed, dict) or len(parsed) != 1:
+        return False
+    return next(iter(parsed.values())) == new_value
+
+
+def _rewrite_yaml_preserving_comments(path: Path, data: dict) -> tuple[str, bool]:
+    """按新数据重建 YAML, 保留注释/空行/键序。
+
+    做法: **按 entry 分块重建**。每个 entry 在自己的块内补齐缺失字段, 整块一次
+    发出。早期版本把「文件里没有的字段」统一追加到文件末尾 —— 那在两段文件上
+    必然出错: ``kb_status`` 会落到 ``products`` 段下面, 而 YAML 靠缩进表达归属,
+    于是字段跑错了段, ``main_rail`` 之类的声明随之消失。
+
+    返回 ``(文本, 是否处理得了)``; False = 形态超出本函数能力, 调用方退回整体重写。
+    """
+    try:
+        original = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return "", False
+
+    parsed = _parse_registry_blocks(original.split("\n"))
+    if parsed is None:
+        return "", False
+    head, sections = parsed
+
+    for sec_name, entries, _lead in sections:
+        if sec_name not in (data or {}):
+            return "", False  # 文件里的段在数据里没有 -> 形态不符, 别猜
+        for entry in entries:
+            if entry[0] not in data[sec_name]:
+                return "", False
+
+    out: list[str] = list(head)
+    #: 原文件是否以换行结尾。写回时必须保持 —— POSIX 文本文件约定末尾有换行,
+    #: 少了它 `cat`/`git diff`/部分 YAML 工具会提示 "No newline at end of file",
+    #: 而这个文件是**每次导入都会被重写**的, 所以这个瑕疵会反复出现在 diff 里。
+    had_trailing_nl = original.endswith("\n")
+
+    def emit_entry(lead: list[str], entry_name: str) -> None:
+        out.extend(lead)
+        out.append(f"  {entry_name}:")
+
+    written: set[tuple[str, str, str]] = set()
+
+    for sec_name, entries, _lead in sections:
+        out.append(f"{sec_name}:")
+        data_entries = data[sec_name]
+        for entry_name, lead, _fields, field_rows in entries:
+            emit_entry(lead, entry_name)
+            seen: set[str] = set()
+            for k, raw, d, comments in field_rows:
+                if k not in data_entries[entry_name]:
+                    # 文件里有、数据里没有 -> 删。注释一并带走: 注释是写给这个
+                    # 字段的, 字段没了还留着会让人以为声明仍然有效。
+                    continue
+                out.extend(comments)
+                new_value = data_entries[entry_name][k]
+                if _same_yaml_value(raw, new_value):
+                    out.append(raw)  # 值没变 -> 原样保留(引号等写法不动)
+                else:
+                    out.append(" " * d + f"{k}: {_yaml_scalar(new_value)}")
+                seen.add(k)
+                written.add((sec_name, entry_name, k))
+            # **在块内补齐** —— 这是与早期版本的关键差别
+            for k, v in data_entries[entry_name].items():
+                if k not in seen:
+                    out.append(f"    {k}: {_yaml_scalar(v)}")
+                    written.add((sec_name, entry_name, k))
+
+    # 追加文件里完全没有的段与条目
+    for sec_name, data_entries in (data or {}).items():
+        if not any(s == sec_name for s, _e, _l in sections):
+            out.append("")
+            out.append(f"{sec_name}:")
+        known = {e for s, es, _l in sections if s == sec_name for e, _l2, _fl, _f in es}
+        for entry_name, fields in data_entries.items():
+            if entry_name not in known:
+                out.append(f"  {entry_name}:")
+                for k, v in fields.items():
+                    out.append(f"    {k}: {_yaml_scalar(v)}")
+
+    text = "\n".join(out)
+    if had_trailing_nl and not text.endswith("\n"):
+        text += "\n"
+    return text, True
+
+
 @dataclass
 class ProductEntry:
     domain: str
@@ -88,9 +258,7 @@ class Registry:
         if configured.exists():
             return configured
         if configured.is_absolute():
-            raise FileNotFoundError(
-                f"registry_path 不存在: {configured} (settings.registry_path)"
-            )
+            raise FileNotFoundError(f"registry_path 不存在: {configured} (settings.registry_path)")
         fallback = Path("data") / configured.name
         if fallback.exists():
             return fallback
@@ -122,6 +290,20 @@ class Registry:
         return reg
 
     def save(self) -> None:
+        """落盘。**只改值, 不动注释与键序。**
+
+        曾经直接 ``yaml.safe_dump`` 整个 dict 覆盖文件, 后果是每次保存都把
+        注册表里的**全部注释**抹掉 —— 而那些注释不是装饰: ``main_rail`` 上面
+        写着「为什么不自动推断」、``schema`` 上面写着「为什么必须声明而不是现算」。
+        抹掉之后文件仍然语法正确、字段齐全, 读代码的人却再也看不到依据, 只剩下
+        一行看起来可以随便改的配置。
+
+        所以这里做**行级原地更新**: 只重写那些值确实变了的行, 其余字节原样保留。
+        注释、空行、键序、字段顺序全部不动。
+
+        值多行的情况(本文件实际都是单行标量)退回整体重写 —— 那时注释已经保不住,
+        但字段不会丢, 属可接受降级。
+        """
         if not self._path:
             return
         data = {
@@ -141,9 +323,19 @@ class Registry:
                 for model_id, p in self.products.items()
             },
         }
-        self._path.write_text(
-            yaml.safe_dump(data, allow_unicode=True, sort_keys=False), encoding="utf-8"
-        )
+        if not self._path.exists():
+            self._path.write_text(
+                yaml.safe_dump(data, allow_unicode=True, sort_keys=False), encoding="utf-8"
+            )
+            return
+        preserved, complete = _rewrite_yaml_preserving_comments(self._path, data)
+        if not complete:
+            # 有多行结构, 行级改写会算错缩进 —— 退回整体重写(丢注释, 不丢字段)
+            self._path.write_text(
+                yaml.safe_dump(data, allow_unicode=True, sort_keys=False), encoding="utf-8"
+            )
+        else:
+            self._path.write_text(preserved, encoding="utf-8")
 
     # ---------- schema ----------
     def schema_name(self, model_id: str) -> str:
@@ -201,16 +393,48 @@ class Registry:
         model_id: str,
         domain: str,
         *,
-        doc_number: str = "",
-        doc_version: str = "",
-        main_rail: str = "",
+        doc_number: str | None = None,
+        doc_version: str | None = None,
+        main_rail: str | None = None,
+        schema: str | None = None,
+        doc_profile: str | None = None,
     ) -> None:
+        """登记/更新一个型号, 然后落盘。
+
+        **重入不得摧毁已声明的字段。** 整体替换 :class:`ProductEntry` 时, 调用方
+        不传 ``main_rail``/``schema``/``doc_profile`` 就会把它们清成 ``""`` ——
+        而 ``ingest_spec`` 只传 ``doc_number``/``doc_version``, 所以**每跑一次
+        导入, 注册表里的主轨与 schema 声明就被抹一次**, 且文件看起来完好无损。
+
+        这个抹除是静默且不可逆的: 主轨一没, 所有未标注轨的参数行都不再归轨
+        (``entity_extract.resolve_main_rail`` 直接返回空); schema 一没,
+        :meth:`schema_name` 转为抛错, 数据落在别处。
+
+        所以这五个可选参数一律用 ``None`` 表示「调用方没提」, 与「显式给了值」
+        分开:
+
+        * 传 ``None``  -> 保留原值(已存在) / 空(新条目)
+        * 传 ``""``    -> **显式清空**(想撤掉一个声明就是这么写的)
+        * 传非空值     -> 覆盖
+
+        早先用 ``""`` 当默认值, 于是「清空」与「没提」无法区分, 保留逻辑只能写成
+        ``x or old`` —— 那会把显式清空也一起吃掉, 想撤声明就没路了。
+        """
         self.ensure_domain(domain)
+        old = self.products.get(model_id)
+
+        def pick(new: str | None, fallback: str) -> str:
+            if new is not None:
+                return new
+            return fallback
+
         self.products[model_id] = ProductEntry(
             domain=domain,
-            doc_number=doc_number,
-            doc_version=doc_version,
-            main_rail=main_rail,
+            doc_number=pick(doc_number, old.doc_number if old else ""),
+            doc_version=pick(doc_version, old.doc_version if old else ""),
+            main_rail=pick(main_rail, old.main_rail if old else ""),
+            schema=pick(schema, old.schema if old else ""),
+            doc_profile=pick(doc_profile, old.doc_profile if old else ""),
         )
         self.save()
 
