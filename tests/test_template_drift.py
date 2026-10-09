@@ -25,8 +25,10 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 from template_drift import (  # noqa: E402
+    SECTION_TOLERANCE,
     TOLERANCE,
     check,
+    diff_by_section,
     diff_metrics,
     load_baseline,
     render,
@@ -219,17 +221,18 @@ class TestTemplateIdentity:
 
         挂了就会让「改了 minimal」看起来像「改了真实模板」, 基线跟着一起红。
         """
-        assert prof_book.profiles["minimal"].template_id != prof_book.profiles[
-            "power_spec_cn"
-        ].template_id
+        assert (
+            prof_book.profiles["minimal"].template_id
+            != prof_book.profiles["power_spec_cn"].template_id
+        )
 
     def test_same_family_different_priors_give_different_fingerprints(
         self, prof_book, kinds, fields
     ):
         """同族但档案不同 -> 指纹必须不同 (章节先验确实不同)。"""
-        assert fp(
-            prof_book.profiles["power_spec_cn"], prof_book, kinds, fields
-        ) != fp(prof_book.profiles["power_spec_cn_pn2000"], prof_book, kinds, fields)
+        assert fp(prof_book.profiles["power_spec_cn"], prof_book, kinds, fields) != fp(
+            prof_book.profiles["power_spec_cn_pn2000"], prof_book, kinds, fields
+        )
 
     def test_missing_template_id_raises_not_falls_back(self, prof_book):
         """缺 template_id 必须报错, 不能回落到档案名。
@@ -237,9 +240,7 @@ class TestTemplateIdentity:
         回落会让「模板身份」退化成「档案名」, 而一个模板族可以有多个档案 ——
         分组维度错了, 后面所有按 (template_id, model_id) 存的基线都会串。
         """
-        stripped = DocProfile(
-            name="no_template", section_keywords=("x",), template_id=""
-        )
+        stripped = DocProfile(name="no_template", section_keywords=("x",), template_id="")
         with pytest.raises(ValueError) as ei:
             template_identity(stripped)
         assert "template_id" in str(ei.value)
@@ -281,7 +282,12 @@ class TestBaselineFile:
         assert doc["entries"], "基线应至少覆盖一个在册且已入库的型号"
 
     def test_baseline_entries_have_the_fields_the_gate_compares(self):
-        """基线条目必须存全被比较的字段 —— 缺字段会让比较静默通过。"""
+        """基线条目必须存全被比较的字段 —— 缺字段会让比较静默通过。
+
+        ``needs_review_by_section`` 也在内: 它是被**独立**比较的字段
+        (见 :func:`diff_by_section`), 缺了它不会让比较通过, 而是把当前每一章
+        都报成「新增待审」—— 一样是假红, 一样会让人养成忽略门禁输出的习惯。
+        """
         doc = load_baseline(Path(BASELINE))
         for mid, e in doc["entries"].items():
             assert e["fingerprint"], f"{mid} 基线缺 fingerprint"
@@ -289,6 +295,57 @@ class TestBaselineFile:
             for k in TOLERANCE:
                 assert k in e["metrics"], f"{mid} 基线缺指标 {k}"
             assert e["governed_sections"] is not None, f"{mid} 基线缺 governed_sections"
+            assert e.get("needs_review_by_section") is not None, (
+                f"{mid} 基线缺 needs_review_by_section —— 章节级判定会全章报成新增"
+            )
+
+    def test_baseline_layers_add_up_to_the_queue(self):
+        """基线里两层的待审数必须能对上「待审总数」的语义。
+
+        这条不是形式检查: 分层是为了让两个方向相反的量各有各的容差, 而一旦分层
+        与总数脱节(某层漏存/多存), 门禁就在拿两个互不相关的数字做判断。分层
+        判据正确性的前提是它们仍覆盖同一个集合。
+        """
+        doc = load_baseline(Path(BASELINE))
+        for mid, e in doc["entries"].items():
+            dist = e.get("needs_review_by_section") or {}
+            for layer, counts in dist.items():
+                key = f"needs_review_{layer}"
+                assert key in TOLERANCE, f"{mid} 分布层 {layer} 没有对应的指标 {key}"
+                assert sum(counts.values()) == e["metrics"][key], (
+                    f"{mid} {key} 指标={e['metrics'][key]} 但分布合计={sum(counts.values())}"
+                )
+
+    def test_section_tolerance_catches_what_the_count_tolerance_hides(self):
+        """章节容差与总数容差是**互补**关系, 不是谁比谁严。
+
+        章节容差的存在只为抓一种情况: **总数在容差内, 但变化集中在一章**。
+        所以判据是「存在一组数, 总数差 <= 该指标容差 而某章差 > SECTION_TOLERANCE」。
+
+        写成「章节容差必须严于总数容差」是错的 —— 抽取层总数基线只有 2 条
+        (``needs_manual_digitization``, 全在 4.3.1), 总数容差 2 已经贴着地板,
+        章节容差 3 比它宽是合理的: 那一章本来就这么短, 涨 3 条才值得问。
+        强求 3 < 2 只会逼着人把容差调到没有物理意义的数上去迎合断言。
+        """
+        from template_drift import diff_by_section
+
+        # 落在容差内的构造: 4.3.1 减少 4、4.3.2 增加 4 -> 总数差 0(远在 assess
+        # 容差 8 之内), 但 4.3.2 单章 +4 已超章节容差 3。这种「一增一减相抵」
+        # 正是总数口径看不见的变化。
+        base = {"extract": {}, "assess": {"4.3.1": 5, "4.3.2": 3, "4.3.3": 2}}
+        now = {"extract": {}, "assess": {"4.3.1": 1, "4.3.2": 7, "4.3.3": 2}}
+        total_delta = sum(now["assess"].values()) - sum(base["assess"].values())
+        assert total_delta <= TOLERANCE["needs_review_assess"], (
+            f"样本没落在总数容差内: 总数差 {total_delta} > {TOLERANCE['needs_review_assess']}"
+        )
+        out = diff_by_section(now, base, tolerance=SECTION_TOLERANCE)
+        assert any("4.3.2" in d for d in out), (
+            f"4.3.2 单独 +4 超章节容差 {SECTION_TOLERANCE}, 必须被报出来; 实得 {out}"
+        )
+
+    def test_section_tolerance_is_positive(self):
+        """容差 0 会让任何一条待审项的新增/消失都变红 —— 包括纯噪声。"""
+        assert SECTION_TOLERANCE >= 1
 
     def test_baseline_documents_that_missing_is_not_clean(self):
         """基线文件本身要写明「缺条目 ≠ 无漂移」。"""
@@ -334,15 +391,82 @@ class TestDiffMetrics:
         静默掉它, 「变了 3 条待审」和「没变」在输出上一模一样, 而人无法区分这两
         种情况。真正的代价不是红, 是学会了忽略输出。
         """
-        over, within = diff_metrics({"needs_review": 39}, {"needs_review": 42})
+        over, within = diff_metrics({"needs_review_extract": 1}, {"needs_review_extract": 2})
         assert over == []
-        assert len(within) == 1 and "needs_review" in within[0]
+        assert len(within) == 1 and "needs_review_extract" in within[0]
 
     def test_arrow_shows_direction(self):
-        over, _ = diff_metrics({"needs_review": 50}, {"needs_review": 42})
+        # 变化量要**明确超过**容差, 否则会落进 within 段 —— 容差 8 时 +8 刚好
+        # 不算超。这条第一次写成 50->42(+8) 就撞了这个坑: 断言 over[0] 却拿到
+        # 空列表, IndexError 掩盖了「测试数据选得不对」这个真实原因。
+        over, _ = diff_metrics({"needs_review_assess": 60}, {"needs_review_assess": 42})
         assert "增加" in over[0]
-        over2, _ = diff_metrics({"needs_review": 1}, {"needs_review": 42})
+        over2, _ = diff_metrics({"needs_review_assess": 1}, {"needs_review_assess": 42})
         assert "减少" in over2[0]
+
+    def test_the_two_layers_have_separate_tolerances(self):
+        """抽取层涨 = 退化, 评估层涨 = 工作量。两者不能共用一个容差。
+
+        这条钉的是 :data:`TOLERANCE` 里两个键**都在**且**值不同**。合成一个键
+        会让评估层的正当增长(签字通道入队)吃掉抽取层的退化余量, 反之亦然 ——
+        两种情况都会报「无漂移」。
+        """
+        assert "needs_review_extract" in TOLERANCE
+        assert "needs_review_assess" in TOLERANCE
+        assert TOLERANCE["needs_review_extract"] != TOLERANCE["needs_review_assess"]
+        # 旧的混计键必须消失: 它还在就说明有人加了新项却没想清楚归哪一层,
+        # 而门禁会照旧拿一个容差同时判两个方向相反的量。
+        assert "needs_review" not in TOLERANCE
+
+
+class TestDiffBySection:
+    """章节级判定: 与总数**独立**, 不是总数超了才看章节。"""
+
+    def _dist(self, extract=None, assess=None):
+        return {"extract": dict(extract or {}), "assess": dict(assess or {})}
+
+    def test_concentrated_change_reported_even_when_total_is_small(self):
+        """总数 +4 在容差内, 但全落在一章 -> 必须报。
+
+        这条是本机制存在的全部理由: 分散的 +4 无害, 集中的 +4 要查那一章的规则。
+        两者在总数上无法区分, 所以不能只看总数。
+        """
+        base = self._dist(assess={"4.3.1": 1, "4.3.2": 1})
+        now = self._dist(assess={"4.3.1": 1, "4.3.2": 5})  # 总数 +4, 单章 +4
+        assert abs(sum(now["assess"].values()) - sum(base["assess"].values())) <= 5
+        out = diff_by_section(now, base, tolerance=3)
+        assert len(out) == 1 and "4.3.2" in out[0]
+
+    def test_spread_change_stays_quiet(self):
+        """同样的 +4 摊在四章, 每章 +1 -> 不报。"""
+        base = self._dist(assess={"4.3.%d" % i: 1 for i in range(1, 5)})
+        now = self._dist(assess={"4.3.%d" % i: 2 for i in range(1, 5)})
+        assert diff_by_section(now, base, tolerance=3) == []
+
+    def test_layers_are_judged_separately(self):
+        """同章节号在两层里各判各的 —— 合并会把 extract 与 assess 的变化搅在一起。"""
+        base = self._dist(extract={"4.3.1": 10}, assess={"4.3.1": 1})
+        now = self._dist(extract={"4.3.1": 10}, assess={"4.3.1": 9})
+        out = diff_by_section(now, base, tolerance=3)
+        assert len(out) == 1 and out[0].startswith("assess/4.3.1")
+
+    def test_new_section_is_reported(self):
+        """基线里没有的章节 = 新增待审, 不能因为不在交集里就当没变。"""
+        out = diff_by_section(
+            self._dist(assess={"4.3.9": 4}), self._dist(assess={"4.3.1": 1}), tolerance=3
+        )
+        assert len(out) == 1 and "4.3.9" in out[0]
+
+    def test_disappeared_section_is_reported(self):
+        """待审项消失也要报 —— 可能是抽取器不再识别了, 那比多出来更危险。"""
+        out = diff_by_section(
+            self._dist(assess={"4.3.1": 1}), self._dist(assess={"4.3.1": 9}), tolerance=3
+        )
+        assert len(out) == 1 and "减少" in out[0]
+
+    def test_identical_distribution_is_silent(self):
+        d = self._dist(extract={"4.3.1": 2}, assess={"4.3.2": 20})
+        assert diff_by_section(d, d, tolerance=3) == []
 
 
 @pytest.fixture(scope="module")
@@ -354,11 +478,21 @@ def measured():
 
 
 def _baseline_from(measured: dict, **overrides) -> dict:
-    """用当前状态造一条基线, 只改指定字段 —— 免得每条用例重抄一遍键。"""
+    """用当前状态造一条基线, 只改指定字段 —— 免得每条用例重抄一遍键。
+
+    **必须带上** ``needs_review_by_section``: 章节分布是与总数**独立**判定的
+    (见 template_drift.diff_by_section), 少了它 check() 会把当前每一章都当成
+    「新增待审」, 于是「基线与当前完全一致」也会判成 drift —— 那条用例会假装
+    门禁坏了, 而真实原因是 fixture 少造了一个字段。
+    """
     entry = {
         "fingerprint": measured["fingerprint"],
         "template_version": measured["template_version"],
         "metrics": dict(measured["metrics"]),
+        "needs_review_by_section": {
+            layer: dict(dist)
+            for layer, dist in (measured.get("needs_review_by_section") or {}).items()
+        },
         "governed_sections": list(measured["governed_sections"]),
     }
     entry.update(overrides)
@@ -395,7 +529,10 @@ class TestCheck:
             "PA601-D54A",
             _baseline_from(
                 measured,
-                metrics={**measured["metrics"], "conditions_total": measured["metrics"]["conditions_total"] + 25},
+                metrics={
+                    **measured["metrics"],
+                    "conditions_total": measured["metrics"]["conditions_total"] + 25,
+                },
             ),
         )
         assert res["status"] == "drift"
