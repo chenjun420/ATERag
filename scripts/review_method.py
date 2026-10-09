@@ -83,7 +83,9 @@ def cmd_list(signoff_path: Path) -> int:
 
     dist = Counter(states.values())
     print(f"=== 方法签字清单 ({DEFAULT_METHODS_PATH}) ===")
-    print(f"  共 {len(raw)} 条: signed={dist['signed']} unsigned={dist['unsigned']} stale={dist['stale']}")
+    print(
+        f"  共 {len(raw)} 条: signed={dist['signed']} unsigned={dist['unsigned']} stale={dist['stale']}"
+    )
     for m in raw:
         mid = str(m.get("id", ""))
         st = states[mid]
@@ -111,13 +113,17 @@ def cmd_show(method_id: str, signoff_path: Path) -> int:
     print(f"=== 方法评审: {method_id} ===")
     print(f"1) 状态: {st}")
     if st == "stale":
-        s = (load_signoffs(signoff_path).get(method_id) or {})
-        print(f"   原签字: {s.get('approved_by')} @ {s.get('approved_at')} "
-              f"(指纹 {s.get('fingerprint')} -> 现 {method_fingerprint(entry)})")
+        s = load_signoffs(signoff_path).get(method_id) or {}
+        print(
+            f"   原签字: {s.get('approved_by')} @ {s.get('approved_at')} "
+            f"(指纹 {s.get('fingerprint')} -> 现 {method_fingerprint(entry)})"
+        )
     print(f"2) 指纹: {method_fingerprint(entry)}")
     print(f"3) 依据: {entry.get('basis', '')}")
-    print(f"4) verdict={entry.get('verdict')} supplies={entry.get('supplies')} "
-          f"applies={entry.get('applies', 'on_missing_side')}")
+    print(
+        f"4) verdict={entry.get('verdict')} supplies={entry.get('supplies')} "
+        f"applies={entry.get('applies', 'on_missing_side')}"
+    )
     ap = entry.get("applies_to") or {}
     print(f"5) 适用: {ap}")
     print("6) 待补条件:")
@@ -204,8 +210,12 @@ def cmd_check(signoff_path: Path) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="方法库签字工具")
-    ap.add_argument("--signoffs", type=Path, default=DEFAULT_SIGNOFFS_PATH,
-                    help=f"签字书路径 (默认 {DEFAULT_SIGNOFFS_PATH})")
+    ap.add_argument(
+        "--signoffs",
+        type=Path,
+        default=DEFAULT_SIGNOFFS_PATH,
+        help=f"签字书路径 (默认 {DEFAULT_SIGNOFFS_PATH})",
+    )
     ap.add_argument("--list", action="store_true", help="列出全部方法与签字状态")
     ap.add_argument("--show", metavar="METHOD_ID", help="显示一个方法的完整内容")
     ap.add_argument("--approve", metavar="METHOD_ID", help="签字通过")

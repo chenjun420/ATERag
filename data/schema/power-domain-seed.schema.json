@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://aterag.local/schemas/power-domain-seed-1.json",
   "title": "电源产品通用知识初始数据",
-  "description": "交付物。**实际消费者**: Semantica Explorer 的 ContextGraph(经 build_context_graph) + provenance 谱系入库(seed_loader) + 追溯审计(l0_term.trace); SHACL 约束另见 domain_rules/*/rules.yaml 的 constraint.shape 段。**本文件不由流水线生成** —— scripts/build_seed_data.py 从方案 md + corrections.yaml 重新生成它, 改这个文件会在下次生成时被覆盖。rules/facts 两段的 Datalog 引擎消费者在生产面上为零(仅 tests/ 与 scripts/verify_joint_reasoning.py)。LightRAG 已按 ADR-014 移除。",
+  "description": "交付物。**实际消费者**: Semantica Explorer 的 ContextGraph(经 build_context_graph) + provenance 谱系入库(seed_loader) + 追溯审计(l0_term.trace); SHACL 约束另见 domain_rules/*/rules.yaml 的 constraint.shape 段。**本文件不由流水线生成** —— scripts/build_seed_data.py 从方案 md + corrections.yaml 重新生成它, 改这个文件会在下次生成时被覆盖。rules/facts 两段的 Datalog 引擎消费者在生产面上为零(仅 tests/ 与 scripts/verify_joint_reasoning.py)。",
   "type": "object",
   "required": [
     "schema_version",
@@ -288,7 +288,7 @@
         "text": {
           "type": "string",
           "minLength": 1,
-          "description": "自然语言陈述。LightRAG 靠它抽实体/关系 —— 必须是完整陈述而不是符号串, 否则抽出来一堆碎片。"
+          "description": "自然语言陈述。下游靠它抽实体/关系 —— 必须是完整陈述而不是符号串, 否则抽出来一堆碎片。"
         },
         "confidence": {
           "type": [

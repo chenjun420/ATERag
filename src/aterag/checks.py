@@ -5,8 +5,7 @@
 **检索后端只有 pgvector 一种**
 --------------------------------
 检索层由 ``retrieval/hybrid.py`` 承担(pgvector + BM25 + RRF), 单一
-PostgreSQL 存储底座(ADR-002/ADR-014: legacy Qdrant 已随 W3 验收移除,
-连同它的部署脚本与集合初始化)。这里只查 pgvector 的真实可用性:
+PostgreSQL 存储底座。这里只查 pgvector 的真实可用性:
 
 ``_check_pgvector`` 查的是 chunk 表在不在、向量列在不在、有多少行带向量,
 而不只是「``vector`` 扩展装着」—— 表没建或列缺失时检索会**静默返回空
@@ -134,16 +133,12 @@ def _check_pgvector(settings: Settings) -> CheckResult:
                 )
             missing = {"embedding", "workspace_id", "content"} - cols
             if missing:
-                return CheckResult(
-                    "pgvector", False, f"aterag_chunks 缺列 {sorted(missing)}"
-                )
+                return CheckResult("pgvector", False, f"aterag_chunks 缺列 {sorted(missing)}")
             n_vec = conn.execute(
                 "SELECT count(*) FROM public.aterag_chunks WHERE embedding IS NOT NULL"
             ).fetchone()[0]
             n_all = conn.execute("SELECT count(*) FROM public.aterag_chunks").fetchone()[0]
-            n_ent = conn.execute(
-                "SELECT count(*) FROM public.aterag_entities"
-            ).fetchone()[0]
+            n_ent = conn.execute("SELECT count(*) FROM public.aterag_entities").fetchone()[0]
             idx = [
                 r[0]
                 for r in conn.execute(
@@ -154,8 +149,7 @@ def _check_pgvector(settings: Settings) -> CheckResult:
             return CheckResult(
                 "pgvector",
                 True,
-                f"chunks={n_all} (带向量 {n_vec}); entities={n_ent}; "
-                f"indexes={sorted(idx) or '无'}",
+                f"chunks={n_all} (带向量 {n_vec}); entities={n_ent}; indexes={sorted(idx) or '无'}",
             )
     except Exception as e:  # noqa: BLE001
         return CheckResult("pgvector", False, f"connect failed: {e}")

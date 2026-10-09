@@ -1,4 +1,4 @@
-"""检索链验证 (pgvector + BM25 + RRF, 不依赖 LightRAG, 不依赖 Qdrant)."""
+"""检索链验证 (pgvector + BM25 + RRF)."""
 
 import asyncio
 import sys

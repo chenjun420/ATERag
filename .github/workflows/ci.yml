@@ -80,7 +80,6 @@ jobs:
         env:
           PYTHONIOENCODING: utf-8
           POSTGRES_DSN: postgresql://x:x@127.0.0.1/x
-          QDRANT_URL: http://127.0.0.1:6333
           LLM_BASE: http://x/v1
           LLM_MODEL: x
           EMBED_BASE: http://x

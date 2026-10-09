@@ -1,4 +1,8 @@
-"""LightRAG mix 图检索验收 (PA601 摄取完成后)."""
+"""图检索维度验收 (PA601 摄取完成后).
+
+走 ``RagService.search(use_graph=True)``: 向量/BM25 两路之外, 额外看图谱维度
+能不能命中 (``graph_results``)。
+"""
 
 import asyncio
 import sys

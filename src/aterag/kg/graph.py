@@ -109,7 +109,12 @@ def build_graph(
         [*ents, *rels], [], advanced_analytics=advanced_analytics
     )
     logger.info("ContextGraph: %d 节点 / %d 边", n_nodes, n_edges)
-    return graph, {"nodes": n_nodes, "edges": n_edges, "entities": len(ents), "relations": len(rels)}
+    return graph, {
+        "nodes": n_nodes,
+        "edges": n_edges,
+        "entities": len(ents),
+        "relations": len(rels),
+    }
 
 
 def build_session(

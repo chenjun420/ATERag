@@ -90,8 +90,7 @@ def iter_model_records(
     不需要中间格式 —— 也是「同一份 JSON 能喂三个消费者」这个设计的延续。
 
     关系: 每个型号一个 Product 节点, 其余实体用 ``has`` 边挂下, 与
-    :func:`aterag.kg.entities.entities_to_custom_kg` 同构(那边是 LightRAG
-    移除时搬过来的, 同一套本体形状)。
+    :func:`aterag.kg.entities.entities_to_custom_kg` 同构(同一套本体形状)。
     """
     import psycopg
 
@@ -111,9 +110,7 @@ def iter_model_records(
     # 不保证 Product 行先到。
     by_model: dict[str, list[tuple[str, str, dict]]] = {}
     for model_id, etype, eid, props in rows:
-        by_model.setdefault(str(model_id), []).append(
-            (str(etype), str(eid), dict(props or {}))
-        )
+        by_model.setdefault(str(model_id), []).append((str(etype), str(eid), dict(props or {})))
 
     for model_id, items in by_model.items():
         product_id = _node_id(model_id, "Product", model_id)
@@ -161,8 +158,19 @@ def iter_model_records(
                     **{
                         k: v
                         for k, v in props.items()
-                        if k in ("min", "max", "typ", "unit", "rail", "priority",
-                                 "category", "direction", "trip_min", "trip_max")
+                        if k
+                        in (
+                            "min",
+                            "max",
+                            "typ",
+                            "unit",
+                            "rail",
+                            "priority",
+                            "category",
+                            "direction",
+                            "trip_min",
+                            "trip_max",
+                        )
                     },
                 },
             }

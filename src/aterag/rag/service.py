@@ -3,17 +3,9 @@
 检索路径: pgvector 预过滤向量检索 + PG BM25 -> RRF 融合, 一次查询跨
 workspace 两层 [model, _domain_{type}]。未注册型号 fail-closed。
 
-**为什么是自研的两路而不是单一向量检索**
-----------------------------------------
-中文规格书的精确标识符(``SR-1203`` / ``-54V`` / ``11.1A``)靠向量命不中,
-必须留一路 BM25 兜底; 而要跨两个 workspace 做联合检索与元数据硬过滤, 又
-不能用只服务单 workspace 的现成引擎(实测 LightRAG 1.5.7 的 mix 模式是
-entities VDB + relationships VDB + chunks VDB 三次**向量**检索做 round-robin
-合并, 不含 BM25, 且一个进程只服务一个 workspace)。故 chunk 层的 pgvector +
-BM25 + RRF 自己留着 —— 细节见 ``retrieval/hybrid.py`` 的模块 docstring。
-
-图谱导航曾由 LightRAG mix 承担, 现已随该依赖一并移除; 需要实体关系维度时
-由 ``aterag.kg.entities`` 的抽取结果进 Semantica 图谱承担。
+**为什么是自研的两路而不是单一向量检索**: 中文规格书的精确标识符
+(``SR-1203`` / ``-54V`` / ``11.1A``)靠向量命不中, 必须留一路 BM25 兜底。
+细节见 ``retrieval/hybrid.py`` 的模块 docstring。
 """
 
 from __future__ import annotations

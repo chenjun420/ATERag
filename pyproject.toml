@@ -9,8 +9,8 @@ dependencies = [
     #   semantica.kg.KnowledgeGraph          —— 规则图的 entities/relationships 容器
     #   semantica.graph_store.ApacheAgeStore  —— over AGE 的 Cypher 执行器
     # 代价是 22 个硬依赖(numpy/pandas/scipy/scikit-learn/pillow/grpcio/pyarrow/
-    # rdflib/networkx/protobuf/...)。图是真的: power_rules 有 384 顶点/468 边,
-    # 分产品 chunk-entity 图 138/833/9/30 顶点, 运行时由 checks.py 查询, 所以
+    # rdflib/networkx/protobuf/...)。图是真的: power_rules 有 426 顶点/520 边,
+    # 运行时由 checks.py 查询, 所以
     # 这个依赖是承重的, 不按「22 个包换 2 个符号」的账本直接删—— KnowledgeGraph
     # 是薄数据结构, ApacheAgeStore 是薄 Cypher 包装, 两者都可以用 psycopg2 直连
     # AGE 重写, 但那是对知识层动的手术, 该单独立项而不是顺手删依赖。
@@ -36,7 +36,6 @@ dependencies = [
     # 审计时按「无 import」判为未使用是错的, 记录在此以免下次再犯。
     "asyncpg>=0.30",
     "pgvector>=0.5.0",
-    # qdrant-client 已随 ADR-014 移除(检索层由 pgvector 承担, A-W3 验收完成)。
     # 模型适配 (OpenAI 兼容 / DashScope 原生)
     "httpx>=0.28",
     # 配置

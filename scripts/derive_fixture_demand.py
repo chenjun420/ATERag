@@ -34,8 +34,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 sys.stdout.reconfigure(encoding="utf-8")
 
 #: 通道绑定依赖的点位表。**这五张表任一为空, 通道绑定就无法进行**。
-POINT_TABLES = ("yx_point", "yc_point", "yk_command", "yt_parameter",
-                "protection_setting")
+POINT_TABLES = ("yx_point", "yc_point", "yk_command", "yt_parameter", "protection_setting")
 
 #: 工装侧要落行需要的表, 以及它们缺数据时的后果。
 FIXTURE_TABLES = {
@@ -67,9 +66,7 @@ def _load(dsn: str, schema: str) -> tuple[list[dict[str, Any]], dict[str, int]]:
         counts: dict[str, int] = {}
         for t in (*POINT_TABLES, *FIXTURE_TABLES):
             # dict_row 下 fetchone() 返回 dict, 必须按列名取 —— 按序号会 KeyError。
-            cur.execute(
-                "SELECT to_regclass(%s) AS reg", (f"{schema}.{t}",)
-            )
+            cur.execute("SELECT to_regclass(%s) AS reg", (f"{schema}.{t}",))
             row = cur.fetchone()
             if not row or row["reg"] is None:
                 counts[t] = -1  # 表不存在
@@ -103,9 +100,7 @@ def _blockers(counts: dict[str, int]) -> list[str]:
             "无法做选型(CSP)。台账补齐前不要报具体型号。"
         )
     if counts.get("test_station", 0) <= 0:
-        out.append(
-            "测试工位未登记: 工艺步骤、并行批数、节拍(oee_target)、MES 接口均待定。"
-        )
+        out.append("测试工位未登记: 工艺步骤、并行批数、节拍(oee_target)、MES 接口均待定。")
     return out
 
 
@@ -114,17 +109,20 @@ def main() -> int:
     ap.add_argument("-m", "--model", required=True, help="型号, 如 PA601-D54A")
     ap.add_argument("--json", action="store_true", help="输出 JSON")
     ap.add_argument(
-        "--priority", default="",
+        "--priority",
+        default="",
         help="等级正向过滤, 逗号分隔多值; 命中任一才保留, 如 '强制'",
     )
     ap.add_argument(
-        "--exclude-priority", default="",
+        "--exclude-priority",
+        default="",
         help="等级负向过滤, 逗号分隔多值; 命中任一即筛出, 如 '不要求,无要求'",
     )
     ap.add_argument(
-        "--exclude-words", default="",
+        "--exclude-words",
+        default="",
         help="内容负向过滤: source_ref.notes 子串命中即筛出(默认关)。"
-             "注意分档型备注也会命中, 被筛行逐条留痕供复核",
+        "注意分档型备注也会命中, 被筛行逐条留痕供复核",
     )
     args = ap.parse_args()
 
@@ -140,8 +138,7 @@ def main() -> int:
 
     reg = Registry.load(get_settings())
     if args.model not in reg.products:
-        print(f"型号未注册: {args.model}(在册: {sorted(reg.products)})",
-              file=sys.stderr)
+        print(f"型号未注册: {args.model}(在册: {sorted(reg.products)})", file=sys.stderr)
         return 2
     dsn = os.environ.get("POSTGRES_DSN") or get_settings().postgres_dsn
     if not dsn:
@@ -151,8 +148,10 @@ def main() -> int:
 
     rows, counts = _load(dsn, schema)
     if not rows:
-        print(f"{schema}.test_requirement 为空 —— 先跑 "
-              "scripts/persist_test_requirements.py", file=sys.stderr)
+        print(
+            f"{schema}.test_requirement 为空 —— 先跑 scripts/persist_test_requirements.py",
+            file=sys.stderr,
+        )
         return 2
 
     kept, excluded = filter_requirement_rows(
@@ -174,8 +173,12 @@ def main() -> int:
         "schema": schema,
         "requirements": len(rows),
         "excluded_requirements": [
-            {"sr_id": e.sr_id, "variant_key": e.variant_key,
-             "measurand": e.measurand, "reason": e.reason}
+            {
+                "sr_id": e.sr_id,
+                "variant_key": e.variant_key,
+                "measurand": e.measurand,
+                "reason": e.reason,
+            }
             for e in excluded
         ],
         "capability_demand": [d.to_dict() for d in demand],
@@ -193,8 +196,10 @@ def main() -> int:
     L.append("=" * 88)
     L.append(f"工装/仪器能力需求 —— {args.model} ({schema})")
     L.append("=" * 88)
-    L.append(f"依据: 已落库产测需求 {len(rows)} 行" +
-             (f"(另有 {len(excluded)} 行被过滤参数筛出, 见「被筛出的需求」节)" if excluded else ""))
+    L.append(
+        f"依据: 已落库产测需求 {len(rows)} 行"
+        + (f"(另有 {len(excluded)} 行被过滤参数筛出, 见「被筛出的需求」节)" if excluded else "")
+    )
     L.append("")
     L.append("--- 仪器/工装能力需求 (kind + spec 单位两路证据并集) ---")
     L.append(f"{'能力':26s} {'硬':>4s} {'提示':>4s}  依据 sr_id(前 4)")
@@ -202,23 +207,29 @@ def main() -> int:
         src = sorted(d.demanded_by)[:4]
         more = f" +{len(d.demanded_by) - len(src)}" if len(d.demanded_by) > 4 else ""
         mark = "  (仅提案)" if d.provisional_only else ""
-        L.append(f"{d.capability:26s} {len(d.approved_by):4d} {len(d.provisional_by):4d}"
-                 f"  {', '.join(x[-4:] for x in src)}{more}{mark}")
+        L.append(
+            f"{d.capability:26s} {len(d.approved_by):4d} {len(d.provisional_by):4d}"
+            f"  {', '.join(x[-4:] for x in src)}{more}{mark}"
+        )
     L.append("")
     L.append("  硬 = 依据已批准/规则来源; 提示 = 依据含未人审业界提案。")
     L.append("  「仅提案」项在提案签字前不该进采购清单。")
     L.append("")
     L.append("--- 每轨测量通道需求 (只数电压/电流采样, 不含负载与保护通路) ---")
     for r in rails:
-        L.append(f"  轨 {r.rail:12s} 采样通道 {r.sense_channels}  "
-                 f"需负载切换={r.needs_switching} 需故障注入={r.needs_fault_injection}"
-                 f"  依据 {len(r.demanded_by)} 条判据")
+        L.append(
+            f"  轨 {r.rail:12s} 采样通道 {r.sense_channels}  "
+            f"需负载切换={r.needs_switching} 需故障注入={r.needs_fault_injection}"
+            f"  依据 {len(r.demanded_by)} 条判据"
+        )
     L.append("")
     L.append("--- 仪器量程边界 (选型依据; 只有能力类别, 无型号) ---")
     for r in ranges:
-        L.append(f"  {r.capability:22s} {r.unit:8s} "
-                 f"{r.low if r.low is not None else '-'} ~ {r.high if r.high is not None else '-'}"
-                 f"   依据 {len(r.demanded_by)} 条")
+        L.append(
+            f"  {r.capability:22s} {r.unit:8s} "
+            f"{r.low if r.low is not None else '-'} ~ {r.high if r.high is not None else '-'}"
+            f"   依据 {len(r.demanded_by)} 条"
+        )
     L.append("")
     L.append("--- 需要的工装形态 ---")
     L.append(f"  {', '.join(ftypes) if ftypes else '(无)'}")
@@ -229,8 +240,10 @@ def main() -> int:
         for e in excluded:
             L.append(f"  {e.sr_id:26s} [{e.variant_key}]{e.measurand}")
             L.append(f"    原因: {e.reason}")
-        L.append("  分档型备注(「3A 以下不要求」)与要求型备注(「不要求均流度, 但…」)"
-                 "同样会命中词过滤 —— 是否真要筛除由人工复核, 上面逐条带原因。")
+        L.append(
+            "  分档型备注(「3A 以下不要求」)与要求型备注(「不要求均流度, 但…」)"
+            "同样会命中词过滤 —— 是否真要筛除由人工复核, 上面逐条带原因。"
+        )
     else:
         L.append("  (无过滤参数或无命中)")
     L.append("")

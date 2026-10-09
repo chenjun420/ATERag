@@ -1,4 +1,4 @@
-"""抽取核心单测 (CI 可跑, 不依赖 PG/Qdrant/LightRAG).
+"""抽取核心单测 (CI 可跑, 不依赖 PG)。
 
 只测纯逻辑: 章节选择 / 剔除规则 / 短横线语义 / 条件装配 / 表结构识别。
 需要真实存储栈的验证在 scripts/verify_conditions.py (走 blocks 侧车, 离线可跑)。

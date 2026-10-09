@@ -1,4 +1,4 @@
-"""全链路部署到板卡 192.168.5.25: 预检 -> 双型号规格书 -> 领域库 LightRAG -> Semantica 语义图.
+"""全链路部署到板卡 192.168.5.25: 预检 -> 双型号规格书 -> 领域库 -> Semantica 语义图.
 
 用法: $env:PYTHONIOENCODING='utf-8'; .venv\\Scripts\\python.exe scripts\\deploy_board.py
 """
@@ -45,8 +45,8 @@ def run_step(label: str, script: str, args: list[str] | None = None) -> bool:
 
 
 async def build_domain_layer() -> bool:
-    """领域知识库 -> LightRAG _domain_power (需真实 embedding/LLM, 走 async 管道)。"""
-    print("\n>>> 领域知识库构建 -> LightRAG _domain_power")
+    """领域知识库 -> _domain_power (需真实 embedding/LLM, 走 async 管道)。"""
+    print("\n>>> 领域知识库构建 -> _domain_power")
     t0 = time.time()
     s = get_settings()
     registry = Registry.load(s)

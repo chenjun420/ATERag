@@ -90,9 +90,7 @@ def main() -> int:
             # RLS 上下文必须先设: 表开了 FORCE ROW LEVEL SECURITY, 没设
             # app.current_model 时 INSERT 直接被拒, 症状是「违背行级安全策略」。
             cur.execute(set_current_schema_sql(schema))
-            cur.execute(
-                "SELECT to_regclass(%s) IS NOT NULL", (f"{schema}.test_requirement",)
-            )
+            cur.execute("SELECT to_regclass(%s) IS NOT NULL", (f"{schema}.test_requirement",))
             if not cur.fetchone()[0]:
                 print(
                     f"表不存在: {schema}.test_requirement"

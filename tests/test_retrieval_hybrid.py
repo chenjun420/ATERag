@@ -1,6 +1,6 @@
-"""检索层测试: ADR-014 W0 (pgvector 替换 Qdrant) 的不变量。
+"""检索层测试: pgvector + BM25 + RRF 的不变量。
 
-重点是几条**已经真实发生过**的坑, 每条断言写清「原本坏在哪」。
+重点是几条**已经真实发生过**的坑 —— 每条断言钉住那个坑现在不复现。
 """
 
 from __future__ import annotations
@@ -28,18 +28,16 @@ def _run(src: str) -> subprocess.CompletedProcess[str]:
 
 
 # ---------------------------------------------------------------------------
-# 核心不变量: 没装 qdrant 也能 import 整条链
+# 核心不变量: 不依赖已移除的向量库, 整条链仍能 import
 # ---------------------------------------------------------------------------
 
 
 def test_entrypoints_import_without_qdrant_client() -> None:
-    """模块级 ``from qdrant_client import ...`` 就是 ADR-014:37 禁止的破损态。
+    """模块级 import 向量库客户端就是破损态。
 
-    板卡上 Qdrant 已经不存在(无 /opt/qdrant、无 service、无二进制), 而
-    ``rag/service.py`` 与 ``ingest/pipeline.py`` 曾在 **模块级** import 它 ——
-    于是板卡上连 import 都过不去, ingest 根本起不来。
-
-    这里用 meta_path finder 把 qdrant_client 挡掉, 模拟板卡现状。
+    板卡上没有那个服务, 而 ``rag/service.py`` 与 ``ingest/pipeline.py``
+    曾在模块级 import 它 —— 于是连 import 都过不去, ingest 根本起不来。
+    这里用 meta_path finder 把它挡掉, 模拟板卡现状。
     """
     proc = _run(
         """
@@ -81,7 +79,11 @@ def test_qdrant_import_only_appears_inside_functions() -> None:
         for node in tree.body:
             if not isinstance(node, (ast.Import, ast.ImportFrom)):
                 continue
-            names = [a.name for a in node.names] if isinstance(node, ast.Import) else [node.module or ""]
+            names = (
+                [a.name for a in node.names]
+                if isinstance(node, ast.Import)
+                else [node.module or ""]
+            )
             for n in names:
                 if n.startswith("qdrant"):
                     offenders.append(f"{rel}:{node.lineno} {n}")
@@ -105,12 +107,12 @@ def test_hybrid_exposes_all_three_primitives() -> None:
     assert pipeline.rrf_fuse is hybrid.rrf_fuse
 
 
-def test_bm25_uses_pg_textsearch_not_qdrant() -> None:
+def test_bm25_uses_pg_textsearch() -> None:
     """BM25 必须走 pg_textsearch 的 ``<@> to_bm25query(...)``。
 
     board 上 ``pg_textsearch`` + ``zhparser`` 已装(实测 1.4.0 / 2.4), 中文
-    分词靠 ``public.chinese`` 配置。若哪天改回 Qdrant 的全文索引, ADR-002
-    就又破了 —— 而这种回归不会报错, 只会让中文召回悄悄变差。
+    分词靠 ``public.chinese`` 配置。改回别的全文索引不会报错, 只会让中文
+    召回悄悄变差 —— 所以这条要显式钉住。
     """
     import ast
     import inspect
@@ -120,8 +122,8 @@ def test_bm25_uses_pg_textsearch_not_qdrant() -> None:
     src = inspect.getsource(hybrid.bm25_search)
     assert "to_bm25query" in src
     assert "idx_aterag_chunks_bm25" in src
-    # 判「有没有 import qdrant」要看 AST, 不能用文本匹配 —— 函数 docstring 里
-    # 提到 Qdrant 是正常的说明性文字, 文本匹配会误报。
+    # 判「有没有 import 向量库」要看 AST, 不能用文本匹配 —— docstring 里
+    # 提到它是正常的说明性文字, 文本匹配会误报。
     tree = ast.parse(textwrap.dedent(src))
     imported: list[str] = []
     for node in ast.walk(tree):
@@ -132,8 +134,8 @@ def test_bm25_uses_pg_textsearch_not_qdrant() -> None:
     assert not [n for n in imported if n.startswith("qdrant")], imported
 
 
-def test_vector_search_uses_cosine_like_qdrant_did() -> None:
-    """``1 - (embedding <=> q)`` 让 pgvector 的分数与 Qdrant COSINE 同量纲。
+def test_vector_search_score_is_cosine_like() -> None:
+    """``1 - (embedding <=> q)`` 让 pgvector 分数落在 0~1 的余弦量纲。
 
     ``rrf_fuse`` 在同一 content 有多路命中时靠 ``score`` 挑代表项; 量纲不一致
     时这个比较就没意义了(虽然 RRF 主分数是排名算的, 但代表项仍会挑错)。
@@ -215,4 +217,3 @@ def test_pgvector_is_the_only_backend() -> None:
     sig = inspect.signature(Settings)
     dead = [p for p in sig.parameters if "qdrant" in p.lower() or p == "retrieval_backend"]
     assert not dead, f"Settings 残留 legacy 字段: {dead}"
-

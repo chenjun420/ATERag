@@ -62,7 +62,7 @@ IGNORED = "➖"
 def schema_path() -> str:
     """表结构档案路径。
 
-    本工具是纯静态分析, 不该因为缺 PG/Qdrant/LLM 环境变量就跑不起来
+    本工具是纯静态分析, 不该因为缺 PG/LLM 环境变量就跑不起来
     (CI 与开发者本机的环境变量集合本就不同)。故只在环境变量可用时读 Settings,
     否则退回默认相对路径。
     """
@@ -393,9 +393,7 @@ def role_vocabulary(methods: MethodBook) -> tuple[tuple[str, ...], tuple[str, ..
     return referenced, (ROLE_ANY, ROLE_ANY_EXCEPT)
 
 
-def precheck_roles(
-    candidate_roles: dict[str, str], methods: MethodBook
-) -> dict:
+def precheck_roles(candidate_roles: dict[str, str], methods: MethodBook) -> dict:
     """与 ``test_methods.yaml`` 的 role 一致性预检 —— 提案阶段就把 A20 那条报错做掉。
 
     返回三段:
@@ -466,8 +464,13 @@ def build_profile_proposal(
     keywords = candidate_keywords(tree)
     referenced, builtin = role_vocabulary(methods)
     # 角色词表来自方法库引用 + 既有档案的约定角色; 提案只能在词表内选。
-    vocabulary = tuple(referenced) or ("input_domain", "output_spec", "protection_response",
-                                       "signal_io", "other")
+    vocabulary = tuple(referenced) or (
+        "input_domain",
+        "output_spec",
+        "protection_response",
+        "signal_io",
+        "other",
+    )
 
     priors: dict[str, dict] = {}
     proposal_meta: dict = {}
@@ -500,9 +503,7 @@ def build_profile_proposal(
                 keywords = [
                     {"keyword": k, "sections": [], "tables": -1} for k in llm_keywords if k in known
                 ] + [k for k in keywords if k["keyword"] not in set(llm_keywords)]
-            proposal_meta["exclude_words"] = [
-                str(w) for w in (obj.get("exclude_words") or [])
-            ]
+            proposal_meta["exclude_words"] = [str(w) for w in (obj.get("exclude_words") or [])]
             proposal_meta["llm"] = {
                 "status": "待人工审核 (LLM 建议, 未经确认不得直接并入档案)",
                 "tried_priors": len(obj.get("priors") or []),

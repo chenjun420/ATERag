@@ -9,8 +9,34 @@ import re
 import subprocess
 import sys
 import time
+from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
+
+
+def assert_suite_scripts_exist(suites=None) -> list[str]:
+    """返回引用了不存在脚本的套件名列表 (空 = 全部存在)。
+
+    **编排器自己必须先于被编排者被验证。** 曾有一个套件引用了已删除的脚本,
+    而 ``subprocess.run`` 抛的 FileNotFoundError 会被宽泛捕获成「该套件失败」——
+    看不出真相是**编排器指向一个不存在的文件**。所以这里 fail-closed。
+
+    ``suites=None`` 在函数体里取 ``SUITES`` 而不是在默认参数里 —— 默认参数
+    于定义时求值, 而这个函数刻意定义在 ``SUITES`` 之前(否则清单里就得引用
+    一个还没定义的东西), 写成 ``suites=SUITES`` 会直接 NameError。
+    """
+    missing: list[str] = []
+    for name, cmd, _expect in SUITES if suites is None else suites:
+        for token in cmd:
+            if token.startswith("scripts/") and not Path(token).exists():
+                missing.append(f"{name} -> {token}")
+    if missing:
+        raise FileNotFoundError(
+            "以下套件引用了不存在的脚本 (编排器的死引用, 不会被任何测试发现):\n  "
+            + "\n  ".join(missing)
+        )
+    return []
+
 
 # (套件名, 脚本, 期望通过标记的正则)
 SUITES: list[tuple[str, list[str], re.Pattern[str]]] = [
@@ -70,11 +96,6 @@ SUITES: list[tuple[str, list[str], re.Pattern[str]]] = [
         re.compile(r"NO_HARDCODED_VERIFY PASS \d+/\d+"),
     ),
     (
-        "板卡 LightRAG 落库完整性",
-        ["scripts/verify_lightrag_deployed.py"],
-        re.compile(r"LIGHTING_VERIFY PASS \d+/\d+"),
-    ),
-    (
         # 模板漂移门禁 (方案 §4.0③⑤)。这是**辅助**工具: 抽取过程本身对模板失配
         # 已 fail-closed, 这里管的是「参数变了但抽取照样跑完」的那一类静默失效。
         # 放在离线段而非板卡段: 它只读配置与 blocks, 不需要 PG。
@@ -87,6 +108,7 @@ SUITES: list[tuple[str, list[str], re.Pattern[str]]] = [
 
 def main() -> int:
     print("=== ATERag 全链路端到端验证 ===\n")
+    assert_suite_scripts_exist()
     rows: list[tuple[str, str, bool, float]] = []
     for name, cmd, expect in SUITES:
         t0 = time.time()

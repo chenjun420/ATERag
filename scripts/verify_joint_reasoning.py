@@ -78,9 +78,11 @@ with psycopg.connect(DSN) as c, c.cursor() as cur:
         或者更糟: 取到别的数而不报错。所以列在这里写死。
         """
         assert col in ("min", "typ", "max"), col
-        cur.execute("SELECT props->%s::text, props->>'min', props->>'typ', "
-                    "props->>'max' FROM public.aterag_entities WHERE eid = %s",
-                    (col, eid))
+        cur.execute(
+            "SELECT props->%s::text, props->>'min', props->>'typ', "
+            "props->>'max' FROM public.aterag_entities WHERE eid = %s",
+            (col, eid),
+        )
         val, mn, ty, mx = cur.fetchone()
         if val is None:
             raise ValueError(f"{eid} 的 {col} 为空 (min={mn} typ={ty} max={mx})")
@@ -89,13 +91,13 @@ with psycopg.connect(DSN) as c, c.cursor() as cur:
     # 显式点名每一条 + 取哪一列。不靠标题模糊匹配 —— 标题会变, id 不会。
     PICK = {
         # prop: (eid, 列)
-        "vout_nom": ("SR-PA601-D54A-1200@-54V", "min"),          # 额定输出电压 -54V
-        "iout_max": ("SR-PA601-D54A-1203@-54V", "max"),           # 输出电流 max 11.1A
+        "vout_nom": ("SR-PA601-D54A-1200@-54V", "min"),  # 额定输出电压 -54V
+        "iout_max": ("SR-PA601-D54A-1203@-54V", "max"),  # 输出电流 max 11.1A
         "current_limit_threshold": ("SR-PA601-D54A-1309@-54V", "min"),  # 过流保护 min 12.0A
-        "pout_max": ("SR-PA601-D54A-1204@W", "max"),              # 输出功率 max 600W
-        "efficiency_pct": ("SR-PA601-D54A-1210@%#3", "min"),      # 整机效率 min 93%
-        "ovp_static_min": ("SR-PA601-D54A-1310@-54V", "min"),     # 静态过压 min 58V
-        "ovp_dynamic_min": ("SR-PA601-D54A-1311@-54V", "min"),    # 动态过压 min 59V
+        "pout_max": ("SR-PA601-D54A-1204@W", "max"),  # 输出功率 max 600W
+        "efficiency_pct": ("SR-PA601-D54A-1210@%#3", "min"),  # 整机效率 min 93%
+        "ovp_static_min": ("SR-PA601-D54A-1310@-54V", "min"),  # 静态过压 min 58V
+        "ovp_dynamic_min": ("SR-PA601-D54A-1311@-54V", "min"),  # 动态过压 min 59V
     }
     for prop, (eid, col) in PICK.items():
         VALUES[prop] = one(eid, col)
@@ -169,9 +171,11 @@ def run_shacl(data_ttl: str, label: str) -> tuple[bool, list[str]]:
     msgs: list[str] = []
     for res in g.subjects(RDF.type, SH.ValidationResult):
         parts = []
-        for pred, label_ in ((SH.resultMessage, "Message"),
-                             (SH.sourceConstraintComponent, "Component"),
-                             (SH.focusNode, "Focus")):
+        for pred, label_ in (
+            (SH.resultMessage, "Message"),
+            (SH.sourceConstraintComponent, "Component"),
+            (SH.focusNode, "Focus"),
+        ):
             for o in g.objects(res, pred):
                 parts.append(f"{label_}={str(o).split('#')[-1]}")
         msgs.append("; ".join(parts))
@@ -183,8 +187,10 @@ def run_shacl(data_ttl: str, label: str) -> tuple[bool, list[str]]:
 
 # 1a. 正向: 真实数据
 real = build_instance(VALUES["current_limit_threshold"], None)
-say(f"  实例三元组 (真实值, CVCC: 门限 {VALUES['current_limit_threshold']} "
-    f"vs 额定输出 {VALUES['iout_max']}):")
+say(
+    f"  实例三元组 (真实值, CVCC: 门限 {VALUES['current_limit_threshold']} "
+    f"vs 额定输出 {VALUES['iout_max']}):"
+)
 for line in real.splitlines():
     if line.strip() and not line.startswith("@prefix"):
         say(f"    {line}")
@@ -196,24 +202,29 @@ ok_broken, msgs_broken = run_shacl(broken, "1b 故意改坏(门槛 10.0 < 额定
 
 say("")
 say("  判定:")
-say(f"    真实数据 conforms            = {ok_real}   "
-    f"{'符合 (12.0 >= 11.1, 与 shapes 文件的预测一致)' if ok_real else '**不符合**'}")
-say(f"    改坏后 conforms             = {ok_broken}  "
-    f"{'**仍然符合 -> 该 shape 是恒真的, 验证无效**' if ok_broken else '报出违规 -> 门禁确实咬人'}")
+say(
+    f"    真实数据 conforms            = {ok_real}   "
+    f"{'符合 (12.0 >= 11.1, 与 shapes 文件的预测一致)' if ok_real else '**不符合**'}"
+)
+say(
+    f"    改坏后 conforms             = {ok_broken}  "
+    f"{'**仍然符合 -> 该 shape 是恒真的, 验证无效**' if ok_broken else '报出违规 -> 门禁确实咬人'}"
+)
 
 # 1c. EfficiencyShape: 真实数据是百分数, shape 要求 0..1
 say("")
 say("  EfficiencyShape: shape 要求 eta = Pout/Pin 且落在 0..1")
-say(f"    PA601 记录的是百分数: {VALUES['efficiency_pct']}% "
-    f"(SR-1210, 额定输入/最大输出负载)")
+say(f"    PA601 记录的是百分数: {VALUES['efficiency_pct']}% (SR-1210, 额定输入/最大输出负载)")
 eff_bad = build_instance(VALUES["current_limit_threshold"], VALUES["efficiency_pct"])
 ok_eff, msgs_eff = run_shacl(eff_bad, "1c 效率按百分数喂进去(93), 但未给 ex:pin")
 say("    注意: EfficiencyShape 需要 ex:pin + ex:pout_max + ex:efficiency 三个量齐全,")
 say("          而上面这个实例**没有 ex:pin**(PA601 的 SR-1604 只给了条件式判据")
 say("          「功率<50W不要求精度; 50W<=功率<100W 精度±10W; >=100W 精度±5%」,")
 say("          没有单一数值), 所以该 shape **根本没判** —— 不能拿它证明量纲检查有效。")
-say(f"    conforms={ok_eff}, 违规里是否含 EfficiencyShape: "
-    f"{'含' if any('效率' in m for m in msgs_eff) else '**不含(该 shape 未参与判定)**'}")
+say(
+    f"    conforms={ok_eff}, 违规里是否含 EfficiencyShape: "
+    f"{'含' if any('效率' in m for m in msgs_eff) else '**不含(该 shape 未参与判定)**'}"
+)
 
 # 单独验证 EfficiencyShape 会咬人: 构造一个领域侧的自足样例
 say("")
@@ -224,8 +235,8 @@ EX2 = Namespace("http://aterag.local/power#")
 g3 = Graph()
 s3 = URIRef("http://aterag.local/power#SYNTH")
 g3.add((s3, RDF.type, EX2.ModelSpec))
-g3.add((s3, EX2.pin, Literal(650)))        # 输入功率 650W
-g3.add((s3, EX2.pout_max, Literal(600)))   # 输出功率 600W
+g3.add((s3, EX2.pin, Literal(650)))  # 输入功率 650W
+g3.add((s3, EX2.pout_max, Literal(600)))  # 输出功率 600W
 g3.add((s3, EX2.efficiency, Literal(93)))  # 效率写成 93 (百分数没除 100)
 run_shacl(g3.serialize(format="turtle"), "效率写成 93 而非 0.92")
 
@@ -234,8 +245,10 @@ say("")
 say("  保护点序关系(领域公理: 动态过压门限必须高于静态):")
 say(f"    静态过压 min = {VALUES['ovp_static_min']} V (SR-1310)")
 say(f"    动态过压 min = {VALUES['ovp_dynamic_min']} V (SR-1311)")
-say(f"    判定: {VALUES['ovp_dynamic_min']} > {VALUES['ovp_static_min']} -> "
-    f"{'成立' if VALUES['ovp_dynamic_min'] > VALUES['ovp_static_min'] else '**不成立**'}")
+say(
+    f"    判定: {VALUES['ovp_dynamic_min']} > {VALUES['ovp_static_min']} -> "
+    f"{'成立' if VALUES['ovp_dynamic_min'] > VALUES['ovp_static_min'] else '**不成立**'}"
+)
 
 # =====================================================================
 # 第 2 步: 公式求值 —— 领域公式 x 型号数值
@@ -244,11 +257,11 @@ say("")
 say("=== 2. 领域公式在型号真实数值上求值 ===")
 import yaml  # noqa: E402
 
-rules = (yaml.safe_load(Path("domain_rules/power/rules.yaml").read_text(encoding="utf-8"))
-         or {}).get("rules") or []
+rules = (
+    yaml.safe_load(Path("domain_rules/power/rules.yaml").read_text(encoding="utf-8")) or {}
+).get("rules") or []
 k_e1 = next((r for r in rules if r.get("id") == "K-ELEC-001"), None)
-say(f"  取规则 {k_e1.get('id') if k_e1 else '?'}: "
-    f"{(k_e1 or {}).get('statement')!r}")
+say(f"  取规则 {k_e1.get('id') if k_e1 else '?'}: {(k_e1 or {}).get('statement')!r}")
 say(f"    derive: {(k_e1 or {}).get('derive')}")
 
 v, i = VALUES["vout_nom"], VALUES["iout_max"]
@@ -257,10 +270,11 @@ say("  求值 power = voltage * current")
 say(f"    voltage  = {v} V      (SR-1200@-54V 额定输出电压)")
 say(f"    current  = {i} A      (SR-1203@-54V 输出电流 max)")
 say(f"    power    = {v} x {i} = {p} W")
-say(f"    规格书给的 输出功率 max = {VALUES['pout_max']} W (SR-1204, "
-    f"备注 176~286Vac 时为 600W)")
-say(f"    量纲自洽: |{p}| = {abs(p)} W 与 600 W 同量级 -> "
-    f"{'量纲对' if 0.5 < abs(p) / VALUES['pout_max'] < 2 else '**量纲可疑**'}")
+say(f"    规格书给的 输出功率 max = {VALUES['pout_max']} W (SR-1204, 备注 176~286Vac 时为 600W)")
+say(
+    f"    量纲自洽: |{p}| = {abs(p)} W 与 600 W 同量级 -> "
+    f"{'量纲对' if 0.5 < abs(p) / VALUES['pout_max'] < 2 else '**量纲可疑**'}"
+)
 say("")
 say("  **单列为映射产物, 不算 shape 违规**: PowerConsistencyShape 要求")
 say("  ?pout = ?vout_nom * ?iout_max 精确相等, 而 600 != -599.4。原因有二:")
@@ -322,8 +336,10 @@ for s in scaled:
 
 got = [s for s in scaled if s.value == half]
 say("")
-say(f"  人工核对: 满载 {VALUES['pout_max']}W x 0.5 = {half}W -> "
-    f"{'与消费方结果一致' if got else '**不一致**'}")
+say(
+    f"  人工核对: 满载 {VALUES['pout_max']}W x 0.5 = {half}W -> "
+    f"{'与消费方结果一致' if got else '**不一致**'}"
+)
 
 # 让 SHACL 独立判定消费方的结果 —— 判对判错不归本模块, 归 shape
 from rdflib import RDF, Graph, Literal, Namespace, URIRef  # noqa: E402
@@ -342,23 +358,31 @@ def _spec(name: str, full: float, halfv: float) -> str:
 
 say("")
 say("  让 SHACL 独立判定 (LoadScalingShape: 半载功率 = 满载功率 / 2):")
-ok_scaled, _ = run_shacl(_spec("PA601-D54A-scaled", VALUES["pout_max"], half),
-                         "消费方算出的半载功率")
-say(f"    -> conforms={ok_scaled}  "
-    f"{'**通过: 消费方的乘法与领域约束一致**' if ok_scaled else '**仍违规**'}")
+ok_scaled, _ = run_shacl(
+    _spec("PA601-D54A-scaled", VALUES["pout_max"], half), "消费方算出的半载功率"
+)
+say(
+    f"    -> conforms={ok_scaled}  "
+    f"{'**通过: 消费方的乘法与领域约束一致**' if ok_scaled else '**仍违规**'}"
+)
 
 say("")
 say("  对照组: 把规则的原始输出(未缩放的满载值)喂给同一个 shape:")
-ok_raw, _ = run_shacl(_spec("PA601-D54A-unscaled", VALUES["pout_max"], VALUES["pout_max"]),
-                      "未缩放的值")
-say(f"    -> conforms={ok_raw}  "
-    f"{'通过(意外)' if ok_raw else '报违规 -> shape 确实在判缩放, 消费方的乘法是必要的'}")
+ok_raw, _ = run_shacl(
+    _spec("PA601-D54A-unscaled", VALUES["pout_max"], VALUES["pout_max"]), "未缩放的值"
+)
+say(
+    f"    -> conforms={ok_raw}  "
+    f"{'通过(意外)' if ok_raw else '报违规 -> shape 确实在判缩放, 消费方的乘法是必要的'}"
+)
 
 # 别名归一: 50pct_load 应被规则解析成 half_load, 两者比例相同
 rows2 = dr.query("load_ratio(?alias, ?ratio)")
 say("")
-say(f"  别名归一(这部分是对的): 50pct_load 经 load-alias 解析到 half_load, "
-    f"比例 {[(r.get('alias'), r.get('ratio')) for r in rows2]}")
+say(
+    f"  别名归一(这部分是对的): 50pct_load 经 load-alias 解析到 half_load, "
+    f"比例 {[(r.get('alias'), r.get('ratio')) for r in rows2]}"
+)
 
 # =====================================================================
 # 第 4 步: 谱系 —— 推理结论能不能说出出处
@@ -381,11 +405,15 @@ for cid in ("PROT_OCP", "HYSTERESIS"):
     if e is None:
         say(f"    {cid}: <无谱系>")
         continue
-    say(f"    {cid}: source={e.get('source_document')!r} "
-        f"credibility={e.get('credibility')} authority={e.get('metadata', {}).get('authority_kind')!r}")
+    say(
+        f"    {cid}: source={e.get('source_document')!r} "
+        f"credibility={e.get('credibility')} authority={e.get('metadata', {}).get('authority_kind')!r}"
+    )
 chain = mgr.verify_chain()
-say(f"    谱系链 valid={chain['valid']} total={chain['total_entries']} "
-    f"broken={len(chain['broken_links'])}")
+say(
+    f"    谱系链 valid={chain['valid']} total={chain['total_entries']} "
+    f"broken={len(chain['broken_links'])}"
+)
 
 Path(r"C:\Users\chenp\AppData\Local\Temp\opencode\joint_reasoning.txt").write_text(
     "\n".join(OUT), encoding="utf-8"

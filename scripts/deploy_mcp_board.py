@@ -15,14 +15,15 @@ import re
 import shlex
 import sys
 import time
+from pathlib import Path
 
 import paramiko
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-HOST = os.getenv("BOARD_SSH_HOST", "192.168.5.25")
-USER = os.environ.get("BOARD_SSH_USER", "")
-PWD = os.getenv("BOARD_SSH_PASSWORD", "")
+from board_ssh import HOST, KEY, PWD, USER  # noqa: E402  凭据只从一处解析
+from board_ssh import connect as board_connect  # noqa: E402
+
 APP_DIR = "/opt/aterag"
 PORT = "8080"
 
@@ -32,6 +33,14 @@ PORT = "8080"
 #: 让部署在写板卡 ``.env`` 之前就失败, 而不是在灌库时被 pgvector 的 2000 维
 #: 上限拦下(那时错���已经写进板卡了)。
 EMBED_DIM = 1024
+
+#: 仓库根。**所有本地路径都相对它解析**, 不依赖 CWD。
+#:
+#: 原来靠「从仓库根跑脚本」这个隐含前提, 于是一条写错的相对路径
+#: (``"registry.yaml"`` 而实际在 ``data/``) 直到真部署时才炸, 而且报错是
+#: ``FileNotFoundError: 'registry.yaml'`` —— 看不出是「路径写错」还是
+#: 「板卡上缺文件」。:func:`assert_local_files_exist` 把这类错误提前到上传之前。
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # (本地路径, 板卡远端相对路径)
 FILES = [
@@ -48,7 +57,10 @@ FILES = [
     # config/ 同时承载表结构档案与抽取档案 (表头语义/章节先验/剔除词/条件规则),
     # 缺失会让 ingest 与条件抽取直接抛错, 故整目录部署
     ("config", "config"),
-    ("registry.yaml", "registry.yaml"),
+    # 注册表: **在 data/ 下**。写 "registry.yaml" 会 FileNotFoundError ——
+    # 该文件是「型号 -> 主轨/schema/档案」的声明源, 漏传则板卡上全部未标注轨的
+    # 参数行都不再归轨(且不报错)。
+    ("data/registry.yaml", "registry.yaml"),
     ("pyproject.toml", "pyproject.toml"),
     # 板卡侧新规格书导入 CLI (upload_new_spec.py 远程调用的入口)
     ("scripts/ingest_new_spec.py", "scripts/ingest_new_spec.py"),
@@ -64,6 +76,27 @@ FILES = [
 EXCLUDE_DIRS = {"__pycache__", ".pytest_cache", ".ruff_cache"}
 
 
+def assert_local_files_exist(files=None) -> list[str]:
+    """上传前校验 :data:`FILES` 里的本地路径全部存在, 返回缺失清单。
+
+    **fail-closed。** 缺一个文件时若继续上传, 后果分两种: 传目录的那几步已经
+    落到板卡上了(改到一半的板卡), 然后才在半路抛 FileNotFoundError —— 板卡
+    停在「一半新一半旧」的状态, 而报错指向的是一个本地路径, 与板卡毫无关系。
+
+    提前校验的成本是几毫秒 stat, 省掉的是「部署到一半才发现清单写错」。
+    """
+    missing: list[str] = []
+    for local, _remote in FILES if files is None else files:
+        if not (REPO_ROOT / local).exists():
+            missing.append(local)
+    if missing:
+        raise FileNotFoundError(
+            "以下部署源不存在 (路径相对仓库根 "
+            f"{REPO_ROOT}, 已上传的板卡文件不会被回滚):\n  " + "\n  ".join(missing)
+        )
+    return []
+
+
 def board_env(local_env: str) -> str:
     """生成板卡侧 .env: 密钥沿用开发机, 存储端点改指本机回环.
 
@@ -77,7 +110,6 @@ def board_env(local_env: str) -> str:
         txt,
         flags=re.MULTILINE,
     )
-    # QDRANT_URL 改写已随 ADR-014 移除 legacy Qdrant 一并删除
     txt = re.sub(r"^(MCP_HOST=).*$", r"\g<1>0.0.0.0", txt, flags=re.MULTILINE)
     txt = re.sub(r"^(MCP_PORT=).*$", rf"\g<1>{PORT}", txt, flags=re.MULTILINE)
     if "MCP_PORT=" not in txt:
@@ -102,11 +134,7 @@ def board_env(local_env: str) -> str:
         # 取**最后一个非注释的非空**值, 而不是第一个。``.env`` 里同键出现多行是
         # 真实会发生的(改配置时追加而非替换, 或从 ``.env.example`` 复制时带了
         # 一行注释形态), 取第一个会读到被后面覆盖的那行。
-        vals = [
-            v.strip()
-            for v in re.findall(rf"(?m)^{key}=(.*)$", txt)
-            if v.strip()
-        ]
+        vals = [v.strip() for v in re.findall(rf"(?m)^{key}=(.*)$", txt) if v.strip()]
         if not vals:
             raise RuntimeError(
                 f"板卡 .env 缺 {key} —— 嵌入服务无法配置。"
@@ -129,8 +157,7 @@ def board_env(local_env: str) -> str:
     txt = re.sub(r"(?m)^#(EMBED_DIM=)", r"\1", txt)
 
     return (
-        "# ATERag 板卡运行时配置 (由 scripts/deploy_mcp_board.py 生成, "
-        "存储端点=127.0.0.1)\n" + txt
+        "# ATERag 板卡运行时配置 (由 scripts/deploy_mcp_board.py 生成, 存储端点=127.0.0.1)\n" + txt
     )
 
 
@@ -170,29 +197,22 @@ def run(cli: paramiko.SSHClient, cmd: str, timeout: int = 2400, sudo: bool = Fal
 
 
 def main() -> int:
-    # 用户名/口令都来自环境变量 (属环境口令, 禁止入库)。缺任一都必须 fail-fast:
-    # 用空用户名去连接会得到语焉不详的 "Authentication failed", 根因极难定位
-    # (曾经就因此误判成"口令失效")。
-    missing = [n for n, v in (("BOARD_SSH_USER", USER), ("BOARD_SSH_PASSWORD", PWD)) if not v]
-    if missing:
-        print("未设置: " + ", ".join(missing))
-        print("用法: $env:BOARD_SSH_USER='<ssh 用户>'; $env:BOARD_SSH_PASSWORD='<口令>'")
-        return 1
+    # 凭据由 board_ssh 统一解析(key 优先, 用户名有实测可连通的默认值)。
+    # 这里不再自己判「缺口令就退出」—— 板卡已配公钥认证, 拿「必须设口令」
+    # 当前置条件会把一条能通的部署路径堵死, 而那条路本来是无口令的。
     print(f"=== 板卡应用层部署 -> {USER}@{HOST}:{APP_DIR} ===")
-    cli = paramiko.SSHClient()
-    cli.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    cli.connect(
-        HOST,
-        username=USER,
-        password=PWD or None,
-        timeout=20,
-        # 密码未配置时回退到密钥认证 (取决于部署机持有私钥)。两条路都支持,
-        # 部署才会是同模板可重复的: 否则换一台无密码缓存的机器就断
-        look_for_keys=not PWD,
-        allow_agent=False,
-    )
+    try:
+        cli = board_connect()
+    except SystemExit as e:
+        print(str(e))
+        return 1
     if not PWD:
-        print("(BOARD_SSH_PASSWORD 未设, 使用 SSH 密钥认证)")
+        print(f"(未设 BOARD_SSH_PASSWORD, 走密钥认证: {KEY or '默认 key 搜索'})")
+    try:
+        assert_local_files_exist()
+    except FileNotFoundError as e:
+        print(str(e))
+        return 1
     try:
         # SFTP 以 SSH 用户身份写入, /opt/aterag 默认属 root -> 先授权给部署用户,
         # 安装脚本 (sudo) 会在最后把属主改回服务账号 aterag
@@ -205,11 +225,14 @@ def main() -> int:
         sftp = cli.open_sftp()
         try:
             total = 0
-            for local, remote in FILES:
+            for local_rel, remote in FILES:
+                # 相对 REPO_ROOT 解析: 不依赖 CWD, 且与自检用的是同一个基准 ——
+                # 两处基准不同的话, 自检说「存在」而上传时找不到, 自检就白做了。
+                local = str(REPO_ROOT / local_rel)
                 r = posixpath.join(APP_DIR, remote)
                 if os.path.isdir(local):
                     n = upload_tree(sftp, local, r)
-                    print(f"  [PUT] {local} -> {r} ({n} 文件)")
+                    print(f"  [PUT] {local_rel} -> {r} ({n} 文件)")
                     total += n
                 else:
                     # 单文件: 先确保父目录存在 (SFTP 无 mkdir -p)
@@ -289,13 +312,13 @@ def main() -> int:
         rc = run(
             cli,
             "cd /opt/aterag && sudo -u aterag /opt/aterag/.venv/bin/python -c "
-            '"import asyncio,json,sys; sys.path.insert(0,\'/opt/aterag/src\'); '
+            "\"import asyncio,json,sys; sys.path.insert(0,'/opt/aterag/src'); "
             "from aterag.config import get_settings; from aterag.registry import Registry; "
             "from aterag.models import EmbeddingClient; "
             "from aterag.ingest.pipeline import build_domain; "
             "s=get_settings(); r=Registry.load(s); "
-            "print(json.dumps(asyncio.run(build_domain(\'power\', s, r, "
-            "EmbeddingClient(s), None)), ensure_ascii=False))\"",
+            "print(json.dumps(asyncio.run(build_domain('power', s, r, "
+            'EmbeddingClient(s), None)), ensure_ascii=False))"',
             timeout=900,
             sudo=False,
         )
@@ -310,8 +333,8 @@ def main() -> int:
         run(
             cli,
             "sudo -u postgres psql -d power_specs -Atc "
-            '"select workspace_id || \' | layer=\' || layer || \' | n=\' || count(*) '
-            "from public.aterag_chunks group by 1,2 order by 1\"",
+            "\"select workspace_id || ' | layer=' || layer || ' | n=' || count(*) "
+            'from public.aterag_chunks group by 1,2 order by 1"',
             sudo=True,
         )
 

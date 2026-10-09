@@ -22,5 +22,3 @@ services:
       interval: 10s
       retries: 12
       start_period: 30s
-
-# (qdrant 服务已随 ADR-014 移除: 检索层由 pgvector 承担)

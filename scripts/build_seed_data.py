@@ -1,4 +1,4 @@
-"""从方案 md 抽取「电源产品通用知识」-> Semantica / LightRAG 初始数据(一次性引导)。
+"""从方案 md 抽取「电源产品通用知识」-> Semantica 初始数据(一次性引导)。
 
     python scripts/build_seed_data.py
     python scripts/build_seed_data.py --spec <方案.md> --out data/seed
@@ -19,8 +19,8 @@ Semantica ``SeedDataManager.create_foundation_graph()`` 读 ``entities`` /
 关系取 ``source`` / ``target`` / ``type`` / ``properties``。
 
 **一份文件装全部**, 不按类型切碎 —— 关系要跨类型连边(拓扑连公式、公式连公理、
-公式连勘误), 切开就断了。LightRAG 侧读同一份 JSON 的 ``text`` 字段做图谱抽取,
-所以 ``text`` 必须是**自然语言陈述**, 而不是符号串。
+公式连勘误), 切开就断了。下游按 ``text`` 字段做图谱抽取, 所以 ``text`` 必须是
+**自然语言陈述**, 而不是符号串。
 
 ## 审计形态
 
@@ -51,26 +51,66 @@ from typing import Any
 #: 「50%载」的 50% 是**相对满载**的, 不是绝对输出功率的百分数 —— 这条弄反了
 #: 所有代入都会错, 而算式照样成立。
 LOAD_CONDITIONS: tuple[dict[str, Any], ...] = (
-    {"zh": "满载", "en": "full load", "ratio": 1.0, "kind": "load",
-     "note": "归一化基准。任何 xx%载 都相对它折算。"},
-    {"zh": "半载", "en": "half load", "ratio": 0.5, "kind": "load",
-     "note": "= 50%载 = 满载 × 50%。"},
-    {"zh": "空载", "en": "no load", "ratio": 0.0, "kind": "load",
-     "note": "输出为 0。「空载」不等于「轻载」: 空载下常降频, 损耗模型不适用同一套参数。"},
-    {"zh": "最小载", "en": "minimum load", "ratio": None, "kind": "load",
-     "note": "比例待确认: 最小稳定负载由具体拓扑决定, 不是常数。收录但不给比例 —— "
-             "编一个数会让规则在错误工况上运行且不报错。"},
-    {"zh": "额定", "en": "rated", "ratio": None, "kind": "rating",
-     "note": "保证工作点/保证极限。与「标称」不同, 不可互换。不给比例。"},
-    {"zh": "标称", "en": "nominal", "ratio": None, "kind": "nominal",
-     "note": "常规取整的代表值, 无保证含义。不给比例。"},
-    {"zh": "最大额定", "en": "absolute maximum rating", "ratio": None, "kind": "rating",
-     "note": "超过即可能损坏的绝对上限, 与「额定工作值」不是一回事。"},
-    {"zh": "xx%载", "en": "fraction load", "ratio": None, "kind": "load",
-     "pattern": r"^(\d+(?:\.\d+)?)\s*%\s*载$",
-     "note": "**按模式求值, 不是固定值**: xx%载 = 满载 × xx%。例 30%载 -> 0.30。"
-             "ratio 刻意为 null —— 它是待求量, 不是常量; 给出 1.0 之类的值会让推理"
-             "把任意百分比都当成满载。整串锚定以免把 P_load 的 load 误认成工况词。"},
+    {
+        "zh": "满载",
+        "en": "full load",
+        "ratio": 1.0,
+        "kind": "load",
+        "note": "归一化基准。任何 xx%载 都相对它折算。",
+    },
+    {
+        "zh": "半载",
+        "en": "half load",
+        "ratio": 0.5,
+        "kind": "load",
+        "note": "= 50%载 = 满载 × 50%。",
+    },
+    {
+        "zh": "空载",
+        "en": "no load",
+        "ratio": 0.0,
+        "kind": "load",
+        "note": "输出为 0。「空载」不等于「轻载」: 空载下常降频, 损耗模型不适用同一套参数。",
+    },
+    {
+        "zh": "最小载",
+        "en": "minimum load",
+        "ratio": None,
+        "kind": "load",
+        "note": "比例待确认: 最小稳定负载由具体拓扑决定, 不是常数。收录但不给比例 —— "
+        "编一个数会让规则在错误工况上运行且不报错。",
+    },
+    {
+        "zh": "额定",
+        "en": "rated",
+        "ratio": None,
+        "kind": "rating",
+        "note": "保证工作点/保证极限。与「标称」不同, 不可互换。不给比例。",
+    },
+    {
+        "zh": "标称",
+        "en": "nominal",
+        "ratio": None,
+        "kind": "nominal",
+        "note": "常规取整的代表值, 无保证含义。不给比例。",
+    },
+    {
+        "zh": "最大额定",
+        "en": "absolute maximum rating",
+        "ratio": None,
+        "kind": "rating",
+        "note": "超过即可能损坏的绝对上限, 与「额定工作值」不是一回事。",
+    },
+    {
+        "zh": "xx%载",
+        "en": "fraction load",
+        "ratio": None,
+        "kind": "load",
+        "pattern": r"^(\d+(?:\.\d+)?)\s*%\s*载$",
+        "note": "**按模式求值, 不是固定值**: xx%载 = 满载 × xx%。例 30%载 -> 0.30。"
+        "ratio 刻意为 null —— 它是待求量, 不是常量; 给出 1.0 之类的值会让推理"
+        "把任意百分比都当成满载。整串锚定以免把 P_load 的 load 误认成工况词。",
+    },
 )
 #: 工况别名词典: 别名 -> 规范名。**别名词也要能被规则匹配到** —— 规格书里写
 #: 「50% 载」而知识库写「半载」时, 两者必须归一到同一个比例, 否则产测用例会漏掉
@@ -129,6 +169,7 @@ LOAD_RULES: tuple[dict[str, Any], ...] = (
         ],
     },
 )
+
 
 def _load_key(en: str) -> str:
     """英文工况名 -> Datalog 常量名(下划线形态)。
@@ -347,7 +388,6 @@ def authority_ref(
     }
 
 
-
 def _props(
     values: dict[str, Any],
     produced_by: str,
@@ -491,10 +531,14 @@ def build_authoritative_terms() -> list[dict[str, Any]]:
         # ``verbatim=False`` 时把释义来源标出来。查证深度有深浅两种(条款号出现在
         # 术语清单里 vs 定义正文逐字抄到), 不区分的话读者会以为每条都核对过原文。
         verbatim = spec.get("verbatim", True)
-        definition = spec["definition"] if verbatim else (
-            f"{spec['definition']} "
-            f"[释义由本项目撰写 —— 条款号已核对 {spec['standard']} "
-            f"§{spec['standard_section']} 术语清单, 定义正文未逐字核对]"
+        definition = (
+            spec["definition"]
+            if verbatim
+            else (
+                f"{spec['definition']} "
+                f"[释义由本项目撰写 —— 条款号已核对 {spec['standard']} "
+                f"§{spec['standard_section']} 术语清单, 定义正文未逐字核对]"
+            )
         )
         # 释义逐字抄录的置信度高; 本项目撰写的低一档 —— 两者的可复核性不同。
         confidence = 0.95 if verbatim else 0.85
@@ -580,9 +624,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
         "practice_scope": "condition",
         "name": "纹波测试并联电容",
         "en": "ripple test decoupling capacitor",
-        "practice": (
-            "在输出测点并接 10uF 电解电容 + 0.1uF 陶瓷电容(高频噪声旁路)后测纹波。"
-        ),
+        "practice": ("在输出测点并接 10uF 电解电容 + 0.1uF 陶瓷电容(高频噪声旁路)后测纹波。"),
         "why_wrong_without_it": (
             "模块输出端的二次纹波与开关噪声在空载/轻载时最坏; 不加旁路电容测到的"
             "是「模块自身纹波 + 探头拾取」之和, 而客户系统里实际存在的是加了电容后"
@@ -787,8 +829,7 @@ PRODUCTION_PRACTICE: tuple[dict[str, Any], ...] = (
             "「动作很慢」或反之。"
         ),
         "spec_example": (
-            "PA601 SR-1213 开机输出延迟; 术语表已有 INSTR_SOE_TESTER(SOE测试仪)"
-            "但无任何判据引用它。"
+            "PA601 SR-1213 开机输出延迟; 术语表已有 INSTR_SOE_TESTER(SOE测试仪)但无任何判据引用它。"
         ),
         "tags": ["时间", "SOE"],
     },
@@ -1201,10 +1242,7 @@ def build_production_practice() -> list[dict[str, Any]]:
     """
     out: list[dict[str, Any]] = []
     for spec in PRODUCTION_PRACTICE:
-        text = (
-            f"{spec['id']}: {spec['name']} {spec['en']} — "
-            f"做法: {spec['practice']}"
-        )
+        text = f"{spec['id']}: {spec['name']} {spec['en']} — 做法: {spec['practice']}"
         out.append(
             {
                 "id": spec["id"],
@@ -1219,8 +1257,7 @@ def build_production_practice() -> list[dict[str, Any]]:
                         "definition": spec["practice"],
                         # 两段并列存: 前者是做法, 后者是「省掉的后果」。
                         "note": (
-                            f"{spec['why_wrong_without_it']}\n"
-                            f"【规格书实例】{spec['spec_example']}"
+                            f"{spec['why_wrong_without_it']}\n【规格书实例】{spec['spec_example']}"
                         ),
                         "practice": spec["practice"],
                         "consequence_if_skipped": spec["why_wrong_without_it"],
@@ -1496,7 +1533,13 @@ def build_referenced_standards() -> list[dict[str, Any]]:
 #: **非 ``unverified`` 的一律保留** —— ``industry`` / ``standard`` 级说明有人工
 #: 判断过, 那个判断不因为「当前零引用」而失效。
 _TEXT_CITATION_FIELDS = (
-    "source", "clause", "authority_ref", "text", "title", "note", "scope",
+    "source",
+    "clause",
+    "authority_ref",
+    "text",
+    "title",
+    "note",
+    "scope",
 )
 
 
@@ -1511,6 +1554,7 @@ def find_dead_standards(entities: list[dict[str, Any]]) -> list[str]:
     ``properties``, 直接读 ``e["authority_kind"]`` 恒为 ``None``, 规则会**静默
     返回空** —— 实测踩过一次: 条件永不成立, 移除数 0, 而生成日志里连一行都没有。
     """
+
     def p(e: dict[str, Any]) -> dict[str, Any]:
         return e.get("properties") or {}
 
@@ -1562,11 +1606,7 @@ def _out_of_scope_extra(entities: list[dict[str, Any]]) -> frozenset[str]:
 
 
 def _out_of_scope_static() -> frozenset[str]:
-    return frozenset(
-        OUT_OF_SCOPE_ENTITY_IDS
-        | OUT_OF_SCOPE_FORMULA_IDS
-        | DUPLICATE_CONCEPT_IDS
-    )
+    return frozenset(OUT_OF_SCOPE_ENTITY_IDS | OUT_OF_SCOPE_FORMULA_IDS | DUPLICATE_CONCEPT_IDS)
 
 
 def strip_conflated_synonyms(entities: list[dict[str, Any]]) -> list[str[str]]:
@@ -1591,9 +1631,7 @@ def strip_conflated_synonyms(entities: list[dict[str, Any]]) -> list[str[str]]:
             # 没人知道它是被谁摘的, 而下一次上游不再摘它时就会悄悄失效。
             dropped = props.setdefault("dropped_synonyms", [])
             if not any(d["alias"] == alias for d in dropped):
-                dropped.append(
-                    {"alias": alias, "basis": basis, "state": "already_absent"}
-                )
+                dropped.append({"alias": alias, "basis": basis, "state": "already_absent"})
             removed.append(f"{cid}: '{alias}' 已不存在(上游已处理, 清单项已陈旧)")
             continue
         syn.remove(alias)
@@ -1780,8 +1818,8 @@ def extract_formulas(lines: list[str]) -> list[dict[str, Any]]:
     ``| `F_J.2.1_BUCK` | `V_out = D × V_in` | `[V]` | A-2, A-4, T3 |``
 
     **保留原始表达式文本**, 不做归一化 —— 归一化是为量纲齐次性服务的, 而那不是
-    本层的职责; 概念层要的是「这条式子说了什么」, LightRAG 抽实体时看到的也应是
-    工程师写的式子, 而不是被改写过的形式。
+    本层的职责; 概念层要的是「这条式子说了什么」, 下游读到的也应是工程师写的
+    式子, 而不是被改写过的形式。
 
     ``declared_dimension`` 存方案自己写的量纲列(``[V]`` 之类)。**照抄, 不校验**
     —— 校验是另一层的职责; 这里只负责「方案说了什么」, 标明它只是方案的声明。
@@ -2267,8 +2305,7 @@ AUTHORITATIVE_TERMS: tuple[dict[str, Any], ...] = (
         "name": "稳态",
         "en": "steady state",
         "definition": (
-            "在所有瞬态效应消失后，当所有输入变量保持恒定时系统所维持的状态。"
-            "[101-14-01 MOD]"
+            "在所有瞬态效应消失后，当所有输入变量保持恒定时系统所维持的状态。[101-14-01 MOD]"
         ),
         "standard": "GB/T 2900.56-2008",
         "standard_section": "351-24-09",
@@ -2461,8 +2498,7 @@ AXIOM_RULE_IMPLEMENTATION: dict[str, dict[str, object]] = {
             "K-PWR-125 给同一残差加了功率预算允差判据。"
         ),
         "rejected": (
-            "K-PWR-121 是 P_out ≤ P_in 的功率平衡(属 A-3), 与 A-1 的多路"
-            "自洽不是同一件事。"
+            "K-PWR-121 是 P_out ≤ P_in 的功率平衡(属 A-3), 与 A-1 的多路自洽不是同一件事。"
         ),
     },
     "A-2": {
@@ -2883,8 +2919,8 @@ def extract_load_conditions() -> list[dict[str, Any]]:
                     "name": f"load_ratio({_load_key(item['en'])}, {item['ratio']})",
                     "type": "load_ratio",
                     "text": f"{item['zh']} 是满载的 {item['ratio']:.0%}"
-                            if item["ratio"] in (0.0, 0.5, 1.0)
-                            else f"{item['zh']} 是满载的 {item['ratio']}",
+                    if item["ratio"] in (0.0, 0.5, 1.0)
+                    else f"{item['zh']} 是满载的 {item['ratio']}",
                     "properties": _props(
                         {"load": _load_key(item["en"]), "ratio": item["ratio"]},
                         "convention",
@@ -2939,8 +2975,12 @@ def build_relationships(entities: list[dict[str, Any]]) -> list[dict[str, Any]]:
             continue
         if target_id and target_id in ids:
             rels.append(
-                {"source": e["id"], "target": target_id, "type": "defined_by",
-                 "properties": {"clause": aref}}
+                {
+                    "source": e["id"],
+                    "target": target_id,
+                    "type": "defined_by",
+                    "properties": {"clause": aref},
+                }
             )
 
     def add(src: str, dst: str, rtype: str) -> None:
@@ -3066,7 +3106,16 @@ def apply_corrections(
 
     for entry in corrections.get("standards") or ():
         # 标准 id 形如 ``std::GB 4943.1-2011``; 修正表按不带前缀的编号写
-        _do("standard", entry, f"std::{entry['id']}", {k: v for k, v in entry.items() if k not in ("id", "source", "checked", "note", "current")})
+        _do(
+            "standard",
+            entry,
+            f"std::{entry['id']}",
+            {
+                k: v
+                for k, v in entry.items()
+                if k not in ("id", "source", "checked", "note", "current")
+            },
+        )
         # ``replaced_by`` 指向的标准**必须同时建成实体**。只标 SUPERSEDED 而不建
         # 新实体, 会在 Semantica 的 foundation graph 里产生悬空边 —— 而缺一条
         # 边比多一条边更难排查(悬空引用看起来像数据不全, 实际是关系缺失)。
@@ -3121,7 +3170,16 @@ def apply_corrections(
         _updates = {
             k: v
             for k, v in entry.items()
-            if k not in ("id", "source", "checked", "note", "standard_ref", "authority_ref", "authority_kind")
+            if k
+            not in (
+                "id",
+                "source",
+                "checked",
+                "note",
+                "standard_ref",
+                "authority_ref",
+                "authority_kind",
+            )
         }
         _do("power_concept", entry, entry["id"], _updates)
 
@@ -3141,7 +3199,16 @@ def apply_corrections(
         _updates = {
             k: v
             for k, v in entry.items()
-            if k not in ("id", "source", "checked", "note", "standard_ref", "authority_ref", "authority_kind")
+            if k
+            not in (
+                "id",
+                "source",
+                "checked",
+                "note",
+                "standard_ref",
+                "authority_ref",
+                "authority_kind",
+            )
         }
         _do("formula", entry, entry["id"], _updates)
 
@@ -3161,7 +3228,16 @@ def apply_corrections(
         _updates = {
             k: v
             for k, v in entry.items()
-            if k not in ("id", "source", "checked", "note", "standard_ref", "authority_ref", "authority_kind")
+            if k
+            not in (
+                "id",
+                "source",
+                "checked",
+                "note",
+                "standard_ref",
+                "authority_ref",
+                "authority_kind",
+            )
         }
         _do(str(target.get("type") or "entity"), entry, entry["id"], _updates)
 
@@ -3264,9 +3340,7 @@ def apply_corrections(
         src = authority_ref(sid, kind="standard", confidence=entry.get("confidence"))
         src["metadata"]["checked"] = entry["checked"]
         src["metadata"]["correction_source"] = entry["source"]
-        _new_props = {
-            k: v for k, v in entry.items() if k not in _META_KEYS + ("id",)
-        }
+        _new_props = {k: v for k, v in entry.items() if k not in _META_KEYS + ("id",)}
         _new_props["authority_kind"] = "standard"
         _new_props["authority_ref"] = sid
         _new_props["provenance"] = {
@@ -3305,8 +3379,8 @@ def apply_corrections(
         # 远程命令」, 理由是「对齐标准」。那是**搞反了** —— 标准里这两个词都有,
         # 且 2.1.2~2.1.5 明文把遥测/遥信/遥控/遥调列为**同义词**; 而工程师实际
         # 说、实际搜的是后者, 方案自己的 YX_/YC_/YK_ 前缀也正是从它们缩写来的。
-        # 命名成「远程信号」之后搜「遥信」反而命中不了 —— 降低了 LightRAG 的
-        # 命中率, 与「对齐业界术语」的目标正好相反。
+        # 命名成「远程信号」之后搜「遥信」反而命中不了 —— 检索命中率被自己拉低,
+        # 与「对齐业界术语」的目标正好相反。
         #
         # 「对齐标准」在这里的落点是**记录标准正名与条号**, 不是替换掉通称。
         industry = fam.get("industry_term") or fam.get("synonym") or fam["standard_term"]
@@ -3357,16 +3431,25 @@ def apply_corrections(
                 target["properties"]["confidence"] = fam.get("confidence")
             for key in ("zh", "telemetry_family", "standard_term", "synonyms"):
                 target["properties"].setdefault("provenance", {})[key] = {
-                    "property_name": key, "value": target["properties"][key], "sources": [src]
+                    "property_name": key,
+                    "value": target["properties"][key],
+                    "sources": [src],
                 }
-            applied.append({
-                "kind": "power_concept", "id": cid, "matched": cid,
-                "before": {"zh": old},
-                "after": {"zh": target["properties"]["zh"]},
-                "authority_kind": kind, "authority_ref": ref, "clause": clause,
-                "source": fam["source"], "checked": fam["checked"],
-                "confidence": fam.get("confidence"),
-            })
+            applied.append(
+                {
+                    "kind": "power_concept",
+                    "id": cid,
+                    "matched": cid,
+                    "before": {"zh": old},
+                    "after": {"zh": target["properties"]["zh"]},
+                    "authority_kind": kind,
+                    "authority_ref": ref,
+                    "clause": clause,
+                    "source": fam["source"],
+                    "checked": fam["checked"],
+                    "confidence": fam.get("confidence"),
+                }
+            )
 
     for group in corrections.get("symbols") or ():
         # 符号的术语出处是**组**的(一组符号共用一个标准的同一批词条), 不是逐条的。
@@ -3403,7 +3486,12 @@ def apply_corrections(
             )
 
     for entry in corrections.get("load_conditions") or ():
-        _do("load_condition", entry, f"load::{entry['id']}", {k: v for k, v in entry.items() if k not in ("id", "source", "checked", "note")})
+        _do(
+            "load_condition",
+            entry,
+            f"load::{entry['id']}",
+            {k: v for k, v in entry.items() if k not in ("id", "source", "checked", "note")},
+        )
 
     if skipped:
         # **全部打印, 不截断**。早先写死 ``skipped[:4]``, 于是恰好 5 条以上跳过时
@@ -3834,9 +3922,7 @@ def _drop_short_refs(props: dict[str, Any], dropped: set[str]) -> dict[str, int]
             parts = _SHORT_REF_SPLIT_RE.split(val)
             kept = []
             for tok in parts:
-                hit = tok in dropped or any(
-                    d.startswith(tok + "_") for d in dropped
-                )
+                hit = tok in dropped or any(d.startswith(tok + "_") for d in dropped)
                 if hit and tok:
                     removed += 1
                 elif tok:
@@ -3847,9 +3933,7 @@ def _drop_short_refs(props: dict[str, Any], dropped: set[str]) -> dict[str, int]
             kept_list = []
             for item in val:
                 tok = str(item)
-                hit = tok in dropped or any(
-                    d.startswith(tok + "_") for d in dropped
-                )
+                hit = tok in dropped or any(d.startswith(tok + "_") for d in dropped)
                 if hit:
                     removed += 1
                 else:
@@ -3892,6 +3976,7 @@ def prune_non_executable(
     4. **最后删公理/定理** —— ``formula_refs`` 全部指向已删公式的才删。
        引用为空的不动: 「没有引用」不等于「引用失效」。
     """
+
     def props_of(e: dict[str, Any]) -> dict[str, Any]:
         return e.get("properties") or {}
 
@@ -3906,11 +3991,11 @@ def prune_non_executable(
     ]
     dropped_formula_ids = {e["id"] for e in entities} - {e["id"] for e in kept_entities}
 
-    haystack = " " + " ".join(
-        str(props_of(e).get(f) or "")
-        for e in kept_entities
-        for f in _TEXT_FIELDS
-    ) + " "
+    haystack = (
+        " "
+        + " ".join(str(props_of(e).get(f) or "") for e in kept_entities for f in _TEXT_FIELDS)
+        + " "
+    )
 
     def symbol_in_use(sym_id: str) -> bool:
         name = _SYMBOL_ID_RE.match(sym_id)
@@ -3924,11 +4009,11 @@ def prune_non_executable(
         )
 
     kept_entities = [
-        e
-        for e in kept_entities
-        if e.get("type") != "symbol" or symbol_in_use(e["id"])
+        e for e in kept_entities if e.get("type") != "symbol" or symbol_in_use(e["id"])
     ]
-    dropped_symbol_ids = {e["id"] for e in entities} - {e["id"] for e in kept_entities} - dropped_formula_ids
+    dropped_symbol_ids = (
+        {e["id"] for e in entities} - {e["id"] for e in kept_entities} - dropped_formula_ids
+    )
 
     stats_short_refs: dict[str, int] = {}
 
@@ -3973,7 +4058,12 @@ def prune_non_executable(
         for e in kept_entities
         if e.get("type") not in ("axiom", "theorem") or not axiom_refs_gone(e)
     ]
-    dropped_axiom_ids = {e["id"] for e in entities} - {e["id"] for e in kept_entities} - dropped_formula_ids - dropped_symbol_ids
+    dropped_axiom_ids = (
+        {e["id"] for e in entities}
+        - {e["id"] for e in kept_entities}
+        - dropped_formula_ids
+        - dropped_symbol_ids
+    )
 
     # 关系过滤**必须在公理删除之后**: ``has_theorem`` 的源端是公理, 若先算
     # ``alive`` 再删公理, 指向被删公理的边会留下来变成悬空边(实测 4 条)。
@@ -4056,9 +4146,12 @@ def main() -> int:
     ap.add_argument(
         "--spec",
         type=Path,
-        default=Path(__file__).resolve().parent.parent / "定制电源产品转产工装研发系统_开发指导方案_V6.0.md",
+        default=Path(__file__).resolve().parent.parent
+        / "定制电源产品转产工装研发系统_开发指导方案_V6.0.md",
     )
-    ap.add_argument("--out", type=Path, default=Path(__file__).resolve().parent.parent / "data" / "seed")
+    ap.add_argument(
+        "--out", type=Path, default=Path(__file__).resolve().parent.parent / "data" / "seed"
+    )
     ap.add_argument(
         "--corrections",
         type=Path,
@@ -4092,7 +4185,6 @@ def main() -> int:
     entities += build_authoritative_terms()
     entities += build_referenced_standards()
     entities += build_production_practice()
-
 
     deduped: dict[str, dict[str, Any]] = {}
     for e in entities:
@@ -4142,9 +4234,7 @@ def main() -> int:
         aid = entry.get("id")
         if not aid:
             return True  # 没有 id 的条目不由本过滤判断
-        return bool(
-            {str(aid), f"std::{aid}", f"sym::{aid}"} & _alive_ids
-        )
+        return bool({str(aid), f"std::{aid}", f"sym::{aid}"} & _alive_ids)
 
     _stale = [a for a in corrections_applied if not _audit_target_alive(a)]
     if _stale:
@@ -4154,8 +4244,7 @@ def main() -> int:
             f"{sorted({str(a.get('id')) for a in _stale})[:6]}"
         )
     short_ref_note = (
-        " / 注记短记号 "
-        + " ".join(f"{k} {v}" for k, v in sorted(prune_stats["short_ref"].items()))
+        " / 注记短记号 " + " ".join(f"{k} {v}" for k, v in sorted(prune_stats["short_ref"].items()))
         if prune_stats["short_ref"]
         else ""
     )
@@ -4179,7 +4268,9 @@ def main() -> int:
     }
     args.out.mkdir(parents=True, exist_ok=True)
     path = args.out / "power_domain_seed.json"
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n")
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n"
+    )
 
     counts: dict[str, int] = {}
     for e in entities:

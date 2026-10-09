@@ -1,4 +1,4 @@
-"""两层装配检索验证: model + domain (不依赖 LightRAG).
+"""两层装配检索验证: model + domain.
 
 原为三层(model + domain + common)。2026-10 移除 common 层: `K-CMN-001`
 (SI 词头换算)已并入 `domain_rules/power/`, 所以「单位换算」现在应当从

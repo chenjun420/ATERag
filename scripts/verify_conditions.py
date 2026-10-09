@@ -354,25 +354,59 @@ def main() -> int:
     # ---------- 7. 人工注记 (人工审核的语义应覆盖规则推断) ----------
     c1213 = next((c for c in r.conditions if c.req_id == "SR-PA601-D54A-1213"), None)
     check("注记-SR-1213 复合条件已注记", c1213 is not None)
+
+    # **断言不变量, 不断言「当前是草稿」。**
+    # 这三条原先写死「必须是 proposed / 必须打 annotation_draft / 草稿数 >= 1」,
+    # 那是把「2026-09-29 那天它还没签字」当成了永久事实。SR-1213 一旦真的签字
+    # (2026-10-09 已签), 三条同时变红 —— 而签字是**期望发生的事**, 门禁却因此
+    # 变红, 于是真签字与门禁通过变成互斥。
+    #
+    # 不变量是: **子句的 confidence 与注记的签字状态一致**, 且草稿数与之一致。
+    # 草稿就该标 proposed 并计入草稿数; 已签字就该是 annotated 且计数归零。
+    # 两种状态下都成立, 而「状态漂移了」会红。
+    e1213 = ann.get("SR-PA601-D54A-1213")
+    is_draft = bool(e1213 and e1213.is_draft)
+    want_conf = "proposed" if is_draft else "annotated"
+    want_flag = is_draft
+    # **只对注记来源的子句断言。** 该需求还有一条由「补齐」环节加进来的
+    # ``measurement_setup`` 子句(source=industry_method, method_ref=
+    # psu_timing_measurement) —— 它不是注记的一部分, 不该跟着注记的签字状态
+    # 走。把它算进来, 断言就会在「注记已签字」时误报: 那条子句的 proposed 是
+    # 「方法库建议待确认」, 与「注记未签字」是两回事。
+    from aterag.extract.assembler import SRC_ANNOTATION as _SRC_ANN
+
+    ann_clauses = [
+        cl
+        for cl in (
+            *(c1213.input_conditions if c1213 else ()),
+            *(c1213.output_conditions if c1213 else ()),
+        )
+        if cl.source == _SRC_ANN
+    ]
     check(
-        "注记-草稿状态标 proposed 而非 annotated",
-        bool(c1213)
-        and all(
-            cl.confidence == "proposed"
-            for cl in (*c1213.input_conditions, *c1213.output_conditions)
-        ),
-        "未签字的注记不得以 annotated 身份混进定稿语义",
+        "注记-confidence 与签字状态一致",
+        bool(ann_clauses) and all(cl.confidence == want_conf for cl in ann_clauses),
+        f"签字状态 draft={is_draft}, 期望 confidence={want_conf!r}, 注记子句 {len(ann_clauses)} 条",
     )
     check(
-        "注记-草稿打 annotation_draft 标记",
-        bool(c1213) and "annotation_draft" in c1213.flags,
-        str(c1213.flags) if c1213 else "",
+        "注记-annotation_draft 标记与签字状态一致",
+        bool(c1213) and ("annotation_draft" in c1213.flags) == want_flag,
+        f"签字状态 draft={is_draft}, flags={c1213.flags if c1213 else None}",
     )
     check(
-        "注记-统计计入草稿数",
-        r.stats.get("annotation_draft", 0) >= 1,
-        str(r.stats.get("annotation_draft")),
+        "注记-草稿数与签字状态一致",
+        (r.stats.get("annotation_draft", 0) >= 1) == is_draft,
+        f"签字状态 draft={is_draft}, 草稿数={r.stats.get('annotation_draft')}",
     )
+
+    # 反向门禁: **草稿不得以 annotated 身份混进定稿语义**。这条不依赖当前状态,
+    # 因为它约束的是「草稿时应该怎样」—— 正是原来那条断言想守住的东西。
+    if is_draft:
+        check(
+            "注记-草稿状态标 proposed 而非 annotated",
+            bool(ann_clauses) and all(cl.confidence == "proposed" for cl in ann_clauses),
+            "未签字的注记不得以 annotated 身份混进定稿语义",
+        )
 
     # 签字后必须升为 annotated 且草稿数归零 —— 用临时档案模拟签字, 不改仓库文件
 

@@ -1,9 +1,7 @@
 """规格书实体 -> 知识图谱节点与关系。
 
-随 LightRAG 移除而搬家到这里。这段映射**本身与检索库无关** —— 它描述的是
-「规格书表格抽出的实体」到「本体节点/关系」的形状: 每个型号一个 Product 节点,
-其余实体用 has 边挂在它下面。它原先借用了 LightRAG 的 ``custom_kg`` 容器,
-删掉 LightRAG 时不该连它一起删。
+描述的是「规格书表格抽出的实体」到「本体节点/关系」的形状: 每个型号一个
+Product 节点, 其余实体用 has 边挂在它下面。
 
 返回 ``{"entities": [...], "edges": [...], "triplets": []}``: 前两个键与
 Semantica ``SeedDataManager.create_foundation_graph`` 读的 ``entities`` /
@@ -49,5 +47,3 @@ def entities_to_custom_kg(entities: list, model_id: str) -> dict:
             }
         )
     return {"entities": nodes, "edges": edges, "triplets": []}
-
-

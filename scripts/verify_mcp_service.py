@@ -1,21 +1,20 @@
 """板卡 MCP 服务 systemd 状态验证 (常驻 + 端点 + 版本 + 自启).
 
 用法: .venv\\Scripts\\python.exe scripts\\verify_mcp_service.py
-凭据: BOARD_SSH_PASSWORD
+凭据: BOARD_SSH_KEY (优先) / BOARD_SSH_PASSWORD
 """
 
 from __future__ import annotations
 
-import os
 import sys
 
 import paramiko
+from board_ssh import KEY, PWD
+from board_ssh import connect as board_connect
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-HOST = os.getenv("BOARD_SSH_HOST", "192.168.5.25")
-USER = os.environ.get("BOARD_SSH_USER", "")
-PWD = os.getenv("BOARD_SSH_PASSWORD", "")
+
 SVC = "aterag-mcp"
 PORT = "8080"
 
@@ -31,14 +30,10 @@ def sh(cli: paramiko.SSHClient, cmd: str, sudo: bool = False) -> tuple[int, str]
 
 
 def main() -> int:
-    if not PWD:
-        print("未设置 BOARD_SSH_PASSWORD")
+    if not PWD and not KEY:
+        print("无可用 SSH 凭据 (设 BOARD_SSH_KEY 或 BOARD_SSH_PASSWORD)")
         return 1
-    cli = paramiko.SSHClient()
-    cli.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    cli.connect(
-        HOST, username=USER, password=PWD, timeout=20, look_for_keys=False, allow_agent=False
-    )
+    cli = board_connect()
     checks: list[tuple[str, bool, str]] = []
     try:
         _, active = sh(cli, f"systemctl is-active {SVC}", sudo=True)

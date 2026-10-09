@@ -8,7 +8,7 @@
     /opt/aterag/.venv/bin/python /opt/aterag/scripts/ingest_new_spec.py /opt/aterag/specs/PN2000-24A.md
 
 自动完成: 型号识别 -> 产品类型分类 -> 注册 -> 解析 -> 实体抽取 ->
-PG 实体/分块 + Qdrant 向量 + LightRAG 图谱 (可重复执行, 幂等覆盖)。
+PG 实体/分块 + 向量 (可重复执行, 幂等覆盖)。
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ import os
 import sys
 from pathlib import Path
 
-# 所有配置项 (registry_path / domain_rules_dir / LightRAG working_dir) 都是相对 CWD
+# 所有配置项 (registry_path / domain_rules_dir / working_dir) 都是相对 CWD
 # 解析的。板卡上经 SSH 执行时 CWD 可能是 / 或家目录, 必须先切到应用根, 否则:
 #   - .env 读不到            -> 配置项全部缺失
 #   - registry.yaml 写错位置 -> 新型号注册后"查不到"

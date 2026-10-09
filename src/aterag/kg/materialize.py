@@ -42,10 +42,12 @@ sys.stdout.reconfigure(encoding="utf-8")
 logger = logging.getLogger(__name__)
 
 
-def build_context_graph(records: Iterable[Mapping[str, Any]],
-                        relationships: Iterable[Mapping[str, Any]],
-                        *,
-                        advanced_analytics: bool = False):
+def build_context_graph(
+    records: Iterable[Mapping[str, Any]],
+    relationships: Iterable[Mapping[str, Any]],
+    *,
+    advanced_analytics: bool = False,
+):
     """把扁平种子记录构造成 ContextGraph。
 
     参数形状与 ``data/seed/power_domain_seed.json`` 的 ``records`` 一致 ——
@@ -97,9 +99,7 @@ def build_context_graph(records: Iterable[Mapping[str, Any]],
         if src and tgt:
             if rec.get("external") is True:
                 n_external += 1
-                external_refs.setdefault(str(src), {})[str(tgt)] = str(
-                    rec.get("ontology") or ""
-                )
+                external_refs.setdefault(str(src), {})[str(tgt)] = str(rec.get("ontology") or "")
                 continue
             if str(src) == str(tgt):
                 n_selfloop += 1
@@ -142,7 +142,9 @@ def build_context_graph(records: Iterable[Mapping[str, Any]],
         logger.info(
             "关系记录取舍: 外部本体引用 %d 条(折进节点 metadata, 不建边) / "
             "自环 %d 条(丢弃) / 目标不存在 %d 条(丢弃)",
-            n_external, n_selfloop, n_dangling,
+            n_external,
+            n_selfloop,
+            n_dangling,
         )
 
     for n in nodes:

@@ -4,7 +4,7 @@
 
 # 目标机: 192.168.5.25 (Debian 12 ARM64)
 
-# 前置: Step 1~5 已完成 (PostgreSQL 17 + AGE/vector/pg_textsearch/zhparser (Qdrant 已随 ADR-014 移除))
+# 前置: Step 1~5 已完成 (PostgreSQL 17 + AGE/vector/pg_textsearch/zhparser)
 
 # 用法: sudo -i  然后  bash /opt/aterag/native/06-install-aterag.sh
 
@@ -116,25 +116,27 @@ echo "===== STEP6.4 安装 Python 依赖 ====="
 
 # 单点真相是 pyproject.toml。
 
+# **续行的 `\` 与下一部分之间不能有空行** —— 空行会终止命令, 于是
+# `uv pip install --python X <空行> -e APP` 变成两条命令, 第一条缺
+# <PACKAGE> 参数直接 rc=2。这个损坏在仓库里存在很久, 意味着这一步从未成功
+# 执行过(板卡上的 venv 是别的途径装的), 所以「板卡能跑」并不能证明脚本对。
 sudo -u "$SVC_USER" env UV_PYTHON_INSTALL_DIR="$PY_HOME" \
-
   "$UV_BIN" --no-config pip install --python "$APP_DIR/.venv/bin/python" \
-
   -e "$APP_DIR"
 
 
 
 # 装完必须真的能导入, 尤其是那几个「只在运行时按名字加载」的:
 
-# psycopg2 (semantica 的 AGE store)、pgvector+asyncpg (lightrag PGVectorStorage)、
+# psycopg2 (semantica 的 AGE store)、pgvector+asyncpg (hybrid.py 的 SQL 运算符
 
-# fastapi+uvicorn (workbench)、paramiko (板卡脚本)。
+# 与向量列)、fastapi+uvicorn (workbench)、paramiko (板卡脚本)。
 
 "$APP_DIR/.venv/bin/python" - <<'PYCHECK'
 
 import importlib
 
-mods = ("lightrag", "semantica", "pyshacl", "mcp", "psycopg", "psycopg2",
+mods = ("semantica", "pyshacl", "mcp", "psycopg", "psycopg2",
 
         "pgvector", "asyncpg", "numpy")
 

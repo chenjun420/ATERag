@@ -357,9 +357,7 @@ def main() -> int:
     ap.add_argument("-m", "--model", required=True, help="型号 ID")
     ap.add_argument("--limit", type=int, default=0, help="最多起草多少条 (0=不限)")
     ap.add_argument("--dry-run", action="store_true", help="只跑校验不落盘")
-    ap.add_argument(
-        "--list-candidates", action="store_true", help="只列出规则切不出的行, 不调 LLM"
-    )
+    ap.add_argument("--list-candidates", action="store_true", help="只列出规则切不出的行, 不调 LLM")
     args = ap.parse_args()
 
     if args.list_candidates:

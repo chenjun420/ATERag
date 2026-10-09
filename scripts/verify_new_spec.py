@@ -17,7 +17,6 @@ from aterag.rag.service import RagService
 from aterag.registry import Registry
 
 MODEL = sys.argv[1] if len(sys.argv) > 1 else "PN2000-24A"
-WS = MODEL.lower().replace("-", "_")
 
 # 该型号独有的探针值: 命中即证明检索到本型号, 不会与 PA601/PN1000 混淆
 PROBES = {
@@ -48,16 +47,10 @@ def main() -> int:
         n_ent = cur.fetchone()[0]
         cur.execute("SELECT count(*) FROM aterag_chunks WHERE workspace_id=%s", (MODEL,))
         n_chunk = cur.fetchone()[0]
-        cur.execute("SELECT sum(count) FROM lightrag_full_entities WHERE workspace=%s", (WS,))
-        n_lrag = cur.fetchone()[0] or 0
-        cur.execute(
-            "SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='lightrag_vdb_chunks_qwen3_7_text_embedding_1024d'"
-        )
         checks.append(("PG 实体已入库", n_ent > 0, f"{n_ent} 实体"))
         checks.append(("PG 分块已入库", n_chunk > 0, f"{n_chunk} 分块"))
-        checks.append(("LightRAG 图谱已入库", n_lrag > 0, f"{n_lrag} 实体"))
 
-    # ---- 3. pgvector (向量与分块同表, ADR-014) ----
+    # ---- 3. pgvector (向量与分块同表) ----
     try:
         import psycopg
 

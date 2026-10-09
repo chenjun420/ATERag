@@ -8,41 +8,15 @@
 按 ``workspace_id IN (...)`` 下推到存储层的引擎。两条路都齐了, 再用 RRF
 按名次融合, 是满足这两条要求的最小组合。
 
-## 决策依据存档 (LightRAG mix 模式的实测结论)
+## 融合形态
 
-LightRAG 已从依赖中移除(它只用于入库时的实体关系抽取, 而那条路的产物
-无人查询 —— 检索全程走本模块)。移除前实测过它的 ``mix`` 模式, 结论记在这里
-以免将来重新评估时重踩:
+步骤、过滤语义、层标规则、RRF 参数(k=60, 按 ``content[:200]`` 去重) 是
+照着 ``rag/service.py`` 的实现复制的 —— 那边才是融合逻辑的所在地, 本模块
+只负责把向量那一路的存储换成 pgvector。两边必须保持同一形态, 否则
+「换存储」会被顺手换成「换检索策略」。
 
-* **不含 BM25**: ``mix`` 做的是三次**向量**检索再做 round-robin 合并 ——
-  ``_get_node_data(ll_keywords, ..., entities_vdb)`` +
-  ``_get_edge_data(hl_keywords, ..., relationships_vdb)`` +
-  ``_get_vector_context(query, chunks_vdb)``。LLM 先抽出
-  ``ll_keywords``/``hl_keywords``, 但那些 keyword 拿去**做向量查询**, 不走
-  倒排/全文索引; 整包 lightrag 里 ``bm25``/``ts_rank``/``plainto_tsquery``
-  零命中。
-* **一个进程只服务一个 workspace**: ``LightRAG.workspace`` 是 dataclass
-  字段, 构造时冻结; ``LIGHTRAG-WORKSPACE`` 请求头只在 ``/health`` 被消费
-  (``lightrag_server.py`` 里 ``get_workspace_from_request`` 的唯一调用点在
-  ``get_status`` 内), 而 ``/query`` 用的 ``rag`` 是闭包捕获的单一实例。
-  拿不到跨三层 workspace 的联合检索。
-* **PG 后端的 workspace 是进程级环境变量**: ``postgres_impl.py`` 里
-  ``os.environ["POSTGRES_WORKSPACE"]`` 优先于构造参数(日志原文:
-  ``overriding '<self.workspace>/<self.namespace>'``), 所以同进程内多实例
-  会互相覆盖。
-
-三条合起来: 满足产测检索要求的只有本模块这条自研路径。
-
-## 融合形态与 rag/service.py 保持一致
-
-ADR-014 决策 2 明确: 「融合算法与原 rag/service.py 保持同一形态(先向量预过滤
-再 BM25 再 RRF), 避免『换存储』被顺手换成『换检索策略』」。故本模块的步骤、
-过滤语义、层标规则、RRF 参数(k=60, 按 content[:200] 去重) 都照抄原实现,
-只把向量那一路的**存储**从 Qdrant 换成 pgvector。
-
-硬过滤语义与原 ``qdrant_search`` 逐项一致: ``workspace_id IN (...)`` 是前提,
-``section_path`` / ``category`` / ``priority`` 逐项收紧; 后两者传 ``"all"``
-视为不过滤(原实现如此, 这里照抄)。
+硬过滤语义: ``workspace_id IN (...)`` 是前提, ``section_path`` /
+``category`` / ``priority`` 逐项收紧; 后两者传 ``"all"`` 视为不过滤。
 """
 
 from __future__ import annotations
@@ -80,10 +54,10 @@ CHUNK_COLUMNS = (
 def chunk_uid(workspace_id: str, section_path: str, content: str) -> str:
     """chunk 的确定性主键(内容寻址)。
 
-    原 Qdrant 路径用 ``uuid5(命名空间, f"{workspace}:{model}:{index}")``
-    (见 DELIVERY-REPORT.md:152「chunk UUID 必须确定」)。这里改成内容寻址:
-    同一 workspace + 章节 + 内容永远算出同一个 key, 于是**重复导入是幂等的**
-    —— 重灌覆盖而不是追加。原先靠 index 的方案在块顺序变化时会算出新 key,
+    必须是确定值 —— DELIVERY-REPORT.md:152「chunk UUID 必须确定」。
+    这里用内容寻址: 同一 workspace + 章节 + 内容永远算出同一个 key, 于是
+    **重复导入是幂等的** —— 重灌覆盖而不是追加。靠 index 的方案在块顺序
+    变化时会算出新 key,
     旧行就成了既不被查到也不被删的孤儿。
     """
     return str(uuid.uuid5(_CHUNK_NS, f"{workspace_id}\x1f{section_path}\x1f{content}"))
@@ -115,13 +89,11 @@ def ensure_vector_schema(dsn: str, dim: int) -> None:
         raise ValueError(f"embed 维度未探明 (dim={dim}); 不允许建零维向量列")
 
     with psycopg.connect(dsn) as conn:
-        exists = conn.execute(
-            "SELECT to_regclass('public.aterag_chunks') IS NOT NULL"
-        ).fetchone()[0]
+        exists = conn.execute("SELECT to_regclass('public.aterag_chunks') IS NOT NULL").fetchone()[
+            0
+        ]
         if not exists:
-            raise RuntimeError(
-                "aterag_chunks 表不存在; 先调 ingest.pipeline.ensure_pg_schema(dsn)"
-            )
+            raise RuntimeError("aterag_chunks 表不存在; 先调 ingest.pipeline.ensure_pg_schema(dsn)")
 
         # 1) 维度探查 + 必要时重建
         cur_dim = None
@@ -151,9 +123,7 @@ def ensure_vector_schema(dsn: str, dim: int) -> None:
             conn.execute("DROP INDEX IF EXISTS idx_aterag_chunks_vec")
             conn.execute("ALTER TABLE aterag_chunks DROP COLUMN embedding")
         if cur_dim != dim:
-            conn.execute(
-                f"ALTER TABLE aterag_chunks ADD COLUMN embedding vector({dim})"
-            )
+            conn.execute(f"ALTER TABLE aterag_chunks ADD COLUMN embedding vector({dim})")
 
         # 2) 确定性主键 + 回填 + 唯一索引
         # 去重与建索引收敛到 pipeline.ensure_chunk_key_column —— 早先这里与
@@ -317,7 +287,7 @@ async def vector_search(
                priority, rail, req_id, content,
                1 - (embedding <=> %s::vector) AS score
         FROM aterag_chunks
-        WHERE {' AND '.join(conds)}
+        WHERE {" AND ".join(conds)}
         ORDER BY embedding <=> %s::vector
         LIMIT %s
     """
@@ -347,8 +317,8 @@ def bm25_search(
 ) -> list[dict]:
     """pg_textsearch BM25 检索 (中文配置), 跨 workspace UNION, 支持元数据过滤。
 
-    从 ``ingest.pipeline`` 原样搬来 —— 它本来就是纯 PG, 与 Qdrant 无关,
-    搬过来是为了让检索原语都在一处, 而不是留一半在 ingest 一半在 retrieval。
+    从 ``ingest.pipeline`` 原样搬来 —— 搬过来是为了让检索原语都在一处,
+    而不是留一半在 ingest 一半在 retrieval。
     ``priority``/``exclude_priority`` 语义与 :func:`vector_search` 一致
     (单值保持向后兼容; 多值/负向集合走 ANY/ALL 数组参数)。
     """

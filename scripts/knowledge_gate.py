@@ -82,6 +82,7 @@ def load_rule_ids(rules_glob: str = "domain_rules/*/rules.yaml") -> frozenset[st
     _RULE_IDS = frozenset(ids)
     return _RULE_IDS
 
+
 #: 本库 id 命名空间形态(用于「值形似 id」的通用扫描)。
 #: 推导自真实 id 集合(有测试钉)。有了这个式子, 将来新增字段(比如某个
 #: ``related_refs``)忘了在 :data:`REF_FIELDS` 登记, 通用扫描仍能抓到它指不到
@@ -89,9 +90,7 @@ def load_rule_ids(rules_glob: str = "domain_rules/*/rules.yaml") -> frozenset[st
 #:
 #: ``err::`` 是勘误号命名空间: 勘误 ``E-1`` 裸号与公式的章节号形态完全撞车
 #: (``A-1``/``F_E.1`` 都是章节记号), 加前缀就是把勘误从章节记号里分出来。
-ID_NAMESPACE = re.compile(
-    r"^(F_[A-Z]|A-\d|thm::|sym::|std::|err::|load::|loadratio::|rel::)"
-)
+ID_NAMESPACE = re.compile(r"^(F_[A-Z]|A-\d|thm::|sym::|std::|err::|load::|loadratio::|rel::)")
 
 #: 已登记的**裸名 id** 类型 —— 概念名直接当 id, 不带命名空间前缀。
 #:
@@ -293,9 +292,7 @@ def check_refs(records: list[dict[str, Any]], ids: set[str], report: GateReport)
                 if ref in rule_ids:
                     continue
                 where = "种子无此节点" if not ref.startswith("K-") else "规则库无此规则"
-                report.add(
-                    "ref_resolves", "ERROR", rid, f"{fld} -> {ref} 解析不到({where})"
-                )
+                report.add("ref_resolves", "ERROR", rid, f"{fld} -> {ref} 解析不到({where})")
 
 
 #: 明确不是「指向本记录集 id」的字段, 附理由。通用扫描(WARN)跳过它们:
@@ -413,7 +410,9 @@ def discover_reference_fields(records: list[dict[str, Any]], ids: set[str]) -> d
     return dict(hits)
 
 
-def check_undeclared_id_tokens(records: list[dict[str, Any]], ids: set[str], report: GateReport) -> None:
+def check_undeclared_id_tokens(
+    records: list[dict[str, Any]], ids: set[str], report: GateReport
+) -> None:
     """未登记字段里的 id 记号解析不到 -> **WARN 汇总**, 不逐条 ERROR。
 
     与声明字段分开定级是实测逼出来的: 同一种「解析不到」, 出现在
@@ -781,8 +780,7 @@ def check_authority_coverage(records: list[dict[str, Any]], report: GateReport) 
 
     # 关系记录里的自环: 不含信息, 且 materialize 建图时会丢弃 —— 于是「记录数」
     # 与「实际建边数」永远对不上, 按记录数审图的人会把它当成真边。必须可见。
-    self_loops = sum(1 for r in rels_recs
-                     if str(r.get("source_id")) == str(r.get("target_id")))
+    self_loops = sum(1 for r in rels_recs if str(r.get("source_id")) == str(r.get("target_id")))
 
     report.stats.update(
         {
@@ -795,19 +793,25 @@ def check_authority_coverage(records: list[dict[str, Any]], report: GateReport) 
 
     if unv_ratio > UNVERIFIED_RATIO_MAX:
         report.add(
-            "authority_coverage", "WARN", "<seed>",
+            "authority_coverage",
+            "WARN",
+            "<seed>",
             "unverified 占比 %.1f%% 超过上限 %.0f%% (%d/%d) —— 查证工作可能停了"
             % (unv_ratio * 100, UNVERIFIED_RATIO_MAX * 100, unv, total),
         )
     if conf_ratio < CONFIDENCE_COVER_MIN:
         report.add(
-            "authority_coverage", "WARN", "<seed>",
+            "authority_coverage",
+            "WARN",
+            "<seed>",
             "confidence 覆盖率 %.1f%% 低于下限 %.0f%% —— 缺失的语义是「未查证」"
             % (conf_ratio * 100, CONFIDENCE_COVER_MIN * 100),
         )
     if self_loops:
         report.add(
-            "authority_coverage", "WARN", "<seed>",
+            "authority_coverage",
+            "WARN",
+            "<seed>",
             "关系记录里有 %d 条自环(source==target) —— 建图时会被丢弃, "
             "使「关系记录数」与「实际建边数」对不上" % self_loops,
         )
@@ -959,7 +963,9 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(report.to_dict(), ensure_ascii=False, indent=2))
     else:
         st = report.stats
-        print(f"知识门 {seed_path}: {st['records']} 条记录 ({st['with_id']} 带 id, {st['relations']} 关系)")
+        print(
+            f"知识门 {seed_path}: {st['records']} 条记录 ({st['with_id']} 带 id, {st['relations']} 关系)"
+        )
         if "l0_tables" in st:
             print(
                 f"  l0_term 数据政策: {st['l0_tables']} 张表, "

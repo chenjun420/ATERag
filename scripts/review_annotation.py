@@ -310,7 +310,9 @@ def main() -> int:
             print("[FAIL] registry 里没有任何已注册型号; 先导入规格书, 或用 -m 显式指定")
             return 1
         else:
-            print(f"[FAIL] 已注册 {len(registered)} 个型号, -m 必须显式指定: {', '.join(registered)}")
+            print(
+                f"[FAIL] 已注册 {len(registered)} 个型号, -m 必须显式指定: {', '.join(registered)}"
+            )
             return 1
     args.model = model
 

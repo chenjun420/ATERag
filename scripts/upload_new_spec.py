@@ -1,7 +1,7 @@
 """新产品规格书一键上传 + 导入 (开发机 -> 板卡 -> 全链路入库).
 
 把本地 Markdown 规格书上传到板卡, 调用板卡 venv 执行 ingest_spec 全链路
-(型号识别 -> 类型分类 -> 注册 -> 解析 -> 实体抽取 -> PG/Qdrant/LightRAG),
+(型号识别 -> 类型分类 -> 注册 -> 解析 -> 实体抽取 -> PG),
 最后回读校验。
 
 用法:
@@ -25,12 +25,11 @@ import sys
 import time
 
 import paramiko
+from board_ssh import HOST, PWD, USER
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-HOST = os.getenv("BOARD_SSH_HOST", "192.168.5.25")
-USER = os.environ.get("BOARD_SSH_USER", "")
-PWD = os.getenv("BOARD_SSH_PASSWORD", "")
+
 SPECS_DIR = "/opt/aterag/specs"
 PY = "/opt/aterag/.venv/bin/python"
 INGEST_CLI = "/opt/aterag/scripts/ingest_new_spec.py"

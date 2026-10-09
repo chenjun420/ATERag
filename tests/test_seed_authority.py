@@ -3,7 +3,7 @@
 这些断言对应的都是**已经真实发生过的缺陷**, 不是假想:
 每条测试名里写清「原本坏在哪」, 免得将来有人把它当过度约束删掉。
 
-范围: 只测 ``data/seed/power_domain_seed.json`` 的静态性质, 不碰 PG/Qdrant。
+范围: 只测 ``data/seed/power_domain_seed.json`` 的静态性质, 不碰 PG。
 """
 
 from __future__ import annotations
@@ -162,7 +162,9 @@ def test_added_records_all_carry_authority_and_provenance(data: dict, records: l
     assert not problems, problems
 
 
-def test_added_concepts_declare_the_standard_they_came_from(data: dict, records: list[dict]) -> None:
+def test_added_concepts_declare_the_standard_they_came_from(
+    data: dict, records: list[dict]
+) -> None:
     """声称来自标准的知识, authority_ref 必须是**标准号**, 不能是那段 URL。
 
     这条对应一次真实回归: 新增段只写了 ``source``(URL) 没写 ``standard_ref``,

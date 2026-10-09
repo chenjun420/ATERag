@@ -32,7 +32,6 @@ def main() -> int:
     results: list[bool] = []
 
     # ---- PG 连接 (带重试, 板卡偶发 10013) ----
-    # Qdrant 检查已随 ADR-014 移除: 检索层由 pgvector 承担, 第二套向量存储
     # 不再是部署前提。
     conn = None
     for attempt in range(1, 6):

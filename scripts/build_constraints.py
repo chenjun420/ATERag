@@ -258,15 +258,14 @@ ex:CVCCOverlapShape a sh:NodeShape ;
       }} \"\"\" ] .
 """
 
+
 def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8")
     data = json.loads(SEED.read_text(encoding="utf-8"))
     OUT_SHAPES.parent.mkdir(parents=True, exist_ok=True)
     OUT_SHAPES.write_text(shapes(), encoding="utf-8", newline="\n")
     types = Counter(
-        CLASS_OF_TYPE.get(r.get("entity_type"), "Thing")
-        for r in data["records"]
-        if r.get("id")
+        CLASS_OF_TYPE.get(r.get("entity_type"), "Thing") for r in data["records"] if r.get("id")
     )
     report = {
         "shapes_count": OUT_SHAPES.read_text(encoding="utf-8").count("a sh:NodeShape"),

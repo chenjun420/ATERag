@@ -135,8 +135,7 @@ def build_knowledge_graph(domain: str, rules: list[dict]):
 class _AgeStoreNoLoad:
     """ApacheAgeStore 的最小侵入子类: 跳过需要超级用户权限的 LOAD 'age'。
 
-    板卡 PG 上 age 扩展已随 LightRAG 部署就绪, 且 powerspec 用户可访问
-    ag_catalog (LightRAG 通过 SET search_path 使用同一能力), 但 LOAD 'age'
+    板卡 PG 上 age 扩展已就绪, 且 powerspec 用户可访问 ag_catalog, 但 LOAD 'age'
     需要超级用户, 因此这里只做 search_path + 建图, 复用父类全部 Cypher 逻辑。
     """
 

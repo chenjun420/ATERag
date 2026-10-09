@@ -44,6 +44,7 @@ fail-closed」—— 抽取撞上模板失配时会直接报错 (红线 12), 不
 from __future__ import annotations
 
 import argparse
+import collections
 import json
 import sys
 from pathlib import Path
@@ -70,11 +71,47 @@ WARN = "⚠️"
 
 #: 覆盖率回归的允许波动。绝对数而非百分比: 条件数本来就只有几十条, 百分比在
 #: 小基数上会显得很宽容 (5% of 20 = 1 条, 1 条可能就是整个 4.4 章节)。
+#:
+#: **待审队列被拆成两个指标, 因为塞在一起的两类东西方向相反** (2026-10-09):
+#:
+#: ============================ ================================== ============
+#: 指标                          含义                              变多意味着
+#: ============================ ================================== ============
+#: ``needs_review_extract``     抽不出来的东西                     **抽取退化**
+#: ``needs_review_assess``      评估层判为待签字/不足/不必要       评审工作量涨
+#: ============================ ================================== ============
+#:
+#: 实测 PA601-D54A: 47 = 抽取层 **2** + 评估层 **45**。抽取层几乎归零
+#: (``needs_manual_digitization`` 2 条, 都在 4.3.1), 涨的全是评估层 ——
+#: 那是 :mod:`aterag.extract.assess` 引入签字通道后的**功能增加**, 不是退化。
+#:
+#: 一个计数 + 一个容差同时管这两类, 判据必然失真, 而且是**双向**失真:
+#: 评估层正当涨 45 条, 抽取层即使退化 5 条也照样 PASS (被容差吃掉);
+#: 反过来抽取层退化 45 条也会被评估层的正当增长解释掉。两种情况都报「无漂移」。
+#:
+#: 拆开之后各自的方向就清楚了: 抽取层涨 = 真退化, 零容忍起步; 评估层涨 =
+#: 评审工作量, 允许但要按章节看清楚是哪一章涨的。
 TOLERANCE = {
     "conditions_total": 0,  # 条件数**不许**变: 变了就是漏抽或多抽, 没有解释
     "unresolved_text": 5,  # 未解析文本: 允许波动 (抽取器在演进), 但要看清
-    "needs_review": 5,  # 待审队列: 同上
+    "needs_review_extract": 2,  # 抽不出来的: 涨 2 条就要解释 (实测基线值 2)
+    "needs_review_assess": 8,  # 评估层待签字: 工作量, 允许涨但按章节报
 }
+
+#: **章节级分布容差**: 任一章节的待审项变化超过这个数就报, 无论总数是否超容差。
+#:
+#: 为什么总数容差不够: PA601 的待审项集中在 ``4.3.2`` (20/47)。总数 +5 可能
+#: 是「五个章节各 +1」(分散, 无害) 也可能是「4.3.2 单独 +5」(集中, 那一章的
+#: 抽取或评估规则出问题了)。两种在总数上长得一模一样, 而第二种要查。
+#:
+#: 按章节报出来之后, 集中变化会自己显形 —— 不用人去猜这 +5 落在哪。
+SECTION_TOLERANCE = 3
+
+#: 待审项的 kind 前缀 -> 归到哪个指标。**前缀而非全量枚举**: 评估层 verdict
+#: 由 :mod:`aterag.extract.assess` 自己定义 (``VERDICT_*``), 脚本侧再抄一份
+#: 就会在对方新增 verdict 时静默漏归类 —— 而漏归类的后果是新 verdict 被算进
+#: 抽取层, 把评审工作量报成抽取退化。
+_ASSESS_PREFIX = "assess:"
 
 #: 基线文件的头部说明。**每次 --update 都重写它** —— 所以它必须由代码生成,
 #: 写成手工维护的注释会在第一次 --update 时被冲掉, 而那段说明恰恰是防止
@@ -94,6 +131,10 @@ BASELINE_HEADER = """\
 # 不要跳过「看清楚红了什么」直接 --update, 那等于把门禁的牙拔了。
 #
 # 缺条目 ≠ 无漂移: 没基线的型号不参与漂移判定, 脚本会单独报出来。
+#
+# needs_review_by_section 是待审项的章节分布, 与总数**独立**判定: 总数在容差内
+# 而某一章单独超容差, 照样报红 —— 那是「一章的规则坏了, 被其它章节的噪声摊平」
+# 的情形, 摊平之后总数看着正常。
 """
 
 
@@ -132,6 +173,16 @@ def measure(model_id: str, *, blocks_dir: str | None = None) -> dict:
     kwargs = {"blocks_dir": blocks_dir} if blocks_dir else {}
     result = extract_test_conditions(model_id, profiles=prof_book, patterns=patterns, **kwargs)
     stats = result.stats
+
+    # 待审项按语义分两层, 各自再按章节分布 —— 见 TOLERANCE 的说明。
+    by_layer: dict[str, collections.Counter] = {
+        "extract": collections.Counter(),
+        "assess": collections.Counter(),
+    }
+    for it in result.needs_review:
+        layer = "assess" if it.kind.startswith(_ASSESS_PREFIX) else "extract"
+        by_layer[layer][it.section_path or "(未标章节)"] += 1
+
     return {
         "model_id": model_id,
         "profile": profile.name,
@@ -139,8 +190,14 @@ def measure(model_id: str, *, blocks_dir: str | None = None) -> dict:
         "metrics": {
             "conditions_total": int(stats.get("conditions_total", 0)),
             "unresolved_text": int(stats.get("unresolved_text", 0)),
-            "needs_review": len(result.needs_review),
+            "needs_review_extract": sum(by_layer["extract"].values()),
+            "needs_review_assess": sum(by_layer["assess"].values()),
             "scenarios": int(stats.get("scenarios", 0)),
+        },
+        # 章节分布: 让「+5 落在哪一章」不必人去猜。总数容差看不出集中还是分散,
+        # 而这两者的处置完全不同 —— 集中要查那一章的规则, 分散不用。
+        "needs_review_by_section": {
+            layer: dict(sorted(c.items())) for layer, c in by_layer.items()
         },
         # 影响面: section_priors 的键就是「模板管到哪些章节号」。人工改了章节号,
         # 这些键就是受影响的范围 —— 比让人自己回忆改了哪一处可靠。
@@ -149,7 +206,7 @@ def measure(model_id: str, *, blocks_dir: str | None = None) -> dict:
 
 
 def diff_metrics(now: dict, base: dict) -> tuple[list[str], list[str]]:
-    """三项覆盖率对比基线。
+    """覆盖率指标对比基线 (总数口径)。
 
     返回 ``(超容差, 未超容差但确实变了)`` 两段 —— 都报出来。
 
@@ -170,6 +227,32 @@ def diff_metrics(now: dict, base: dict) -> tuple[list[str], list[str]]:
     return over, within
 
 
+def diff_by_section(now: dict, base: dict, *, tolerance: int) -> list[str]:
+    """待审项的**章节级**变化, 超 ``tolerance`` 的章节逐个报出来。
+
+    与 :func:`diff_metrics` 互补而不是替代: 总数说「变了多少」, 这里说
+    「变在哪一章」。总数在容差内而单章超容差的情况必须报出来 —— 那正是
+    「一个章节的规则坏了, 但被其它章节的噪声摊平」的情形, 而摊平后总数看着正常。
+
+    两侧的章节集合取并集: 只在当前出现的章节 (= 新增待审) 和只在基线出现的
+    章节 (= 待审消失) 都要报, 只比交集会把两者都当成「没变」。
+    """
+    out: list[str] = []
+    for layer in sorted(set(now) | set(base)):
+        cur_map = now.get(layer) or {}
+        old_map = base.get(layer) or {}
+        for sec in sorted(set(cur_map) | set(old_map)):
+            cur = int(cur_map.get(sec, 0))
+            old = int(old_map.get(sec, 0))
+            if abs(cur - old) <= tolerance:
+                continue
+            arrow = "增加" if cur > old else "减少"
+            out.append(
+                f"{layer}/{sec}: {old} -> {cur} ({arrow} {abs(cur - old)}, 章节容差 {tolerance})"
+            )
+    return out
+
+
 def check(model_id: str, baseline: dict, *, blocks_dir: str | None = None) -> dict:
     """对某个型号做三段检查。返回结果字典, 不直接打印 —— 便于测试。"""
     now = measure(model_id, blocks_dir=blocks_dir)
@@ -188,10 +271,19 @@ def check(model_id: str, baseline: dict, *, blocks_dir: str | None = None) -> di
         }
     fp_changed = now["fingerprint"] != base.get("fingerprint")
     over, within = diff_metrics(now["metrics"], base.get("metrics") or {})
+    # 章节级: 与总数**独立**判定, 不挂在 over 的计算结果后面 —— 挂在后面的话
+    # 总数在容差内时章节差异会被一起吞掉, 而单章集中退化正是最该报的那种。
+    section_over = diff_by_section(
+        now.get("needs_review_by_section") or {},
+        base.get("needs_review_by_section") or {},
+        tolerance=SECTION_TOLERANCE,
+    )
     if fp_changed:
         problems.append("模板指纹变化 (参数被改过)")
     if over:
         problems.append("覆盖率回归")
+    if section_over:
+        problems.append("单章待审项集中变化")
     return {
         "model_id": model_id,
         "status": "drift" if problems else "ok",
@@ -200,6 +292,7 @@ def check(model_id: str, baseline: dict, *, blocks_dir: str | None = None) -> di
         "fingerprint_changed": fp_changed,
         "metric_diffs": over,
         "metric_diffs_within_tolerance": within,
+        "section_diffs": section_over,
         "governed_sections_changed": sorted(
             set(now["governed_sections"]) ^ set(base.get("governed_sections") or [])
         ),
@@ -210,7 +303,9 @@ def check(model_id: str, baseline: dict, *, blocks_dir: str | None = None) -> di
 def render(result: dict) -> None:
     m = result["model_id"]
     now = result["current"]
-    print(f"\n=== {m} (profile={now['profile']}, template={now['template_id']} v{now['template_version']}) ===")
+    print(
+        f"\n=== {m} (profile={now['profile']}, template={now['template_id']} v{now['template_version']}) ==="
+    )
     print(f"  当前指纹 {now['fingerprint']}  指标 {json.dumps(now['metrics'], ensure_ascii=False)}")
     if result["status"] == "no_baseline":
         print(f"  {WARN} {result['message']}")
@@ -230,10 +325,18 @@ def render(result: dict) -> None:
         print(f"  {PASS} 模板指纹未变 ({now['fingerprint']})")
     for d in result["metric_diffs"]:
         print(f"  {FAIL} 覆盖率回归 {d}")
+    for d in result.get("section_diffs") or []:
+        print(f"  {FAIL} 单章集中变化 {d}")
     for d in result.get("metric_diffs_within_tolerance") or []:
         print(f"  {WARN} 有变化但未超容差 {d}")
     if result["status"] == "ok":
         print(f"  {PASS} 无漂移")
+        # 待审项分布即使没超容差也打出来: 「无漂移」不等于「没变化」, 而待审
+        # 队列的章节分布是人工评审下一步该从哪看起的唯一线索。
+        sec = now.get("needs_review_by_section") or {}
+        for layer in sorted(sec):
+            dist = ", ".join(f"{k}={v}" for k, v in (sec[layer] or {}).items())
+            print(f"  {WARN} 待审分布[{layer}]: {dist or '(空)'}")
 
 
 def update(baseline: dict, results: list[dict], *, note: str = "") -> dict:
@@ -251,6 +354,11 @@ def update(baseline: dict, results: list[dict], *, note: str = "") -> dict:
             "template_version": now["template_version"],
             "fingerprint": now["fingerprint"],
             "metrics": now["metrics"],
+            # ``.get`` 而非 ``[]``: update() 是**搬运**, 不该因调用方给的字典缺
+            # 一个可选字段就 KeyError。缺了就写空分布 —— 后续 check() 会把当前
+            # 每一章报成「新增待审」(fail-closed 方向), 而不是崩在写入这一步。
+            # 真实路径上 measure() 一定带这个键, 这里只是不把「搬运」写成「断言」。
+            "needs_review_by_section": now.get("needs_review_by_section") or {},
             "governed_sections": now["governed_sections"],
         }
     return {
@@ -276,10 +384,10 @@ def registered_models() -> list[str]:
 def build_parser() -> argparse.ArgumentParser:
     """单独成函数而不是内联在 ``main`` 里: 参数解析不该与执行逻辑缠在一起,
     否则「直接调 main() 做一次检查」就必须先伪造 sys.argv。"""
-    ap = argparse.ArgumentParser(
-        description="模板漂移门禁 (辅助工具: 抽取过程本身已 fail-closed)"
+    ap = argparse.ArgumentParser(description="模板漂移门禁 (辅助工具: 抽取过程本身已 fail-closed)")
+    ap.add_argument(
+        "--baseline", default=BASELINE_PATH, help=f"基线文件路径 (默认 {BASELINE_PATH})"
     )
-    ap.add_argument("--baseline", default=BASELINE_PATH, help=f"基线文件路径 (默认 {BASELINE_PATH})")
     ap.add_argument("--model", action="append", help="只查该型号 (可重复); 默认查注册表在册型号")
     ap.add_argument("--blocks-dir", help="blocks 目录 (默认 rag_storage/blocks)")
     ap.add_argument("--update", action="store_true", help="接受当前状态并写基线")
@@ -308,7 +416,10 @@ def main(argv: list[str] | None = None) -> int:
             results.append(res)
         new = update(baseline, results, note=args.note or "")
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(BASELINE_HEADER + yaml.safe_dump(new, allow_unicode=True, sort_keys=False, width=100), encoding="utf-8")
+        path.write_text(
+            BASELINE_HEADER + yaml.safe_dump(new, allow_unicode=True, sort_keys=False, width=100),
+            encoding="utf-8",
+        )
         print(f"基线已写入: {path}  ({len(results)} 个型号)")
         for r in results:
             now = r["current"]
@@ -332,7 +443,9 @@ def main(argv: list[str] | None = None) -> int:
     print("\n" + "=" * 64)
     if counts["unmeasurable"]:
         # 测量失败不能当成「无漂移」—— 那会把「查不了」报成「没问题」。
-        print(f"TEMPLATE_DRIFT ERROR ({counts['unmeasurable']} 个型号无法测量; 测量失败不等于无漂移)")
+        print(
+            f"TEMPLATE_DRIFT ERROR ({counts['unmeasurable']} 个型号无法测量; 测量失败不等于无漂移)"
+        )
         return 2
     if counts["drift"]:
         print(f"TEMPLATE_DRIFT FAIL ({counts['drift']}/{len(models)} 个型号有漂移)")

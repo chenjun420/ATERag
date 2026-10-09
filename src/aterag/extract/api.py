@@ -2,8 +2,10 @@
 
 依赖纪律 (对齐 CI 上那次依赖清单失灵的教训):
   本包只允许 import config / registry / table_schema / entity_extract / psycopg / 标准库。
-  禁止 import rag.service (拖入 qdrant_client) 与 mcp_server (拖入 mcp / lightrag)。
+  禁止 import rag.service 与 mcp_server —— 后者拖入 mcp, 前者拖入整条检索栈。
   这让抽取能力既能在板卡服务里在线调用, 也能在离线 CLI / CI 单测里跑, 而不牵动全栈。
+  (``tests/test_retrieval_hybrid.py`` 与 ``tests/test_llm_draft_annotations.py``
+  用 AST 检查这条纪律, 别把它降级成口头约定。)
 
 数据来源双通道, 结果必须一致:
   blocks    —— 直接从 blocks.jsonl 重跑抽取 (离线、确定性、无需 DB)
@@ -158,9 +160,7 @@ class DocProfile:
         """
         best: tuple[int, str, SectionPrior] | None = None
         for sec, p in self.section_priors.items():
-            if section_matches(section_path, [sec]) and (
-                best is None or len(sec) > best[0]
-            ):
+            if section_matches(section_path, [sec]) and (best is None or len(sec) > best[0]):
                 best = (len(sec), sec, p)
         return (best[1], best[2]) if best else None
 

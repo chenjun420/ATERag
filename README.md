@@ -54,22 +54,19 @@ cp .env.example .env   # 填入 API Key (Key 禁止提交 git)
 
 # 3. 部署存储栈 (192.168.5.25, 见 deploy/native/README)
 # ... 一次性执行 01~05 脚本
+#    向量列也在这一步建好(扩展名是 vector 不是 pgvector, 后者不存在)。
+#    维度探测看 aterag_chunks 的向量列: python -m aterag.storage.cli
 
-# 4. (原「初始化 Qdrant」一步已删除)
-#    Qdrant 按 ADR-014 整层退场, 向量列在 PG 里(pgvector), 由上面第 3 步的
-#    01~05 脚本一并建好(扩展名是 vector 不是 pgvector, 后者不存在)。
-#    维度探测改看 aterag_chunks 的向量列, 见 `python -m aterag.storage.cli`。
-
-# 5. 导入规格书 (自动识别型号/类型/实体)
+# 4. 导入规格书 (自动识别型号/类型/实体)
 python scripts/ingest_pa601.py
 
-# 6. 构建领域知识库
+# 5. 构建领域知识库
 python scripts/build_domain.py power
 
-# 7. 验证
+# 6. 验证
 python scripts/validate_pa601.py
 
-# 8. 产测条件抽取 (章节 4.3 功能/性能要求)
+# 7. 产测条件抽取 (章节 4.3 功能/性能要求)
 python scripts/extract_test_conditions.py -m PA601-D54A --brief
 
 # MCP Server 现已常驻板卡 (systemd), 开发机无需再手工启动

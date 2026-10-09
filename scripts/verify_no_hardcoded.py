@@ -228,9 +228,7 @@ from aterag.extract.scenarios import (  # noqa: E402
 _scen_yaml = Path("config/scenario_rules.yaml").read_text(encoding="utf-8")
 # 只看非注释行: 注释里记着"原先此处声明过 priority_rails"是有意的历史说明,
 # 删掉反而丢失修复依据。
-_scen_active = "\n".join(
-    ln for ln in _scen_yaml.splitlines() if not ln.lstrip().startswith("#")
-)
+_scen_active = "\n".join(ln for ln in _scen_yaml.splitlines() if not ln.lstrip().startswith("#"))
 checks.append(
     (
         "scenario_rules.yaml 无 priority_rails 字段",
@@ -268,11 +266,7 @@ for _name, _rated, _volts, _want_main in [
     try:
         _d = _derive_load(_rules, _tiers, _rated, _volts)
         # 主轨 = 推导电流与额定不同的那条; 它必须等于功耗最大者
-        _main = [
-            r
-            for r, c in _d[(90.0, 176.0, 400.0)].items()
-            if abs(c - _rated[r]) > 1e-3
-        ]
+        _main = [r for r, c in _d[(90.0, 176.0, 400.0)].items() if abs(c - _rated[r]) > 1e-3]
         _bad = [
             (r, c) for _v in _d.values() for r, c in _v.items() if c < 0 or c > _rated[r] + 1e-3
         ]
@@ -280,8 +274,7 @@ for _name, _rated, _volts, _want_main in [
             (
                 f"轨序自动排定 {_name}",
                 _main in ([], [_want_main]) and not _bad,
-                f"受封顶轨={_main} 期望={_want_main}"
-                + (f" 越界={_bad}" if _bad else ""),
+                f"受封顶轨={_main} 期望={_want_main}" + (f" 越界={_bad}" if _bad else ""),
             )
         )
     except Exception as _e:  # noqa: BLE001
@@ -303,16 +296,36 @@ _tier_cases = [
     ("小写 w", "输出功率", "W", "90~176Vac: 400w", 1),
 ]
 for _cname, _title, _unit, _notes, _want in _tier_cases:
-    _got = parse_tiers(_rules, [_Cond(req_id="SR-X", title=_title, section_path="4.3.2", notes=_notes, limits={"max": 600.0, "unit": _unit}, unit=_unit)])
+    _got = parse_tiers(
+        _rules,
+        [
+            _Cond(
+                req_id="SR-X",
+                title=_title,
+                section_path="4.3.2",
+                notes=_notes,
+                limits={"max": 600.0, "unit": _unit},
+                unit=_unit,
+            )
+        ],
+    )
     checks.append(
         (f"档位解析 {_cname}", len(_got) == _want, f"解析出 {len(_got)} 档, 期望 {_want}")
     )
 _not_power = _Cond(
-    req_id="SR-Y", title="输出电压", section_path="4.3.2",
-    notes="90~176Vac: 400W", limits={"max": 55.0, "unit": "V"}, unit="V",
+    req_id="SR-Y",
+    title="输出电压",
+    section_path="4.3.2",
+    notes="90~176Vac: 400W",
+    limits={"max": 55.0, "unit": "V"},
+    unit="V",
 )
 checks.append(
-    ("档位解析-非功率条目不误判", not parse_tiers(_rules, [_not_power]), "输出电压(V)未被当成功率条目")
+    (
+        "档位解析-非功率条目不误判",
+        not parse_tiers(_rules, [_not_power]),
+        "输出电压(V)未被当成功率条目",
+    )
 )
 checks.append(
     (

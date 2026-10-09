@@ -209,9 +209,7 @@ def main() -> int:
             # 会让它整段跳过, 那就成了「看起来一直在跑」的假门禁。
             kscopes = load_knowledge_scopes()
             if book is not None and pb_roles:
-                validate_extraction_configs(
-                    pb, book, mbook, rules, scen, aliases, kscopes or None
-                )
+                validate_extraction_configs(pb, book, mbook, rules, scen, aliases, kscopes or None)
                 n_kb = len(kscopes)
                 n_cond = sum(1 for v in kscopes.values() if v == "condition")
                 n_ref = len({k for m in mbook.methods for k in m.knowledge_ref})
