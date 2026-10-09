@@ -59,8 +59,9 @@ SCOPE_PROCESS = "process"
 
 @pytest.fixture(scope="module")
 def seed_records() -> list[dict]:
-    return [r for r in json.loads(SEED.read_text(encoding="utf-8"))["records"]
-            if isinstance(r, dict)]
+    return [
+        r for r in json.loads(SEED.read_text(encoding="utf-8"))["records"] if isinstance(r, dict)
+    ]
 
 
 @pytest.fixture(scope="module")
@@ -70,8 +71,11 @@ def practice_scopes(seed_records) -> dict[str, str]:
     只取 practice_scope(不带这个键的普通概念不参与) —— 键名若写成 scope 会把
     标准表的「适用范围」也捞进来, 那是两种完全不同的含义。
     """
-    return {r["id"]: r["practice_scope"] for r in seed_records
-            if r.get("practice_scope") and r.get("id")}
+    return {
+        r["id"]: r["practice_scope"]
+        for r in seed_records
+        if r.get("practice_scope") and r.get("id")
+    }
 
 
 @pytest.fixture(scope="module")
@@ -91,9 +95,15 @@ def good():
     )
 
 
-def _cond(req_id: str = "SR-X-1", title: str = "t", *, rail: str = "",
-          bilateral: bool = False, sides: tuple[str, ...] | None = None,
-          role: str = "output_spec") -> TestCondition:
+def _cond(
+    req_id: str = "SR-X-1",
+    title: str = "t",
+    *,
+    rail: str = "",
+    bilateral: bool = False,
+    sides: tuple[str, ...] | None = None,
+    role: str = "output_spec",
+) -> TestCondition:
     """造一条条件。
 
     ``sides`` 直接指定规格书**声明了哪几侧**(未列的一侧为空 -> 走补齐);
@@ -101,16 +111,27 @@ def _cond(req_id: str = "SR-X-1", title: str = "t", *, rail: str = "",
     """
     if sides is None:
         sides = ("input", "output") if bilateral else ("input",)
-    c = TestCondition(req_id=req_id, title=title, section_path="4.3",
-                      rail=rail, role=role)
+    c = TestCondition(req_id=req_id, title=title, section_path="4.3", rail=rail, role=role)
     if "input" in sides:
         c.input_conditions.append(
-            ConditionClause(kind="input_voltage", text="额定输入", role="input",
-                            confidence=CONF_RULE, status=STATUS_APPROVED))
+            ConditionClause(
+                kind="input_voltage",
+                text="额定输入",
+                role="input",
+                confidence=CONF_RULE,
+                status=STATUS_APPROVED,
+            )
+        )
     if "output" in sides:
         c.output_conditions.append(
-            ConditionClause(kind="output_voltage", text="在范围内", role="output",
-                            confidence=CONF_RULE, status=STATUS_APPROVED))
+            ConditionClause(
+                kind="output_voltage",
+                text="在范围内",
+                role="output",
+                confidence=CONF_RULE,
+                status=STATUS_APPROVED,
+            )
+        )
     return c
 
 
@@ -126,8 +147,9 @@ class TestKnowledgeRefsResolve:
     def test_every_condition_scoped_knowledge_is_referenced(self, book, practice_scopes):
         """反向: ``practice_scope=condition`` 的知识必须有消费方。"""
         referenced = {k for m in book.methods for k in m.knowledge_ref}
-        orphans = sorted(k for k, s in practice_scopes.items()
-                         if s == SCOPE_CONDITION and k not in referenced)
+        orphans = sorted(
+            k for k, s in practice_scopes.items() if s == SCOPE_CONDITION and k not in referenced
+        )
         assert not orphans, f"入库却没人用的工艺知识: {orphans}"
 
     def test_dangling_knowledge_ref_raises(self, good, tmp_path):
@@ -143,7 +165,12 @@ class TestKnowledgeRefsResolve:
         p.write_text(yaml.safe_dump(doc, allow_unicode=True), encoding="utf-8")
         with pytest.raises(ValueError) as ei:
             validate_extraction_configs(
-                profiles, patterns, MethodBook.load(p), rules, scen, aliases,
+                profiles,
+                patterns,
+                MethodBook.load(p),
+                rules,
+                scen,
+                aliases,
                 # 非空且不含悬空 id -> 前向检查必然触发
                 {"MEAS_RIPPLE_BW_LIMIT": SCOPE_CONDITION},
             )
@@ -171,8 +198,14 @@ class TestKnowledgeRefsResolve:
 
     def test_refs_point_at_condition_scoped_entities_only(self, book, practice_scopes):
         """方法只该引用 condition 级知识 —— 引用工艺级就是层级错位。"""
-        bad = sorted({k for m in book.methods for k in m.knowledge_ref
-                      if practice_scopes.get(k) == SCOPE_PROCESS})
+        bad = sorted(
+            {
+                k
+                for m in book.methods
+                for k in m.knowledge_ref
+                if practice_scopes.get(k) == SCOPE_PROCESS
+            }
+        )
         assert not bad, f"方法引用了产线工艺级知识: {bad}"
 
 
@@ -186,8 +219,11 @@ class TestScopeKeyNotReused:
         两者混在一张表: 一条标准若被标成 ``condition`` 就会被反向门禁要求「方法
         引用它」; 而门禁的 SHORT_REF_FIELDS 又含 ``scope``, 会把值当实体记号解析。
         """
-        std_scopes = [r["scope"] for r in seed_records
-                      if r.get("id", "").startswith("std::") and r.get("scope")]
+        std_scopes = [
+            r["scope"]
+            for r in seed_records
+            if r.get("id", "").startswith("std::") and r.get("scope")
+        ]
         assert std_scopes, "标准表本来就没有 scope 字段? 那说明基线变了, 要重判"
         for r in seed_records:
             if r.get("id", "").startswith("std::"):
@@ -222,8 +258,9 @@ class TestAppliesAlways:
         p = tmp_path / "b.yaml"
         p.write_text(yaml.safe_dump(doc, allow_unicode=True), encoding="utf-8")
         with pytest.raises(ValueError) as ei:
-            validate_extraction_configs(profiles, patterns, MethodBook.load(p),
-                                        rules, scen, aliases)
+            validate_extraction_configs(
+                profiles, patterns, MethodBook.load(p), rules, scen, aliases
+            )
         assert target["id"] in str(ei.value)
         assert ALWAYS_REQUIRES_SETUP in str(ei.value)
 
@@ -234,8 +271,9 @@ class TestAppliesAlways:
         p = tmp_path / "b.yaml"
         p.write_text(yaml.safe_dump(doc, allow_unicode=True), encoding="utf-8")
         with pytest.raises(ValueError) as ei:
-            validate_extraction_configs(profiles, patterns, MethodBook.load(p),
-                                        rules, scen, aliases)
+            validate_extraction_configs(
+                profiles, patterns, MethodBook.load(p), rules, scen, aliases
+            )
         assert "sometimes" in str(ei.value)
 
     def test_default_applies_is_missing_side(self, book):
@@ -307,19 +345,27 @@ class TestMeasurementSetupReachesBilateralConditions:
         """规格书写明的 measurement_setup 优先, always 方法不得覆盖它。"""
         cond = _cond(title="峰峰值杂音电压", bilateral=True)
         cond.input_conditions.append(
-            ConditionClause(kind=ALWAYS_REQUIRES_SETUP, text="规格书自己写的 10MHz",
-                            role="input", confidence=CONF_RULE, status=STATUS_APPROVED))
+            ConditionClause(
+                kind=ALWAYS_REQUIRES_SETUP,
+                text="规格书自己写的 10MHz",
+                role="input",
+                confidence=CONF_RULE,
+                status=STATUS_APPROVED,
+            )
+        )
         supplement_conditions([cond], book)
-        setups = [c for c in cond.input_conditions
-                  if c.kind == ALWAYS_REQUIRES_SETUP]
+        setups = [c for c in cond.input_conditions if c.kind == ALWAYS_REQUIRES_SETUP]
         assert len(setups) == 1 and setups[0].text == "规格书自己写的 10MHz"
 
     def test_always_clause_carries_knowledge_ref(self, book):
         """子句要带上 knowledge_ref —— 落库行才能自答依赖哪些工艺知识。"""
         cond = _cond(title="峰峰值杂音电压", bilateral=True)
         supplement_conditions([cond], book)
-        refs = {k for c in cond.input_conditions + cond.output_conditions
-                for k in getattr(c, "knowledge_ref", ())}
+        refs = {
+            k
+            for c in cond.input_conditions + cond.output_conditions
+            for k in getattr(c, "knowledge_ref", ())
+        }
         assert refs, "补齐子句没带 knowledge_ref"
 
 
@@ -332,8 +378,12 @@ class TestKnowledgeRefReachesDatabaseRow:
         supplement_conditions([cond], book)
         row = requirement_row(cond)
         vec = row.condition_vector
-        refs = {k for side in (vec["approved"], vec["draft"]) for c in side
-                for k in (c.get("knowledge_ref") or ())}
+        refs = {
+            k
+            for side in (vec["approved"], vec["draft"])
+            for c in side
+            for k in (c.get("knowledge_ref") or ())
+        }
         assert refs, "condition_vector 里没有 knowledge_ref —— DB 侧答不出依赖"
 
     def test_knowledge_refs_resolve_to_real_entities(self, book, practice_scopes):
@@ -341,6 +391,10 @@ class TestKnowledgeRefReachesDatabaseRow:
         supplement_conditions([cond], book)
         row = requirement_row(cond)
         vec = row.condition_vector
-        refs = {k for side in (vec["approved"], vec["draft"]) for c in side
-                for k in (c.get("knowledge_ref") or ())}
+        refs = {
+            k
+            for side in (vec["approved"], vec["draft"])
+            for c in side
+            for k in (c.get("knowledge_ref") or ())
+        }
         assert refs <= set(practice_scopes), f"落库的 knowledge_ref 悬空: {refs}"

@@ -1,4 +1,4 @@
-﻿"""轨级负载推导的 fail-closed 保证。
+"""轨级负载推导的 fail-closed 保证。
 
 背景: 输出功率按输入电压分档(PA601 SR-1204 "90~176Vac: 400W;
 176~286Vac: 600W"), 所以各轨满载电流受档位封顶 —— -54V 轨额定 11.1A
@@ -29,7 +29,9 @@ from aterag.extract.scenarios import (  # noqa: E402
 
 @pytest.fixture(scope="module")
 def rules() -> ScenarioRules:
-    return ScenarioRules.load(Path(__file__).resolve().parents[1] / "config" / "scenario_rules.yaml")
+    return ScenarioRules.load(
+        Path(__file__).resolve().parents[1] / "config" / "scenario_rules.yaml"
+    )
 
 
 def test_no_rail_available_raises(rules: ScenarioRules) -> None:

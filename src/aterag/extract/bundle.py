@@ -56,9 +56,7 @@ class ClauseModel(BaseModel):
     confidence: str = Field("rule", max_length=32)
     status: ContractStatus = "approved"
     method_ref: str = Field("", max_length=64, description="补齐该子句的方法 id")
-    knowledge_ref: tuple[str, ...] = Field(
-        (), description="该方法背后的域知识实体 id(工艺要求)"
-    )
+    knowledge_ref: tuple[str, ...] = Field((), description="该方法背后的域知识实体 id(工艺要求)")
     cond_fingerprint: str = Field("", max_length=64)
 
 

@@ -108,9 +108,11 @@ class TestEveryIngestedModelExtracts:
         """不能所有判据都拿到默认 role —— 那是「档案完全没生效」的另一种表现。"""
         result = _extract(model_id)
         roles = {c.role for c in result.conditions}
-        assert roles - {PROFILES.profiles[
-            REGISTRY.products[model_id].doc_profile or PROFILES.default_profile
-        ].default_role}, f"{model_id} 的 role 全是默认值, 档案没起作用"
+        assert roles - {
+            PROFILES.profiles[
+                REGISTRY.products[model_id].doc_profile or PROFILES.default_profile
+            ].default_role
+        }, f"{model_id} 的 role 全是默认值, 档案没起作用"
 
 
 class TestSignalTypeFollowsRole:
@@ -128,9 +130,7 @@ class TestSignalTypeFollowsRole:
         by_sr = {}
         for r in rows:
             by_sr.setdefault(r.sr_id, []).append(r)
-        signal_srs = {
-            c.req_id for c in result.conditions if c.role == ROLE_SIGNAL_IO
-        }
+        signal_srs = {c.req_id for c in result.conditions if c.role == ROLE_SIGNAL_IO}
         for sr_id in signal_srs:
             got = {r.signal_type for r in by_sr.get(sr_id, [])}
             assert "TEST" not in got, f"{sr_id} 是 signal_io 角色却被归成 TEST"
@@ -150,9 +150,7 @@ class TestSignalTypeFollowsRole:
             if c.role == ROLE_SIGNAL_IO or c.role == "protection_response":
                 continue
             got = {r.signal_type for r in by_sr.get(c.req_id, [])}
-            assert not (got & {"YX", "YC", "PROT"}), (
-                f"{c.req_id}(role={c.role}) 被判成信号类 {got}"
-            )
+            assert not (got & {"YX", "YC", "PROT"}), f"{c.req_id}(role={c.role}) 被判成信号类 {got}"
 
 
 class TestMissingModelFailsLoudly:

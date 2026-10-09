@@ -335,7 +335,9 @@ async def calculate(
         # 无型号上下文: 仅共享规则 + 显式输入
         domain = "power"
         facts = {}
-    eng = InferenceEngine(settings, domain, model_facts=facts, decision_recorder=get_decision_recorder())
+    eng = InferenceEngine(
+        settings, domain, model_facts=facts, decision_recorder=get_decision_recorder()
+    )
     try:
         result = eng.calculate(formula_type, inputs, rule_id or None)
     except (KeyError, ValueError) as e:
@@ -365,9 +367,13 @@ async def get_decision_provenance(decision_id: str) -> str:
     try:
         entry = _query_decision_provenance(settings.postgres_dsn, decision_id)
     except Exception as e:  # noqa: BLE001
-        return json.dumps({"error": "provenance_query_failed", "message": str(e)}, ensure_ascii=False)
+        return json.dumps(
+            {"error": "provenance_query_failed", "message": str(e)}, ensure_ascii=False
+        )
     if entry is None:
-        return json.dumps({"error": "decision_not_found", "decision_id": decision_id}, ensure_ascii=False)
+        return json.dumps(
+            {"error": "decision_not_found", "decision_id": decision_id}, ensure_ascii=False
+        )
     return json.dumps(entry, ensure_ascii=False, default=str)
 
 
@@ -381,9 +387,13 @@ async def explain_decision(decision_id: str) -> str:
     try:
         entry = _query_decision_provenance(settings.postgres_dsn, decision_id)
     except Exception as e:  # noqa: BLE001
-        return json.dumps({"error": "provenance_query_failed", "message": str(e)}, ensure_ascii=False)
+        return json.dumps(
+            {"error": "provenance_query_failed", "message": str(e)}, ensure_ascii=False
+        )
     if entry is None:
-        return json.dumps({"error": "decision_not_found", "decision_id": decision_id}, ensure_ascii=False)
+        return json.dumps(
+            {"error": "decision_not_found", "decision_id": decision_id}, ensure_ascii=False
+        )
     explanation, audit_text = explain(entry)
     return json.dumps(
         {
@@ -502,7 +512,12 @@ async def get_fixture_spec(model_id: str, query: str = "探针选型 工装参�
         facts = _model_facts(model_id, required=("voltage", "current"))
     except FactUnavailable as e:
         return json.dumps(e.to_dict(), ensure_ascii=False)
-    eng = InferenceEngine(settings, registry.products[model_id].domain, model_facts=facts, decision_recorder=get_decision_recorder())
+    eng = InferenceEngine(
+        settings,
+        registry.products[model_id].domain,
+        model_facts=facts,
+        decision_recorder=get_decision_recorder(),
+    )
     out: dict = {"model_id": model_id, "facts": facts}
     for ft, inp in (
         ("probe_selection", {"current": facts["current"]}),
@@ -597,7 +612,12 @@ async def optimize_process(
         facts = _model_facts(model_id, required=("current",))
     except FactUnavailable as e:
         return json.dumps(e.to_dict(), ensure_ascii=False)
-    eng = InferenceEngine(settings, registry.products[model_id].domain, model_facts=facts, decision_recorder=get_decision_recorder())
+    eng = InferenceEngine(
+        settings,
+        registry.products[model_id].domain,
+        model_facts=facts,
+        decision_recorder=get_decision_recorder(),
+    )
     out: dict = {"model_id": model_id, "facts": facts}
     out["channel_count"] = _safe_calc(
         eng,
@@ -847,9 +867,7 @@ async def analyze_graph(metric: str = "centrality") -> str:
 
 
 @mcp.tool()
-async def trace_dependency(
-    node_id: str, direction: str = "downstream", max_depth: int = 5
-) -> str:
+async def trace_dependency(node_id: str, direction: str = "downstream", max_depth: int = 5) -> str:
     """追溯某节点在知识图谱里的依赖 (方案 §4.4)。
 
     direction:
@@ -874,9 +892,7 @@ async def trace_dependency(
     try:
         graph = _kg_graph()
         topo = analytics.topology(graph)
-        res = analytics.trace_dependencies(
-            graph, node_id, direction=direction, max_depth=max_depth
-        )
+        res = analytics.trace_dependencies(graph, node_id, direction=direction, max_depth=max_depth)
     except Exception as e:  # noqa: BLE001
         return json.dumps(
             {"error": "trace_failed", "message": f"{type(e).__name__}: {e}"},
@@ -918,9 +934,7 @@ async def get_condition_detail(
         siblings = _sibling_rows(result, req_id)
         return json.dumps(
             {
-                "error": (
-                    "requirement_ambiguous" if siblings else "requirement_not_found"
-                ),
+                "error": ("requirement_ambiguous" if siblings else "requirement_not_found"),
                 "req_id": req_id,
                 "message": (
                     "该规格编号下有多行(不同轨/限值形态), 请用带消歧后缀的编号重查"
@@ -1012,8 +1026,7 @@ async def list_pending_review(
             "items": out[:200],
             "truncated": len(out) > 200,
             "note": (
-                "这些条件未经人审, 已排除在产测执行序列之外。"
-                "评审签字后重新导出 bundle 即可纳入。"
+                "这些条件未经人审, 已排除在产测执行序列之外。评审签字后重新导出 bundle 即可纳入。"
             ),
         },
         ensure_ascii=False,
@@ -1051,15 +1064,9 @@ async def get_coverage_summary(model_id: str = "", profile: str = "") -> str:
         r = e.reason or "(none)"
         excl_reasons[r] = excl_reasons.get(r, 0) + 1
 
-    both = sum(
-        1
-        for c in result.conditions
-        if c.input_conditions and c.output_conditions
-    )
+    both = sum(1 for c in result.conditions if c.input_conditions and c.output_conditions)
     one_sided = sum(
-        1
-        for c in result.conditions
-        if bool(c.input_conditions) != bool(c.output_conditions)
+        1 for c in result.conditions if bool(c.input_conditions) != bool(c.output_conditions)
     )
     return json.dumps(
         {
@@ -1092,9 +1099,7 @@ def _require_model(model_id: str) -> str:
     """
     if model_id:
         if model_id not in registry.products:
-            raise ValueError(
-                f"型号未注册: {model_id}; 已注册: {sorted(registry.products)}"
-            )
+            raise ValueError(f"型号未注册: {model_id}; 已注册: {sorted(registry.products)}")
         return model_id
     raise ValueError(
         "必须显式指定 model_id。这些工具的输出会作为产测判据, "

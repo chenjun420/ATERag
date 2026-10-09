@@ -88,23 +88,26 @@ def test_standard_without_authority_ref_is_rejected() -> None:
 
 def test_half_load_must_be_half_of_full_load() -> None:
     """半载 = 50%载 = 满载 x 50% (工况词建模的硬约束)。"""
-    assert _violations(
-        [("m1", "ModelSpec", [("full_load_power", 1000), ("half_load_power", 600)])]
-    ) >= 1
+    assert (
+        _violations([("m1", "ModelSpec", [("full_load_power", 1000), ("half_load_power", 600)])])
+        >= 1
+    )
 
 
 def test_output_power_must_equal_v_times_i() -> None:
     """P = V x I (基础电路原理)。"""
-    assert _violations(
-        [("m2", "ModelSpec", [("vout_nom", 12), ("iout_max", 10), ("pout_max", 150)])]
-    ) >= 1
+    assert (
+        _violations([("m2", "ModelSpec", [("vout_nom", 12), ("iout_max", 10), ("pout_max", 150)])])
+        >= 1
+    )
 
 
 def test_efficiency_outside_unit_interval_is_rejected() -> None:
     """效率写成 95 (而非 0.95) —— 量纲事故, 只有同时校验 0..1 区间才拦得住。"""
-    assert _violations(
-        [("m7", "ModelSpec", [("pin", 200), ("pout_max", 190), ("efficiency", 95)])]
-    ) >= 1
+    assert (
+        _violations([("m7", "ModelSpec", [("pin", 200), ("pout_max", 190), ("efficiency", 95)])])
+        >= 1
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -113,15 +116,11 @@ def test_efficiency_outside_unit_interval_is_rejected() -> None:
 
 
 def test_nominal_voltage_must_not_exceed_rated() -> None:
-    assert _violations(
-        [("m3", "ModelSpec", [("vout_nom", 24), ("vout_rated", 12)])]
-    ) >= 1
+    assert _violations([("m3", "ModelSpec", [("vout_nom", 24), ("vout_rated", 12)])]) >= 1
 
 
 def test_peak_current_must_not_be_below_continuous() -> None:
-    assert _violations(
-        [("m4", "ModelSpec", [("iout_max", 10), ("iout_peak", 8)])]
-    ) >= 1
+    assert _violations([("m4", "ModelSpec", [("iout_max", 10), ("iout_peak", 8)])]) >= 1
 
 
 # ---------------------------------------------------------------------------
@@ -135,20 +134,23 @@ def test_junction_temperature_must_respect_limit() -> None:
     约束里**不写死任何数值上限** —— 上限由具体规格书给出, 凭空填一个 125℃
     就是编数据。这里只校验关系式本身。
     """
-    assert _violations(
-        [
-            (
-                "m5",
-                "ModelSpec",
-                [
-                    ("ambient_temp", 85),
-                    ("total_loss", 100),
-                    ("rth_ja", 0.5),
-                    ("junction_temp_limit", 125),
-                ],
-            )
-        ]
-    ) >= 1
+    assert (
+        _violations(
+            [
+                (
+                    "m5",
+                    "ModelSpec",
+                    [
+                        ("ambient_temp", 85),
+                        ("total_loss", 100),
+                        ("rth_ja", 0.5),
+                        ("junction_temp_limit", 125),
+                    ],
+                )
+            ]
+        )
+        >= 1
+    )
 
 
 def test_cc_threshold_must_reach_rated_output_current() -> None:
@@ -159,10 +161,7 @@ def test_cc_threshold_must_reach_rated_output_current() -> None:
     注入的违规数据在错误约束下「碰巧」也能触发, 所以反向验证没抓到它。
     """
     assert (
-        _violations(
-            [("m6", "ModelSpec", [("iout_max", 12), ("current_limit_threshold", 10)])]
-        )
-        >= 1
+        _violations([("m6", "ModelSpec", [("iout_max", 12), ("current_limit_threshold", 10)])]) >= 1
     )
 
 
@@ -205,7 +204,9 @@ def test_shapes_file_declares_every_constraint() -> None:
     新增 shape 而忘了配反例, 正是「约束形同虚设却报通过」最容易发生的时刻。
     """
     text = SHAPES.read_text(encoding="utf-8")
-    declared = {ln.split(":", 1)[1].split()[0] for ln in text.splitlines() if " a sh:NodeShape" in ln}
+    declared = {
+        ln.split(":", 1)[1].split()[0] for ln in text.splitlines() if " a sh:NodeShape" in ln
+    }
     covered = {
         "ProvenanceKindShape",
         "AuthorityRequiredShape",
@@ -217,4 +218,6 @@ def test_shapes_file_declares_every_constraint() -> None:
         "ThermalShape",
         "CVCCOverlapShape",
     }
-    assert declared == covered, f"形状文件与反向用例不同步: 多={declared - covered} 缺={covered - declared}"
+    assert declared == covered, (
+        f"形状文件与反向用例不同步: 多={declared - covered} 缺={covered - declared}"
+    )

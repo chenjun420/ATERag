@@ -218,9 +218,7 @@ def _in_scope_exists(by_section: Mapping[str, list[Block]], target: str) -> bool
     return any(sec == target or sec.startswith(target + ".") for sec in by_section)
 
 
-def _missing_target_message(
-    h: ReferenceHit, by_section: Mapping[str, list[Block]]
-) -> str:
+def _missing_target_message(h: ReferenceHit, by_section: Mapping[str, list[Block]]) -> str:
     """报错必须可操作: 谁引的、引去哪、本文有哪些章节、两种可能怎么判。
 
     「引用指向本文档之外」是**合法且常见**的情形(引外部标准/引另一份文件),

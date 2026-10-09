@@ -189,8 +189,7 @@ class TestMissingRequired:
 
 
 class TestAssertExtensionsInstalled:
-    ALL = [("vector", "0.8.0"), ("age", "1.7.0"),
-           ("pg_textsearch", "1.4.0"), ("zhparser", "1.0")]
+    ALL = [("vector", "0.8.0"), ("age", "1.7.0"), ("pg_textsearch", "1.4.0"), ("zhparser", "1.0")]
 
     def test_passes_when_all_present(self) -> None:
         cur = FakeCursor(list(self.ALL))

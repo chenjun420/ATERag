@@ -1,4 +1,4 @@
-﻿"""``storage.model_schema`` 的单元测试。
+"""``storage.model_schema`` 的单元测试。
 
 不需要数据库 —— 本模块只生成 SQL 字符串。
 
@@ -307,9 +307,9 @@ class TestDerivedTables:
             assert body, table
             # 逐表断言, 不能只查整份文本: 否则「有一张表接对了」会被
             # 误判成「七张表都接对了」。
-            assert (
-                f"REFERENCES {QSCHEMA}.clause(clause_uid)" in body.group(0)
-            ), f"{table}.clause_uid 未外键到 clause —— §17.4「不得编造条款号」失效"
+            assert f"REFERENCES {QSCHEMA}.clause(clause_uid)" in body.group(0), (
+                f"{table}.clause_uid 未外键到 clause —— §17.4「不得编造条款号」失效"
+            )
 
     def test_doc_primary_key_is_doc_id_plus_rev(self, stmts: list[str]) -> None:
         """文档换版是「多一版」, 所以 rev 进主键。
@@ -317,7 +317,9 @@ class TestDerivedTables:
         rev 不进主键的话, 换版就只能 UPDATE 覆盖, 历史版本永远查不到。
         """
         text = "\n".join(stmts)
-        assert re.search(rf"CREATE TABLE {QSCHEMA}\.doc \(.*?PRIMARY KEY \(doc_id, rev\)", text, re.S)
+        assert re.search(
+            rf"CREATE TABLE {QSCHEMA}\.doc \(.*?PRIMARY KEY \(doc_id, rev\)", text, re.S
+        )
 
     def test_doc_has_at_most_one_current_rev(self, stmts: list[str]) -> None:
         """partial unique index 与 bitemporal.py 同一机制。"""
@@ -376,11 +378,11 @@ class TestDerivedTables:
         六个值用**有序枚举**而非六张表: 换一级要改 CHECK 而不是改 schema。
         """
         text = "\n".join(stmts)
-        body = re.search(rf"CREATE TABLE {QSCHEMA}\.trace \(.*?CHECK \(layer IN \(.*?\)\)", text, re.S)
-        assert body, "trace 缺 layer 约束"
-        assert re.search(
-            r"'axiom','theorem','formula','rule','test','judgement'", body.group(0)
+        body = re.search(
+            rf"CREATE TABLE {QSCHEMA}\.trace \(.*?CHECK \(layer IN \(.*?\)\)", text, re.S
         )
+        assert body, "trace 缺 layer 约束"
+        assert re.search(r"'axiom','theorem','formula','rule','test','judgement'", body.group(0))
 
     def test_trace_rejects_self_loop(self, stmts: list[str]) -> None:
         """自环的推导链会让「反查上游」死循环。"""
@@ -410,9 +412,7 @@ class TestModelSchemaDdl:
         full = model_schema_ddl(MODEL)
         first_hyper = next(i for i, s in enumerate(full) if "create_hypertable" in s)
         first_policy = next(i for i, s in enumerate(full) if s.startswith("CREATE POLICY"))
-        last_table = max(
-            i for i, s in enumerate(full) if s.startswith("CREATE TABLE")
-        )
+        last_table = max(i for i, s in enumerate(full) if s.startswith("CREATE TABLE"))
         assert last_table < first_hyper < first_policy
 
     def test_includes_force_rls(self) -> None:

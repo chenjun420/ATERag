@@ -85,7 +85,7 @@ class DecisionRecorder:
             "source_name": source.get("name"),
             # 审计链: 每个表达式输入 <- 它在型号事实里的 SR 条目。
             # 没有对应条目的输入显式标 "(caller)"":
-            #「这个输入是调用方给的, 不在型号事实里」, 不留空让人猜。
+            # 「这个输入是调用方给的, 不在型号事实里」, 不留空让人猜。
             "input_sources": result.get("input_sources") or {},
         }
         ak = source.get("authority_kind")
@@ -104,8 +104,7 @@ class DecisionRecorder:
             # 「顶格缺省」的那类问题: rules.yaml 的 confidence 就是出处
             # 可信度, None 表示未标注, 必须原样落下。
             confidence=result.get("confidence"),
-            activity_started_at_time=result.get("activity_started_at_time")
-            or datetime_now_iso(),
+            activity_started_at_time=result.get("activity_started_at_time") or datetime_now_iso(),
             metadata=meta,
         )
         if entry is None:

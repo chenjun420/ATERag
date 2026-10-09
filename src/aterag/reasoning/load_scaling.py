@@ -76,7 +76,9 @@ class ScaledValue:
 
     def as_fact(self) -> str:
         """给 SHACL / 报告用的三元组形态。"""
-        return f"{self.quantity}@{self.load}={self.value} (满载 {self.full_load_value} x {self.ratio})"
+        return (
+            f"{self.quantity}@{self.load}={self.value} (满载 {self.full_load_value} x {self.ratio})"
+        )
 
 
 def scale(full_load_value: Any, ratio: Any, *, quantity: str, load: str) -> ScaledValue:

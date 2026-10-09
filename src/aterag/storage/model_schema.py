@@ -1,4 +1,4 @@
-﻿"""型号 schema (``pw_<model_key>``) 的业务表 DDL。
+"""型号 schema (``pw_<model_key>``) 的业务表 DDL。
 
 依据 V6.0（每张表标注权威章节）:
     §3.5.2    doc_chunk
@@ -1409,11 +1409,7 @@ def model_schema_ddl_for_ref(ref: SchemaRef) -> list[str]:
     hypertable 在 RLS 之前: TimescaleDB 会把 hypertable 拆成子表, FORCE RLS
     必须作用在父表上才覆盖全部 chunk。
     """
-    return (
-        model_ddl_for_ref(ref)
-        + hypertable_ddl_for_ref(ref)
-        + rls_ddl_for_ref(ref)
-    )
+    return model_ddl_for_ref(ref) + hypertable_ddl_for_ref(ref) + rls_ddl_for_ref(ref)
 
 
 def model_schema_ddl(model_key: str) -> list[str]:

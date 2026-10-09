@@ -34,7 +34,9 @@ def seed() -> dict:
     return json.loads(SEED.read_text(encoding="utf-8"))
 
 
-def _engine(seed: dict, *, with_rules: bool = True, extra_facts: tuple[str, ...] = ()) -> DatalogReasoner:
+def _engine(
+    seed: dict, *, with_rules: bool = True, extra_facts: tuple[str, ...] = ()
+) -> DatalogReasoner:
     eng = DatalogReasoner()
     for fact in seed["facts"]:
         eng.add_fact(fact["fact_str"])

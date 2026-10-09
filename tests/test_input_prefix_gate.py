@@ -67,14 +67,20 @@ def _cond(
     if limit_kind == "input_voltage":
         inp.append(
             ConditionClause(
-                kind="input_voltage", text="额定输入", role="input", source="notes",
+                kind="input_voltage",
+                text="额定输入",
+                role="input",
+                source="notes",
                 value={"unit": unit},
             )
         )
     elif limit_kind == "input_frequency":
         inp.append(
             ConditionClause(
-                kind="input_frequency", text="交流输入频率", role="input", source="limits",
+                kind="input_frequency",
+                text="交流输入频率",
+                role="input",
+                source="limits",
                 value={"min": limits.get("min"), "max": limits.get("max"), "unit": unit},
             )
         )

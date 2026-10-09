@@ -84,9 +84,7 @@ class CredibilityOnlyConflictResolver:
                 f"现有: {sorted(CREDIBILITY_BY_AUTHORITY)}。"
                 f"先补表(与种子谱系同量纲), 不要在本层猜分值"
             )
-        self._tracker.register_source(
-            str(document), kind, credibility_score=cred
-        )
+        self._tracker.register_source(str(document), kind, credibility_score=cred)
         return cred
 
     def credibility_of(self, document: str) -> float | None:
@@ -111,9 +109,7 @@ class CredibilityOnlyConflictResolver:
            平局没有 credibility 依据可依, 所以转人审。
         """
         if strategy is not None and strategy != ONLY_STRATEGY:
-            raise ValueError(
-                f"冲突消解只用 credibility(红线): 不接受 strategy={strategy!r}"
-            )
+            raise ValueError(f"冲突消解只用 credibility(红线): 不接受 strategy={strategy!r}")
         missing = [
             str(s.get("document", "unknown"))
             for s in conflict.sources
@@ -121,9 +117,7 @@ class CredibilityOnlyConflictResolver:
         ]
         if missing:
             return self._manual_review(conflict, f"来源未登记 credibility: {missing}")
-        no_conf = [
-            i for i, s in enumerate(conflict.sources) if s.get("confidence") is None
-        ]
+        no_conf = [i for i, s in enumerate(conflict.sources) if s.get("confidence") is None]
         if no_conf:
             return self._manual_review(
                 conflict,
@@ -221,4 +215,3 @@ __all__ = [
     "UnknownAuthorityKind",
     "make_conflict",
 ]
-

@@ -108,7 +108,9 @@ class QuantityAliasBook:
                 bad.append(f"facts[{name}].match 非法: {f.match} (允许: {sorted(MATCH_MODES)})")
             for v in f.value_from:
                 if v not in VALUE_FIELDS:
-                    bad.append(f"facts[{name}].value_from 含未知字段: {v} (允许: {sorted(VALUE_FIELDS)})")
+                    bad.append(
+                        f"facts[{name}].value_from 含未知字段: {v} (允许: {sorted(VALUE_FIELDS)})"
+                    )
             for t in f.titles:
                 if not t.strip():
                     bad.append(f"facts[{name}] 有空标题")
@@ -133,5 +135,3 @@ class QuantityAliasBook:
     def titles_summary(self) -> str:
         """人可读的标题清单, 供报错与健康检查用 (让人能照着改 yaml)。"""
         return "; ".join(f"{n}: {'/'.join(f.titles)}" for n, f in sorted(self.facts.items()))
-
-

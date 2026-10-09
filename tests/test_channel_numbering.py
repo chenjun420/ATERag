@@ -121,7 +121,9 @@ def test_rail_less_row_gets_no_channel_number() -> None:
 
 def test_non_subcolumn_table_gets_no_channel_numbers() -> None:
     """表头无重复列名时不编号 —— 该表未声明"条目名由子列组成"。"""
-    plain = "| 编号 | 项目 | 单位 | 最小值 | 最大值 | 备注 | 等级 |\n|---|---|---|---|---|---|---|\n"
+    plain = (
+        "| 编号 | 项目 | 单位 | 最小值 | 最大值 | 备注 | 等级 |\n|---|---|---|---|---|---|---|\n"
+    )
     md = _section(
         "输出特性",
         _row("SR-1", "输出电流", "-54V", "A", "0", "11.1"),

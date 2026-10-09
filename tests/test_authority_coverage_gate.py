@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import json
 import sys
-from collections import Counter
 from pathlib import Path
 
 import pytest
@@ -65,8 +64,7 @@ class TestRegressionIsCaught:
 
     def test_mass_downgrade_to_unverified_fires(self, seed_records):
         ents = _ents(seed_records)
-        victims = {r["id"] for r in ents
-                   if kg._authority_kind(r) == "standard"}
+        victims = {r["id"] for r in ents if kg._authority_kind(r) == "standard"}
         assert len(victims) > 50, "样本要够大才能越过阈值"
         mut = []
         for r in seed_records:
@@ -78,8 +76,9 @@ class TestRegressionIsCaught:
                 mut.append(r)
         rep = kg.run_gate(mut)
         assert rep.stats["unverified_ratio"] > kg.UNVERIFIED_RATIO_MAX
-        assert any(f.check == "authority_coverage" and "unverified" in f.detail
-                   for f in rep.findings), "把大批实体倒回未查证必须报出来"
+        assert any(
+            f.check == "authority_coverage" and "unverified" in f.detail for f in rep.findings
+        ), "把大批实体倒回未查证必须报出来"
 
     def test_stripping_confidence_fires(self, seed_records):
         mut = []
@@ -92,17 +91,21 @@ class TestRegressionIsCaught:
                 mut.append(r)
         rep = kg.run_gate(mut)
         assert rep.stats["confidence_cover"] < kg.CONFIDENCE_COVER_MIN
-        assert any(f.check == "authority_coverage" and "confidence" in f.detail
-                   for f in rep.findings)
+        assert any(
+            f.check == "authority_coverage" and "confidence" in f.detail for f in rep.findings
+        )
 
     def test_self_loops_fire(self, seed_records):
         """自环必须在报告里可见 —— 它使「关系记录数」与「实际建边数」对不上。"""
-        loop = {"source_id": "thm::T1", "target_id": "thm::T1",
-                "relationship_type": "has_theorem", "properties": {}}
+        loop = {
+            "source_id": "thm::T1",
+            "target_id": "thm::T1",
+            "relationship_type": "has_theorem",
+            "properties": {},
+        }
         rep = kg.run_gate(seed_records + [dict(loop) for _ in range(3)])
         assert rep.stats["relation_self_loops"] == 3
-        assert any(f.check == "authority_coverage" and "自环" in f.detail
-                   for f in rep.findings)
+        assert any(f.check == "authority_coverage" and "自环" in f.detail for f in rep.findings)
 
     def test_real_seed_has_no_self_loops(self, seed_records):
         """关系记录里 source==target 的条数必须为 0。
@@ -111,10 +114,15 @@ class TestRegressionIsCaught:
         下游 materialize 建图时全部丢弃, 于是**关系记录数永远不等于建边数** ——
         按记录数审图的人会把它们当成真边。已在 build_relationships 里排除。
         """
-        loops = [r for r in seed_records
-                 if r.get("source_id") and str(r.get("source_id")) == str(r.get("target_id"))]
+        loops = [
+            r
+            for r in seed_records
+            if r.get("source_id") and str(r.get("source_id")) == str(r.get("target_id"))
+        ]
         assert not loops, "种子里有 %d 条自环: %s" % (
-            len(loops), [r["source_id"] for r in loops[:5]])
+            len(loops),
+            [r["source_id"] for r in loops[:5]],
+        )
 
     def test_relation_records_equal_built_edges(self, seed_records):
         """关系记录数必须等于实际建出的边数。
@@ -130,7 +138,8 @@ class TestRegressionIsCaught:
         n_rel = sum(1 for r in seed_records if r.get("source_id"))
         assert n_rel == topo["edges"], (
             "关系记录 %d 条, 实际建边 %d 条 —— 差 %d 条说明有边建不出来"
-            % (n_rel, topo["edges"], n_rel - topo["edges"]))
+            % (n_rel, topo["edges"], n_rel - topo["edges"])
+        )
 
 
 class TestCoverageIsNotBrittle:
@@ -140,9 +149,11 @@ class TestCoverageIsNotBrittle:
         rep = kg.run_gate(json.loads(SEED.read_text(encoding="utf-8"))["records"])
         assert rep.stats["confidence_cover"] - kg.CONFIDENCE_COVER_MIN >= 0.03, (
             "confidence 覆盖率离阈值太近(%.4f vs %.2f), 再少一条就翻红"
-            % (rep.stats["confidence_cover"], kg.CONFIDENCE_COVER_MIN))
+            % (rep.stats["confidence_cover"], kg.CONFIDENCE_COVER_MIN)
+        )
         assert kg.UNVERIFIED_RATIO_MAX - rep.stats["unverified_ratio"] >= 0.05, (
-            "unverified 占比离阈值太近, 再多几条就翻红")
+            "unverified 占比离阈值太近, 再多几条就翻红"
+        )
 
     def test_threshold_breaches_are_warn_not_error(self, seed_records):
         """越过阈值判 WARN 不判 ERROR —— 永远红的门禁会被整体忽略。
@@ -152,8 +163,7 @@ class TestCoverageIsNotBrittle:
         一刀切禁掉 ERROR 会把这个真缺陷也放过。所以只验证阈值那三条是 WARN。
         """
         ents = _ents(seed_records)
-        downgrade = {r["id"] for r in ents
-                     if kg._authority_kind(r) in ("standard", "industry")}
+        downgrade = {r["id"] for r in ents if kg._authority_kind(r) in ("standard", "industry")}
         mut = []
         for r in seed_records:
             if r.get("id") in downgrade:
@@ -163,13 +173,20 @@ class TestCoverageIsNotBrittle:
                 mut.append(r2)
             else:
                 mut.append(r)
-        mut = mut + [{"source_id": "thm::T1", "target_id": "thm::T1",
-                      "relationship_type": "has_theorem", "properties": {}}]
+        mut = mut + [
+            {
+                "source_id": "thm::T1",
+                "target_id": "thm::T1",
+                "relationship_type": "has_theorem",
+                "properties": {},
+            }
+        ]
         rep = kg.run_gate(mut)
         cov = [f for f in rep.findings if f.check == "authority_coverage"]
         assert len(cov) >= 3, "三种退化都该被报出来: %s" % [f.detail for f in cov]
-        assert all(f.severity == "WARN" for f in cov), \
-            "阈值告警不该判 ERROR: %s" % [(f.severity, f.detail) for f in cov]
+        assert all(f.severity == "WARN" for f in cov), "阈值告警不该判 ERROR: %s" % [
+            (f.severity, f.detail) for f in cov
+        ]
 
     def test_empty_seed_is_still_an_error(self):
         """空种子判 ERROR —— 「数据没了」和「工作没做完」是两回事, 不能一起降级。"""

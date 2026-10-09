@@ -43,9 +43,7 @@ def _write_methods(tmp: Path, *, note: str = "测试条件") -> Path:
                         "applies": "always",
                         "applies_to": {"title_pattern": "温度系数"},
                         "supplies": "input",
-                        "conditions": [
-                            {"kind": "measurement_setup", "value": {"note": note}}
-                        ],
+                        "conditions": [{"kind": "measurement_setup", "value": {"note": note}}],
                     }
                 ]
             },
@@ -80,8 +78,9 @@ def _sign(tmp: Path, methods_path: Path, fp: str, by: str = "张三") -> Path:
 
 def _run(methods_path: Path, sign_path: Path | None) -> TestCondition:
     book = MethodBook.load(methods_path, signoffs_path=sign_path)
-    cond = TestCondition(req_id="SR-X", title="温度系数", section_path="4.3.2",
-                         flags=["no_input_condition"])
+    cond = TestCondition(
+        req_id="SR-X", title="温度系数", section_path="4.3.2", flags=["no_input_condition"]
+    )
     supplement_conditions([cond], book)
     return cond
 

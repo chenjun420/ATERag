@@ -1,4 +1,4 @@
-﻿"""条件场景拆分 (A7) —— 把一条需求展开成多个可执行测试场景。
+"""条件场景拆分 (A7) —— 把一条需求展开成多个可执行测试场景。
 
 为什么
 ----
@@ -75,6 +75,7 @@ def _limit_kind(cond: TestCondition) -> str:
         if cl.source == _SRC_LIMITS and cl.kind:
             return cl.kind
     return ""
+
 
 #: 名称模板可用的渲染上下文 (键固定, 避免模板引用不存在变量)。
 _NAME_CTX = frozenset({"value_g", "min_g", "max_g", "value", "rail", "unit"})
@@ -965,9 +966,7 @@ def _slew_label(nodes: Sequence[float], unit: str = "%") -> str:
     return "->".join(f"{n:g}{unit}" for n in nodes)
 
 
-def parse_condition_dimensions(
-    spec: DimensionSpec, c: TestCondition
-) -> list[DimensionValue]:
+def parse_condition_dimensions(spec: DimensionSpec, c: TestCondition) -> list[DimensionValue]:
     """解析**单条需求**在某维度上的取值。
 
     工况维度必须逐需求解析, 不能做成全局取值池: 温度窗口只对 SR-1206/
@@ -991,9 +990,7 @@ def parse_dimension_values(
     return _parse_values(spec, conditions)
 
 
-def _parse_values(
-    spec: DimensionSpec, conditions: Sequence[TestCondition]
-) -> list[DimensionValue]:
+def _parse_values(spec: DimensionSpec, conditions: Sequence[TestCondition]) -> list[DimensionValue]:
     if spec.carrier == "tier":
         return []  # tier 维度取值由 parse_tiers 提供, 这里不重复解析
     pats: list[tuple[DimensionMode, re.Pattern[str]]] = []
@@ -1002,7 +999,9 @@ def _parse_values(
             try:
                 pats.append((m, re.compile(m.pattern)))
             except re.error as e:
-                raise ValueError(f"dimension[{spec.key}].modes[{m.id}].pattern 正则非法: {e}") from e
+                raise ValueError(
+                    f"dimension[{spec.key}].modes[{m.id}].pattern 正则非法: {e}"
+                ) from e
     top = None
     if spec.pattern:
         try:
@@ -1398,7 +1397,9 @@ def expand_scenarios(
                                 c, rules.naming, rail, _combo_load(combo), combo, multi_counts
                             ),
                             basis=(
-                                f"tier_power_capped:{tier.power_w:g}W" if tier else "dimension_split"
+                                f"tier_power_capped:{tier.power_w:g}W"
+                                if tier
+                                else "dimension_split"
                             ),
                             source="derived",
                         )
@@ -1428,7 +1429,9 @@ def expand_scenarios(
                         name=derive_scenario_name(
                             c, rules.naming, "", _combo_load(combo), combo, multi_counts
                         ),
-                        basis=(f"tier_power_capped:{tier.power_w:g}W" if tier else "dimension_split"),
+                        basis=(
+                            f"tier_power_capped:{tier.power_w:g}W" if tier else "dimension_split"
+                        ),
                         source="spec",
                     )
                 )
@@ -1519,9 +1522,7 @@ def _tier_of(combo: Sequence[DimensionValue], tiers: Sequence[Tier]) -> Tier | N
     return None
 
 
-def _sid(
-    req_id: str, combo: Sequence[DimensionValue], rail: str, notes: str = ""
-) -> str:
+def _sid(req_id: str, combo: Sequence[DimensionValue], rail: str, notes: str = "") -> str:
     """场景标识。
 
     必须含 req_id + 全部维度取值 + 轨 + 行限定词:

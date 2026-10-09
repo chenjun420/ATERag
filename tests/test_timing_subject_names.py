@@ -177,15 +177,11 @@ def test_no_specific_title_or_unit_literal_in_code(rules: ScenarioRules) -> None
     用 AST 排除注释与文档字符串: 注释里记录 PA601 案例是有意的, 只有参与
     逻辑的字符串字面量才是硬编码。
     """
-    src = (ROOT / "src" / "aterag" / "extract" / "scenarios.py").read_text(
-        encoding="utf-8-sig"
-    )
+    src = (ROOT / "src" / "aterag" / "extract" / "scenarios.py").read_text(encoding="utf-8-sig")
     tree = ast.parse(src)
     doc_nodes = set()
     for node in ast.walk(tree):
-        if isinstance(
-            node, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
-        ):
+        if isinstance(node, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
             first = node.body[0] if node.body else None
             if (
                 isinstance(first, ast.Expr)
@@ -196,9 +192,7 @@ def test_no_specific_title_or_unit_literal_in_code(rules: ScenarioRules) -> None
     literals = [
         n.value
         for n in ast.walk(tree)
-        if isinstance(n, ast.Constant)
-        and isinstance(n.value, str)
-        and id(n) not in doc_nodes
+        if isinstance(n, ast.Constant) and isinstance(n.value, str) and id(n) not in doc_nodes
     ]
     for title, _ in ALL_CASES:
         assert not any(title in lit for lit in literals), f"代码里出现了条目名字面量: {title!r}"

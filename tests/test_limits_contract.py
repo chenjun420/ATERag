@@ -121,7 +121,9 @@ def test_limits_clause_kind_is_in_vocab(cfg: dict) -> None:
         role="protection_response",
         limits={"min": 12.0, "max": 18.0, "unit": "A", "rail": "-54V"},
         output_conditions=[
-            ConditionClause(kind="protection_action", text="过流保护", role="output", source="limits")
+            ConditionClause(
+                kind="protection_action", text="过流保护", role="output", source="limits"
+            )
         ],
     )
     got = _limit_kind(c)
@@ -158,7 +160,10 @@ def test_limit_kind_reads_input_side_too() -> None:
         limits={"min": 200.0, "typ": 220.0, "max": 240.0, "unit": "Vac", "rail": ""},
         input_conditions=[
             ConditionClause(
-                kind="input_voltage", text="200~240Vac", role="input", source="limits",
+                kind="input_voltage",
+                text="200~240Vac",
+                role="input",
+                source="limits",
                 value={"min": 200.0, "max": 240.0, "unit": "Vac"},
             )
         ],

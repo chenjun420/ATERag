@@ -111,8 +111,11 @@ def _clause_payload(clauses: list[Any]) -> tuple[list[dict[str, Any]], bool]:
                 "knowledge_ref": list(getattr(cl, "knowledge_ref", ()) or ()) or None,
                 # 业界补齐的子句带一条**完整原文**, 只截断会丢掉「为什么这么做」
                 # 的后半段 —— 而那恰恰是补齐提案要人审的内容。
-                "proposal_note": (str(cl.value.get("note") or "")[:_CLAUSE_NOTE_MAX]
-                                   if cl.source == SRC_METHOD else None),
+                "proposal_note": (
+                    str(cl.value.get("note") or "")[:_CLAUSE_NOTE_MAX]
+                    if cl.source == SRC_METHOD
+                    else None
+                ),
             }
         )
     return out, has_draft
@@ -150,15 +153,9 @@ def _method(cond: TestCondition) -> dict[str, Any]:
     依据, 没有它就只能重读备注原文猜。
     """
     refs = sorted(
-        {
-            cl.method_ref
-            for cl in cond.input_conditions + cond.output_conditions
-            if cl.method_ref
-        }
+        {cl.method_ref for cl in cond.input_conditions + cond.output_conditions if cl.method_ref}
     )
-    sources = sorted(
-        {cl.source for cl in cond.input_conditions + cond.output_conditions}
-    )
+    sources = sorted({cl.source for cl in cond.input_conditions + cond.output_conditions})
     return {"method_refs": refs, "clause_sources": sources}
 
 
@@ -342,9 +339,20 @@ def requirement_row(
 #: 列顺序必须与 INSERT 的 VALUES 一致 —— 用命名参数更安全, 但 DDL 有 23 列,
 #: 显式列表让「漏列」在 code review 里可见。
 _COLUMNS = (
-    "sr_id", "variant_key", "concept_id", "measurand", "quantity_kind", "spec",
-    "abs_max", "condition_vector", "method", "instrument_need", "fixture_need",
-    "source_ref", "signal_type", "coverage_status",
+    "sr_id",
+    "variant_key",
+    "concept_id",
+    "measurand",
+    "quantity_kind",
+    "spec",
+    "abs_max",
+    "condition_vector",
+    "method",
+    "instrument_need",
+    "fixture_need",
+    "source_ref",
+    "signal_type",
+    "coverage_status",
 )
 
 
@@ -360,9 +368,7 @@ def upsert_sql() -> str:
     cols = ", ".join(_COLUMNS)
     placeholders = ", ".join(f"%({c})s" for c in _COLUMNS)
     updates = ", ".join(
-        f"{c} = EXCLUDED.{c}"
-        for c in _COLUMNS
-        if c not in ("sr_id", "variant_key", "valid_from")
+        f"{c} = EXCLUDED.{c}" for c in _COLUMNS if c not in ("sr_id", "variant_key", "valid_from")
     )
     return (
         f"INSERT INTO {{schema}}.test_requirement ({cols}) "

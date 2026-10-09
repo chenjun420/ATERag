@@ -91,16 +91,18 @@ class TestEngineActuallyEvaluatesSafely:
 
         from aterag.inference import engine
 
-        src = inspect.getsource(engine.InferenceEngine._derive_one) if hasattr(
-            engine.InferenceEngine, "_derive_one"
-        ) else ""
+        src = (
+            inspect.getsource(engine.InferenceEngine._derive_one)
+            if hasattr(engine.InferenceEngine, "_derive_one")
+            else ""
+        )
         evals = [
             line.strip()
             for line in inspect.getsource(engine).splitlines()
             if "eval(" in line and "compile" not in line
         ]
         assert evals, "找不到 eval 调用点"
-        assert any('"__builtins__": {}' in line or "'__builtins__': {}" in line for line in evals), (
-            f"eval 未清空 __builtins__: {evals}"
-        )
+        assert any(
+            '"__builtins__": {}' in line or "'__builtins__': {}" in line for line in evals
+        ), f"eval 未清空 __builtins__: {evals}"
         assert src is not None

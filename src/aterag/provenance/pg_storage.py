@@ -247,9 +247,7 @@ class PGProvenanceStorage(ProvenanceStorage):
         # 不用 DO NOTHING —— 同一实体重新装载时出处/置信度可能已变(种子重跑、
         # 修正表更新), DO NOTHING 会把旧值永久留下, 而谱系的价值就在于
         # 「当前这条是从哪来的」是准的。
-        updates = ", ".join(
-            f"{c} = EXCLUDED.{c}" for c in _COLUMNS if c != "entity_id"
-        )
+        updates = ", ".join(f"{c} = EXCLUDED.{c}" for c in _COLUMNS if c != "entity_id")
         with conn.cursor() as cur:
             cur.execute(
                 f"INSERT INTO {self._table} ({cols}) VALUES ({marks}) "  # noqa: S608
@@ -328,9 +326,7 @@ class PGProvenanceStorage(ProvenanceStorage):
             cur.execute(sql, params)
             return [_to_entry(r) for r in cur.fetchall()]
 
-    def trace_lineage(
-        self, entity_id: str, max_depth: int | None = None
-    ) -> list[ProvenanceEntry]:
+    def trace_lineage(self, entity_id: str, max_depth: int | None = None) -> list[ProvenanceEntry]:
         """谱系链: 从 ``entity_id`` 出发, 沿 ``parent_entity_id`` /
         ``previous_version_id`` / ``derived_from_id`` 递归向上。
 

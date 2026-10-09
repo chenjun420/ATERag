@@ -1,4 +1,4 @@
-﻿"""场景维度机制的结构性保证 (第 1 步: 让 dimensions 真正生效)。
+"""场景维度机制的结构性保证 (第 1 步: 让 dimensions 真正生效)。
 
 背景: dimensions 原先是死配置 —— ScenarioRules.dimension_order 被读入并校验
 正则, 但 expand_scenarios 全文只引用一个字符串字面量 "ac_input_tier", 其余

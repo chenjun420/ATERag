@@ -75,8 +75,16 @@ class TestNodeId:
     def test_node_id_is_eid_itself(self, fake_pg) -> None:
         """节点 id 就是 eid —— 抽取层已经把型号编进 eid 了(实测
         ``PA601-D54A:-54VRTN@P1``), 再套一层就是型号出现两次。"""
-        fake_pg([("PA601-D54A", "Signal", "PA601-D54A:-54VRTN@P1",
-                  {"section_path": "4.2.4.2", "signal_name": "-54VRTN"})])
+        fake_pg(
+            [
+                (
+                    "PA601-D54A",
+                    "Signal",
+                    "PA601-D54A:-54VRTN@P1",
+                    {"section_path": "4.2.4.2", "signal_name": "-54VRTN"},
+                )
+            ]
+        )
         ents, _rels = pg_source.read_model_records("dsn")
         ids = [e["id"] for e in ents]
         assert "PA601-D54A:-54VRTN@P1" in ids
@@ -88,19 +96,23 @@ class TestNodeId:
         静默合并是知识层最坏的失败: 界面看起来正常, 但节点属性只来自其中一个
         型号, 另一个型号的知识被吞掉且不可见。
         """
-        fake_pg([
-            ("MODEL-A", "Signal", "SHARED-NAME", {"signal_name": "A"}),
-            ("MODEL-B", "Signal", "SHARED-NAME", {"signal_name": "B"}),
-        ])
+        fake_pg(
+            [
+                ("MODEL-A", "Signal", "SHARED-NAME", {"signal_name": "A"}),
+                ("MODEL-B", "Signal", "SHARED-NAME", {"signal_name": "B"}),
+            ]
+        )
         with pytest.raises(ValueError, match="跨型号冲突"):
             list(pg_source.iter_model_records("dsn"))
 
     def test_same_eid_same_model_is_fine(self, fake_pg) -> None:
         """同一型号内 eid 重复(不同 etype)不算冲突 —— 那靠上游保证唯一。"""
-        fake_pg([
-            ("PA601-D54A", "Signal", "DUP", {"signal_name": "x"}),
-            ("PA601-D54A", "Attribute", "DUP", {"description": "y"}),
-        ])
+        fake_pg(
+            [
+                ("PA601-D54A", "Signal", "DUP", {"signal_name": "x"}),
+                ("PA601-D54A", "Attribute", "DUP", {"description": "y"}),
+            ]
+        )
         ents, _ = pg_source.read_model_records("dsn")
         assert [e["id"] for e in ents].count("DUP") == 2
 
@@ -117,10 +129,12 @@ class TestProductNode:
         同一个 id 进两次 add_nodes, 后者覆盖前者, 而两次的 content/metadata
         不同 —— 结果是「属性来自谁」取决于遍历顺序。
         """
-        fake_pg([
-            ("PA601-D54A", "Product", "PA601-D54A", {"model_id": "PA601-D54A"}),
-            ("PA601-D54A", "Signal", "PA601-D54A:S1", {"signal_name": "S1"}),
-        ])
+        fake_pg(
+            [
+                ("PA601-D54A", "Product", "PA601-D54A", {"model_id": "PA601-D54A"}),
+                ("PA601-D54A", "Signal", "PA601-D54A:S1", {"signal_name": "S1"}),
+            ]
+        )
         ents, _ = pg_source.read_model_records("dsn")
         products = [e for e in ents if e["entity_type"].endswith("/Product")]
         assert len(products) == 1, f"Product 节点重复: {products}"
@@ -133,10 +147,12 @@ class TestProductNode:
         assert products[0]["id"] == "PA601-D54A"
 
     def test_product_has_no_self_loop(self, fake_pg) -> None:
-        fake_pg([
-            ("PA601-D54A", "Product", "PA601-D54A", {}),
-            ("PA601-D54A", "Signal", "PA601-D54A:S1", {}),
-        ])
+        fake_pg(
+            [
+                ("PA601-D54A", "Product", "PA601-D54A", {}),
+                ("PA601-D54A", "Signal", "PA601-D54A:S1", {}),
+            ]
+        )
         _ents, rels = pg_source.read_model_records("dsn")
         for r in rels:
             assert r["source_id"] != r["target_id"], f"has 边成了自环: {r}"
@@ -172,10 +188,16 @@ class TestMetadataMapping:
 
     def test_numeric_limits_carried(self, fake_pg) -> None:
         """保护动作门限是保护整定的输入, 不能在映射里丢掉。"""
-        fake_pg([
-            ("PA601-D54A", "Protection", "P1",
-             {"trip_min": 8.1, "trip_max": 18.0, "rail": "-54V", "priority": "high"}),
-        ])
+        fake_pg(
+            [
+                (
+                    "PA601-D54A",
+                    "Protection",
+                    "P1",
+                    {"trip_min": 8.1, "trip_max": 18.0, "rail": "-54V", "priority": "high"},
+                ),
+            ]
+        )
         ents, _ = pg_source.read_model_records("dsn")
         m = {e["id"]: e for e in ents}["P1"]["metadata"]
         assert m["trip_min"] == 8.1

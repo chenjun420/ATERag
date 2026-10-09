@@ -81,7 +81,11 @@ class TestStructuredExplanation:
         """解释要能被 diff/断言: 两次内容相同, id 不掺时间戳。"""
         a_exp, a_text = dx.explain(entry)
         b_exp, b_text = dx.explain(entry)
-        assert a_exp.explanation_id == b_exp.explanation_id == "exp_dec:03b8ebe7-c0a2-4354-8f25-52e705cbfbd9"
+        assert (
+            a_exp.explanation_id
+            == b_exp.explanation_id
+            == "exp_dec:03b8ebe7-c0a2-4354-8f25-52e705cbfbd9"
+        )
         assert a_text == b_text
 
 
@@ -113,9 +117,7 @@ class TestNoTopGrading:
         我们没记(req_id 记了、可信度没记), 按约定落 0.0 + 未标注标记。
         """
         exp, _ = dx.explain(entry)
-        premises = [
-            s for s in exp.reasoning_path.steps if s.metadata.get("kind") == "premise"
-        ]
+        premises = [s for s in exp.reasoning_path.steps if s.metadata.get("kind") == "premise"]
         assert premises, "前提步应当存在"
         for step in premises:
             assert step.confidence == 0.0

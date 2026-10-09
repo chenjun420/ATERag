@@ -238,8 +238,7 @@ class TestFieldMapping:
         from pathlib import Path
 
         ddl = Path("alembic/versions/0003_l0_provenance.py").read_text(encoding="utf-8")
-        assert re.search(r"entity_id\s+TEXT NOT NULL UNIQUE", ddl), \
-            "entity_id 缺 UNIQUE 约束"
+        assert re.search(r"entity_id\s+TEXT NOT NULL UNIQUE", ddl), "entity_id 缺 UNIQUE 约束"
 
     def test_sequence_id_index_is_not_unique(self) -> None:
         """``sequence_id`` **不能**有唯一约束。
@@ -254,10 +253,12 @@ class TestFieldMapping:
         from pathlib import Path
 
         ddl = Path("alembic/versions/0003_l0_provenance.py").read_text(encoding="utf-8")
-        assert not re.search(r"UNIQUE[^,)]*\bsequence_id\b", ddl), \
+        assert not re.search(r"UNIQUE[^,)]*\bsequence_id\b", ddl), (
             "sequence_id 被加了唯一约束, 会堵死归档路径"
-        assert re.search(r"CREATE INDEX (IF NOT EXISTS )?idx_prov_sequence", ddl), \
+        )
+        assert re.search(r"CREATE INDEX (IF NOT EXISTS )?idx_prov_sequence", ddl), (
             "缺 sequence_id 的普通索引(链头查询要用)"
+        )
 
 
 class TestStorageContract:
@@ -281,8 +282,7 @@ class TestStorageContract:
 
 
 class TestInsert:
-    def test_insert_covers_every_column(self, storage: PGProvenanceStorage,
-                                        conn: FakeConn) -> None:
+    def test_insert_covers_every_column(self, storage: PGProvenanceStorage, conn: FakeConn) -> None:
         storage.store(_entry())
         ins = conn.inserts()
         assert len(ins) == 1
@@ -292,8 +292,9 @@ class TestInsert:
         for _f, col in _FIELDS:
             assert col in params, f"参数缺 {col}"
 
-    def test_chain_fields_written_verbatim(self, storage: PGProvenanceStorage,
-                                           conn: FakeConn) -> None:
+    def test_chain_fields_written_verbatim(
+        self, storage: PGProvenanceStorage, conn: FakeConn
+    ) -> None:
         """checksum / sequence_id / previous_checksum 原样落库。
 
         这三个是 ``ProvenanceManager._save_entry`` 算的。存储层重算就与
@@ -319,8 +320,7 @@ class TestInsert:
     def test_metadata_and_arrays_are_wrapped(
         self, storage: PGProvenanceStorage, conn: FakeConn
     ) -> None:
-        e = _entry(metadata={"a": 1}, used_entities=["X", "Y"],
-                   informed_by_activities=["act1"])
+        e = _entry(metadata={"a": 1}, used_entities=["X", "Y"], informed_by_activities=["act1"])
         storage.store(e)
         _c, params = conn.inserts()[0]
         assert json.loads(params["meta"]) == {"a": 1}
@@ -412,10 +412,19 @@ class TestChainHead:
 class TestRetrieve:
     def test_returns_latest_non_invalidated(self) -> None:
         conn = FakeConn(
-            {"from l0_term.provenance": [
-                _row(entity_id="E1", entity_type="power_concept", activity_id="a",
-                     agent_id="ag", confidence=0.9, sequence_id=3, checksum="c3")
-            ]}
+            {
+                "from l0_term.provenance": [
+                    _row(
+                        entity_id="E1",
+                        entity_type="power_concept",
+                        activity_id="a",
+                        agent_id="ag",
+                        confidence=0.9,
+                        sequence_id=3,
+                        checksum="c3",
+                    )
+                ]
+            }
         )
         st = PGProvenanceStorage("dsn", connect_factory=lambda dsn: conn)
         e = st.retrieve("E1")
@@ -431,9 +440,11 @@ class TestRetrieve:
         ``verify_chain()`` 就会误报「链断了」。
         """
         conn = FakeConn(
-            {"from l0_term.provenance": [
-                _row(meta=json.dumps({"k": "v"}), used_entities=["A"], confidence=0.5)
-            ]}
+            {
+                "from l0_term.provenance": [
+                    _row(meta=json.dumps({"k": "v"}), used_entities=["A"], confidence=0.5)
+                ]
+            }
         )
         st = PGProvenanceStorage("dsn", connect_factory=lambda dsn: conn)
         e = st.retrieve("E")
@@ -479,10 +490,12 @@ class TestTraceLineage:
         又标注了公理), 所以这不是假想输入。
         """
         conn = FakeConn(
-            {"from l0_term.provenance": [
-                _row(entity_id="A", sequence_id=1, parent_entity_id="B"),
-                _row(entity_id="B", sequence_id=2, parent_entity_id="A"),
-            ]}
+            {
+                "from l0_term.provenance": [
+                    _row(entity_id="A", sequence_id=1, parent_entity_id="B"),
+                    _row(entity_id="B", sequence_id=2, parent_entity_id="A"),
+                ]
+            }
         )
         st = PGProvenanceStorage("dsn", connect_factory=lambda dsn: conn)
         assert [e.entity_id for e in st.trace_lineage("A")] == ["A", "B"]
@@ -507,8 +520,9 @@ class TestTraceLineage:
 
 
 class TestClear:
-    def test_clear_deletes_and_reports_count(self, storage: PGProvenanceStorage,
-                                            conn: FakeConn) -> None:
+    def test_clear_deletes_and_reports_count(
+        self, storage: PGProvenanceStorage, conn: FakeConn
+    ) -> None:
         conn.deleted = 42
         assert storage.clear() == 42
         assert any("delete from" in s for s, _p in conn.statements)

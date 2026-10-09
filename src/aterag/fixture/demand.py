@@ -168,9 +168,14 @@ def derive_capability_demand(
         p = frozenset(provisional.get(cap, ()))
         # 空集存成 () 而不是 frozenset(): 调用方要能 ``not item.approved_by``
         # 判断「有没有已批准依据」, 空的 frozenset 与 () 语义同而在 == 上不同
-        out.append(DemandItem(capability=cap, demanded_by=tuple(sorted(a | p)),
-                              approved_by=tuple(sorted(a)),
-                              provisional_by=tuple(sorted(p))))
+        out.append(
+            DemandItem(
+                capability=cap,
+                demanded_by=tuple(sorted(a | p)),
+                approved_by=tuple(sorted(a)),
+                provisional_by=tuple(sorted(p)),
+            )
+        )
     return tuple(out)
 
 
@@ -238,8 +243,9 @@ def derive_rail_channel_demand(
         spec = row.get("spec") or {}
         rail = normalize_rail(str(spec.get("rail") or ""))
         sr_id = str(row.get("sr_id") or "")
-        entry = acc.setdefault(rail, {"senses": set(), "by": set(),
-                                      "switch": False, "fault": False})
+        entry = acc.setdefault(
+            rail, {"senses": set(), "by": set(), "switch": False, "fault": False}
+        )
         if sr_id:
             entry["by"].add(sr_id)
         for cl in _clauses(row):
@@ -260,10 +266,13 @@ def derive_rail_channel_demand(
         if rail != "(整机)" and floor:
             e["senses"] |= floor["senses"]
     return tuple(
-        RailDemand(rail=rail, sense_channels=len(e["senses"]),
-                   demanded_by=frozenset(e["by"]),
-                   needs_switching=bool(e["switch"]),
-                   needs_fault_injection=bool(e["fault"]))
+        RailDemand(
+            rail=rail,
+            sense_channels=len(e["senses"]),
+            demanded_by=frozenset(e["by"]),
+            needs_switching=bool(e["switch"]),
+            needs_fault_injection=bool(e["fault"]),
+        )
         for rail, e in sorted(acc.items())
     )
 
@@ -271,8 +280,14 @@ def derive_rail_channel_demand(
 #: ``fixture.fixture_type`` 的合法取值(对齐 DDL CHECK)。用于把能力需求映射到
 #: 「该有哪些工装形态」, 而不是凭空发明工装名。
 FIXTURE_TYPES: tuple[str, ...] = (
-    "load_board", "relay_matrix", "adapter", "fault_injection",
-    "load_box", "safety_fixture", "emc_fixture", "thermal_adapter",
+    "load_board",
+    "relay_matrix",
+    "adapter",
+    "fault_injection",
+    "load_box",
+    "safety_fixture",
+    "emc_fixture",
+    "thermal_adapter",
     "fixture_adapter",
 )
 
@@ -315,9 +330,13 @@ class InstrumentRange:
     demanded_by: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
-        return {"capability": self.capability, "unit": self.unit,
-                "low": self.low, "high": self.high,
-                "demanded_by": sorted(self.demanded_by)}
+        return {
+            "capability": self.capability,
+            "unit": self.unit,
+            "low": self.low,
+            "high": self.high,
+            "demanded_by": sorted(self.demanded_by),
+        }
 
 
 def derive_instrument_ranges(
@@ -350,8 +369,9 @@ def derive_instrument_ranges(
             if sr_id:
                 e["by"].add(sr_id)
     return tuple(
-        InstrumentRange(capability=cap, unit=unit, low=e["lo"], high=e["hi"],
-                        demanded_by=frozenset(e["by"]))
+        InstrumentRange(
+            capability=cap, unit=unit, low=e["lo"], high=e["hi"], demanded_by=frozenset(e["by"])
+        )
         for (cap, unit), e in sorted(acc.items())
     )
 

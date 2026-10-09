@@ -82,7 +82,9 @@ def _tree(*specs) -> list[dict]:
 class TestSectionTree:
     def test_same_section_is_not_listed_three_times(self):
         """blocks 是**分段**的: 一个章节常有标题块+表格块+正文块, 必须按编号去重。"""
-        tree = section_tree([_b("4.3.1", "4.3.1 输入"), _b("4.3.1", "4.3.1 输入"), _b("4.3.2", "4.3.2 输出")])
+        tree = section_tree(
+            [_b("4.3.1", "4.3.1 输入"), _b("4.3.1", "4.3.1 输入"), _b("4.3.2", "4.3.2 输出")]
+        )
         assert [r["section_path"] for r in tree] == ["4.3.1", "4.3.2"]
 
     def test_sorted_by_section_number_not_string(self):
@@ -221,7 +223,9 @@ class TestRolePrecheck:
 def deterministic_doc(blocks, methods):
     from aterag.ingest.table_schema import load_registry
 
-    return build_profile_proposal(blocks, {}, load_registry("config/table_schemas.yaml"), methods, use_llm=False)
+    return build_profile_proposal(
+        blocks, {}, load_registry("config/table_schemas.yaml"), methods, use_llm=False
+    )
 
 
 class TestProposalDocument:
@@ -406,10 +410,7 @@ class TestPrecheckMatchesRealFailure:
         assert not precheck_roles(partial, MethodBook.load())["ok"]
 
         # 真校验: 用一份缺 role 的档案书 -> 必须抛
-        dropped = {
-            n: _profile_without_role(p, referenced[0])
-            for n, p in pb.profiles.items()
-        }
+        dropped = {n: _profile_without_role(p, referenced[0]) for n, p in pb.profiles.items()}
         broken = ProfileBook(
             profiles=dropped,
             default_profile=pb.default_profile,

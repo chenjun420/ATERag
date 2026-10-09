@@ -93,8 +93,22 @@ class TestValidateDraft:
         clean, rejected = validate_draft(
             "R1",
             {
-                "input": [{"kind": "input_voltage", "text": "在标称输入电压下", "value": {}, "reason": "r"}],
-                "output": [{"kind": "output_voltage", "text": "输出电压应满足", "value": {"typ": 54}, "reason": "r"}],
+                "input": [
+                    {
+                        "kind": "input_voltage",
+                        "text": "在标称输入电压下",
+                        "value": {},
+                        "reason": "r",
+                    }
+                ],
+                "output": [
+                    {
+                        "kind": "output_voltage",
+                        "text": "输出电压应满足",
+                        "value": {"typ": 54},
+                        "reason": "r",
+                    }
+                ],
             },
             KINDS,
             DOC,
@@ -109,8 +123,18 @@ class TestValidateDraft:
             "R1",
             {
                 "input": [
-                    {"kind": "input_voltage", "text": "在标称输入电压下", "value": {}, "reason": "r"},
-                    {"kind": "input_voltage", "text": "在冰点条件下复测三次", "value": {}, "reason": "编的"},
+                    {
+                        "kind": "input_voltage",
+                        "text": "在标称输入电压下",
+                        "value": {},
+                        "reason": "r",
+                    },
+                    {
+                        "kind": "input_voltage",
+                        "text": "在冰点条件下复测三次",
+                        "value": {},
+                        "reason": "编的",
+                    },
                 ],
                 "output": [],
             },
@@ -125,7 +149,12 @@ class TestValidateDraft:
         """词表封闭: 自造 kind 的下游无法翻译执行动作。"""
         clean, rejected = validate_draft(
             "R1",
-            {"input": [{"kind": "made_up_kind", "text": "在标称输入电压下", "value": {}, "reason": "r"}], "output": []},
+            {
+                "input": [
+                    {"kind": "made_up_kind", "text": "在标称输入电压下", "value": {}, "reason": "r"}
+                ],
+                "output": [],
+            },
             KINDS,
             DOC,
         )
@@ -135,7 +164,12 @@ class TestValidateDraft:
     def test_all_rejected_yields_none(self):
         clean, rejected = validate_draft(
             "R1",
-            {"input": [{"kind": "input_voltage", "text": "冰点复测三次", "value": {}, "reason": "r"}], "output": []},
+            {
+                "input": [
+                    {"kind": "input_voltage", "text": "冰点复测三次", "value": {}, "reason": "r"}
+                ],
+                "output": [],
+            },
             KINDS,
             DOC,
         )
@@ -145,7 +179,17 @@ class TestValidateDraft:
     def test_value_mismatch_drops_that_clause(self):
         clean, rejected = validate_draft(
             "R1",
-            {"input": [{"kind": "input_voltage", "text": "在标称输入电压下", "value": {"typ": 999}, "reason": "r"}], "output": []},
+            {
+                "input": [
+                    {
+                        "kind": "input_voltage",
+                        "text": "在标称输入电压下",
+                        "value": {"typ": 999},
+                        "reason": "r",
+                    }
+                ],
+                "output": [],
+            },
             KINDS,
             DOC,
         )
@@ -208,8 +252,18 @@ class TestCandidateSelection:
     def test_prompt_says_name_may_be_absent(self):
         """条目名全空时要说出来, 而不是发一个空串让模型自由发挥。"""
         p = draft_prompt(
-            {"req_id": "R", "section_path": "1", "title": "", "requirement_text": "", "subject": "",
-             "notes": "", "min": None, "typ": None, "max": None, "unit": ""},
+            {
+                "req_id": "R",
+                "section_path": "1",
+                "title": "",
+                "requirement_text": "",
+                "subject": "",
+                "notes": "",
+                "min": None,
+                "typ": None,
+                "max": None,
+                "unit": "",
+            },
             KINDS,
         )
         assert "无条目名" in p
@@ -251,11 +305,13 @@ class TestCandidateSelectionIsReal:
         monkeypatch.setattr(
             m,
             "rows_from_blocks",
-            lambda *a, **k: ([{"req_id": "R1", "section_path": "1"}, {"req_id": "R2", "section_path": "1"}], None, None),
+            lambda *a, **k: (
+                [{"req_id": "R1", "section_path": "1"}, {"req_id": "R2", "section_path": "1"}],
+                None,
+                None,
+            ),
         )
-        monkeypatch.setattr(
-            m, "apply_sieve", lambda rows, words: type("A", (), {"kept": rows})()
-        )
+        monkeypatch.setattr(m, "apply_sieve", lambda rows, words: type("A", (), {"kept": rows})())
         out = m.rows_needing_annotation("M1")
         assert [r["req_id"] for r in out] == ["R2"], "规则已覆盖的行被送进了 LLM"
 
@@ -303,8 +359,18 @@ class TestDraftAllPartialRejection:
                 return json.dumps(
                     {
                         "input": [
-                            {"kind": "input_voltage", "text": "在标称输入电压下", "value": {}, "reason": "r"},
-                            {"kind": "input_voltage", "text": "在冰点条件下复测三次", "value": {}, "reason": "编的"},
+                            {
+                                "kind": "input_voltage",
+                                "text": "在标称输入电压下",
+                                "value": {},
+                                "reason": "r",
+                            },
+                            {
+                                "kind": "input_voltage",
+                                "text": "在冰点条件下复测三次",
+                                "value": {},
+                                "reason": "编的",
+                            },
                         ],
                         "output": [],
                         "overall_reason": "验收",
@@ -339,9 +405,21 @@ class TestDraftAllPartialRejection:
             m,
             "rows_needing_annotation",
             lambda *a, **k: [
-                {"req_id": "R1", "fingerprint": "f", "section_path": "1", "title": "t",
-                 "requirement_text": "", "subject": "", "notes": "", "rail": "",
-                 "min": None, "typ": None, "max": None, "unit": "", "priority": ""}
+                {
+                    "req_id": "R1",
+                    "fingerprint": "f",
+                    "section_path": "1",
+                    "title": "t",
+                    "requirement_text": "",
+                    "subject": "",
+                    "notes": "",
+                    "rail": "",
+                    "min": None,
+                    "typ": None,
+                    "max": None,
+                    "unit": "",
+                    "priority": "",
+                }
             ],
         )
 
@@ -351,8 +429,17 @@ class TestDraftAllPartialRejection:
 
             async def chat(self, messages, **k):
                 return json.dumps(
-                    {"input": [{"kind": "input_voltage", "text": "冰点复测三次", "value": {}, "reason": "r"}],
-                     "output": []}
+                    {
+                        "input": [
+                            {
+                                "kind": "input_voltage",
+                                "text": "冰点复测三次",
+                                "value": {},
+                                "reason": "r",
+                            }
+                        ],
+                        "output": [],
+                    }
                 )
 
         import aterag.models as models
@@ -377,9 +464,21 @@ class TestDraftAllPartialRejection:
         monkeypatch.setattr(m, "proposals_dir", lambda: tmp_path)
         monkeypatch.setattr(m, "_doc_text", lambda _m: DOC)
         rows = [
-            {"req_id": f"R{i}", "fingerprint": f"f{i}", "section_path": "1", "title": "输入工作电压范围",
-             "requirement_text": "", "subject": "", "notes": "", "rail": "",
-             "min": None, "typ": None, "max": None, "unit": "", "priority": ""}
+            {
+                "req_id": f"R{i}",
+                "fingerprint": f"f{i}",
+                "section_path": "1",
+                "title": "输入工作电压范围",
+                "requirement_text": "",
+                "subject": "",
+                "notes": "",
+                "rail": "",
+                "min": None,
+                "typ": None,
+                "max": None,
+                "unit": "",
+                "priority": "",
+            }
             for i in range(3)
         ]
         monkeypatch.setattr(m, "rows_needing_annotation", lambda *a, **k: rows)
@@ -393,8 +492,17 @@ class TestDraftAllPartialRejection:
                 if self.calls == 2:
                     raise RuntimeError("rate limited")
                 return json.dumps(
-                    {"input": [{"kind": "input_voltage", "text": "在标称输入电压下", "value": {}, "reason": "r"}],
-                     "output": []}
+                    {
+                        "input": [
+                            {
+                                "kind": "input_voltage",
+                                "text": "在标称输入电压下",
+                                "value": {},
+                                "reason": "r",
+                            }
+                        ],
+                        "output": [],
+                    }
                 )
 
         import aterag.models as models
@@ -499,10 +607,23 @@ class TestDraftFileShape:
         monkeypatch.setattr(
             m,
             "rows_needing_annotation",
-            lambda *a, **k: [{"req_id": "R1", "fingerprint": "f", "section_path": "1",
-                              "title": "t", "requirement_text": "", "subject": "", "notes": "",
-                              "rail": "", "min": None, "typ": None, "max": None,
-                              "unit": "", "priority": ""}],
+            lambda *a, **k: [
+                {
+                    "req_id": "R1",
+                    "fingerprint": "f",
+                    "section_path": "1",
+                    "title": "t",
+                    "requirement_text": "",
+                    "subject": "",
+                    "notes": "",
+                    "rail": "",
+                    "min": None,
+                    "typ": None,
+                    "max": None,
+                    "unit": "",
+                    "priority": "",
+                }
+            ],
         )
         stats = m.draft_all("M1", dry_run=True)
         out = capsys.readouterr().out
@@ -530,8 +651,12 @@ class TestAcceptProposals:
             yaml.safe_dump(
                 {
                     "entries": {
-                        "R1": {"status": "approved", "approved_by": "伪造",
-                               "input": [{"kind": "input_voltage"}], "output": []},
+                        "R1": {
+                            "status": "approved",
+                            "approved_by": "伪造",
+                            "input": [{"kind": "input_voltage"}],
+                            "output": [],
+                        },
                         "R0": {"status": "draft", "input": [], "output": []},
                     }
                 },

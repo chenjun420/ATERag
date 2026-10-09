@@ -62,7 +62,9 @@ class TestDuplicateKeysUseLastNonEmpty:
 
 
 class TestEmbedKeysRequired:
-    def test_minimal_valid_env_passes(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_minimal_valid_env_passes(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         body = BASE_ENV + "EMBED_DIM=1024\n"
         monkeypatch.setattr(deploy, "EMBED_DIM", 1024)
         out = deploy.board_env(_write_env(tmp_path, body))
@@ -73,7 +75,8 @@ class TestEmbedKeysRequired:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, missing: str
     ) -> None:
         body = "".join(
-            ln for ln in (BASE_ENV + "EMBED_DIM=1024\n").splitlines(keepends=True)
+            ln
+            for ln in (BASE_ENV + "EMBED_DIM=1024\n").splitlines(keepends=True)
             if not ln.startswith(missing + "=")
         )
         monkeypatch.setattr(deploy, "EMBED_DIM", 1024)
@@ -85,7 +88,8 @@ class TestEmbedKeysRequired:
         而不是启动时。"""
         monkeypatch.setattr(deploy, "EMBED_DIM", 1024)
         body = "".join(
-            ln for ln in (BASE_ENV + "EMBED_DIM=1024\n").splitlines(keepends=True)
+            ln
+            for ln in (BASE_ENV + "EMBED_DIM=1024\n").splitlines(keepends=True)
             if not ln.startswith("EMBED_API_KEY=")
         )
         with pytest.raises(RuntimeError, match="EMBED_API_KEY"):
@@ -115,7 +119,9 @@ class TestEmbedDimIsEnforced:
         assert "2560" in msg and "1024" in msg
         assert "ADR-013" in msg
 
-    def test_commented_dim_is_uncommented(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_commented_dim_is_uncommented(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """``.env.example`` 里曾是 ``#EMBED_DIM=2560`` —— 注释形态照样能被读成值,
         于是「这个键存在」在文件里看不见。本函数负责去注释, 让它显式。"""
         monkeypatch.setattr(deploy, "EMBED_DIM", 1024)

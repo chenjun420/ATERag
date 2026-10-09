@@ -63,9 +63,7 @@ class TestBlockingChecks:
 
         形态检查的存在理由就是它 —— 「有出处」不等于「出处可核」。
         """
-        rep = kg.run_gate(
-            [_rec(authority_kind="standard", authority_ref="2.1.3", clause="2.1.3")]
-        )
+        rep = kg.run_gate([_rec(authority_kind="standard", authority_ref="2.1.3", clause="2.1.3")])
         errs = _errors(rep)
         assert any(f.check == "authority_shape" for f in errs)
 
@@ -75,8 +73,7 @@ class TestBlockingChecks:
 
     def test_confidence_out_of_range_is_error(self) -> None:
         assert any(
-            f.check == "confidence_range"
-            for f in _errors(kg.run_gate([_rec(confidence=1.5)]))
+            f.check == "confidence_range" for f in _errors(kg.run_gate([_rec(confidence=1.5)]))
         )
 
     def test_confidence_non_numeric_is_error(self) -> None:
@@ -140,8 +137,7 @@ class TestNoFalsePositives:
         """
         recs = [
             _rec(id="F_L.2.5_RAILWAY_FUNCTIONAL_SAFETY", entity_type="formula"),
-            _rec(authority_kind="standard", authority_ref="GB/T 1-2020",
-                 bindings="F_L.2.5、G.39"),
+            _rec(authority_kind="standard", authority_ref="GB/T 1-2020", bindings="F_L.2.5、G.39"),
         ]
         rep = kg.run_gate(recs)
         assert [f for f in _warns(rep) if f.check == "undeclared_ref"] == []
@@ -210,15 +206,10 @@ class TestRealSeed:
         """
         recs = self._records()
         unmatched = {
-            str(r["id"]) for r in recs
-            if r.get("id") and not kg.ID_NAMESPACE.match(str(r["id"]))
+            str(r["id"]) for r in recs if r.get("id") and not kg.ID_NAMESPACE.match(str(r["id"]))
         }
         assert unmatched, "预期存在已登记的裸名 id; 若已全部规范化, 请更新门禁判据"
-        types = {
-            str(r["entity_type"])
-            for r in recs
-            if r.get("id") and str(r["id"]) in unmatched
-        }
+        types = {str(r["entity_type"]) for r in recs if r.get("id") and str(r["id"]) in unmatched}
         assert types == kg.BARE_NAME_ID_TYPES, types
         assert kg.BARE_NAME_ID_TYPES == frozenset({"power_concept"}), (
             "裸名 id 名单变了: 新增类型要说明它为什么不能进 ID_NAMESPACE, "
@@ -239,8 +230,9 @@ class TestRealSeed:
 
     def test_bare_name_ids_are_counted_in_stats(self) -> None:
         """已登记的裸名 id 不点名, 但**要计数** —— 形态漂移要看得见。"""
-        rep = kg.run_gate([_rec(id="BMS", entity_type="power_concept"),
-                           _rec(id="BADFORM", entity_type="axiom")])
+        rep = kg.run_gate(
+            [_rec(id="BMS", entity_type="power_concept"), _rec(id="BADFORM", entity_type="axiom")]
+        )
         # 一条登记过的裸名 + 一条没登记的: 只有后者该被点名
         assert rep.stats["bare_name_ids"] == 1
         warns = [f for f in _warns(rep) if f.check == "id_namespace"]
@@ -296,11 +288,13 @@ class TestRealSeed:
         类型都没有的, 是连「该拿哪份标准去查」都还不知道。只报总数的话,
         「588 条」这个数字驱动不了任何补齐工作。
         """
-        rep = kg.run_gate([
-            _rec(id="a", authority_kind="unverified"),
-            _rec(id="b"),
-            _rec(id="c", confidence=0.5),
-        ])
+        rep = kg.run_gate(
+            [
+                _rec(id="a", authority_kind="unverified"),
+                _rec(id="b"),
+                _rec(id="c", confidence=0.5),
+            ]
+        )
         detail = [f.detail for f in _warns(rep) if f.check == "confidence_present"][0]
         assert "2 条未标 confidence" in detail, detail
         assert "1 条已声明 authority_kind" in detail, detail

@@ -39,22 +39,50 @@ from aterag.ingest.persist_requirements import (
 )
 
 
-def _clause(kind: str, text: str = "x", *, role: str = "output",
-            status: str = STATUS_APPROVED,
-            confidence: str = CONF_ANNOTATED, value=None) -> ConditionClause:
-    return ConditionClause(kind=kind, text=text, role=role, value=value or {},
-                           source="notes", confidence=confidence, status=status)
+def _clause(
+    kind: str,
+    text: str = "x",
+    *,
+    role: str = "output",
+    status: str = STATUS_APPROVED,
+    confidence: str = CONF_ANNOTATED,
+    value=None,
+) -> ConditionClause:
+    return ConditionClause(
+        kind=kind,
+        text=text,
+        role=role,
+        value=value or {},
+        source="notes",
+        confidence=confidence,
+        status=status,
+    )
 
 
-def _cond(req_id: str = "SR-X-1", *, rail: str = "", unit: str = "",
-          notes: str = "", role: str = "stimulus_response",
-          section_path: str = "4.3.2", priority: str = "",
-          limits: dict | None = None,
-          ins: list | None = None, outs: list | None = None) -> TestCondition:
+def _cond(
+    req_id: str = "SR-X-1",
+    *,
+    rail: str = "",
+    unit: str = "",
+    notes: str = "",
+    role: str = "stimulus_response",
+    section_path: str = "4.3.2",
+    priority: str = "",
+    limits: dict | None = None,
+    ins: list | None = None,
+    outs: list | None = None,
+) -> TestCondition:
     return TestCondition(
-        req_id=req_id, title="输出电压", section_path=section_path, role=role,
-        priority=priority, rail=rail, unit=unit, notes=notes,
-        input_conditions=ins or [], output_conditions=outs or [],
+        req_id=req_id,
+        title="输出电压",
+        section_path=section_path,
+        role=role,
+        priority=priority,
+        rail=rail,
+        unit=unit,
+        notes=notes,
+        input_conditions=ins or [],
+        output_conditions=outs or [],
         limits=limits or {},
     )
 
@@ -62,6 +90,7 @@ def _cond(req_id: str = "SR-X-1", *, rail: str = "", unit: str = "",
 # --------------------------------------------------------------------------
 # 档位键: 口径与唯一性
 # --------------------------------------------------------------------------
+
 
 def test_variant_key_empty_for_single_row():
     """单行判据: 序号为 0 时不加 #N —— 与实体层 ``_variant_suffix`` 一致。"""
@@ -138,6 +167,7 @@ def test_assert_unique_variants_same_spec_is_called_out_as_extraction_bug():
 # coverage_status: 不得因未人审提案而虚高
 # --------------------------------------------------------------------------
 
+
 def test_approved_clause_is_sound_rejects_proposed():
     cl = _clause("load", status=STATUS_APPROVED, confidence=CONF_PROPOSED)
     assert not approved_clause_is_sound(cl)
@@ -164,10 +194,12 @@ def test_coverage_pending_when_draft_present():
     实测 95 条里 40 条含 draft; 若这里报 COVERED, 「覆盖率 55/95」就变成了
     「有 40 条没任何人看过却算已覆盖」的数字游戏。
     """
-    row = requirement_row(_cond(
-        ins=[_clause("input_voltage")],
-        outs=[_clause("output_voltage", status=STATUS_DRAFT, confidence=CONF_PROPOSED)],
-    ))
+    row = requirement_row(
+        _cond(
+            ins=[_clause("input_voltage")],
+            outs=[_clause("output_voltage", status=STATUS_DRAFT, confidence=CONF_PROPOSED)],
+        )
+    )
     assert row.coverage_status == COV_PENDING
 
 
@@ -178,9 +210,11 @@ def test_coverage_gap_when_no_approved_clause():
 
 def test_coverage_gap_when_only_proposed_but_marked_approved():
     """提案被误标 approved 也不能算已覆盖 —— 这条不变式的落点。"""
-    row = requirement_row(_cond(
-        outs=[_clause("output_voltage", status=STATUS_APPROVED, confidence=CONF_PROPOSED)],
-    ))
+    row = requirement_row(
+        _cond(
+            outs=[_clause("output_voltage", status=STATUS_APPROVED, confidence=CONF_PROPOSED)],
+        )
+    )
     assert row.coverage_status == COV_GAP
 
 
@@ -195,6 +229,7 @@ def test_explicit_gap_wins_over_pending():
 # --------------------------------------------------------------------------
 # SQL 与行结构
 # --------------------------------------------------------------------------
+
 
 def test_upsert_conflicts_on_sr_id_and_variant_key():
     """冲突键必须含档位 —— 只按 sr_id 冲突会把同编号的多档互相覆盖。"""
@@ -213,8 +248,15 @@ def test_upsert_does_not_overwrite_valid_from():
 
 def test_upsert_writes_all_structured_columns():
     sql = upsert_sql()
-    for col in ("condition_vector", "instrument_need", "fixture_need",
-                "method", "source_ref", "signal_type", "coverage_status"):
+    for col in (
+        "condition_vector",
+        "instrument_need",
+        "fixture_need",
+        "method",
+        "source_ref",
+        "signal_type",
+        "coverage_status",
+    ):
         assert col in sql, f"缺列 {col}"
 
 
@@ -223,8 +265,10 @@ def test_rows_from_result_assigns_ordinal_within_sr_id():
 
     class R:
         model_id = "PA601-D54A"
-        conditions = [_cond("SR-A-1", unit="Vac", limits={"min": 100.0}),
-                      _cond("SR-A-1", unit="Vac", limits={"min": 200.0})]
+        conditions = [
+            _cond("SR-A-1", unit="Vac", limits={"min": 100.0}),
+            _cond("SR-A-1", unit="Vac", limits={"min": 200.0}),
+        ]
         assessments = []
 
     rows = rows_from_result(R())
@@ -257,11 +301,16 @@ def test_rows_from_result_raises_on_collision():
 
 
 def test_row_carries_traceability_and_method_refs():
-    row = requirement_row(_cond(
-        req_id="SR-A-1", section_path="4.3.2", priority="强制",
-        notes="长期 25% 负载", limits={"min": 1.0, "unit": "V", "rail": "-54V"},
-        outs=[_clause("ripple", value={"method_ref": "MEAS_RIPPLE_BW_LIMIT"})],
-    ))
+    row = requirement_row(
+        _cond(
+            req_id="SR-A-1",
+            section_path="4.3.2",
+            priority="强制",
+            notes="长期 25% 负载",
+            limits={"min": 1.0, "unit": "V", "rail": "-54V"},
+            outs=[_clause("ripple", value={"method_ref": "MEAS_RIPPLE_BW_LIMIT"})],
+        )
+    )
     assert row.sr_id == "SR-A-1"
     assert row.source_ref["section_path"] == "4.3.2"
     assert row.source_ref["priority"] == "强制"
@@ -270,10 +319,12 @@ def test_row_carries_traceability_and_method_refs():
 
 
 def test_condition_vector_separates_approved_and_draft():
-    row = requirement_row(_cond(
-        ins=[_clause("input_voltage")],
-        outs=[_clause("output_voltage", status=STATUS_DRAFT)],
-    ))
+    row = requirement_row(
+        _cond(
+            ins=[_clause("input_voltage")],
+            outs=[_clause("output_voltage", status=STATUS_DRAFT)],
+        )
+    )
     vec = row.condition_vector
     assert [c["kind"] for c in vec["approved"]] == ["input_voltage"]
     assert [c["kind"] for c in vec["draft"]] == ["output_voltage"]
@@ -297,16 +348,13 @@ def test_signal_type_telemetry_point_is_yc():
     (SR-1600 输入电压等) 检测范围只写在自由文本里(「0~320Vac 精度 ±3%」)而
     ``limits`` 为空, 按限值分会把它们判成遥信 —— 那等于让工装给模拟量绑干接点。
     """
-    row = requirement_row(_cond(
-        role=ROLE_SIGNAL_IO, limits={},
-        outs=[_clause("telemetry_value")]))
+    row = requirement_row(_cond(role=ROLE_SIGNAL_IO, limits={}, outs=[_clause("telemetry_value")]))
     assert row.signal_type == "YC"
 
 
 def test_signal_type_alarm_is_yx():
     """告警/遥信 -> YX: ``signal_io`` 角色且没有 ``telemetry_value``。"""
-    row = requirement_row(_cond(role=ROLE_SIGNAL_IO,
-                                outs=[_clause("signal_state")]))
+    row = requirement_row(_cond(role=ROLE_SIGNAL_IO, outs=[_clause("signal_state")]))
     assert row.signal_type == "YX"
 
 
@@ -318,9 +366,13 @@ def test_signal_type_title_paren_signal_state_does_not_make_it_signal():
     信号类, 于是 §4.3.2 的电气判据 SR-1214(开关机过冲 ±5%)、SR-1218(掉电延时
     10mS)、SR-1223(热插拔要求)被标成 YX/YC —— 工装会去绑干接点而不是电压探头。
     """
-    row = requirement_row(_cond(
-        role="output_spec", limits={"min": -5.0, "max": 5.0, "unit": "%"},
-        outs=[_clause("signal_state", role="output", status=STATUS_APPROVED)]))
+    row = requirement_row(
+        _cond(
+            role="output_spec",
+            limits={"min": -5.0, "max": 5.0, "unit": "%"},
+            outs=[_clause("signal_state", role="output", status=STATUS_APPROVED)],
+        )
+    )
     assert row.signal_type == "TEST"
 
 
@@ -331,8 +383,7 @@ def test_signal_type_telemetry_role_never_falls_back_to_test():
     根本读不到数, 且不报错。PA601 上 SR-1600/1601/1603/1604/1606/1608/1613 这
     7 条遥测点曾整批被归成 TEST。
     """
-    row = requirement_row(_cond(role=ROLE_SIGNAL_IO,
-                                outs=[_clause("telemetry_value")]))
+    row = requirement_row(_cond(role=ROLE_SIGNAL_IO, outs=[_clause("telemetry_value")]))
     assert row.signal_type != "TEST"
 
 
@@ -349,19 +400,19 @@ class TestAssessUnnecessaryReference:
 
     def _cond(self):
         from aterag.extract.models import ConditionClause, TestCondition
+
         return TestCondition(
             req_id="SR-T-1701",
             title="版本管理功能",
             section_path="4.3.4.5",
             flags=["resolved_reference", "reference_target:4.3.4.4"],
             input_conditions=[],
-            output_conditions=[
-                ConditionClause(kind="presence", text="详见4.3.4.4", role="output")
-            ],
+            output_conditions=[ConditionClause(kind="presence", text="详见4.3.4.4", role="output")],
         )
 
     def test_rule_fires_unnecessary_before_still_missing(self):
         from aterag.extract.assess import RuleBook, assess_conditions
+
         book = RuleBook.load("config/test_methods.yaml")
         items = assess_conditions([self._cond()], book)
         assert len(items) == 1
@@ -373,6 +424,7 @@ class TestAssessUnnecessaryReference:
             COV_PENDING,
             requirement_row,
         )
+
         row = requirement_row(self._cond(), hold_pending=True)
         assert row.coverage_status == COV_PENDING
         row2 = requirement_row(self._cond(), hold_pending=False)
@@ -388,8 +440,11 @@ class TestAssessUnnecessaryReference:
             conditions = [self._cond()]
             assessments = [
                 AssessmentItem(
-                    req_id="SR-T-1701", title="版本管理功能", section_path="4.3.4.5",
-                    verdict="unnecessary", rule_id="reference_presence_without_criterion",
+                    req_id="SR-T-1701",
+                    title="版本管理功能",
+                    section_path="4.3.4.5",
+                    verdict="unnecessary",
+                    rule_id="reference_presence_without_criterion",
                     basis="x",
                 )
             ]

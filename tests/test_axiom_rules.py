@@ -127,10 +127,7 @@ class TestRulesResolve:
 
     def test_every_rules_value_is_a_real_rule(self, axioms: list[dict], rule_ids) -> None:
         bad = [
-            (a["id"], r)
-            for a in axioms
-            for r in (a.get("rules") or [])
-            if str(r) not in rule_ids
+            (a["id"], r) for a in axioms for r in (a.get("rules") or []) if str(r) not in rule_ids
         ]
         assert not bad, f"指向规则库里不存在的规则: {bad}"
 
@@ -152,7 +149,10 @@ class TestTheoremNamespace:
         同一对关系两种字符串写法, 查引用要认两种, 漏一种就是漏检。
         """
         bad = [
-            (a["id"], t) for a in axioms for t in (a.get("theorems") or []) if not str(t).startswith("thm::")
+            (a["id"], t)
+            for a in axioms
+            for t in (a.get("theorems") or [])
+            if not str(t).startswith("thm::")
         ]
         assert not bad, f"定理记号缺 thm:: 前缀: {bad}"
 
@@ -179,9 +179,7 @@ class TestNoDuplicateEdges:
         """
         data = json.loads(SEED.read_text(encoding="utf-8"))
         pairs = [
-            (r["source_id"], r["target_id"])
-            for r in data["records"]
-            if r.get("relationship_type")
+            (r["source_id"], r["target_id"]) for r in data["records"] if r.get("relationship_type")
         ]
         dupes = [p for p, n in collections.Counter(pairs).items() if n > 1]
         assert not dupes, f"重复的关系边: {dupes}"

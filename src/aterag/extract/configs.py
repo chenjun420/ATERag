@@ -145,7 +145,8 @@ def validate_extraction_configs(
         # 工装)没被引用是本分, 混进这个集合报出来就全是噪声, 于是门禁被架空。
         referenced = {kr for m in methods.methods for kr in m.knowledge_ref}
         orphans = sorted(
-            kid for kid, sc in practice_scopes.items()
+            kid
+            for kid, sc in practice_scopes.items()
             if sc == "condition" and kid not in referenced
         )
         if orphans:
@@ -250,7 +251,9 @@ def _stable(node: Any) -> str:
         return (
             "{"
             + ",".join(
-                f"{k}:{_stable(node[k])}" for k in sorted(node) if k not in FINGERPRINT_EXCLUDED_KEYS
+                f"{k}:{_stable(node[k])}"
+                for k in sorted(node)
+                if k not in FINGERPRINT_EXCLUDED_KEYS
             )
             + "}"
         )

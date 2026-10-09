@@ -1,4 +1,4 @@
-﻿"""``aterag-db`` —— 存储底座的命令行入口。
+"""``aterag-db`` —— 存储底座的命令行入口。
 
 V6.0 §18.1.3 要求 ``storage/`` 提供建库入口, ``pyproject.toml`` 的
 ``[project.scripts]`` 已登记 ``aterag-db = "aterag.storage.cli:main"``。
@@ -296,9 +296,7 @@ def cmd_verify(conn: _Conn, args: argparse.Namespace) -> int:
                 print(f"[FAIL] {schema}\n       {exc}", file=sys.stderr)
                 rc = 1
                 continue
-        print(
-            f"[OK  ] {schema}: {n_tables} 张表全部已 ENABLE + FORCE ROW LEVEL SECURITY"
-        )
+        print(f"[OK  ] {schema}: {n_tables} 张表全部已 ENABLE + FORCE ROW LEVEL SECURITY")
     return rc
 
 
@@ -379,12 +377,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--dsn", default=None, help="PostgreSQL DSN, 缺省读 Settings.postgres_dsn")
     sub = p.add_subparsers(dest="command", required=True)
 
-    sub.add_parser("check", help="实测扩展安装状态 (fail-closed)").set_defaults(
-        func=cmd_check
-    )
-    sub.add_parser("upgrade", help="跑 alembic 建 L0 共享层").set_defaults(
-        func=cmd_upgrade
-    )
+    sub.add_parser("check", help="实测扩展安装状态 (fail-closed)").set_defaults(func=cmd_check)
+    sub.add_parser("upgrade", help="跑 alembic 建 L0 共享层").set_defaults(func=cmd_upgrade)
 
     p_init = sub.add_parser("init", help="建型号 schema")
     p_init.add_argument("models", nargs="+", help="型号键, 如 PA601-D54A")

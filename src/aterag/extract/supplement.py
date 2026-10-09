@@ -75,6 +75,7 @@ def load_signoffs(path: str | Path = DEFAULT_SIGNOFFS_PATH) -> dict[str, dict[st
     doc = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
     return dict(doc.get("methods") or {})
 
+
 #: 补齐产物的来源标记 —— 与 notes/limits/annotation/title 并列, 区分"哪来的"。
 ORIGIN_SPEC = "spec"
 
@@ -306,9 +307,7 @@ class MethodBook:
                     _role_declared="role" in ap,
                     measurement_hints=dict(m.get("measurement_hints") or {}),
                     applies=str(m.get("applies", APPLIES_MISSING_SIDE)),
-                    knowledge_ref=tuple(
-                        str(x) for x in (m.get("knowledge_ref") or ())
-                    ),
+                    knowledge_ref=tuple(str(x) for x in (m.get("knowledge_ref") or ())),
                     signoff=signed_fp if signed_fp == actual_fp else "",
                 )
             )
@@ -377,12 +376,9 @@ class MethodBook:
                 )
             if m.applies not in APPLIES_WHEN:
                 bad.append(
-                    f"methods[{m.id}].applies 非法: {m.applies} "
-                    f"(应为 {' / '.join(APPLIES_WHEN)})"
+                    f"methods[{m.id}].applies 非法: {m.applies} (应为 {' / '.join(APPLIES_WHEN)})"
                 )
-            elif m.is_always and not any(
-                c.kind == ALWAYS_REQUIRES_SETUP for c in m.conditions
-            ):
+            elif m.is_always and not any(c.kind == ALWAYS_REQUIRES_SETUP for c in m.conditions):
                 # 少了这条, `applies: always` 会把「额定输入+额定负载」撒到每条
                 # output_spec 上, 覆盖掉规格书给出的更具体前提。
                 bad.append(
@@ -555,9 +551,7 @@ def _mark(cond: TestCondition, flag: str) -> None:
         cond.flags.append(flag)
 
 
-def _attach_setup(
-    cond: TestCondition, m: TestMethod, side: str, result: SupplementResult
-) -> bool:
+def _attach_setup(cond: TestCondition, m: TestMethod, side: str, result: SupplementResult) -> bool:
     """只挂方法的 ``measurement_setup`` 子句, 返回是否真的新增。
 
     ``applies: always`` 的语义**只覆盖这一条**: 「这个量怎么测」与「测的前提

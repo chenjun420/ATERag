@@ -136,11 +136,7 @@ class TestStdIdHeadAgrees:
 
         report = gate.GateReport()
         gate.check_authority_refsolvable(records, report)
-        got = {
-            str(f.where)
-            for f in report.findings
-            if f.check == "authority_ref_resolvable"
-        }
+        got = {str(f.where) for f in report.findings if f.check == "authority_ref_resolvable"}
         assert got == set(want), (
             f"门禁漏报 {sorted(set(want) - got)[:6]} / 多报 {sorted(got - set(want))[:6]}"
         )

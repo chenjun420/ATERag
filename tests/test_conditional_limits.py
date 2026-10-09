@@ -137,10 +137,13 @@ def test_unknown_dimension_or_non_range_binding_never_holds() -> None:
     assert _guard_holds(_guard(176.0), {}) is False
     assert _guard_holds(_guard(176.0), {"ac_input_tier": "满载"}) is False
     assert _guard_holds(_guard(176.0), {"other_dim": "90~176Vac"}) is False
-    assert _guard_holds(
-        {"dimension": "ac_input_tier", "op": "<", "value": None},
-        {"ac_input_tier": "90~176Vac"},
-    ) is False
+    assert (
+        _guard_holds(
+            {"dimension": "ac_input_tier", "op": "<", "value": None},
+            {"ac_input_tier": "90~176Vac"},
+        )
+        is False
+    )
 
 
 # --------------------------------------------------------------------------
@@ -283,9 +286,7 @@ def test_no_spec_numbers_in_code() -> None:
     tree = ast.parse(src)
     doc_nodes = set()
     for node in ast.walk(tree):
-        if isinstance(
-            node, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
-        ):
+        if isinstance(node, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
             first = node.body[0] if node.body else None
             if (
                 isinstance(first, ast.Expr)

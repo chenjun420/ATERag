@@ -48,15 +48,13 @@ class TestCapabilityDemand:
         rows = [_row("SR-X-1", draft=("ripple",))]
         ds = derive_capability_demand(rows)
         assert all(d.provisional_only for d in ds)
-        assert {d.capability for d in ds} == {"oscilloscope",
-                                              "bandwidth_limited_probe"}
+        assert {d.capability for d in ds} == {"oscilloscope", "bandwidth_limited_probe"}
         assert all(d.approved_by == () for d in ds)
         assert all(set(d.provisional_by) == {"SR-X-1"} for d in ds)
         # 提示项不该出现在硬需求里 —— 采购清单据此过滤: 同一能力既有硬又有提示时,
         # 硬侧记已批准行, 提示侧记提案行, 两者不混
         rows2 = [_row("SR-X-2", approved=("ripple",)), *rows]
-        d2 = [x for x in derive_capability_demand(rows2)
-              if x.capability == "oscilloscope"][0]
+        d2 = [x for x in derive_capability_demand(rows2) if x.capability == "oscilloscope"][0]
         assert d2.approved_by == ("SR-X-2",)
         assert set(d2.provisional_by) == {"SR-X-1"}
         assert not d2.provisional_only
@@ -70,12 +68,12 @@ class TestCapabilityDemand:
 
 class TestRailChannelDemand:
     def test_unrailed_output_check_propagates_to_every_rail(self):
-        """"各路输出电压应落在其额定范围」这类无轨判据, 要求每条轨都测。
+        """ "各路输出电压应落在其额定范围」这类无轨判据, 要求每条轨都测。
 
         只按行自身 kind 计数会得出「(整机) 1 通道」的低估 —— 传播是修正它。
         """
         rows = [
-            _row("SR-X-1100", approved=("output_voltage",)),      # 无轨
+            _row("SR-X-1100", approved=("output_voltage",)),  # 无轨
             _row("SR-X-1500", rail="-54V", approved=("output_current",)),
             _row("SR-X-1501", rail="3.45V", approved=("output_current",)),
         ]
@@ -85,17 +83,15 @@ class TestRailChannelDemand:
 
     def test_rail_own_demand_not_erased_by_floor(self):
         rows = [
-            _row("SR-X-1100", approved=("output_voltage",)),      # 无轨: 电压
-            _row("SR-X-1500", rail="-54V",
-                 approved=("output_current", "ripple")),
+            _row("SR-X-1100", approved=("output_voltage",)),  # 无轨: 电压
+            _row("SR-X-1500", rail="-54V", approved=("output_current", "ripple")),
         ]
         d = [x for x in derive_rail_channel_demand(rows) if x.rail == "-54"][0]
         # ripple 与 output_voltage 同为电压采样, 不重复计
         assert d.sense_channels == 2
 
     def test_switching_and_fault_flags(self):
-        rows = [_row("SR-X-1", approved=("load",)),
-                _row("SR-X-2", approved=("fault_stimulus",))]
+        rows = [_row("SR-X-1", approved=("load",)), _row("SR-X-2", approved=("fault_stimulus",))]
         d = derive_rail_channel_demand(rows)
         assert all(x.needs_switching and x.needs_fault_injection for x in d)
 
@@ -103,10 +99,8 @@ class TestRailChannelDemand:
 class TestInstrumentRanges:
     def test_ranges_merge_by_unit_and_carry_sr_ids(self):
         rows = [
-            _row("SR-X-1200", rail="-54V", unit="V",
-                 approved=("output_voltage",)),
-            _row("SR-X-1201", rail="-54V", unit="V",
-                 approved=("output_voltage",)),
+            _row("SR-X-1200", rail="-54V", unit="V", approved=("output_voltage",)),
+            _row("SR-X-1201", rail="-54V", unit="V", approved=("output_voltage",)),
         ]
         rows[0]["spec"]["min"] = -54.8
         rows[1]["spec"]["max"] = 65.0
@@ -123,9 +117,17 @@ class TestFixtureTypes:
     def test_demand_maps_to_legal_ddl_fixture_types(self):
         rows = [_row("SR-X-1", rail="-54V", approved=("load", "fault_stimulus"))]
         ftypes = derive_fixture_type_demand(rows)
-        assert set(ftypes) <= {"load_board", "relay_matrix", "adapter",
-                               "fault_injection", "load_box", "safety_fixture",
-                               "emc_fixture", "thermal_adapter", "fixture_adapter"}
+        assert set(ftypes) <= {
+            "load_board",
+            "relay_matrix",
+            "adapter",
+            "fault_injection",
+            "load_box",
+            "safety_fixture",
+            "emc_fixture",
+            "thermal_adapter",
+            "fixture_adapter",
+        }
         assert "load_box" in ftypes and "fault_injection" in ftypes
 
 
@@ -133,8 +135,7 @@ class TestDemandItemShape:
     def test_provisional_only_logic(self):
         d = DemandItem(capability="x", provisional_by=("SR-1",))
         assert d.provisional_only
-        d2 = DemandItem(capability="x", approved_by=("SR-1",),
-                        provisional_by=("SR-2",))
+        d2 = DemandItem(capability="x", approved_by=("SR-1",), provisional_by=("SR-2",))
         assert not d2.provisional_only  # 有已批准依据就不能整项降级为提示
 
 
@@ -151,6 +152,7 @@ class TestFilterRequirementRows:
 
     def test_exclude_priority_removes_not_required(self):
         from aterag.fixture.demand import filter_requirement_rows
+
         rows = [self._r("A", "强制"), self._r("B", "不要求"), self._r("C", "无要求")]
         kept, ex = filter_requirement_rows(rows, exclude_priority="不要求,无要求")
         assert [r["sr_id"] for r in kept] == ["A"]
@@ -159,6 +161,7 @@ class TestFilterRequirementRows:
 
     def test_priority_positive_multi_value(self):
         from aterag.fixture.demand import filter_requirement_rows
+
         rows = [self._r("A", "强制"), self._r("B", "推荐"), self._r("C", "")]
         kept, ex = filter_requirement_rows(rows, priority="强制,推荐")
         assert [r["sr_id"] for r in kept] == ["A", "B"]
@@ -166,6 +169,7 @@ class TestFilterRequirementRows:
 
     def test_exclude_words_leaves_trace_with_notes(self):
         from aterag.fixture.demand import filter_requirement_rows
+
         rows = [
             self._r("A", "强制", notes="正常"),
             self._r("B", "强制", notes="3A以下不要求，3A以上：±1%精度"),
@@ -178,6 +182,7 @@ class TestFilterRequirementRows:
 
     def test_no_params_keeps_everything(self):
         from aterag.fixture.demand import filter_requirement_rows
+
         rows = [self._r("A", "不要求", notes="不要求")]
         kept, ex = filter_requirement_rows(rows)
         assert len(kept) == 1 and not ex
@@ -206,6 +211,7 @@ class TestCapabilityMappingCompleteness:
         import yaml
 
         from aterag.fixture.demand import CAPABILITY_BY_KIND
+
         cfg = yaml.safe_load(open("config/condition_patterns.yaml", encoding="utf-8"))
         kinds = set(cfg["kinds"]["input"]) | set(cfg["kinds"]["output"])
         unmapped = kinds - set(CAPABILITY_BY_KIND) - set(self.ALLOWED_UNMAPPED)
@@ -218,6 +224,7 @@ class TestCapabilityMappingCompleteness:
         import yaml
 
         from aterag.fixture.demand import CAPABILITY_BY_KIND
+
         cfg = yaml.safe_load(open("config/condition_patterns.yaml", encoding="utf-8"))
         kinds = set(cfg["kinds"]["input"]) | set(cfg["kinds"]["output"])
         stale = set(CAPABILITY_BY_KIND) - kinds
@@ -226,5 +233,6 @@ class TestCapabilityMappingCompleteness:
     def test_temperature_stimulus_yields_thermal_chamber(self):
         """input 侧 temperature 与 output 侧 thermal 必须都推得出温箱。"""
         from aterag.fixture.demand import CAPABILITY_BY_KIND
+
         assert "thermal_chamber" in CAPABILITY_BY_KIND["temperature"]
         assert "thermal_chamber" in CAPABILITY_BY_KIND["thermal"]

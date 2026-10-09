@@ -63,9 +63,7 @@ class TestCoverageSummary:
         assert out["kind_count"] == len(out["kinds"])
 
     @pytest.mark.asyncio
-    async def test_sides_and_both_side_counts_are_consistent(
-        self, model_id: str
-    ) -> None:
+    async def test_sides_and_both_side_counts_are_consistent(self, model_id: str) -> None:
         out = json.loads(await S.get_coverage_summary(model_id=model_id))
         assert out["both_sides"] + out["one_sided"] == out["requirements"]
         sides = out["clauses_by_side"]
@@ -143,8 +141,14 @@ class TestPendingReview:
         assert out["items"]
         for item in out["items"][:20]:
             assert set(item) >= {
-                "req_id", "section_path", "kind", "role", "source",
-                "confidence", "method_ref", "status",
+                "req_id",
+                "section_path",
+                "kind",
+                "role",
+                "source",
+                "confidence",
+                "method_ref",
+                "status",
             }
 
     @pytest.mark.asyncio
@@ -186,8 +190,14 @@ class TestConditionDetail:
         assert clauses
         for c in clauses:
             assert set(c) == {
-                "kind", "text", "role", "value", "source",
-                "confidence", "status", "method_ref",
+                "kind",
+                "text",
+                "role",
+                "value",
+                "source",
+                "confidence",
+                "status",
+                "method_ref",
             }
 
     @pytest.mark.asyncio
@@ -201,9 +211,7 @@ class TestConditionDetail:
             if S._scenarios_of(result, c.req_id)
             and S._find_requirement(result, c.req_id) is not None
         )
-        out = json.loads(
-            await S.get_condition_detail(model_id=model_id, req_id=cond.req_id)
-        )
+        out = json.loads(await S.get_condition_detail(model_id=model_id, req_id=cond.req_id))
         assert out["scenarios"]
         seqs = [s["seq"] for s in out["scenarios"]]
         assert seqs == sorted(seqs)
@@ -213,16 +221,12 @@ class TestConditionDetail:
     async def test_unknown_requirement_lists_alternatives(self, model_id: str) -> None:
         """A bare "not found" is a dead end; the alternatives let the agent
         correct itself without a second round trip."""
-        out = json.loads(
-            await S.get_condition_detail(model_id=model_id, req_id="SR-NOPE")
-        )
+        out = json.loads(await S.get_condition_detail(model_id=model_id, req_id="SR-NOPE"))
         assert out["error"] == "requirement_not_found"
         assert out["available"]
 
     @pytest.mark.asyncio
-    async def test_disambiguated_code_resolves_by_exact_match(
-        self, model_id: str
-    ) -> None:
+    async def test_disambiguated_code_resolves_by_exact_match(self, model_id: str) -> None:
         """A bundle code like ``SR-1103__-54V__m0m2000`` must resolve exactly.
 
         Asserted against a synthetic id rather than real data: extraction's
@@ -233,9 +237,7 @@ class TestConditionDetail:
         result = S._extract_for(model_id)
         cond = result.conditions[0]
         out = json.loads(
-            await S.get_condition_detail(
-                model_id=model_id, req_id=f"{cond.req_id}__-54V__m0m2000"
-            )
+            await S.get_condition_detail(model_id=model_id, req_id=f"{cond.req_id}__-54V__m0m2000")
         )
         # A synthetic suffix cannot match any extraction row, so the lookup
         # must fall through to the stem — and a multi-row stem must then report
@@ -264,9 +266,7 @@ class TestConditionDetail:
             # of leaving it untested.
             assert S._find_requirement(result, "SR-DOES-NOT-EXIST") is None
             return
-        out = json.loads(
-            await S.get_condition_detail(model_id=model_id, req_id=ambiguous[0])
-        )
+        out = json.loads(await S.get_condition_detail(model_id=model_id, req_id=ambiguous[0]))
         assert out["error"] == "requirement_ambiguous"
         # The response must show what it saw, so the caller can pick a row
         # rather than being told only that it failed.

@@ -120,8 +120,15 @@ class TestCompletenessVerdict:
         import resave_chunks as rc
 
         async def fake_resave(model, doc, *, delete_first=True):
-            return {"model": model, "chunks": 10, "deleted": 10, "saved": 10,
-                    "vectors": 4, "rows": 10, "with_embedding": 4}
+            return {
+                "model": model,
+                "chunks": 10,
+                "deleted": 10,
+                "saved": 10,
+                "vectors": 4,
+                "rows": 10,
+                "with_embedding": 4,
+            }
 
         monkeypatch.setattr(rc, "resave", fake_resave)
         rc.main(["-d", "x.md"])
@@ -132,8 +139,15 @@ class TestCompletenessVerdict:
         import resave_chunks as rc
 
         async def fake_resave(model, doc, *, delete_first=True):
-            return {"model": model, "chunks": 10, "deleted": 10, "saved": 10,
-                    "vectors": 10, "rows": 10, "with_embedding": 10}
+            return {
+                "model": model,
+                "chunks": 10,
+                "deleted": 10,
+                "saved": 10,
+                "vectors": 10,
+                "rows": 10,
+                "with_embedding": 10,
+            }
 
         monkeypatch.setattr(rc, "resave", fake_resave)
         # main() 里跑 asyncio.run(resave(...)); 上面 patch 的是 rc.resave
@@ -150,8 +164,15 @@ class TestCompletenessVerdict:
 
         async def fake_resave(model, doc, *, delete_first=True):
             seen.update(model=model, doc=doc)
-            return {"model": model, "chunks": 1, "deleted": 1, "saved": 1,
-                    "vectors": 1, "rows": 1, "with_embedding": 1}
+            return {
+                "model": model,
+                "chunks": 1,
+                "deleted": 1,
+                "saved": 1,
+                "vectors": 1,
+                "rows": 1,
+                "with_embedding": 1,
+            }
 
         monkeypatch.setattr(rc, "resave", fake_resave)
         rc.main(["-m", "PA601-D54A", "-d", "/opt/aterag/specs/PA601-D54A.md"])

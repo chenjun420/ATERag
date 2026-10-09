@@ -101,16 +101,14 @@ class TestDedupLogicNotDuplicated:
 
     def test_hybrid_delegates_instead_of_reimplementing(self) -> None:
         code = _code_only(HYBRID)
-        assert (
-            "DELETE FROM aterag_chunks a USING aterag_chunks b" not in code
-        ), "hybrid 里仍有自己一份去重 SQL —— 应委托给 ensure_chunk_key_column"
+        assert "DELETE FROM aterag_chunks a USING aterag_chunks b" not in code, (
+            "hybrid 里仍有自己一份去重 SQL —— 应委托给 ensure_chunk_key_column"
+        )
 
     def test_ensure_chunk_key_column_dedups_before_unique_index(self) -> None:
         """唯一索引在有重复的行上会失败 —— 先去重再建。"""
         fn = _function_source(PIPELINE, "ensure_chunk_key_column")
-        assert fn.index("DELETE") < fn.index("CREATE UNIQUE INDEX"), (
-            "必须先删重复再建唯一索引"
-        )
+        assert fn.index("DELETE") < fn.index("CREATE UNIQUE INDEX"), "必须先删重复再建唯一索引"
 
     def test_dedup_keeps_the_row_with_vectors(self) -> None:
         """保留 id 最小的一条 —— 向量后写所以 id 更大。
@@ -138,8 +136,6 @@ class TestNoImportCycle:
         module_level = [
             n
             for n in tree.body
-            if isinstance(n, ast.ImportFrom)
-            and n.module
-            and "pipeline" in n.module
+            if isinstance(n, ast.ImportFrom) and n.module and "pipeline" in n.module
         ]
         assert not module_level, "hybrid 在模块级 import pipeline -> 会成循环 import"

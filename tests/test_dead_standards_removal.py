@@ -56,9 +56,7 @@ def seed_records() -> list[dict]:
 
 
 class TestRuleIsReachable:
-    def test_it_actually_finds_something_on_the_real_entities(
-        self, builder, seed_records
-    ) -> None:
+    def test_it_actually_finds_something_on_the_real_entities(self, builder, seed_records) -> None:
         """在**真实数据形态**上重跑一遍, 必须能判出候选。
 
         这条测试的由来: 实现里读 ``e["authority_kind"]`` 而属性当时还是嵌套的,
@@ -98,9 +96,9 @@ class TestRemovedStandardsAreGone:
             if sid in {r.get("id") for r in seed_records}:
                 # 该 id 若因为「被引用」而保留, 也不能是 unverified + 零引用
                 rec = next(r for r in seed_records if r.get("id") == sid)
-                assert rec.get("authority_kind") != "unverified" or rec.get(
-                    "authority_ref"
-                ), f"{sid} 仍在库里且仍是 unverified + 无引用 —— 规则漏了它"
+                assert rec.get("authority_kind") != "unverified" or rec.get("authority_ref"), (
+                    f"{sid} 仍在库里且仍是 unverified + 无引用 —— 规则漏了它"
+                )
 
     def test_cited_standards_survive(self, seed_records) -> None:
         """被引用过的标准一个都不能少 —— 这是本次删除的红线。
@@ -163,17 +161,13 @@ class TestOutOfScopeRemovesItself:
         产测判读耐压/漏电流**实测结果**的输入。与三防涂覆的区别就在这里:
         涂层是设计侧属性(要走两步才能影响产测), 污染等级直接进判据。
         """
-        pd = next(
-            (r for r in seed_records if r.get("id") == "POLLUTION_DEGREE"), None
-        )
+        pd = next((r for r in seed_records if r.get("id") == "POLLUTION_DEGREE"), None)
         assert pd is not None, "污染等级不该跟着三防涂覆一起被移出"
         assert pd.get("clause"), "污染等级应保留已核实的条款号"
 
 
 class TestTextCitationExemptionIsNotAPass:
-    def test_text_citation_exemption_cannot_resurrect_out_of_scope(
-        self, builder
-    ) -> None:
+    def test_text_citation_exemption_cannot_resurrect_out_of_scope(self, builder) -> None:
         """规则层面的红线: 范围排除集合里必须含这两条, 且排除发生在文字引用豁免之前。
 
         用本文件已有的 ``builder`` fixture 拿模块, **不要**在这里再 ``import
@@ -184,9 +178,7 @@ class TestTextCitationExemptionIsNotAPass:
         assert "CONFORMAL_COATING" in oos, "三防涂覆必须在范围排除集合里"
         assert "std::IPC-2221" in oos, "PCB 设计标准必须在范围排除集合里"
 
-    def test_static_scope_set_beats_text_citation_exemption(
-        self, builder, seed_records
-    ) -> None:
+    def test_static_scope_set_beats_text_citation_exemption(self, builder, seed_records) -> None:
         """静态范围集合**压得住**「文本提及豁免」—— 这才是真正起作用的机制。
 
         真实结构(别照抄我最初写错的猜测): ``find_dead_standards`` 不是在
@@ -298,11 +290,11 @@ class TestNoDanglingStandardReference:
                 dangling.setdefault(head, []).append(str(r.get("id")))
         # 只允许**结构上不可解析**的那几类(见方案附录), 不允许因删除而产生新的
         ALLOWED = {
-            "GB/T 17626",      # 刻意写成「系列」
-            "GB/T 2900.1",     # 一条引用给了两条标准, 前者无部分号
-            "IEC 60664-1",     # 库里有 2020 版但引用未写年份 -> 需人工裁定
-            "IEC 60721-3-1",   # 实体 id 本身是两条标准合写
-            "IEC 60898-1",     # 同上
+            "GB/T 17626",  # 刻意写成「系列」
+            "GB/T 2900.1",  # 一条引用给了两条标准, 前者无部分号
+            "IEC 60664-1",  # 库里有 2020 版但引用未写年份 -> 需人工裁定
+            "IEC 60721-3-1",  # 实体 id 本身是两条标准合写
+            "IEC 60898-1",  # 同上
         }
         unexpected = {k: v for k, v in dangling.items() if k not in ALLOWED}
         assert not unexpected, (

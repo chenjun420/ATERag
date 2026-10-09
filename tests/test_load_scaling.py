@@ -86,8 +86,7 @@ class TestScaleBindings:
 
     def test_explicit_full_load_key(self) -> None:
         """给了 ``full_load_key`` 就以它为基准, 而不是拿 value 再乘。"""
-        rows = [{"load": "half_load", "value": "300.0", "ratio": "0.5",
-                 "full_load": "600.0"}]
+        rows = [{"load": "half_load", "value": "300.0", "ratio": "0.5", "full_load": "600.0"}]
         out = scale_bindings(rows, quantity="p", full_load_key="full_load")
         assert out[0].value == 300.0
         assert out[0].full_load_value == 600.0
@@ -118,8 +117,9 @@ def test_datalog_silently_drops_arithmetic_in_rule_bodies() -> None:
     )  # 不抛错 —— 这一点本身就是缺陷
     dr.add_fact("load_ratio(half_load, 0.5)")
     dr.add_fact("value_at_full_load(pout_max, 600.0)")
-    assert dr.query("value_at_load(pout_max, ?load, ?v, ?r)") == [], \
+    assert dr.query("value_at_load(pout_max, ?load, ?v, ?r)") == [], (
         "若这条开始返回结果, 说明 Datalog 支持算术了 -> 重新评估缩放该放哪"
+    )
 
 
 def test_shipped_load_scaling_rule_shape_is_still_parseable() -> None:
@@ -136,8 +136,9 @@ def test_shipped_load_scaling_rule_shape_is_still_parseable() -> None:
     # 查询里的变量名决定返回字典的键, 所以用 ?value/?ratio 与
     # scale_bindings 的默认键名对上 —— 这也是它的预期用法。
     rows = dr.query("value_at_load(pout_max, ?load, ?value, ?ratio)")
-    assert rows == [{"load": "half_load", "value": "600.0", "ratio": "0.5"}], \
+    assert rows == [{"load": "half_load", "value": "600.0", "ratio": "0.5"}], (
         "规则给出的应是**满载基准值 + 比例**, 缩放由消费方做"
+    )
     # 缩放之后才是物理答案
     assert scale_bindings(rows, quantity="pout_max")[0].value == 300.0
 

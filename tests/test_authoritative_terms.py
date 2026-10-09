@@ -110,8 +110,7 @@ class TestVerbatimIsHonest:
                 continue
             d = str(seed_by_id[spec["id"]]["definition"])
             assert "未逐字核对" in d, (
-                f"{spec['id']} 释义是本项目撰写的, 但正文里没标 —— "
-                f"读定义的人会以为核对过原文"
+                f"{spec['id']} 释义是本项目撰写的, 但正文里没标 —— 读定义的人会以为核对过原文"
             )
 
     def test_verbatim_and_non_verbatim_both_exist(self, bs) -> None:
@@ -129,9 +128,7 @@ class TestStripActuallyStrips:
         """
         for cid, alias, _basis in bs.CONFLATED_SYNONYMS:
             syn = seed_by_id[cid].get("synonyms") or []
-            assert alias not in syn, (
-                f"{cid} 的同义词里还有 {alias!r} —— 清单失效(改名顺序反了?)"
-            )
+            assert alias not in syn, f"{cid} 的同义词里还有 {alias!r} —— 清单失效(改名顺序反了?)"
 
     def test_removed_alias_is_recorded_with_its_basis(self, bs, seed_by_id) -> None:
         """摘掉而不留依据, 审计时无法回答「为什么这个别名没了」。
@@ -157,8 +154,10 @@ class TestStripActuallyStrips:
         for cid, rec in seed_by_id.items():
             if rec.get("entity_type") != "power_concept" or cid == "CAPACITY":
                 continue
-            blob = str(rec.get("name", "")) + " " + " ".join(
-                str(x) for x in (rec.get("synonyms") or [])
+            blob = (
+                str(rec.get("name", ""))
+                + " "
+                + " ".join(str(x) for x in (rec.get("synonyms") or []))
             )
             if "额定" in blob and "标称" in blob:
                 offenders.append(cid)
@@ -180,15 +179,12 @@ class TestConceptRenames:
 
 
 class TestAliasPatch:
-    def test_parent_concept_notes_that_child_words_are_not_synonyms(
-        self, bs, seed_by_id
-    ) -> None:
+    def test_parent_concept_notes_that_child_words_are_not_synonyms(self, bs, seed_by_id) -> None:
         """CAPACITY 的别名含「额定容量/标称容量」是有意的 —— 但必须写明为什么。"""
         cap = seed_by_id["CAPACITY"]
         assert {"额定容量", "标称容量"} <= set(cap.get("synonyms") or [])
         assert "不代表它们同义" in str(cap.get("note")), (
-            "父概念别名收了子概念的词, 却没写明那不代表同义 —— "
-            "读者会当成又一处额定/标称混淆"
+            "父概念别名收了子概念的词, 却没写明那不代表同义 —— 读者会当成又一处额定/标称混淆"
         )
 
 

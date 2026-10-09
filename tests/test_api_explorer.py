@@ -25,28 +25,42 @@ def client(monkeypatch: pytest.MonkeyPatch):
     from aterag.config import Settings
 
     ents = [
-        {"id": "HYSTERESIS", "entity_type": "power_concept", "text": "回差",
-         "source": "YD/T 1817-2017", "section": None,
-         "metadata": {"authority_kind": "standard"}},
-        {"id": "PA601-D54A:输出过流保护#-54V", "entity_type": "model/Protection",
-         "text": "输出过流保护", "source": "spec:PA601-D54A", "section": "4.3.3",
-         "metadata": {"authority_kind": "spec", "trip_min": 8.1}},
+        {
+            "id": "HYSTERESIS",
+            "entity_type": "power_concept",
+            "text": "回差",
+            "source": "YD/T 1817-2017",
+            "section": None,
+            "metadata": {"authority_kind": "standard"},
+        },
+        {
+            "id": "PA601-D54A:输出过流保护#-54V",
+            "entity_type": "model/Protection",
+            "text": "输出过流保护",
+            "source": "spec:PA601-D54A",
+            "section": "4.3.3",
+            "metadata": {"authority_kind": "spec", "trip_min": 8.1},
+        },
     ]
     rels = [
-        {"source_id": "PA601-D54A", "target_id": "PA601-D54A:输出过流保护#-54V",
-         "relationship_type": "has"},
+        {
+            "source_id": "PA601-D54A",
+            "target_id": "PA601-D54A:输出过流保护#-54V",
+            "relationship_type": "has",
+        },
     ]
 
-    monkeypatch.setattr(mod.kg_graph, "collect_records",
-                        lambda dsn, **kw: (ents, rels))
-    monkeypatch.setattr(mod.kg_graph, "loaders_status",
-                        lambda dsn: {"seed": {"ok": True}, "postgres": {"ok": True}})
+    monkeypatch.setattr(mod.kg_graph, "collect_records", lambda dsn, **kw: (ents, rels))
+    monkeypatch.setattr(
+        mod.kg_graph, "loaders_status", lambda dsn: {"seed": {"ok": True}, "postgres": {"ok": True}}
+    )
     monkeypatch.setattr(mod.kg_graph, "build_session", _fake_session)
     # build_graph 也必须换掉: /aterag/graph/summary 直接调它算 relations_built,
     # 不换的话它会去读真实种子与 PG, 而假的 Product->Protection 边在真图里
     # 是悬空的(PA601-D54A 不是种子节点), 于是断言会看到一个与本用例无关的 0。
     monkeypatch.setattr(
-        mod.kg_graph, "build_graph",
+        mod.kg_graph,
+        "build_graph",
         lambda dsn, **kw: (_FAKE_GRAPH, {"nodes": 2, "edges": 1}),
     )
 
@@ -64,14 +78,25 @@ def _fake_graph():
     from semantica.context import ContextGraph
 
     g = ContextGraph()
-    g.add_nodes([
-        {"id": "HYSTERESIS", "type": "power_concept", "content": "回差"},
-        {"id": "PA601-D54A:输出过流保护#-54V", "type": "model/Protection",
-         "content": "输出过流保护"},
-    ])
-    g.add_edges([{"source_id": "HYSTERESIS",
-                  "target_id": "PA601-D54A:输出过流保护#-54V",
-                  "edge_type": "has"}])
+    g.add_nodes(
+        [
+            {"id": "HYSTERESIS", "type": "power_concept", "content": "回差"},
+            {
+                "id": "PA601-D54A:输出过流保护#-54V",
+                "type": "model/Protection",
+                "content": "输出过流保护",
+            },
+        ]
+    )
+    g.add_edges(
+        [
+            {
+                "source_id": "HYSTERESIS",
+                "target_id": "PA601-D54A:输出过流保护#-54V",
+                "edge_type": "has",
+            }
+        ]
+    )
     return g
 
 
@@ -139,9 +164,7 @@ class TestAuth:
     def test_explorer_api_requires_key(self, client: TestClient) -> None:
         """Explorer 自己的 ``/api/*`` 也必须鉴权 —— 那是全量图的读接口。"""
         assert client.get("/api/graph/stats").status_code == 401
-        assert client.get(
-            "/api/graph/stats", headers={"X-API-Key": "test-key"}
-        ).status_code == 200
+        assert client.get("/api/graph/stats", headers={"X-API-Key": "test-key"}).status_code == 200
 
     def test_no_anonymous_escape_hatch(self, client: TestClient) -> None:
         """项目**不**启用上游的 ``SEMANTICA_ALLOW_ANONYMOUS`` 逃生口。
@@ -163,8 +186,16 @@ class TestMissingKeyIsFailClosed:
         from aterag.api import explorer as mod
         from aterag.config import Settings
 
-        ents = [{"id": "X", "entity_type": "power_concept", "text": "x",
-                 "source": "", "section": None, "metadata": {}}]
+        ents = [
+            {
+                "id": "X",
+                "entity_type": "power_concept",
+                "text": "x",
+                "source": "",
+                "section": None,
+                "metadata": {},
+            }
+        ]
         monkeypatch.setattr(mod.kg_graph, "collect_records", lambda dsn, **kw: (ents, []))
         monkeypatch.setattr(mod.kg_graph, "build_session", _fake_session)
         monkeypatch.delenv("SEMANTICA_API_KEY", raising=False)
@@ -205,15 +236,11 @@ class TestExplorerLifespan:
         ids = [n["id"] for n in r.json()["nodes"]]
         assert "PA601-D54A:输出过流保护#-54V" in ids
 
-    def test_health_endpoint_alone_does_not_prove_data_is_loaded(
-        self, client: TestClient
-    ) -> None:
+    def test_health_endpoint_alone_does_not_prove_data_is_loaded(self, client: TestClient) -> None:
         """把那条失效模式钉成断言: ``/api/health`` 200 **不能**当作有数据的证据。"""
         assert client.get("/api/health").status_code == 200
         assert client.get("/api/graph/stats").status_code == 401  # 未带 key
-        assert client.get(
-            "/api/graph/stats", headers={"X-API-Key": "test-key"}
-        ).status_code == 200
+        assert client.get("/api/graph/stats", headers={"X-API-Key": "test-key"}).status_code == 200
 
 
 # ---------------------------------------------------------------------------

@@ -38,9 +38,7 @@ def book():
 def pa601_requirements():
     """真实抽取产物 —— 不拿手写样本代替, 手写样本证明不了真实措辞。"""
     blocks = load_blocks("PA601-D54A", "rag_storage/blocks")
-    return [
-        e for e in extract_from_blocks(blocks, "PA601-D54A") if e.etype == "Requirement"
-    ]
+    return [e for e in extract_from_blocks(blocks, "PA601-D54A") if e.etype == "Requirement"]
 
 
 def _legacy_facts(ents: list[dict]) -> dict:
@@ -302,8 +300,10 @@ class TestNoHardcodedTitlesInCode:
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Module)):
                 body = node.body
-                if body and isinstance(body[0], ast.Expr) and isinstance(
-                    getattr(body[0], "value", None), ast.Constant
+                if (
+                    body
+                    and isinstance(body[0], ast.Expr)
+                    and isinstance(getattr(body[0], "value", None), ast.Constant)
                 ):
                     doc_nodes.add(id(body[0].value))
         for node in ast.walk(tree):
@@ -327,10 +327,11 @@ class TestNoHardcodedTitlesInCode:
         """路径来自配置, 不写死相对路径 —— 板卡部署目录与开发机不同。"""
         from aterag.mcp_server import server
 
-        assert "quantity_aliases_path" in server._alias_book.__code__.co_consts or any(
-            "quantity_aliases_path" in str(c) for c in server._alias_book.__code__.co_consts
-        ) or "quantity_aliases_path" in (server._alias_book.__doc__ or "") + str(
-            server._alias_book.__code__.co_names
+        assert (
+            "quantity_aliases_path" in server._alias_book.__code__.co_consts
+            or any("quantity_aliases_path" in str(c) for c in server._alias_book.__code__.co_consts)
+            or "quantity_aliases_path"
+            in (server._alias_book.__doc__ or "") + str(server._alias_book.__code__.co_names)
         )
 
 

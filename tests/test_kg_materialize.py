@@ -28,10 +28,7 @@ def _rel(src: str, tgt: str, rtype: str, **extra: Any) -> dict[str, Any]:
 
 def _edge_types(graph) -> set[tuple[str, str, str]]:
     """``graph.edges`` 是 ``List[ContextEdge]``(不是 dict)。"""
-    return {
-        (str(e.source_id), str(e.target_id), str(e.edge_type))
-        for e in graph.edges
-    }
+    return {(str(e.source_id), str(e.target_id), str(e.edge_type)) for e in graph.edges}
 
 
 # ---------------------------------------------------------------------------
@@ -51,8 +48,13 @@ class TestExternalOntologyRefs:
         graph, n_nodes, n_edges = build_context_graph(
             [
                 _node("VOUT_RIPPLE"),
-                _rel("VOUT_RIPPLE", "qudt:PotentialDifference", "has_unit_kind",
-                     external=True, ontology="QUDT"),
+                _rel(
+                    "VOUT_RIPPLE",
+                    "qudt:PotentialDifference",
+                    "has_unit_kind",
+                    external=True,
+                    ontology="QUDT",
+                ),
             ],
             [],
         )
@@ -65,8 +67,13 @@ class TestExternalOntologyRefs:
         graph, _, _ = build_context_graph(
             [
                 _node("VOUT_RIPPLE"),
-                _rel("VOUT_RIPPLE", "qudt:PotentialDifference", "has_unit_kind",
-                     external=True, ontology="QUDT"),
+                _rel(
+                    "VOUT_RIPPLE",
+                    "qudt:PotentialDifference",
+                    "has_unit_kind",
+                    external=True,
+                    ontology="QUDT",
+                ),
             ],
             [],
         )
@@ -141,9 +148,7 @@ class TestExternalOntologyRefs:
         with_ref = [
             r
             for r in records
-            if isinstance(r, dict)
-            and r.get("entity_type") == "power_concept"
-            and r.get("qudt_ref")
+            if isinstance(r, dict) and r.get("entity_type") == "power_concept" and r.get("qudt_ref")
         ]
         assert with_ref, "所有概念的 qudt_ref 都没了 —— 单位信息已丢失"
 
@@ -162,8 +167,10 @@ class TestSelfLoops:
 
     def test_self_loop_dropped(self) -> None:
         _graph, _, n_edges = build_context_graph(
-            [_node("std::GB 4943.1-2022", "standard"), _rel("std::GB 4943.1-2022",
-                                                            "std::GB 4943.1-2022", "defined_by")],
+            [
+                _node("std::GB 4943.1-2022", "standard"),
+                _rel("std::GB 4943.1-2022", "std::GB 4943.1-2022", "defined_by"),
+            ],
             [],
         )
         assert n_edges == 0
@@ -220,7 +227,11 @@ class TestProvenancePassthrough:
 
     def test_standard_authority_kept(self) -> None:
         graph, _, _ = build_context_graph(
-            [_node("HYSTERESIS", authority_kind="standard", source="YD/T 1817-2017", confidence=0.9)],
+            [
+                _node(
+                    "HYSTERESIS", authority_kind="standard", source="YD/T 1817-2017", confidence=0.9
+                )
+            ],
             [],
         )
         a = graph.get_node_attributes("HYSTERESIS")

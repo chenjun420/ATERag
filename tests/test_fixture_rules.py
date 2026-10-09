@@ -70,9 +70,17 @@ class TestNewRulesExist:
         import subprocess
 
         p = subprocess.run(
-            [str(ROOT / ".venv/Scripts/python.exe"), "-X", "utf8",
-             "scripts/rules_selftest.py", "power"],
-            capture_output=True, text=True, encoding="utf-8", cwd=ROOT,
+            [
+                str(ROOT / ".venv/Scripts/python.exe"),
+                "-X",
+                "utf8",
+                "scripts/rules_selftest.py",
+                "power",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            cwd=ROOT,
         )
         assert p.returncode == 0, p.stdout + p.stderr
         assert "selftest=130/130" in p.stdout, p.stdout
@@ -148,18 +156,25 @@ class TestReachable:
         mapped = {
             formula_type_to_rule_id(ft)
             for ft in (
-                "tolerance", "rss_tolerance", "worst_case_tolerance",
-                "fixture_precision", "probe_selection", "channel_count",
-                "probe_life", "probe_required_life", "required_resolution",
-                "kelvin_measured_resistance", "effective_clearance",
-                "max_load_risetime", "load_current_margin",
-                "fault_coverage_complete", "default_path_continuous",
+                "tolerance",
+                "rss_tolerance",
+                "worst_case_tolerance",
+                "fixture_precision",
+                "probe_selection",
+                "channel_count",
+                "probe_life",
+                "probe_required_life",
+                "required_resolution",
+                "kelvin_measured_resistance",
+                "effective_clearance",
+                "max_load_risetime",
+                "load_current_margin",
+                "fault_coverage_complete",
+                "default_path_continuous",
                 "switch_current_margin",
             )
         }
-        computable = {
-            r["id"] for r in fixture_rules if (r.get("derive") or {}).get("expr")
-        }
+        computable = {r["id"] for r in fixture_rules if (r.get("derive") or {}).get("expr")}
         unreachable = sorted(computable - mapped)
         assert not unreachable, f"可计算但无 formula_type 入口的 fixture 规则: {unreachable}"
 
@@ -175,9 +190,7 @@ class TestIsolatedScalesExcluded:
     def test_iso5725_formulas_are_absent_from_the_seed(self):
         import json
 
-        doc = json.loads(
-            (ROOT / "data/seed/power_domain_seed.json").read_text(encoding="utf-8")
-        )
+        doc = json.loads((ROOT / "data/seed/power_domain_seed.json").read_text(encoding="utf-8"))
         blob = json.dumps(doc, ensure_ascii=False)
         for token in ("ISO5725", "CG_CGK", "2.8·s_r"):
             assert token not in blob, f"种子仍含 ISO 5725 硬写内容: {token}"

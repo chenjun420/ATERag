@@ -198,7 +198,13 @@ class TestTraceDependencies:
 
     def test_has_theorem_must_be_read_upstream(self):
         """``has_theorem`` 是 axiom -> theorem, 所以「谁推出 T1」只能反着走。"""
-        g = _graph([_node("A-1", "axiom"), _node("thm::T1", "theorem"), _rel("A-1", "thm::T1", "has_theorem")])
+        g = _graph(
+            [
+                _node("A-1", "axiom"),
+                _node("thm::T1", "theorem"),
+                _rel("A-1", "thm::T1", "has_theorem"),
+            ]
+        )
         up = analytics.trace_dependencies(g, "thm::T1", direction="upstream")
         assert up["direct"] == ["A-1"]
         down = analytics.trace_dependencies(g, "thm::T1", direction="downstream")
@@ -284,14 +290,16 @@ class TestMcpTools:
         # 于是把「稀疏度已经改善」报成失败。钉死数字等于把数据现状写成契约。
         ratio = d["topology"]["isolated_nodes"] / d["topology"]["nodes"]
         if ratio > server.SPARSE_GRAPH_RATIO:
-            assert d["sparseness_warning"], (
-                "孤立率 %.1f%% 高于阈值 %.0f%%, 必须带稀疏度警告"
-                % (ratio * 100, server.SPARSE_GRAPH_RATIO * 100))
+            assert d["sparseness_warning"], "孤立率 %.1f%% 高于阈值 %.0f%%, 必须带稀疏度警告" % (
+                ratio * 100,
+                server.SPARSE_GRAPH_RATIO * 100,
+            )
             assert "孤立" in d["sparseness_warning"]
         else:
             assert d["sparseness_warning"] is None, (
                 "孤立率 %.1f%% 已低于阈值 %.0f%%, 不该再报警告 —— 否则警告成了噪声"
-                % (ratio * 100, server.SPARSE_GRAPH_RATIO * 100))
+                % (ratio * 100, server.SPARSE_GRAPH_RATIO * 100)
+            )
 
     def test_trace_dependency_both_directions_reachable(self):
         import asyncio
@@ -313,8 +321,9 @@ class TestMcpTools:
         _ents, _rels = load_seed_records(str(SEED))
         _topo = analytics.topology(analytics.graph_from_records([*_ents, *_rels]))
         ratio = _topo["isolated_nodes"] / _topo["nodes"]
-        assert (up["sparseness_warning"] is not None) == (
-            ratio > server.SPARSE_GRAPH_RATIO), "追溯输出与实测稀疏度不一致"
+        assert (up["sparseness_warning"] is not None) == (ratio > server.SPARSE_GRAPH_RATIO), (
+            "追溯输出与实测稀疏度不一致"
+        )
 
     def test_unknown_metric_is_an_error_not_empty_success(self):
         import asyncio
@@ -424,7 +433,8 @@ class TestKnowledgeGateIntegration:
             assert "graph_structure" in checks, "稀疏度超阈值时必须报 graph_structure"
         else:
             assert "graph_structure" not in checks, (
-                "孤立率 %.1f%% 已低于阈值, 不该再报 graph_structure" % (100.0 * isolated / total))
+                "孤立率 %.1f%% 已低于阈值, 不该再报 graph_structure" % (100.0 * isolated / total)
+            )
         for f in rep.findings:
             if f.check == "graph_structure":
                 assert f.severity != "ERROR", "稀疏判成了 ERROR"
