@@ -142,9 +142,7 @@ def _semantic_tags(row: dict[str, str], book: Any) -> list[str]:
     return sorted(tags)
 
 
-def variant_suffix_for(
-    row: dict[str, str], model_id: str = "", ordinal: int | None = None
-) -> str:
+def variant_suffix_for(row: dict[str, str], model_id: str = "", ordinal: int | None = None) -> str:
     """给定 row 形态的字典, 返回档位后缀 (eid 的最后一段)。
 
     **这是档位口径的唯一入口**, 供同包内需要同一口径的其他调用方复用 ——
@@ -172,9 +170,7 @@ def variant_suffix_for(
     )
 
 
-def _variant_suffix(
-    row: dict[str, str], *, unique: str = "", tags: Sequence[str] = ()
-) -> str:
+def _variant_suffix(row: dict[str, str], *, unique: str = "", tags: Sequence[str] = ()) -> str:
     """档位后缀: 电压轨 + 工况标签 + 标准 + 单位, 全缺才用出现序号 ``#N``。
 
     ``#N`` 仍保留: 有些表格(如 §4.4.2 的 12 行 DIP)每行是一个**枚举出来的独立
@@ -243,7 +239,11 @@ def main_rail_declared(model_id: str) -> str:
         return ""
 
 
-def resolve_main_rail(row: dict[str, str], main_rail: str) -> str:
+def resolve_main_rail(
+    row: dict[str, str],
+    main_rail: str,
+    table_has_rail_row: bool = False,
+) -> str:
     """未标注轨的参数行 -> 主轨; 有下列可判例外时**保持无轨**。
 
     例外都必须是**从数据本身判得出**的, 不能列 id 白名单 —— 同模板的其它型号
@@ -257,9 +257,74 @@ def resolve_main_rail(row: dict[str, str], main_rail: str) -> str:
        输出」都是整机级关系, 归到任一单轨都是错的。
     4. **无单位的整机级行**: 单位是占位符。SR-1223 热插拔、SR-1224 上下电时序
        说的是整机行为, 不是某条轨上的电气量。
+    5. **本表按轨分列, 而本行子列不是轨名** (``table_has_rail_row``, 2026-10-09 补)。
+       这条是把前四条补齐的那条, 也是唯一能覆盖 PA601 全部 11 条误挂的判据。
+
+       **为什么前四条不够** —— 它们都是按**单位**/备注文本匹配的, 而误挂的 11 条单位
+       分别是 ``Hz``/``A``/``A``/``W``/``%``/``%``/``%``/``s``/``%``/``W``/``V``,
+       没有一个落在前四条里。按单位扩白名单能遮住这一次, 但那是在猜「哪些单位不是
+       分轨量」—— ``A`` 就是反例: **输出电流**分轨(原文 SR-1203 有 ``-54V``/``3.45V``
+       两行), 而**输入电流**不分轨(SR-1106), 同一个单位两种归属, 单位根本判不出来。
+
+    **本条为什么能从数据本身判出来**
+    --------------------------------
+    :func:`resolve_main_rail` 的唯一调用点是「本表有复合列(``has_subcol``)且本行子列
+    不是轨名」—— 也就是说, **本行被送进来这件事本身已经说明它不是按轨分列的行**。
+    实测 PA601 的 11 条误挂全部符合这个形态:
+
+    ============== ============ ============================ ==============
+    req_id        章节          项目                          子列(第 3 列)
+    ============== ============ ============================ ==============
+    SR-1103       4.3.1 输入    交流输入频率                  ``Hz``(单位)
+    SR-1105       4.3.1 输入    输入冲击电流                  ``A``(单位)
+    SR-1106       4.3.1 输入    输入电流                      ``A``(单位)
+    SR-1204       4.3.2 输出    输出功率                      「输出功率」
+    SR-1210 x3    4.3.2 输出    整机效率                      「整机效率」
+    SR-1213       4.3.2 输出    开机输出延迟                  「开机输出延迟」
+    SR-1219       4.3.2 输出    负载均流度                    「负载均流度」
+    SR-1220       4.3.2 输出    待机功耗                      「待机功耗」
+    SR-1221       4.3.2 输出    输入输出电压降                「输入输出电压降」
+    ============== ============ ============================ ==============
+
+    对照**同一张表**里真正分轨的行(SR-1200/1201/1203/1205/1206/1211/1212/
+    1214/1215/1216), 子列是 ``-54V``/``3.45V`` —— 轨名。**同一列位置, 两种语义**,
+    而「这一列在本表里出现过轨名」是可以在本表内直接数出来的, 不需要外部知识。
+
+    代价: 本表内**没有任何一行**子列是轨名时(复合列另有他用, 如单位列/有无列),
+    本条不触发, 主轨机制照旧 —— 这个降级后来被 PA601 原文证伪, 见例外 6。
+
+    **例外 6: 本表整表都不按轨分列** (``table_has_rail_row=False``, 2026-10-09 补)
+    ---------------------------------------------------------------------------
+    例外 5 留了一个降级: 「本表内没有任何一行子列是轨名时, 主轨机制照旧」。PA601
+    原文证伪了它 —— **4.3.1 输入特性表整表没有任何一行子列是轨名**(第 3 列从头到尾
+    是单位: ``Hz``/``A``/``Vac``/``Vdc``/``-``), 而该表 3 行仍被挂上了 ``-54V``:
+    ``SR-1103 交流输入频率`` / ``SR-1105 输入冲击电流`` / ``SR-1106 输入电流``。
+
+    「降级」错在哪: 复合列只说明**表头有重复列名**, 不说明子列是轨维度。子列可能是
+    单位列(4.3.1)、有无列、等级列 —— 这些情况下整表都不按轨分列, **任何一行都不是
+    某条轨上的量**, 把主轨按上去就没有依据。降级等于「不知道就当知道」, 而这个模块
+    自己的规矩是不猜(见 :func:`main_rail_declared` 的 docstring)。
+
+    **代价要说清**: 这两条例外合起来意味着 ``resolve_main_rail`` 在真实调用点上
+    **恒返回空串** —— 因为它只在「本表有复合列」时被调用, 而复合表要么整表分轨
+    (本行要么是轨名 -> 走原路径, 要么不是 -> 例外 5)、要么整表不分轨(例外 6)。
+    实测两个已声明主轨的型号: PA601-D54A 由 11 条降到 **0 条**, PN1000-48A 本来
+    就是 0 条 —— **它从来没有产出过一条正确归轨**。
+
+    保留这个函数(而不是删掉)是因为契约还有测试钉着, 且 :func:`main_rail_declared`
+    仍是 registry 字段的正规读取口; 但**返回值恒为空**这件事必须写在文档里, 否则
+    下一个人会以为它在干活。
+
+    ``table_has_rail_row`` 由调用点预先数出来传入(见抽取主循环)。它为 ``True``
+    与 ``False`` 时本函数都返回空串 —— 两条分支都留着是为了让判据本身可读, 而不是
+    留两行死码: 万一将来从「无复合列」的表调用进来(那种表整表不按轨分列, 本就该
+    无轨), ``False`` 这一支就是它的判据。
     """
     if not main_rail:
         return ""
+    if not table_has_rail_row:
+        return ""  # 例外 6
+    return ""  # 例外 5
     unit = _clean(row.get("unit", ""))
     if unit in _PLACEHOLDERS:
         return ""  # 例外 4
@@ -417,8 +482,7 @@ def _unmapped_table_message(reg: SchemaRegistry, det: Detection, section_path: s
        这是选新 schema 时最省事的起点
     """
     lines = [
-        "表头未命中任何表结构 schema, 而这张表有数据行 —— 规格书表头已变"
-        "(改名 / 加列 / 换列名)。",
+        "表头未命中任何表结构 schema, 而这张表有数据行 —— 规格书表头已变(改名 / 加列 / 换列名)。",
         "",
         f"  位置: 章节 {section_path or '(无章节号)'}",
         f"  表头签名: {det.signature}",
@@ -534,6 +598,17 @@ def extract_from_blocks(
             # 同模板不同型号主轨不同 (PA601-D54A=-54V/11.1A, PN1000-48A=-48V/20.8A),
             # 所以不能配在 profile 层。未声明时下面一律不挂主轨 —— 不猜。
             main_rail = main_rail_declared(model_id)
+            # 本表内是否存在「子列是轨名」的行。主轨归属判据依赖它(例外 5):
+            # 复合表里子列位置可以放轨名, 也可以放单位或整机项标签 —— 同一列两种语义,
+            # 只有「本表内有没有出现过轨名」能从数据本身把两者分开。预先数一遍,
+            # 免得在逐行处理时依赖尚未处理完的行。
+            table_has_rail_row = False
+            if has_subcol and main_rail:
+                for probe_cells in table[1:]:
+                    probe = reg.map_row(det.schema, table[0], probe_cells)
+                    if probe and is_rail_name(_clean(probe.get("rail", ""))):
+                        table_has_rail_row = True
+                        break
             for cells in table[1:]:
                 row = reg.map_row(det.schema, table[0], cells)
                 if not row:
@@ -551,7 +626,7 @@ def extract_from_blocks(
                     # 未标注轨的参数行 -> 主轨(用户裁定)。例外条件见
                     # :func:`resolve_main_rail` 的四条, 全部从数据本身判, 不列 id。
                     # 判据仍然只是**单轨**归属性: 跨轨项(备注点名两条轨)保持无轨。
-                    rail = resolve_main_rail(row, main_rail)
+                    rail = resolve_main_rail(row, main_rail, table_has_rail_row)
                     if rail:
                         # 必须**写回 row**: 下游的 props / eid / 通道号都从 row 取值,
                         # 只改局部变量的话主轨在这一行就丢了 —— 实测过: 通道号拿到了 1,
@@ -597,7 +672,9 @@ def _group_protections(entities: list[Entity], reg: SchemaRegistry) -> None:
             suffix, "保护"
         )
         rail = e.props.get("rail", "")
-        groups.setdefault((base_name, rail), {"direction": direction, "parts": {}})["parts"][kind] = e
+        groups.setdefault((base_name, rail), {"direction": direction, "parts": {}})["parts"][
+            kind
+        ] = e
 
     for (base_name, rail), group in groups.items():
         parts = group["parts"]

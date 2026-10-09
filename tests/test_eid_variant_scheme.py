@@ -47,9 +47,7 @@ def ee():
 
 @pytest.fixture(scope="module")
 def patterns() -> dict:
-    return yaml.safe_load(
-        (ROOT / "config/condition_patterns.yaml").read_text(encoding="utf-8")
-    )
+    return yaml.safe_load((ROOT / "config/condition_patterns.yaml").read_text(encoding="utf-8"))
 
 
 @pytest.fixture(scope="module")
@@ -62,17 +60,27 @@ def book():
 class TestCriterionValuesStayOutOfEid:
     def test_suffix_never_carries_criterion_value(self, ee) -> None:
         """直接对着后缀函数断言 —— 不依赖真实文档, 换模板也照样成立。"""
-        row = {"rail": "-54V", "unit": "%", "min": "0.85", "max": "18",
-               "notes": "额定220Vac输入，20%最大输出负载"}
+        row = {
+            "rail": "-54V",
+            "unit": "%",
+            "min": "0.85",
+            "max": "18",
+            "notes": "额定220Vac输入，20%最大输出负载",
+        }
         for seq in ("0", "1", "2"):
             sfx = ee._variant_suffix(row, unique=seq, tags=["load_pct_of_max=20"])
             assert not _CRITTERION_IN_ID.search(sfx), f"判据数值进了 id: {sfx}"
             assert "0.85" not in sfx and "18" not in sfx
 
     def test_whole_note_does_not_land_in_eid(self, ee) -> None:
-        row = {"rail": "-54V", "unit": "%", "min": "86", "max": "",
-               "notes": "额定220Vac 输入，50%最大输出负载。备注：批量生产要求，"
-                        "生产样机测试要求大于90%"}
+        row = {
+            "rail": "-54V",
+            "unit": "%",
+            "min": "86",
+            "max": "",
+            "notes": "额定220Vac 输入，50%最大输出负载。备注：批量生产要求，"
+            "生产样机测试要求大于90%",
+        }
         sfx = ee._variant_suffix(row, unique="0", tags=["load_pct_of_max=50"])
         assert "备注" not in sfx and "批量生产" not in sfx
 
@@ -81,8 +89,13 @@ class TestCriterionValuesStayOutOfEid:
 
         若它失败, 说明 eid 里还残留着判据派生物 —— 那正是要修的缺陷本身。
         """
-        row_a = {"rail": "-54V", "unit": "%", "min": "0.85", "max": "",
-                 "notes": "额定220Vac输入，20%最大输出负载"}
+        row_a = {
+            "rail": "-54V",
+            "unit": "%",
+            "min": "0.85",
+            "max": "",
+            "notes": "额定220Vac输入，20%最大输出负载",
+        }
         row_b = dict(row_a, min="0.99", max="20")
         sfx_a = ee._variant_suffix(row_a, unique="0", tags=["load_pct_of_max=20"])
         sfx_b = ee._variant_suffix(row_b, unique="0", tags=["load_pct_of_max=20"])
@@ -128,8 +141,7 @@ class TestVariantTagsComeFromConfig:
         for r in patterns["rules"]:
             if r["kind"] not in self._VARIANT_KINDS:
                 assert not r.get("variant"), (
-                    f"规则 {r['id']} 的 kind={r['kind']} 不属于产测点维度, "
-                    f"不该打 variant"
+                    f"规则 {r['id']} 的 kind={r['kind']} 不属于产测点维度, 不该打 variant"
                 )
 
     def test_tags_use_rule_id_not_kind(self, ee, book) -> None:
@@ -184,11 +196,31 @@ class TestSemanticTagCapture:
 
 
 class TestMainRailResolution:
-    """未标注轨的参数行按主轨计, 但四类例外必须保持无轨。"""
+    """主轨归属: **实测一条都没挂上**, 这里的断言钉的就是这件事。
 
-    def test_output_side_row_takes_main_rail(self, ee) -> None:
+    为什么曾经是反的
+    ----------------
+    本类原来有一条 ``test_output_side_row_takes_main_rail``, 拿 PA601 原文里
+    ``SR-1204 输出功率`` 的真实备注(``90~176Vac: 400W; 176~286Vac: 600W``)
+    断言它**应该**挂 ``-54V``, 理由是「输出侧的量归主轨」。2026-10-09 回原文核对
+    推翻了它: 表11 的第 3 列对 SR-1204 是「**输出功率**」, 对 SR-1200/1201/1203/
+    1205 才是 ``-54V``/``3.45V`` 轨名 —— **同一列两种语义**。子列不是轨名, 说明这一行
+    不是按轨分列的, 也就是整机级量, 挂到某一条轨上没有依据。
+
+    实测代价: 当时有 **11 条**需求被挂上主轨(PA601-D54A), 全部是整机级或输入侧量 ——
+    ``SR-1103 交流输入频率`` / ``1105 输入冲击电流`` / ``1106 输入电流`` /
+    ``1204 输出功率`` / ``1210 整机效率`` x3 / ``1213 开机输出延迟`` /
+    ``1219 负载均流度`` / ``1220 待机功耗`` / ``1221 输入输出电压降``。
+    对多路电源的后果是**轨位归属错**: 产测按轨生成测试点时, 整机项会被当成
+    ``-54V`` 轨的项。判据与推导见 :func:`aterag.ingest.entity_extract.resolve_main_rail`
+    的例外 5 / 例外 6。
+    """
+
+    def test_whole_unit_row_keeps_no_rail(self, ee) -> None:
+        """整机级量不挂轨 —— 这条原来断言挂轨, 是 bug 本身。"""
         row = {"unit": "W", "notes": "90~176Vac: 400W; 176~286Vac: 600W"}
-        assert ee.resolve_main_rail(row, "-54V") == "-54V"
+        assert ee.resolve_main_rail(row, "-54V", table_has_rail_row=True) == ""
+        assert ee.resolve_main_rail(row, "-54V", table_has_rail_row=False) == ""
 
     def test_input_voltage_row_keeps_no_rail(self, ee) -> None:
         """输入过压保护点 unit=Vac/Vdc: 说的是输入电压, 挂输出轨没意义。"""
@@ -246,9 +278,7 @@ class TestRealDocumentStillExtracts:
         from aterag.extract.api import load_blocks
         from aterag.ingest.entity_extract import extract_from_blocks
 
-        ents = extract_from_blocks(
-            load_blocks("PA601-D54A"), "PA601-D54A", doc_version="B"
-        )
+        ents = extract_from_blocks(load_blocks("PA601-D54A"), "PA601-D54A", doc_version="B")
         return [e for e in ents if e.etype == "Requirement"]
 
     def test_eids_are_unique(self, reqs) -> None:
@@ -266,12 +296,50 @@ class TestRealDocumentStillExtracts:
         tagged = [e for e in got if "load" in e]
         assert len(tagged) >= 2, f"负载点没进 eid, 读不出在哪一档测: {got}"
 
-    def test_main_rail_applied_to_unannotated_output_rows(self, reqs) -> None:
-        """SR-1210 整机效率的 subcol 是「整机效率」不是轨名 -> 应按主轨归属。"""
+    def test_whole_unit_efficiency_rows_stay_rail_less(self, reqs) -> None:
+        """SR-1210 整机效率的 subcol 是「整机效率」不是轨名 -> **应保持无轨**。
+
+        这条原来叫 ``test_main_rail_applied_to_unannotated_output_rows``, 断言
+        ``rail == '-54V'``, docstring 写「subcol 是「整机效率」不是轨名 -> 应按主轨归属」。
+        **那个推理方向是反的**: 子列不是轨名, 说明这一行不是按轨分列的, 也就是整机级
+        量 —— 挂到 ``-54V`` 上没有依据。2026-10-09 按 PA601 原文表11 核实: 同一列对
+        SR-1200/1201/1203/1205 是 ``-54V``/``3.45V`` 轨名, 对 SR-1204/1210/1213 是
+        「输出功率」「整机效率」「开机输出延迟」。SR-1210 是**整机效率**(整机效率不是
+        任何单条轨的效率), 归到任一单轨都是错的。
+        """
+        got = [e for e in reqs if e.eid.startswith("SR-PA601-D54A-1210@")]
+        assert got, "SR-1210 三档效率行不见了"
+        for e in got:
+            assert not e.props.get("rail"), (
+                f"{e.eid} 整机效率被挂到 {e.props.get('rail')!r} —— 整机级量不该有输出轨"
+            )
+
+    def test_no_requirement_row_gets_main_rail_by_default(self, reqs) -> None:
+        """钉住实测结论: 没有任何一条需求是靠主轨机制挂上轨的。
+
+        不写这条的话, 有人把例外 5/6 放宽回去时, 只会看到本类的几条单测变红,
+        看不到 PA601 那 11 条具体行回来了。这条把「按 req_id 点名」钉住。
+        """
+        must_stay_rail_less = [
+            "SR-PA601-D54A-1103",  # 交流输入频率 (4.3.1, 第 3 列是单位 Hz)
+            "SR-PA601-D54A-1105",  # 输入冲击电流 (4.3.1, A)
+            "SR-PA601-D54A-1106",  # 输入电流 (4.3.1, A)
+            "SR-PA601-D54A-1204",  # 输出功率 (4.3.2, 子列「输出功率」)
+            "SR-PA601-D54A-1210",  # 整机效率 x3 (4.3.2, 子列「整机效率」)
+            "SR-PA601-D54A-1213",  # 开机输出延迟 (4.3.2, 子列「开机输出延迟」)
+            "SR-PA601-D54A-1219",  # 负载均流度 (多机并联, 整机级)
+            "SR-PA601-D54A-1220",  # 待机功耗 (整机级)
+            "SR-PA601-D54A-1221",  # 输入输出电压降 (整机级)
+        ]
+        by_req = {}
         for e in reqs:
-            if e.eid.startswith("SR-PA601-D54A-1210@"):
-                assert e.props.get("rail") == "-54V", (
-                    f"{e.eid} 未挂主轨: rail={e.props.get('rail')!r}"
+            by_req.setdefault(str(e.props.get("req_id") or ""), []).append(e)
+        for rid in must_stay_rail_less:
+            rows = by_req.get(rid)
+            assert rows, f"{rid} 不在抽取结果里 —— 判据的输入变了"
+            for e in rows:
+                assert not e.props.get("rail"), (
+                    f"{e.eid} 挂到了 {e.props.get('rail')!r} —— 按 PA601 原文它不是分轨量"
                 )
 
     def test_input_protection_rows_stay_rail_less(self, reqs) -> None:

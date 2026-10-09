@@ -9,6 +9,7 @@
 
 所以这条测试要断言的是**机制**, 不是 PA601 的具体结果。
 """
+
 from __future__ import annotations
 
 import importlib.util
@@ -110,9 +111,7 @@ class TestSameCodeWorksOnAnotherModel:
         """
         import ast
 
-        tree = ast.parse(
-            (ROOT / "src/aterag/ingest/entity_extract.py").read_text(encoding="utf-8")
-        )
+        tree = ast.parse((ROOT / "src/aterag/ingest/entity_extract.py").read_text(encoding="utf-8"))
         # docstring 集合: 模块/类/函数体第一条 Expr(Str)。文档里引用型号是**期望**
         # 的(要解释依据), 判据只看这些之外的位置。
         docstrings = set()
@@ -135,9 +134,7 @@ class TestSameCodeWorksOnAnotherModel:
                 and id(node) not in docstrings
             ):
                 offenders.extend(
-                    node.value
-                    for lit in ("-54V", "3.45V", "PA601", "PN1000")
-                    if lit in node.value
+                    node.value for lit in ("-54V", "3.45V", "PA601", "PN1000") if lit in node.value
                 )
         assert not offenders, (
             f"代码里出现具体型号/轨电压字面量: {sorted(set(offenders))[:3]} —— "
@@ -176,8 +173,8 @@ class TestRegistryDrivesEverything:
     """主轨的来源是 registry, 改配置就改行为 —— 不需要改代码。"""
 
     def test_resolution_reads_registry_each_call(
-    self, ee, tmp_path, monkeypatch, clean_settings_cache
-) -> None:
+        self, ee, tmp_path, monkeypatch, clean_settings_cache
+    ) -> None:
         """改 registry 里的 main_rail, 解析结果随之改变(不缓存旧值)。
 
         走 ``REGISTRY_PATH`` 环境变量而不是 chdir: ``Registry._resolve_path``
@@ -220,8 +217,8 @@ class TestRegistryDrivesEverything:
         assert dataclasses.replace(entry, main_rail="").main_rail == ""
 
     def test_missing_registry_file_is_not_fatal(
-    self, ee, tmp_path, monkeypatch, clean_settings_cache
-) -> None:
+        self, ee, tmp_path, monkeypatch, clean_settings_cache
+    ) -> None:
         """registry 读不到时返回空串(不挂主轨)而不是抛错。
 
         主轨是**增强**: 缺声明时行保持无轨(不猜), 不该让一份配置缺失阻断整个型号
@@ -255,7 +252,5 @@ class TestVariantTagOrderIsModelIndependent:
         """
         book = ee._pattern_book("PA601-D54A")
         text = "额定220Vac输入，50%最大输出负载，负载突变速率≤0.1A/uS"
-        assert ee._semantic_tags({"notes": text}, book) == ee._semantic_tags(
-            {"notes": text}, book
-        )
+        assert ee._semantic_tags({"notes": text}, book) == ee._semantic_tags({"notes": text}, book)
         assert ee._semantic_tags({"notes": text}, book), "真实句子应至少命中一条"
