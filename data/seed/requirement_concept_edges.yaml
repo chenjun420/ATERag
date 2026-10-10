@@ -1,0 +1,141 @@
+# 需求 -> 领域概念 的**声明式**映射(缝: 图谱里型号侧与领域侧之间缺边)
+#
+# 为什么是声明式而不是自动匹配
+# ------------------------------
+# 板卡实测: PA601 的 204 条需求标题与 194 个 power_concept 的 text
+# **完全相同的 0 条**。也就是说自动按标题/别名匹配的结果是零 —— 若改用模糊匹配
+# 硬凑, 产出的假边比没有边更危险: 追溯会给出「看似合理的错误依据」, 而产线会照着
+# 假依据设计测试。所以这里逐条声明, 且每条必须写清依据。
+#
+# 为什么按 req_id 而不是 eid
+# -----------------------
+# eid 里编码了 rail/unit/工况 变体(实测形态
+# ``SR-PA601-D54A-1203@rail=-54V+duty_long_term=长期+unit=A``), 抽取规则一改
+# eid 就变, 按 eid 写的映射会集体失效。``req_id`` 才是稳定的身份。
+#
+# rail 字段的语义
+# ---------------
+#   空串 "" -> 该需求的所有 rail 变体都连到同一个概念(概念本身不区分轨)
+#   指定    -> 只连那一个 rail 变体(需求按轨分列而概念不分时用)
+#   省略    -> 同 ""，但显式写出来是为了让读的人看见这个选择
+#
+# 覆盖度如实声明
+# --------------
+# 当前覆盖 8 条需求 / 约 13 条 eid, 占 204 条需求的 **4%**。这是**有意的**:
+# 剩下的必须逐条给出依据才能连, 不能为了「图连通」而批量连。门禁
+# (``tests/test_requirement_concept_edges.py``)会核对每条依据非空、
+# 概念确实存在于种子、需求确实存在于 PG, 并报出当前覆盖度 —— 覆盖度低是事实,
+# 不该被藏起来。
+
+version: 1
+model_id: PA601-D54A
+
+edges:
+  # ---- 输出侧 ----
+  - req_id: SR-PA601-D54A-1204
+    concept: YC_POUT
+    basis: >-
+      config/scenario_rules.yaml 档位段: 「档位声明在「整机总功率」那条需求上
+      (PA601 SR-1204, 无轨名)」; 规格书 4.3.2 输出功率备注「90~176Vac: 400W;
+      176~286Vac: 600W」。rail 刻意为空 —— 该需求整机级, 不按轨分列。
+    authority_kind: spec
+
+  - req_id: SR-PA601-D54A-1203
+    concept: YC_IOUT
+    basis: >-
+      config/scenario_rules.yaml: 「SR-1203 输出电流在 90~176Vac 档封顶
+      7.401A, 而非额定 11.1A」。该需求按轨分列(-54V 11.1A / 3.45V 0.1A),
+      但「输出电流」这个概念不分轨, 故所有 rail 变体连同一概念。
+    authority_kind: spec
+
+  - req_id: SR-PA601-D54A-1206
+    concept: WIDEBAND_NOISE
+    basis: >-
+      规格书 4.3.2「峰峰值杂音电压」与种子概念 WIDEBAND_NOISE(宽频杂音电压)
+      同指输出侧交流杂音; scenario_rules.yaml 亦以「SR-1206 峰峰值杂音」引用。
+      未连 VOUT_RIPPLE: 那是稳态纹波, 与峰峰值杂音不是同一判据。
+    authority_kind: spec
+
+  # ---- 整机侧 ----
+  - req_id: SR-PA601-D54A-1210
+    concept: YC_EFFICIENCY
+    basis: >-
+      规格书 4.3.2「整机效率」(三档负载 20%/50%/最大), 与种子概念
+      YC_EFFICIENCY(效率)同指; 规则 K-PWR-001「电源转换效率 = 输出功率 /
+      输入功率」以其为被测量。
+    authority_kind: spec
+
+  - req_id: SR-PA601-D54A-1213
+    concept: STARTUP_DELAY
+    basis: >-
+      规格书 4.3.2「开机输出延迟」与种子概念 STARTUP_DELAY(开机输出延迟)
+      中文名与英文名逐字对应, 无歧义。scenario_rules.yaml 亦以此需求引用。
+    authority_kind: spec
+
+  - req_id: SR-PA601-D54A-1219
+    concept: CURRENT_SHARING
+    basis: >-
+      规格书 4.3.2「负载均流度」备注「不要求均流度……推荐下垂均流法」,
+      与种子概念 CURRENT_SHARING(负载均流度)同名。
+    authority_kind: spec
+
+  - req_id: SR-PA601-D54A-1220
+    concept: STANDBY_POWER
+    basis: >-
+      规格书 4.3.2「待机功耗」备注「额定220Vac输入电压、输出空载情况下测试」,
+      与种子概念 STANDBY_POWER(待机功耗)同名; domain_rules/power/rules.yaml
+      亦以 no_load_limit_w 固化该判据。
+    authority_kind: spec
+
+  - req_id: SR-PA601-D54A-1221
+    concept: DC_VOLTAGE_DROP
+    basis: >-
+      规格书 4.3.2「输入输出电压降」与种子概念 DC_VOLTAGE_DROP(直流电压降)
+      同指; 该需求备注「直通板电源适用」是适用范围限定, 不改变被测量。
+    authority_kind: spec
+
+
+# ---- 规则 -> 领域概念 ----
+#
+# 规则层(130 条)是独立权威(domain_rules/), 与种子 id **零重叠**。放进图之后
+# `trace_dependency("K-ELEC-001")` 能追了, 但规则层与种子层仍是两个聚块 ——
+# 「这条规则算的是哪个量」跨不过去。
+#
+# **为什么不自动连**: 实测 `derive.output` 的 51 个取值里, 与种子概念英文名/id
+# **完全相同**的只有 1 个(efficiency), 子串命中的 4 个里有 3 个是错的 ——
+# `power` 子串会命中 STANDBY_POWER / INSTR_POWER_ANALYZER / YX_POWER_GOOD。
+# 「直流功率 = 电压 × 电流」连到「待机功耗」是假边, 而假边会让追溯给出
+# 「看似合理的错误依据」。所以逐条声明。
+rule_edges:
+  - rule: K-PWR-001
+    concept: YC_EFFICIENCY
+    basis: >-
+      rules.yaml K-PWR-001「电源转换效率 = 输出功率 / 输入功率 × 100%
+      (η = Pout / Pin)」, derive.output = efficiency, 与种子概念
+      YC_EFFICIENCY(en=efficiency) **英文名逐字相同** —— 这是 51 个
+      derive.output 里唯一一个精确命中。
+    authority_kind: spec
+
+  - rule: K-ELEC-001
+    concept: YC_POUT
+    basis: >-
+      K-ELEC-001「直流功率 = 电压 × 电流」是 SR-1204 输出功率档位的推导依据
+      (scenario_rules.yaml: 「110Vac 满载时 -54V 轨 = (400 - 3.45V轨功耗) / 54
+      = 7.401A」正是用它), 故与 YC_POUT(输出功率)同一条追溯链。
+    authority_kind: spec
+
+  - rule: K-ELEC-002
+    concept: YC_VOUT
+    basis: >-
+      K-ELEC-002「欧姆定律 电压 = 电流 × 电阻 (U = I × R)」是输出侧电压计算的
+      基础式, 与 YC_VOUT(输出电压)同属该追溯链; 其 derive.output=voltage
+      子串也会命中 VOUT_RATED/VOUT_TRIM/VOUT_RANGE, 但那些是**不同**的量
+      (额定值/整定值/范围), 因此只连 YC_VOUT 这一个。
+    authority_kind: spec
+
+  - rule: K-ELEC-003
+    concept: YC_IOUT
+    basis: >-
+      K-ELEC-003「欧姆定律 电流 = 电压 / 电阻 (I = U / R)」与 YC_IOUT(输出电流)
+      同属输出电流追溯链; SR-1203 的轨级限值校验经由该式。
+    authority_kind: spec

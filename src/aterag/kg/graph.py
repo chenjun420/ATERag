@@ -28,6 +28,8 @@ from typing import Any
 
 from aterag.kg import pg_source
 from aterag.kg.materialize import build_context_graph, load_seed_records
+from aterag.kg.req_concept_edges import build_edges
+from aterag.kg.rule_graph import load_domain_rule_records
 
 logger = logging.getLogger(__name__)
 
@@ -67,10 +69,24 @@ def collect_records(
     *,
     seed_path: str | None = None,
     model_ids: list[str] | None = None,
+    domain: str = "power",
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    """读两类知识, 返回 ``(实体, 关系)``。
+    """读三类知识, 返回 ``(实体, 关系)``。
 
-    ``dsn`` 为 None 时**只**用种子 —— 供不接库的静态检查/单测使用。
+    ==================  ==========================  =========================
+    层                  来源                        为什么单列
+    ==================  ==========================  =========================
+    领域概念/公式/标准  种子(``power_domain_seed``)  版本化构建产物
+    规则               ``domain_rules/<d>/``        130 条, 与种子 id 零重叠
+    型号需求/保护/信号  PostgreSQL                  抽取产物, 随规格书变
+    ==================  ==========================  =========================
+
+    三层之间**默认没有任何边** —— 各自是独立权威。不补边的话图必然碎: 实测
+    只用种子时可达比例 8.1%(最大连通分量 48/594), 而 204 条需求与 130 条规则
+    都查不到依据。跨层边由 :mod:`req_concept_edges`(声明式)与本模块的规则层
+    补, 实测合并后可达 40.0%。
+
+    ``dsn`` 为 None 时**不含型号层** —— 供不接库的静态检查/单测使用。
     真实服务必须给 dsn, 否则型号知识整块缺失, 而那正是 Explorer 最该看的
     一部分。
     """
@@ -82,11 +98,41 @@ def collect_records(
     rels.extend(s_rels)
     logger.info("领域知识: %d 实体 / %d 关系 (来自种子)", len(s_ents), len(s_rels))
 
+    # 规则层: 实测 130 条规则与种子 id **零重叠**, 不加这一层, 分析图里
+    # 一条规则都没有 —— `trace_dependency("K-ELEC-001")` 直接 found=false,
+    # 而 degree 排名前列全被 `std::` 标准实体占满(标准是种子里唯一有连接的类)。
+    try:
+        from aterag.config import get_settings
+
+        rules_dir = get_settings().domain_rules_dir
+        r_ents, r_rels, r_stats = load_domain_rule_records(rules_dir, domain)
+        ents.extend(r_ents)
+        rels.extend(r_rels)
+        logger.info(
+            "规则知识: %d 条规则 / %d 实体 / %d 关系",
+            r_stats["rules"],
+            r_stats["entities"],
+            r_stats["relations"],
+        )
+    except FileNotFoundError as e:
+        logger.warning("规则层缺席(可追溯性下降, 不静默): %s", e)
+
     if dsn:
         m_ents, m_rels = pg_source.read_model_records(dsn, model_ids=model_ids)
         ents.extend(m_ents)
         rels.extend(m_rels)
         logger.info("型号知识: %d 实体 / %d 关系 (来自 PG)", len(m_ents), len(m_rels))
+        # 跨权威的边: 型号侧(需求) <-> 领域侧(概念)。没有它, 合并图里
+        # 「这条需求依据什么」答不出来 —— 实测 SR-1204 找到节点但 reachable=0。
+        x_rels, x_stats = build_edges(m_ents)
+        rels.extend(x_rels)
+        logger.info(
+            "需求->概念映射: %d 条声明 / %d 条需求命中 / %d 条边 (未映射需求 %d)",
+            x_stats["declared"],
+            x_stats["matched_requirements"],
+            x_stats["edges"],
+            x_stats["unmapped_requirements"],
+        )
 
     return ents, rels
 
@@ -97,14 +143,15 @@ def build_graph(
     seed_path: str | None = None,
     model_ids: list[str] | None = None,
     advanced_analytics: bool = False,
+    domain: str = "power",
 ):
-    """合成 ``ContextGraph``。
+    """合成 ``ContextGraph``(种子 + 规则 + 型号三层, 见 :func:`collect_records`)。
 
     ``advanced_analytics`` 默认关: 它会拉 gensim(实测未装, 只打一条告警后
     降级), 而 Explorer 的节点/边浏览、搜索、邻接查询都不需要它 —— 打开只
     多一个依赖与一份启动耗时。要用中心性/社区发现时再显式开。
     """
-    ents, rels = collect_records(dsn, seed_path=seed_path, model_ids=model_ids)
+    ents, rels = collect_records(dsn, seed_path=seed_path, model_ids=model_ids, domain=domain)
     graph, n_nodes, n_edges = build_context_graph(
         [*ents, *rels], [], advanced_analytics=advanced_analytics
     )

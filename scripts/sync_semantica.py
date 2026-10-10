@@ -43,86 +43,37 @@ def load_rules(rules_dir: Path, domain: str) -> list[dict]:
 
 
 def build_knowledge_graph(domain: str, rules: list[dict]):
-    """构造 Semantica KnowledgeGraph (纯结构化, 无 LLM)。"""
+    """构造 Semantica KnowledgeGraph (纯结构化, 无 LLM)。
+
+    **记录构造复用** :func:`aterag.kg.rule_graph.build_rule_records` —— 分析图
+    (``collect_records``)与 AGE 同步跑的是同一批规则, 两边各写一份必然漂:
+    同一批规则在 AGE 与在分析图里长成两个样子时, 没人说得清哪个是真的。
+    这里只做「记录 -> KnowledgeGraph 容器」的转换。
+    """
     from semantica.kg import KnowledgeGraph
 
-    entities: list[dict] = []
-    relationships: list[dict] = []
+    from aterag.kg.rule_graph import build_rule_records
 
-    def node(key: str, name: str, etype: str, props: dict) -> dict:
-        ent = {"id": key, "name": name, "type": etype, "properties": props}
-        entities.append(ent)
-        return ent
+    rec_ents, rec_rels = build_rule_records(rules, domain=domain)
 
-    for r in rules:
-        rid = r.get("id")
-        if not rid:
-            continue
-        derive = r.get("derive") or {}
-        constraint = r.get("constraint") or {}
-        props = {
-            "rule_id": rid,
-            "domain": r.get("_domain", domain),
-            "category": r.get("category", ""),
-            "scope": r.get("scope", ""),
-            "statement": r.get("statement", ""),
-            "confidence": r.get("confidence", 1.0),
-            "rule_kind": "derive" if derive else ("constraint" if constraint else "narrative"),
-            "derive_expr": derive.get("expr", ""),
-            "derive_output": derive.get("output", ""),
-            "derive_inputs": derive.get("inputs", []),
-            "has_shape": bool(constraint.get("shape")),
-            "test_given": (r.get("test") or {}).get("given", {}),
-            "test_expect": (r.get("test") or {}).get("expect", {}),
-            "source_name": (r.get("source") or {}).get("name", ""),
-            "source_url": (r.get("source") or {}).get("url", ""),
-            "source_retrieved": (r.get("source") or {}).get("retrieved", ""),
+    entities = [
+        {
+            "id": e["id"],
+            "name": e.get("name") or e["id"],
+            "type": e["entity_type"],
+            "properties": dict(e.get("metadata") or {}),
         }
-        node(rid, r.get("statement", rid)[:120], "Rule", props)
-
-        cat = r.get("category", "")
-        if cat:
-            node(f"cat:{cat}", cat, "Category", {"category": cat})
-            relationships.append(
-                {"source": rid, "target": f"cat:{cat}", "type": "BELONGS_TO", "properties": {}}
-            )
-
-        scope = r.get("scope", "")
-        if scope:
-            node(f"scope:{scope}", scope, "Scope", {"scope": scope})
-            relationships.append(
-                {"source": rid, "target": f"scope:{scope}", "type": "IN_SCOPE", "properties": {}}
-            )
-
-        url = (r.get("source") or {}).get("url", "")
-        name = (r.get("source") or {}).get("name", "")
-        if url:
-            skey = f"src:{url}"
-            node(skey, name or url, "Source", {"name": name, "url": url})
-            relationships.append({"source": rid, "target": skey, "type": "CITES", "properties": {}})
-
-        if derive.get("expr"):
-            fkey = f"formula:{rid}"
-            node(
-                fkey,
-                derive.get("output", "result"),
-                "Formula",
-                {
-                    "expr": derive["expr"],
-                    "output": derive.get("output", ""),
-                    "inputs": derive.get("inputs", []),
-                },
-            )
-            relationships.append(
-                {"source": rid, "target": fkey, "type": "HAS_FORMULA", "properties": {}}
-            )
-
-        if constraint.get("shape"):
-            ckey = f"shape:{rid}"
-            node(ckey, f"{rid} SHACL shape", "Shape", {"shape": constraint["shape"]})
-            relationships.append(
-                {"source": rid, "target": ckey, "type": "HAS_CONSTRAINT", "properties": {}}
-            )
+        for e in rec_ents
+    ]
+    relationships = [
+        {
+            "source": r["source_id"],
+            "target": r["target_id"],
+            "type": r["relationship_type"],
+            "properties": {"clause": r.get("clause")} if r.get("clause") else {},
+        }
+        for r in rec_rels
+    ]
 
     kg = KnowledgeGraph(
         entities=entities,
