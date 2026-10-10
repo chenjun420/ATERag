@@ -1,11 +1,18 @@
 """图分析层 (方案 §4.4) 的不变量测试。
 
 **这一节最要紧的是「诚实」**: 早先的种子极稀疏 (2026-09 时是「641 节点 / 65 边 /
-87% 孤立」), 补数据后已降到 2026-10-08 实测 591 节点 /
-274 边 / 47.5% 孤立 —— 也就是**降到了 `SPARSE_GRAPH_RATIO = 0.5` 以下**,
-于是 sparseness_warning 按设计消失了。别照抄注释里的数字, 实测
-`analytics.topology()`; 下面的测试断言的是**规则**(警告有无必须与实测孤立率一致),
-不是某个固定数字),
+87% 孤立」), 补数据后已降到 2026-10-08 实测 594 节点 / 275 边 / 47.5% 孤立。
+
+而 47.5% 恰好落在 ``SPARSE_GRAPH_RATIO = 0.5`` **之下** —— 于是按单一判据,
+``sparseness_warning`` 从此再不触发, 而图其实仍然是碎的: 594 个节点散成
+**319 个连通分量**, 最大连通分量只有 48 个(8.1%)。只报「孤立率」的判据
+看不见这件事, 而它恰恰是决定「追溯能看多远」的那个数。
+
+所以判据现在是**两条**(孤立率 / 可达比例), 下面的测试断言的是**规则**
+(警告有无必须与实测拓扑一致), 不是某个固定数字 —— 钉死数字等于把数据
+现状写成契约, 数据一改就报假失败。别照抄注释里的数字, 实测
+``analytics.topology()``。
+
 中心性与追溯的产出天然信息量有限。所以测试钉的不是「算出了洞察」, 而是:
 
 1. 产出**如实反映稀疏度** —— 输出里必须带 sparsity 说明, 否则通过 MCP 拿到一片
@@ -44,6 +51,24 @@ def _rel(src: str, tgt: str, etype: str = "defined_by") -> dict:
 
 def _graph(records):
     return build_context_graph(records, [])[0]
+
+
+def _should_warn(topo: dict) -> bool:
+    """两条判据的「或」—— 与 ``server._sparseness_note`` 的触发条件一致。
+
+    单独抽出来是因为两个工具(analyze_graph / trace_dependency)都要断言同一条规则,
+    而它们拿到的 topology 来源不同(一个在返回值里, 一个要自己算)。规则写两遍
+    就会漂 —— 早先这文件里就有过「注释说 47.5% 孤立、断言按 50% 阈值走」的错位。
+    """
+    from aterag.mcp_server import server
+
+    n = topo.get("nodes") or 0
+    if not n:
+        return False
+    return (
+        topo.get("isolated_nodes", 0) / n > server.SPARSE_GRAPH_RATIO
+        or topo.get("largest_component", 0) / n < server.FRAGMENTED_GRAPH_RATIO
+    )
 
 
 @pytest.fixture(scope="module")
@@ -272,10 +297,18 @@ class TestMcpTools:
     """MCP 是 §4.4 指定的消费方 —— 产出必须真的到得了调用方手里。"""
 
     def test_analyze_graph_returns_sparseness_warning(self):
-        """稀疏度必须出现在**每一份** MCP 输出里。
+        """稀疏/碎裂必须出现在**每一份** MCP 输出里。
 
         只在 knowledge_gate 里说一次的话, 通过 MCP 拿到空排名的人无从知道那些 0
         是因为节点没进任何边 —— 而那正是「标准不重要」的错误结论。
+
+        断言的是**规则**而不是当前数字: 警告的有无必须与实测拓扑一致。
+        早先这里写死 `assert d["sparseness_warning"]`, 而那时种子孤立率 74% 远高于
+        SPARSE_GRAPH_RATIO; 补数据后孤立率降到 50% 以下, 警告按设计消失 —— 旧断言
+        于是把「稀疏度已经改善」报成失败。钉死数字等于把数据现状写成契约。
+
+        判据是**两条**(孤立率 / 可达比例), 因为孤立率低不等于图连通: 板卡实测
+        孤立 47.47%(恰好不触发), 但 594 节点散成 319 个连通分量、最大分量仅 8.1%。
         """
         import asyncio
 
@@ -283,23 +316,27 @@ class TestMcpTools:
 
         d = json.loads(asyncio.run(server.analyze_graph("centrality")))
         assert d["metric"] == "centrality"
-        assert d["topology"]["nodes"] > 0
-        # 断言的是**规则**而不是当前数字: 警告的有无必须与实测孤立率一致。
-        # 早先这里写死 `assert d["sparseness_warning"]`, 而那时种子孤立率 74% 远高于
-        # SPARSE_GRAPH_RATIO; 补数据后孤立率降到 50% 以下, 警告按设计消失 —— 旧断言
-        # 于是把「稀疏度已经改善」报成失败。钉死数字等于把数据现状写成契约。
-        ratio = d["topology"]["isolated_nodes"] / d["topology"]["nodes"]
-        if ratio > server.SPARSE_GRAPH_RATIO:
-            assert d["sparseness_warning"], "孤立率 %.1f%% 高于阈值 %.0f%%, 必须带稀疏度警告" % (
-                ratio * 100,
+        topo = d["topology"]
+        assert topo["nodes"] > 0
+        note = d["sparseness_warning"]
+        assert (note is not None) == _should_warn(topo), (
+            "警告有无与实测拓扑不一致: 孤立率 %.1f%%(阈值 %.0f%%), 可达比例 %.1f%%"
+            "(阈值 %.0f%%) -> note=%r"
+            % (
+                topo["isolated_nodes"] / topo["nodes"] * 100,
                 server.SPARSE_GRAPH_RATIO * 100,
+                topo["largest_component"] / topo["nodes"] * 100,
+                server.FRAGMENTED_GRAPH_RATIO * 100,
+                note,
             )
-            assert "孤立" in d["sparseness_warning"]
-        else:
-            assert d["sparseness_warning"] is None, (
-                "孤立率 %.1f%% 已低于阈值 %.0f%%, 不该再报警告 —— 否则警告成了噪声"
-                % (ratio * 100, server.SPARSE_GRAPH_RATIO * 100)
-            )
+        )
+        if note:
+            # 报出来的必须是**触发的那一条**, 不能拿另一条的原因顶替:
+            # 「0 分是因为节点没进任何边」与「追溯只看得到这一块」是两个问题。
+            iso = topo["isolated_nodes"] / topo["nodes"] > server.SPARSE_GRAPH_RATIO
+            frag = topo["largest_component"] / topo["nodes"] < server.FRAGMENTED_GRAPH_RATIO
+            assert ("孤立" in note) == iso, f"孤立判据={iso} 但提示={note!r}"
+            assert ("碎的" in note) == frag, f"碎裂判据={frag} 但提示={note!r}"
 
     def test_trace_dependency_both_directions_reachable(self):
         import asyncio
@@ -320,9 +357,8 @@ class TestMcpTools:
 
         _ents, _rels = load_seed_records(str(SEED))
         _topo = analytics.topology(analytics.graph_from_records([*_ents, *_rels]))
-        ratio = _topo["isolated_nodes"] / _topo["nodes"]
-        assert (up["sparseness_warning"] is not None) == (ratio > server.SPARSE_GRAPH_RATIO), (
-            "追溯输出与实测稀疏度不一致"
+        assert (up["sparseness_warning"] is not None) == _should_warn(_topo), (
+            "追溯输出与实测拓扑不一致"
         )
 
     def test_unknown_metric_is_an_error_not_empty_success(self):

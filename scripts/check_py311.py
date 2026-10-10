@@ -24,6 +24,35 @@ REMOVED_ALIASES = {
 }
 
 
+def _removed_alias_hits(src: str, filename: str) -> list[str]:
+    """按 AST 判定「真的 import 了被移除的模块」。
+
+    早先用 ``f"import {mod}" in src`` 做子串匹配, 于是 ``import importlib.metadata``
+    里�� ``import imp`` 子串而被误报 ``imp -> importlib.util`` —— 而 ``importlib``
+    在 3.11 完全正常。那种误报比漏报更糟: 它逼着人把正常的 import 改名/绕写去迎合
+    一个并不存在的规则, 于是检查器开始制造它本该防的问题。
+
+    正确判据是**导入语句的模块名**: ``import X`` / ``import X.Y`` 里 X 是被移除的
+    顶层名, 或 ``from X import ...`` 的 X 是被移除的顶层名。
+    """
+    try:
+        tree = ast.parse(src, filename=str(filename))
+    except SyntaxError:
+        return []  # 语法错由上面的 3.11 解析单独报, 这里不重复
+    hits: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                top = alias.name.split(".")[0]
+                if top in REMOVED_ALIASES:
+                    hits.append(f"{top} -> {REMOVED_ALIASES[top]}")
+        elif isinstance(node, ast.ImportFrom):
+            top = (node.module or "").split(".")[0]
+            if top in REMOVED_ALIASES:
+                hits.append(f"{top} -> {REMOVED_ALIASES[top]}")
+    return hits
+
+
 def main() -> int:
     root = Path("src") if Path("src").exists() else Path("src/aterag")
     files = sorted(root.rglob("*.py")) + sorted(Path("scripts").glob("*.py"))
@@ -36,9 +65,7 @@ def main() -> int:
             ast.parse(src, filename=str(f), feature_version=(3, 11))
         except SyntaxError as e:
             bad.append(f"{f}:{e.lineno}: {e.msg}")
-        for mod, advice in REMOVED_ALIASES.items():
-            if f"import {mod}" in src or f"from {mod}" in src:
-                alias_hits.append(f"{f}: {mod} -> {advice}")
+        alias_hits.extend(f"{f}: {msg}" for msg in _removed_alias_hits(src, f))
 
     for line in bad:
         print(f"  [SYNTAX-3.11] {line}")

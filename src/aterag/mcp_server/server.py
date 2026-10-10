@@ -797,44 +797,85 @@ def _kg_graph():
     (2026-10-08 实测 594 节点/275 边; 早先注释写的 641/65 是旧种子), 重建是毫秒级 ——
     为省这点时间引入副本不划算。
 
-    种子路径走 :class:`Registry` 解析出的同一套兜底规则, 而不是自己拼
-    ``registry_path`` 的父目录 —— 那只在本机成立(``data/``), 换个部署目录就找不到,
-    而症状是「图分析报空」。
+    种子路径不跟注册表走, 而是锚到**项目根**: 板卡上 ``REGISTRY_PATH=registry.yaml``
+    (注册表就在仓库根), 于是 ``reg_path.parent`` 是 ``.``, 推出来的
+    ``./seed/power_domain_seed.json`` 不存在 —— 板卡实测正是如此, 全靠下面那句
+    硬编码 ``data/seed/...`` 兜住。而那句注释说用 Registry 是为了「换个部署目录
+    就找不到」, 兜底本身却是 CWD 相对路径, 换个目录照样找不到 —— 两处假设互相打架。
+
+    ``parents[3]`` 取到 ``<repo>/`` (本文件在 ``<repo>/src/aterag/mcp_server/``),
+    与 CWD 无关, 也不依赖注册表放在哪 (``workbench/api.py:77`` 用的是同一个写法)。
     """
     from aterag.kg import analytics
     from aterag.kg.materialize import load_seed_records
 
-    reg_path = Registry._resolve_path(settings)
-    seed = reg_path.parent / "seed" / "power_domain_seed.json"
+    repo = Path(__file__).resolve().parents[3]
+    seed = repo / "data" / "seed" / "power_domain_seed.json"
     if not seed.exists():
+        # 开发机从 src/ 里跑、或非标准布局安装时退回 CWD, 但**只退到这里**:
+        # 再往上猜路径就是「找不到时静默返回空图」的老毛病。
         seed = Path("data/seed/power_domain_seed.json")
+    if not seed.exists():
+        raise FileNotFoundError(
+            f"领域种子缺失: 试过 {repo / 'data' / 'seed' / 'power_domain_seed.json'} 与 "
+            f"data/seed/power_domain_seed.json。图分析返回空图会被读成「知识库里"
+            f"没有知识」, 而真实原因是种子文件不在 —— 报错必须指向真实原因。"
+        )
     ents, rels = load_seed_records(str(seed))
     return analytics.graph_from_records([*ents, *rels])
 
 
-#: 图稀疏到这个比例以下, 分析结论就不该被当真 —— 返回里必须带这句。
-#: 实测 87%。设这个阈值不是为了让结论好看, 而是让「结论不可信」这件事出现在
-#: 输出里, 而不是留在实现者的脑子里。
+#: **孤立节点占比** 高于它, 就该提示结论不可信。
+#: 这条判据在板卡上从未触发: 实测 282/594 = 47.47%, 阈值 0.5 恰好卡在上面 ——
+#: 差 2.53% 就告警, 于是这个提示实际是死代码, 而图确实稀疏(见下)。
 SPARSE_GRAPH_RATIO = 0.5
+
+#: **可达比例**(最大连通分量 / 总节点) 低于它, 同样提示。
+#: 为什么必须有第二条: 孤立占比低**不等于**图连通。一张「若干条互不相连的小簇」
+#: 的图可以只有 5% 孤立节点, 但追溯/中心度排名只能看到其中一簇。
+#: 板卡实测正是这种形态 —— 孤立 47.47%(刚好不触发), 但 594 个节点散成
+#: **319 个连通分量**, 最大连通分量仅 48 个(8.1%)。也就是说 ``trace_dependency``
+#: 最多只能看到 48 个节点里的那部分, 而返回里看不出这件事。
+FRAGMENTED_GRAPH_RATIO = 0.25
 
 
 def _sparseness_note(topo: dict) -> str | None:
+    """稀疏/碎裂提示。两个判据都要报, 因为它们各自漏掉对方的情况。"""
     n = topo.get("nodes") or 0
     if not n:
         return None
-    ratio = topo.get("isolated_nodes", 0) / n
-    if ratio <= SPARSE_GRAPH_RATIO:
+    isolated = topo.get("isolated_nodes", 0)
+    iso_ratio = isolated / n
+    largest = topo.get("largest_component", 0)
+    frag_ratio = largest / n
+    components = topo.get("components", 0)
+
+    notes: list[str] = []
+    if iso_ratio > SPARSE_GRAPH_RATIO:
+        notes.append(
+            f"{isolated}/{n} 个节点孤立 ({iso_ratio:.0%}) —— 大量分数为 0 是因为"
+            f"节点没进任何边, 不是因为它不重要"
+        )
+    if frag_ratio < FRAGMENTED_GRAPH_RATIO:
+        notes.append(
+            f"图是碎的: {n} 个节点散成 {components} 个连通分量, 最大连通分量仅 "
+            f"{largest} ({frag_ratio:.0%}) —— **追溯只能看到这一块的 {largest} 个节点**, "
+            f"其余 {n - largest} 个在当前边集下互相不可达, 排名类结论只对这 {largest} 个有意义"
+        )
+    if not notes:
         return None
-    return (
-        f"注意: {topo['isolated_nodes']}/{n} 个节点孤立 ({ratio:.0%}), 最大连通分量仅 "
-        f"{topo['largest_component']}。下面的排名与追溯在这种稀疏度下信息量有限 —— "
-        f"大量分数为 0 是因为节点没进任何边, 不是因为它不重要。"
-    )
+    return "注意: " + "; ".join(notes) + "。"
 
 
 @mcp.tool()
 async def analyze_graph(metric: str = "centrality") -> str:
-    """知识图谱分析 (方案 §4.4)。metric 目前支持 centrality。"""
+    """知识图谱分析 (方案 §4.4)。metric 目前支持 centrality。
+
+    返回里带 ``structure``(:func:`_structure_report`, 即 semantica
+    ``GraphValidator`` 的判定)与 ``sparseness_warning``(孤立/碎裂阈值)。
+    两者刻意并存: 阈值那条是手调的, GraphValidator 那条是原理性的,
+    板卡实测上只有后者报了「282 个孤立节点」。
+    """
     from aterag.kg import analytics
 
     if metric != "centrality":
@@ -842,7 +883,7 @@ async def analyze_graph(metric: str = "centrality") -> str:
             {
                 "error": "unknown_metric",
                 "message": f"不支持的 metric: {metric!r}",
-                "hint": "目前实现: centrality (结构健康请跑 scripts/knowledge_gate.py)",
+                "hint": "目前实现: centrality (结构健康见返回里的 structure 字段)",
             },
             ensure_ascii=False,
         )
@@ -860,10 +901,37 @@ async def analyze_graph(metric: str = "centrality") -> str:
             "metric": metric,
             "topology": topo,
             "sparseness_warning": _sparseness_note(topo),
+            "structure": _structure_report(graph),
             **report,
         },
         ensure_ascii=False,
     )
+
+
+def _structure_report(graph) -> dict:
+    """``GraphValidator`` 的形状校验结果。
+
+    以前这里只有 ``knowledge_gate.py``(CI) 会跑, 于是**服务运行期从不调用**
+    ``validate_structure`` —— 该能力在 ``src/`` 里实例化了却没有任何 MCP 工具
+    能看到它的输出。实测它比手设阈值更早发现问题: GraphValidator 直接报出
+    ``Found 282 orphan nodes``, 而 ``_sparseness_note`` 的孤立占比判据
+    (实测 47.47% vs 阈值 50%) 没报。
+
+    校验失败不能拖垮整个工具: 结构有问题是**结论**, 不是工具故障, 所以
+    降级成 ``{"unavailable": ...}`` 而不是抛错。
+    """
+    try:
+        from aterag.kg.analytics import validate_structure
+
+        res = validate_structure(graph)
+        return {
+            "is_valid": res.get("is_valid"),
+            "issue_count": len(res.get("issues") or []),
+            "issues": (res.get("issues") or [])[:10],
+            "total_entities": (res.get("stats") or {}).get("total_entities"),
+        }
+    except Exception as e:  # noqa: BLE001
+        return {"unavailable": f"{type(e).__name__}: {e}"}
 
 
 @mcp.tool()
