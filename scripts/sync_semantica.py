@@ -88,6 +88,19 @@ class _AgeStoreNoLoad:
 
     板卡 PG 上 age 扩展已就绪, 且 powerspec 用户可访问 ag_catalog, 但 LOAD 'age'
     需要超级用户, 因此这里只做 search_path + 建图, 复用父类全部 Cypher 逻辑。
+
+    **为什么不给服务角色提权**
+    ------------------------
+    让 ``ApacheAgeStore.connect()`` 原样可用有两条路: 把 ``powerspec`` 提成
+    超级用户, 或走这条 search_path 旁路。前者是**安全降级** —— 应用角色一旦是
+    超级用户, 任何注入/误操作都能读写整库, 而它本该只碰自己的三张表。所以选
+    旁路: 权限模型不变, 代价只是多一个子类。
+
+    **代价要写清楚**: 旁路依赖 ``search_path = ag_catalog``, 而 ``connect()``
+    不再执行上游的 ``LOAD 'age'``。上游若在升级中改用 ``LOAD`` 之外的初始化
+    (比如临时表、扩展 GUC), 这条旁路会静默失效 —— 所以
+    ``tests/test_age_store_access.py`` 钉住「官方 API 仍失败 + 旁路仍可用」
+    这个组合, 任一边变了都会红。
     """
 
     @staticmethod
@@ -114,6 +127,35 @@ class _AgeStoreNoLoad:
                 return True
 
         return AgeStore(connection_string=connection_string, graph_name=graph_name)
+
+
+def age_access_paths(dsn: str, graph_name: str) -> dict:
+    """两条访问路径各试一次, 返回各自结果 —— 用于门禁与运维自查。
+
+    同时返回两条而不是只返回能用的那条: 「官方 API 可用了」是**权限模型变更**
+    的信号(有人提了权), 那时 ``_AgeStoreNoLoad`` 就该重新评估是否还有必要。
+    只报成功的那条会把这个信号吞掉。
+    """
+    from semantica.graph_store import ApacheAgeStore
+
+    out: dict = {"official": None, "bypass": None}
+    official = ApacheAgeStore(connection_string=dsn, graph_name=graph_name)
+    try:
+        out["official"] = "ok" if official.connect() else "connect() returned False"
+    except Exception as e:  # noqa: BLE001
+        out["official"] = f"{type(e).__name__}: {str(e)[:90]}"
+    shim = _AgeStoreNoLoad.build(dsn, graph_name)
+    try:
+        out["bypass"] = "ok" if shim.connect() else "connect() returned False"
+        out["stats"] = shim.get_stats()
+    except Exception as e:  # noqa: BLE001
+        out["bypass"] = f"{type(e).__name__}: {str(e)[:90]}"
+    finally:
+        try:
+            shim.close()
+        except Exception:  # noqa: BLE001, S110
+            pass
+    return out
 
 
 def main(domains: list[str]) -> int:
