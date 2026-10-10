@@ -347,18 +347,16 @@ class TestMcpTools:
         down = json.loads(asyncio.run(server.trace_dependency("thm::T1")))
         assert up["direction"] == "upstream" and up["direct"]
         assert down["direction"] == "downstream"
-        # 同上: 断言规则, 不断言「当前一定稀疏」。
+        # 断言规则, 不断言「当前一定稀疏」。
         #
-        # ``trace_dependency`` 的返回里**没有** topology(只有 sparseness_warning,
-        # 而 analyze_graph 会带 topology) —— 这是两个工具的输出不对称, 所以这里直接
-        # 从种子算孤立率, 而不是从返回值里取。要对齐这个不对称见 server.py 的
-        # trace_dependency: 是否该把 topology 一并返回。
-        from aterag.kg import analytics
-
-        _ents, _rels = load_seed_records(str(SEED))
-        _topo = analytics.topology(analytics.graph_from_records([*_ents, *_rels]))
-        assert (up["sparseness_warning"] is not None) == _should_warn(_topo), (
-            "追溯输出与实测拓扑不一致"
+        # 期望值必须跟**工具实际用的那张图**对齐 —— ``_kg_graph`` 现在返回合并图
+        # (种子 + PG, 实测 841 节点 / 可达 28.8%), 而这里原来是从纯种子(594 /
+        # 8.1%)算的拓扑。可达比例跨过 25% 阈值后碎裂判据不再触发, 于是拿纯种子
+        # 的拓扑去判合并图的警告, 结论正好反过来 —— 那条断言会去「修」一个没坏的
+        # 判据。这里直接用工具返回里的 topology(两个工具现在都给)。
+        assert up["topology"]["nodes"] > 0
+        assert (up["sparseness_warning"] is not None) == _should_warn(up["topology"]), (
+            "追溯输出与它自己报的拓扑不一致"
         )
 
     def test_unknown_metric_is_an_error_not_empty_success(self):

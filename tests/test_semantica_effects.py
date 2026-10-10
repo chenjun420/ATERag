@@ -210,9 +210,16 @@ class TestEffectsReachTheCaller:
             for r in json.loads(SEED.read_text(encoding="utf-8"))["records"]
             if r.get("entity_type")
         )
-        assert st["total_entities"] == seed_entities, (
-            f"读到的实体数 {st['total_entities']} != 种子实体数 {seed_entities} —— "
-            f"多半是 payload 键名错了(nodes/edges 会静默读到 0 个)"
+        topo = analyze_output["topology"]
+        # 断言的是「读到的实体数 == 图里的节点数」这个**关系**, 不是某个固定数字 ——
+        # 换图来源(合并图 841 / 纯种子 594)时固定数字会立刻变成假失败。
+        # 真正要防的是「读到 0 个却报 is_valid=True」, 那由下面这条 >= 兜住。
+        assert st["total_entities"] == topo["nodes"], (
+            f"读到的实体数 {st['total_entities']} != 图节点数 {topo['nodes']} —— "
+            f"多半是 payload 键名错了(nodes/edges 会静默读到 0 个并报 is_valid=True)"
+        )
+        assert st["total_entities"] >= seed_entities, (
+            f"读到的 {st['total_entities']} 少于纯种子的 {seed_entities} —— 图被截断了"
         )
 
     def test_validator_finds_what_the_threshold_missed(self, analyze_output):
@@ -251,8 +258,146 @@ class TestEffectsReachTheCaller:
         assert "sparseness_warning" in d
 
 
+class TestGraphSource:
+    """分析图用**合并图**(种子+PG), 且降级必须留痕。
+
+    纯种子图里追溯不到任何型号需求: 板卡实测
+    ``trace_dependency("SR-PA601-D54A-1204@unit=W")`` 与 ``trace_dependency("PA601-D54A")``
+    都 ``found=false`` —— 那 247 条型号知识(含 204 个 Requirement)在 PG 里,
+    不在分析图里。而「追溯某条需求依据什么」正是这个工具存在的理由。
+
+    可达比例 8.1% -> 28.8%(最大连通分量 48 -> 242)。
+    """
+
+    def test_analyze_graph_uses_the_merged_graph(self, analyze_output):
+        assert analyze_output["graph_source"] in {"merged", "seed-only"}
+        if analyze_output["graph_source"] == "merged":
+            topo = analyze_output["topology"]
+            assert topo["nodes"] > 594, (
+                f"合并图应多于纯种子的 594 节点, 实测 {topo['nodes']} —— "
+                f"PG 侧那 247 条型号知识没进来"
+            )
+
+    def test_model_requirements_are_traceable(self, graph_module):
+        """合并图下型号必须查得到; 降级时**明确查不到**, 而不是含糊其辞。
+
+        纯种子图里 ``trace_dependency("PA601-D54A")`` 是 ``found=false`` ——
+        那 247 条型号知识(含 204 个 Requirement)在 PG 里, 不在种子图里。
+
+        所以断言分两种情况, 且**两种都必须自洽**:
+          merged    -> 必须 found=true(型号知识已经合进来了)
+          seed-only -> 必须 found=false 且 graph_source 说清了原因
+
+        早先这里只断言 found=true, 于是 CI(无 PG, 必然降级)恒红 —— 那等于把
+        「必须能连上库」当成契约, 而它只是环境差异。
+        """
+        d = json.loads(asyncio.run(graph_module.trace_dependency("PA601-D54A", max_depth=1)))
+        src = d.get("graph_source")
+        assert src in {"merged", "seed-only"}, f"必须标明用了哪张图, 实测 {src!r}"
+        if src == "merged":
+            assert d.get("found") is True, (
+                f"合并图里型号查不到(found={d.get('found')}) —— PG 侧那 247 条型号知识没进图"
+            )
+        else:
+            assert d.get("found") is False
+            assert d.get("reason"), "降级时必须给出原因, 否则 found=false 会被误读成「真没有」"
+
+    def test_downgrade_to_seed_is_labelled_not_silent(self, monkeypatch):
+        """PG 不可用时降级, 但 ``graph_source`` 必须变成 ``seed-only`` 并带上原因。
+
+        静默降级最坏: 调用方把「只看了一半的图」当成全量, 而 ``found=false``
+        在两种情况下含义完全不同 —— 种子图里是「真没有」, 降级时是「没查库」。
+        """
+        from aterag.kg import graph as kg_graph
+        from aterag.mcp_server import server
+
+        def _boom(*_a, **_k):
+            raise RuntimeError("PG 故意不可用")
+
+        monkeypatch.setattr(kg_graph, "build_graph", _boom)
+        _g, src = server._kg_graph()
+        assert src["graph_source"] == "seed-only"
+        assert src["reason"] and "PG" in src["reason"], f"降级必须说明原因: {src}"
+
+    def test_degradation_does_not_hang_on_an_unreachable_pg(self, monkeypatch):
+        """PG 不可达时必须**快速**降级, 不能把调用方挂住。
+
+        实测不设 ``connect_timeout`` 时, 库不可达的连接要挂 **132 秒**才失败 ——
+        而这条路径在 ``analyze_graph`` / ``trace_dependency`` 的同步调用里,
+        一次分析就把调用方卡住两分钟。降级只需知道「读不到」, 等满没有信息量。
+        """
+        import time
+
+        from aterag.kg import pg_source
+        from aterag.mcp_server import server
+
+        assert pg_source.PG_CONNECT_TIMEOUT <= 10, (
+            f"连接超时 {pg_source.PG_CONNECT_TIMEOUT}s 太久; 实测不设时要 132s"
+        )
+        monkeypatch.setattr(server, "get_settings", _fake_settings, raising=False)
+        t0 = time.monotonic()
+        _g, src = server._kg_graph()
+        dt = time.monotonic() - t0
+        assert src["graph_source"] == "seed-only"
+        assert dt < 30, f"降级耗时 {dt:.1f}s —— 调用方会被挂住"
+
+    def test_settings_are_read_at_call_time_not_import_time(self, monkeypatch):
+        """settings 必须**现取**, 不能用导入时的快照。
+
+        ``server.py`` 顶部有 ``settings = get_settings()``, 而 ``get_settings``
+        带 lru_cache —— 测试里 ``cache_clear()`` 后 ``get_settings()`` 拿到的是
+        新对象, 模块级那个仍是旧快照。实测踩到: 全量跑时别的测试改了 DSN,
+        ``_kg_graph`` 拿旧 DSN 去连, 于是单跑绿、全量红, 而且症状是
+        「等两分钟才降级」这种看不出根因的表现。
+        """
+        import os
+
+        from aterag.config import get_settings
+        from aterag.mcp_server import server
+
+        # 代理每次属性访问都重新问 get_settings(), 所以「改环境 + 清缓存」后
+        # 立刻能读到新值 —— 这正是它存在的理由, 也是这条断言要钉的行为。
+        old = os.environ.get("POSTGRES_DSN")
+        try:
+            os.environ["POSTGRES_DSN"] = "postgresql://x:x@127.0.0.1:1/probe"
+            get_settings.cache_clear()
+            assert server.settings.postgres_dsn.endswith("/probe"), (
+                f"settings 仍是旧快照: {server.settings.postgres_dsn!r} —— "
+                f"模块级变量在导入时求值, 与 lru_cache 分叉了"
+            )
+        finally:
+            if old is None:
+                os.environ.pop("POSTGRES_DSN", None)
+            else:
+                os.environ["POSTGRES_DSN"] = old
+            get_settings.cache_clear()
+
+    def test_degraded_output_still_carries_the_marker(self, monkeypatch):
+        """降级时工具本身**不能失效** —— 种子侧的分析仍然有用。"""
+        from aterag.kg import graph as kg_graph
+        from aterag.mcp_server import server
+
+        def _boom(*_a, **_k):
+            raise RuntimeError("PG 故意不可用")
+
+        monkeypatch.setattr(kg_graph, "build_graph", _boom)
+        d = json.loads(asyncio.run(server.analyze_graph("centrality")))
+        assert d.get("graph_source") == "seed-only"
+        assert d["topology"]["nodes"] > 0, "降级后种子侧的分析也该能用"
+        assert d.get("reason")
+
+
 def iso_exceeds(topo: dict) -> bool:
     return topo["isolated_nodes"] / topo["nodes"] > 0.5
+
+
+def _fake_settings() -> object:
+    """一个 postgres_dsn 指向不可达地址的 Settings —— 用来验证降级路径。"""
+
+    class _S:
+        postgres_dsn = "postgresql://fake:fake@127.0.0.1:1/nope"
+
+    return _S()
 
 
 # ============================================================== B 接线
@@ -410,7 +555,8 @@ class TestRegressions:
         from aterag.mcp_server import server
 
         monkeypatch.chdir(tmp_path)
-        g = server._kg_graph()
+        g, src = server._kg_graph()
+        assert src["graph_source"] in {"merged", "seed-only"}
         nxg = analytics._to_networkx(g)
         assert nxg.number_of_nodes() > 0, "换到别的 CWD 后建出了空图"
         assert nxg.number_of_edges() > 0, "换到别的 CWD 后图没有边"

@@ -43,6 +43,12 @@ from typing import Any
 #: 领域知识」—— 两者权威不同, 可追溯性要求能区分。
 MODEL_ENTITY_PREFIX = "model"
 
+#: 连接 PG 的超时(秒)。**必须有**: 实测不设时, 库不可达(地址写错/板卡离线)
+#: 的连接要挂 **132 秒**才失败 —— 而这条路径在 ``analyze_graph`` /
+#: ``trace_dependency`` 的同步调用里, 一次分析就把调用方卡住两分钟。
+#: 降级只要知道「读不到」就够了, 等满 132 秒没有额外信息量。
+PG_CONNECT_TIMEOUT = 5
+
 
 def _node_id(model_id: str, etype: str, eid: str) -> str:
     """节点 id = **eid 本身**。
@@ -101,7 +107,7 @@ def iter_model_records(
         params.append(model_ids)
     sql += " ORDER BY model_id, etype, eid"
 
-    with psycopg.connect(dsn) as conn:
+    with psycopg.connect(dsn, connect_timeout=PG_CONNECT_TIMEOUT) as conn:
         rows = conn.execute(sql, params).fetchall()
 
     _check_id_collisions([(str(m), str(t), str(e)) for m, t, e, _ in rows])
@@ -215,7 +221,7 @@ def graph_stats(dsn: str) -> dict[str, Any]:
     """
     import psycopg
 
-    with psycopg.connect(dsn) as conn:
+    with psycopg.connect(dsn, connect_timeout=PG_CONNECT_TIMEOUT) as conn:
         ent = conn.execute("SELECT count(*) FROM public.aterag_entities").fetchone()[0]
         chunk = conn.execute("SELECT count(*) FROM public.aterag_chunks").fetchone()[0]
         models = [

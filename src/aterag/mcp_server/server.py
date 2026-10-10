@@ -12,7 +12,9 @@ list_domain_rules / health
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
+from typing import Any
 
 from mcp.server.mcpserver import MCPServer
 
@@ -25,8 +27,30 @@ from aterag.inference.decision_prov import get_decision_provenance as _query_dec
 from aterag.rag.service import RagService
 from aterag.registry import AmbiguousModel, Registry, UnknownModel
 
-settings = get_settings()
-registry = Registry.load(settings)
+
+class _SettingsProxy:
+    """``settings`` 的惰性代理: 每次属性访问都重新问 ``get_settings()``。
+
+    为什么不能是导入时求值的普通变量: ``get_settings`` 带 ``lru_cache``, 而
+    ``server`` 被 import 之后缓存可能被清掉(测试里为了隔离环境会
+    ``monkeypatch.setenv`` + ``cache_clear()``)。普通模块级变量是**导入那一刻
+    的快照**, 于是它与 ``get_settings()`` 静默分叉 —— 两个不同的 Settings,
+    哪个生效取决于导入顺序。
+
+    实测症状特别难查: 单跑全绿、全量红, 且表现为「拿旧 DSN 去连库, 干等
+    132 秒才降级」, 看起来像网络问题而不是配置分叉。
+    """
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(get_settings(), name)
+
+    def __repr__(self) -> str:  # pragma: no cover - 仅调试用
+        return f"<SettingsProxy -> {get_settings()!r}>"
+
+
+settings = _SettingsProxy()
+logger = logging.getLogger(__name__)
+registry = Registry.load(get_settings())
 _rag: RagService | None = None
 _decision_prov: DecisionRecorder | None = None
 _aliases: QuantityAliasBook | None = None
@@ -789,26 +813,18 @@ async def list_domain_rules(category: str = "") -> str:
     return json.dumps({"rules": out, "shacl_shapes": len(shapes)}, ensure_ascii=False)
 
 
-def _kg_graph():
-    """从种子构建分析用图 (方案 §4.4)。
+def _seed_path() -> Path:
+    """领域种子文件路径, 锚到**项目根**而不是注册表。
 
-    每次重建而不是缓存: ``materialize.py`` 已论证「落盘/缓存 = 第二份副本,
-    忘了同步就出现界面旧知识/推理新知识」, 而本图只有 594 节点 / 275 边
-    (2026-10-08 实测 594 节点/275 边; 早先注释写的 641/65 是旧种子), 重建是毫秒级 ——
-    为省这点时间引入副本不划算。
-
-    种子路径不跟注册表走, 而是锚到**项目根**: 板卡上 ``REGISTRY_PATH=registry.yaml``
-    (注册表就在仓库根), 于是 ``reg_path.parent`` 是 ``.``, 推出来的
-    ``./seed/power_domain_seed.json`` 不存在 —— 板卡实测正是如此, 全靠下面那句
-    硬编码 ``data/seed/...`` 兜住。而那句注释说用 Registry 是为了「换个部署目录
-    就找不到」, 兜底本身却是 CWD 相对路径, 换个目录照样找不到 —— 两处假设互相打架。
+    板卡上 ``REGISTRY_PATH=registry.yaml``(注册表就在仓库根), 早先按
+    ``reg_path.parent / "seed"`` 推路径, 推出 ``./seed/power_domain_seed.json``
+    —— 不存在, 全靠一句硬编码 ``data/seed/...`` 兜住。而那句注释说用 Registry
+    正是为了「换个部署目录就找不到」, 兜底本身却是 CWD 相对路径, 换目录照样
+    找不到 —— 两处假设互相打架。
 
     ``parents[3]`` 取到 ``<repo>/`` (本文件在 ``<repo>/src/aterag/mcp_server/``),
-    与 CWD 无关, 也不依赖注册表放在哪 (``workbench/api.py:77`` 用的是同一个写法)。
+    与 CWD 无关, 也不依赖注册表放在哪 (``workbench/api.py:77`` 同一写法)。
     """
-    from aterag.kg import analytics
-    from aterag.kg.materialize import load_seed_records
-
     repo = Path(__file__).resolve().parents[3]
     seed = repo / "data" / "seed" / "power_domain_seed.json"
     if not seed.exists():
@@ -821,8 +837,48 @@ def _kg_graph():
             f"data/seed/power_domain_seed.json。图分析返回空图会被读成「知识库里"
             f"没有知识」, 而真实原因是种子文件不在 —— 报错必须指向真实原因。"
         )
-    ents, rels = load_seed_records(str(seed))
-    return analytics.graph_from_records([*ents, *rels])
+    return seed
+
+
+def _kg_graph() -> tuple[Any, dict[str, Any]]:
+    """构建分析用图 (方案 §4.4), 返回 ``(graph, source_info)``。
+
+    **用合并图(种子 + PG), 而不是纯种子。** 板卡实测两者的差别是决定性的:
+
+        纯种子   594 节点 / 275 边, 319 个连通分量, 最大分量  48 (**可达 8.1%**)
+        合并图   841 节点 / 520 边, 321 个连通分量, 最大分量 242 (**可达 28.8%**)
+
+    纯种子图里**根本找不到型号需求**: ``trace_dependency("SR-PA601-D54A-1204@unit=W")``
+    与 ``trace_dependency("PA601-D54A")`` 都返回 ``found=false`` —— 那 247 条
+    型号知识(含 204 个 Requirement)在 PG 里, 不在分析图里。而「追溯某条需求
+    依据什么」正是这个工具存在的理由。
+
+    合并图是纯种子的**严格超集**(交集 594, 无「只在种子里」的节点), 所以换过去
+    不会丢任何原有可达性。
+
+    **降级必须留痕。** PG 不可用时退回纯种子, 但返回里的 ``graph_source`` 会变成
+    ``seed-only`` 并带上原因 —— 静默退回会让调用方把「只看了一半的图」当成全量,
+    而 ``found=false`` 在两种情况下含义完全不同: 种子图里是「真没有」, 降级时
+    是「没查库」。这两者混起来, 排查方向一开始就是错的。
+    """
+    from aterag.kg import analytics
+    from aterag.kg.graph import build_graph
+    from aterag.kg.materialize import load_seed_records
+
+    seed = _seed_path()
+    # settings 是惰性代理, 这里现取拿到的一定是当前缓存里的那个
+    dsn = settings.postgres_dsn
+    try:
+        graph, stats = build_graph(dsn, seed_path=str(seed))
+    except Exception as e:  # noqa: BLE001 降级不是故障, 但必须留痕
+        logger.warning("分析用图退回纯种子(型号知识缺失): %s: %s", type(e).__name__, e)
+        ents, rels = load_seed_records(str(seed))
+        return analytics.graph_from_records([*ents, *rels]), {
+            "graph_source": "seed-only",
+            "reason": f"PG 不可用, 已降级为纯种子图: {type(e).__name__}: {e}",
+            "stats": None,
+        }
+    return graph, {"graph_source": "merged", "reason": None, "stats": stats}
 
 
 #: **孤立节点占比** 高于它, 就该提示结论不可信。
@@ -888,9 +944,10 @@ async def analyze_graph(metric: str = "centrality") -> str:
             ensure_ascii=False,
         )
     try:
-        graph = _kg_graph()
+        graph, src = _kg_graph()
         topo = analytics.topology(graph)
         report = analytics.centrality_report(graph)
+        structure = _structure_report(graph)
     except Exception as e:  # noqa: BLE001 分析失败不能报成「分析结果为空」
         return json.dumps(
             {"error": "graph_analysis_failed", "message": f"{type(e).__name__}: {e}"},
@@ -899,9 +956,10 @@ async def analyze_graph(metric: str = "centrality") -> str:
     return json.dumps(
         {
             "metric": metric,
+            **src,
             "topology": topo,
             "sparseness_warning": _sparseness_note(topo),
-            "structure": _structure_report(graph),
+            "structure": structure,
             **report,
         },
         ensure_ascii=False,
@@ -958,7 +1016,7 @@ async def trace_dependency(node_id: str, direction: str = "downstream", max_dept
             ensure_ascii=False,
         )
     try:
-        graph = _kg_graph()
+        graph, src = _kg_graph()
         topo = analytics.topology(graph)
         res = analytics.trace_dependencies(graph, node_id, direction=direction, max_depth=max_depth)
     except Exception as e:  # noqa: BLE001
@@ -974,6 +1032,9 @@ async def trace_dependency(node_id: str, direction: str = "downstream", max_dept
             # 理由(别把「没进边」读成「不重要」)。给了原始数据, 接收方才可能自行判断。
             "topology": topo,
             "sparseness_warning": _sparseness_note(topo),
+            # 图来源: found=false 在「合并图」与「降级到纯种子」下含义完全不同 ——
+            # 前者是「真没有这条边」, 后者是「没查库, 型号知识整块不在图里」。
+            **src,
             **res,
         },
         ensure_ascii=False,
