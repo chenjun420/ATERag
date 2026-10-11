@@ -106,8 +106,23 @@ def rows_needing_annotation(model_id: str, profile_name: str = "") -> list[dict]
 
     已经有规则结果的不进草案: 那类条款人写得比 LLM 快, 而且规则结果已经生效,
     用 LLM 版本覆盖它反而是无谓的风险。
+
+    **档案选择顺序与 ``extract_test_conditions`` 一致**: 显式 ``profile_name``
+    -> 注册表 ``doc_profile`` -> 默认档案。
+
+    原来这里直接 ``.get(profile_name or None)`` 落到默认档案, 不看注册表 ——
+    于是对绑了自己档案的型号(PN2000-24A -> ``power_spec_cn_pn2000``)必然抛
+    ``SectionKeywordNotFound``: 默认档案的 ``功能/性能要求`` 在它的章节树里根本
+    不存在。这正是 ``verify_pn2000.py`` docstring 里点名的失败模式(「档案选择
+    只存在于 MCP 工具的可选参数里, 没人记得为它指定档案时抽取就抛错, 且没有
+    任何测试会发现」), 只不过这次犯在草案生成这条路径上。
     """
     settings = get_settings()
+    if not profile_name:
+        from aterag.registry import Registry
+
+        entry = Registry.load(settings).products.get(model_id)
+        profile_name = str(getattr(entry, "doc_profile", "") or "")
     prof = ProfileBook.load(settings.doc_profiles_path).get(profile_name or None)
     blocks = load_blocks(model_id)
     sel = select_sections(blocks, prof.section_keywords)

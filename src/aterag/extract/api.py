@@ -270,7 +270,18 @@ def _template_identity(
 # ---------------- 数据来源 ----------------
 
 
-def load_blocks(model_id: str, blocks_dir: str | Path = DEFAULT_BLOCKS_DIR) -> list[Block]:
+def load_blocks(model_id: str, blocks_dir: str | Path | None = None) -> list[Block]:
+    """读某型号的 blocks 侧车。
+
+    ``blocks_dir`` 留空时取 ``Settings.blocks_dir``, 默认仍是
+    ``rag_storage/blocks``。这里必须走 Settings 而不是模块常量: 常量被绑成
+    函数签名里的默认参数值, 定义时就定死了, 事后改模块属性不起作用 —— 那样
+    「换个目录放侧车」就只能改代码。
+    """
+    if blocks_dir is None:
+        from aterag.config import get_settings
+
+        blocks_dir = get_settings().blocks_dir or DEFAULT_BLOCKS_DIR
     p = Path(blocks_dir) / f"{model_id}.jsonl"
     if not p.exists():
         raise ModelNotIngested(
@@ -399,7 +410,7 @@ def extract_test_conditions(
     annotations: AnnotationBook | None = None,
     source: str = SRC_BLOCKS,
     dsn: str | None = None,
-    blocks_dir: str | Path = DEFAULT_BLOCKS_DIR,
+    blocks_dir: str | Path | None = None,
 ) -> ExtractionResult:
     """抽取某型号在选定章节内的产测条件 (输入条件 / 输出条件)。
 

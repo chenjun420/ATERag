@@ -70,27 +70,34 @@ def doc_version(model_id: str) -> str:
 
 
 def blocks_dir(model_id: str, cache_root: str | Path | None = None) -> Path:
-    """生成该型号的 blocks 侧车, 返回目录。
+    """生成该型号的 blocks 侧车, 返回**装着它的目录**。"""
+    return shared_dir(cache_root)
 
-    **每次都重新生成, 不按文件存在与否跳过。** 曾经写成「文件在就复用」, 结果
-    夹具改完侧车还是旧的 —— 而测试照样全绿, 因为断言读到的是旧侧车算出的结果。
-    这正是本模块 docstring 里说的「派生物会静默过期」, 缓存把它又请了回来。
-    夹具只有几 KB, 重解析不到 10ms, 省这个没有收益。
+
+def shared_dir(cache_root: str | Path | None = None) -> Path:
+    """把所有夹具型号的侧车生成到**同一个目录**, 返回该目录。
+
+    为什么要有「共用目录」这个概念: ``Settings.blocks_dir`` 只能指向一处,
+    而调用方(如 ``extract_test_conditions``)默认就从那里读。所以夹具侧车必须
+    能按「一个目录装全部夹具型号」组织, 否则每接一个走默认路径的调用方就得
+    再改一次签名。
     """
     if cache_root is None:
         cache_root = Path(tempfile.gettempdir()) / "aterag_fixture_blocks"
-    root = Path(cache_root) / model_id
+    root = Path(cache_root)
     root.mkdir(parents=True, exist_ok=True)
 
     if "src" not in sys.path:
         sys.path.insert(0, str(ROOT / "src"))
     from aterag.ingest.markdown_parser import parse_file
 
-    blocks = parse_file(fixture_path(model_id))
-    (root / f"{model_id}.jsonl").write_text(
-        "\n".join(json.dumps(b.to_dict(), ensure_ascii=False) for b in blocks),
-        encoding="utf-8",
-    )
+    # 每次都重新生成, 不按文件存在与否跳过
+    for m in FIXTURE_MODELS:
+        blocks = parse_file(fixture_path(m))
+        (root / f"{m}.jsonl").write_text(
+            "\n".join(json.dumps(b.to_dict(), ensure_ascii=False) for b in blocks),
+            encoding="utf-8",
+        )
     return root
 
 
@@ -105,11 +112,12 @@ def fixture_models() -> list[str]:
 
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
-    print(f"已入库的自造夹具: {', '.join(fixture_models())}")
+    d = shared_dir()
+    print(f"已入库的自造夹具 -> {d}")
     for m in fixture_models():
-        p = blocks_path(m)
+        p = d / f"{m}.jsonl"
         n = len([x for x in p.read_text(encoding="utf-8").splitlines() if x.strip()])
-        print(f"  {m:<12} {p}  blocks={n}  {p.stat().st_size}B  doc_version={doc_version(m)}")
+        print(f"  {m:<12} blocks={n}  {p.stat().st_size}B  doc_version={doc_version(m)}")
     try:
         blocks_dir("PA601-D54A")
     except FixtureModelUnavailable as e:

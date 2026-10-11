@@ -26,9 +26,21 @@ import aterag.mcp_server.server as S
 
 @pytest.fixture(scope="module")
 def model_id() -> str:
+    """挑一个**有入库侧车**的型号。
+
+    原先是 ``sorted(registry.products)[0]`` —— 那恰好是 PA601-D54A(字母序最小),
+    而它的侧车按 .gitignore 不入库, 于是干净 checkout 上这 13 条测试全部
+    ModelNotIngested。现在从 tests/conftest.py 指向的夹具侧车里挑, 那里有什么
+    就用什么, 不再依赖注册表的字母序。
+    """
     if not S.registry.products:
         pytest.skip("注册表为空, 需要先导入规格书")
-    return sorted(S.registry.products)[0]
+    import fixture_blocks
+
+    usable = [m for m in sorted(S.registry.products) if fixture_blocks.available(m)]
+    if not usable:
+        pytest.skip("没有可用的夹具型号 —— tests/conftest.py 是否生效?")
+    return usable[0]
 
 
 class TestRequireModel:
@@ -227,24 +239,44 @@ class TestConditionDetail:
 
     @pytest.mark.asyncio
     async def test_disambiguated_code_resolves_by_exact_match(self, model_id: str) -> None:
-        """A bundle code like ``SR-1103__-54V__m0m2000`` must resolve exactly.
+        """A bundle code like ``SR-1103__-54V__m0m2000`` must never resolve to the
+        *wrong* requirement.
 
-        Asserted against a synthetic id rather than real data: extraction's
-        ``req_id`` carries no suffix (the disambiguating one is added when the
-        bundle is built), so a data-driven test would silently stop exercising
-        this path the moment the fixtures changed.
+        The suffix is synthetic (extraction's ``req_id`` carries none — the
+        disambiguating one is added when the bundle is built), so the lookup must
+        fall through to the stem.
+
+        What is acceptable afterwards depends on whether the stem is unique:
+
+        * unique  -> resolving to that one row is **correct**; there is nothing
+          else it could resolve to.
+        * shared  -> it must report ``requirement_ambiguous`` rather than pick one.
+
+        The old assertion was ``out["error"] in (...)``, i.e. it demanded an error
+        even for unique stems — which only held on PA601, whose stems are mostly
+        shared. On a model with unique stems the correct answer is a successful
+        lookup, and the test raised ``KeyError`` on it. Asserting the property that
+        actually matters (never the wrong row) covers both shapes.
         """
         result = S._extract_for(model_id)
         cond = result.conditions[0]
+        stem = cond.req_id.split("__")[0]
         out = json.loads(
-            await S.get_condition_detail(model_id=model_id, req_id=f"{cond.req_id}__-54V__m0m2000")
+            await S.get_condition_detail(model_id=model_id, req_id=f"{stem}__-54V__m0m2000")
         )
-        # A synthetic suffix cannot match any extraction row, so the lookup
-        # must fall through to the stem — and a multi-row stem must then report
-        # ambiguity rather than resolving to the first row.
-        assert out["error"] in ("requirement_not_found", "requirement_ambiguous")
-        if out["error"] == "requirement_ambiguous":
-            assert len(out["siblings"]) > 1
+        if "error" in out:
+            assert out["error"] in ("requirement_not_found", "requirement_ambiguous"), out
+            if out["error"] == "requirement_ambiguous":
+                assert len(out["siblings"]) > 1
+        else:
+            siblings = [c for c in result.conditions if c.req_id.split("__")[0] == stem]
+            assert len(siblings) == 1, (
+                f"{stem} 在抽取结果里有 {len(siblings)} 行, 解析却直接返回了其中一行 —— "
+                f"那是「静默挑第一条」"
+            )
+            assert out.get("req_id", stem).split("__")[0] == stem, (
+                f"请求的是 {stem}, 却解析到 {out.get('req_id')}"
+            )
 
     @pytest.mark.asyncio
     async def test_ambiguous_stem_does_not_resolve(self, model_id: str) -> None:

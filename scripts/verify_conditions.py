@@ -49,14 +49,31 @@ DOC = "PA601-D54A 定制电源技术规格书.md"
 
 
 def main() -> int:
-    # 4.3 抽取范围为零缺口门禁的前提: 规格书 md 与 blocks 侧车同源。
-    # CI 上 blocks 侧车 (rag_storage/) 不入库, 故无侧车时从规格书现生成一份 ——
-    # 验证对象仍是真实规格书, 而非"跳过"。
+    # 这个脚本跑在 **PA601 真实数据**上, 而且**只能**跑在它上面: 79 条断言里有
+    # 十几条点名具体需求号(1107 输入防反 / 1202 三档全剔 / 1219 备注含"不要求
+    # 均流度"子串仍须保留 / 1217 该轨无数据≠整条不要求 ...), 换任何一个自造夹具
+    # 都会因为「那条需求不存在」而红。把这些需求号搬进夹具, 等于把 PA601 的表格
+    # 换个文件名塞进仓库 —— 那是客户数据, 不可接受。
+    #
+    # **因此 CI 不跑它**(干净 checkout 里既无侧车也���规格书)。CI 跑的是
+    # verify_pn2000.py(自造夹具端到端抽取, 14 条)与 table_schema_report /
+    # template_drift(夹具侧), 见 .github/workflows/ci.yml。
+    #
+    # **拿不到数据时必须失败, 不能 return 0。** 原来这里:
+    #     if not blocks_path.exists() and not Path(DOC).exists():
+    #         print("跳过"); return 0
+    # 于是 CI 上这一步恒绿 —— 而当时 CI 的注释写着「规格书与 blocks 侧车在仓库内,
+    # 故 CI 可直接跑真实数据」, 两句都与事实相反。79 条断言一条没跑, 门禁显示
+    # 通过。门禁在「测不了」时必须说出来。
     blocks_path = Path("rag_storage/blocks") / f"{MODEL}.jsonl"
     if not blocks_path.exists():
         if not Path(DOC).exists():
-            print(f"(既无 {blocks_path} 也无规格书 {DOC}, 跳过)")
-            return 0
+            print(
+                f"FAIL 既无 blocks 侧车 {blocks_path} 也无规格书 {DOC} —— "
+                f"本门禁只跑 PA601 真实数据, 测不了不等于通过(退出码 1)。\n"
+                f"     需要真实型号数据的检查请在有规格书的机器上执行。"
+            )
+            return 1
         from aterag.ingest.markdown_parser import parse_file, write_blocks_jsonl
 
         write_blocks_jsonl(parse_file(DOC), blocks_path)

@@ -214,19 +214,58 @@ class TestParseLLMJSON:
 
 
 class TestCandidateSelection:
-    def test_only_rows_without_rule_output_are_candidates(self):
-        """规则已切出条件的行不该进草案 —— 人写得比 LLM 快, 且规则结果已生效。"""
-        rows = rows_needing_annotation("PA601-D54A")
-        assert rows, "PA601 应至少有几条规则切不出的行"
+    #: 跑在自造夹具上, 不用 PA601 —— 后者按 .gitignore 不入库。
+    #: 断言按**全部可入库夹具**参数化, 这样换夹具不用改这里。
+    MODELS = ("PN1000-48A", "PN2000-24A")
+
+    @pytest.mark.parametrize("model", MODELS)
+    def test_only_rows_without_rule_output_are_candidates(self, model):
+        """规则已切出条件的行不该进草案 —— 人写得比 LLM 快, 且规则结果已生效。
+
+        **不断言候选非空**。原先那句 ``assert rows``(「PA601 应至少有几条规则切不出的
+        行」)依赖客户数据: 两个自造夹具的条款规则全都切得出来, 候选数是 0 ——
+        那是**正确结果**, 不是缺陷。为迁就它去给夹具硬造一条切不出的行, 等于把
+        夹具改成迎合断言, 门禁从此不再说明任何事。
+
+        守的不变量是: 返回的每一条候选都带指纹与 req_id —— 指纹缺了, 文档改版后
+        草案无法自动失效, 而那是人已经审过的判据。
+        """
+        rows = rows_needing_annotation(model)
+        assert isinstance(rows, list), f"{model}: 应返回列表"
         for r in rows:
             assert r["fingerprint"], "草案候选必须带指纹, 否则文档改版后无法自动失效"
-            assert r["req_id"]
+            assert r["req_id"], f"{model}: 候选缺 req_id"
 
-    def test_candidate_has_real_name_not_none(self):
-        """条目名取 title —— 只读 requirement_text 会让三条候选全叫 None。"""
-        for r in rows_needing_annotation("PA601-D54A"):
+    @pytest.mark.parametrize("model", MODELS)
+    def test_candidate_has_real_name_not_none(self, model):
+        """条目名取 title —— 只读 requirement_text 会让候选全叫 None。"""
+        for r in rows_needing_annotation(model):
             name = r["title"] or r["requirement_text"] or r["subject"]
             assert name and name != "None", f"{r['req_id']} 条目名为空"
+
+    @pytest.mark.parametrize("model", MODELS)
+    def test_empty_candidate_list_means_rules_actually_split(self, model):
+        """候选为空时, 要能说明它是「规则切出来了」而不是「管道根本没跑」。
+
+        上面两条遍历的是候选列表, 候选为空时它们等于什么都没验。这里做互证:
+        同一个型号上 ``extract_test_conditions`` 必须**切出了条件** —— 有切出、
+        候选为空, 才说明每行都被规则命中因而退出草案; 若连条件都切不出, 那候选
+        为空是另一种原因(管道没跑), 这两条断言就名存实亡。
+
+        早先试图用构造行验证判定规则本身, 但构造的「无量化描述」行仍被
+        ``assemble`` 切出了输入/输出 —— 说明真实判定比「文本里有没有数字」复杂。
+        与其造一个碰巧成立的假行, 不如互证两个真实结果。
+        """
+        from aterag.extract import extract_test_conditions, load_annotations
+
+        conds = extract_test_conditions(
+            model, doc_version="A", annotations=load_annotations(model)
+        ).conditions
+        assert conds, f"{model}: 连条件都切不出, 候选为空就无从证明是规则命中所致"
+        assert not rows_needing_annotation(model), (
+            f"{model}: 既切出了 {len(conds)} 条条件, 又还有草案候选 —— "
+            f"那么候选里必然混着规则已命中的行, 排除逻辑坏了"
+        )
 
     def test_prompt_includes_the_facts_llm_needs(self):
         """prompt 少给一项, 模型就只能编 —— 所以这几项必须在。"""

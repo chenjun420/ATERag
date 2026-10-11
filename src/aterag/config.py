@@ -55,6 +55,12 @@ class Settings(BaseSettings):
     annotations_dir: str = "data/annotations"
     domain_workspace_prefix: str = "_domain_"
 
+    # blocks 侧车目录。以前是 ``api.DEFAULT_BLOCKS_DIR`` 这个写死在函数签名里的
+    # 默认参数值 —— 绑定在函数定义时, 事后改模块属性无效, 于是「换个地方放侧车」
+    # 只能改代码。改成配置项后, 测试可以指向自己现场生成的侧车目录
+    # (tests/conftest.py 就这么用), 板卡/本地仍走默认的 rag_storage/blocks。
+    blocks_dir: str = "rag_storage/blocks"
+
     # ---- MCP ----
     mcp_host: str = "0.0.0.0"
     mcp_port: int = 8080

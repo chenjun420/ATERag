@@ -56,6 +56,26 @@ EXEMPT: dict[str, str] = {
 SCANNED_SUFFIXES = {".py", ".yml", ".yaml", ".toml", ".sh", ".md", ".json"}
 
 
+def _gitignored(path: str) -> bool:
+    """该路径是否被 .gitignore 排除。
+
+    ``git check-ignore`` 退出码 0 表示命中。git 不可用时返回 False —— 那时按
+    「未排除」处理, 即仍会报僵尸, 与改动前的行为一致, 不会因环境缺失而放行。
+    """
+    import subprocess
+
+    try:
+        p = subprocess.run(
+            ["git", "check-ignore", "-q", "--", path],
+            cwd=ROOT,
+            capture_output=True,
+            timeout=30,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return p.returncode == 0
+
+
 def _exempt(rel: str) -> str | None:
     for prefix, why in EXEMPT.items():
         if rel.startswith(prefix):
@@ -116,6 +136,13 @@ class TestExemptionTableIsHonest:
 
         文件被删/改名后豁免会静默留着 —— 而检查范围已经不包括它了, 于是
         看起来「有豁免所以检查过了」, 实际那个文件早没人扫了。
+
+        **被 .gitignore 排除的文件不算僵尸。** 有一类豁免指向的是「本地磁盘上
+        有、仓库里没有」的客户文档(规格书、开发指导方案): 它们按设计不入库,
+        干净 checkout 里当然找不到, 但这不是「豁免失效」—— 那份文件压根不属于
+        扫描范围, 豁免对它没有意义却也无害。把它当僵尸报, 逼着人删豁免, 删了之后
+        开发机本地又会开始误报。按 gitignore 区分, 才是「真正被扫过的文件不许
+        悄悄脱队」。
         """
         stale = [
             prefix
@@ -125,6 +152,7 @@ class TestExemptionTableIsHonest:
                 for p in ROOT.rglob("*")
                 if p.is_file()
             )
+            and not _gitignored(prefix)
         ]
         assert not stale, f"豁免指向的文件已不存在(僵尸豁免): {stale}"
 

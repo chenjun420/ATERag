@@ -203,19 +203,45 @@ def test_units_with_values_are_registered(cfg: dict) -> None:
 
 
 def _order_violations(limits: dict, rail: str) -> list[str]:
-    """返回次序越界项; 负压轨(轨名以 - 开头)按绝对值校验。
+    """返回次序越界项。
 
-    负压轨的 min/typ/max 按绝对值递减表述: SR-1201 min=-53.2 typ=-54.0
-    max=-54.8, 数值本身递减是正确的, 按数值比较会误报。
+    **正压轨**按数值校验, 次序必须成立。
+
+    **负压轨两种写法都合法, 都接受**:
+
+        按绝对值(PA601 实际写法)   min=-53.2  typ=-54.0  max=-54.8   -> |.| 递增
+        按带符号(PN2000-24A 写法)  min=-48.5              max=-47.5   -> 数值递增
+
+    原先只认绝对值那一种, 于是 PN2000 的行被判越界。两种写法在规格书里都能见到,
+    差别只在于作者把「最小值」理解成**最小数值**还是**最小幅度** —— 系统两种都得
+    接住, 否则换个客户就报一堆假越界。
+
+    这不是把门禁放宽: 真正非单调的三元组(比如 min=-48.5 typ=-47.0 max=-47.5,
+    typ 两头都不靠)两种方向都不成立, 照样报出来。
     """
-    neg = rail.strip().startswith("-")
-    key = (lambda v: abs(v)) if neg else (lambda v: v)
-    mn, ty, mx = (limits.get(k) for k in ("min", "typ", "max"))
-    bad = []
-    for a, b, la, lb in ((mn, ty, "min", "typ"), (ty, mx, "typ", "max"), (mn, mx, "min", "max")):
-        if a is not None and b is not None and key(a) > key(b):
-            bad.append(f"{la}={a} > {lb}={b}")
-    return bad
+    keys = ("min", "typ", "max")
+    mn, ty, mx = (limits.get(k) for k in keys)
+    if not any(v is not None for v in (mn, ty, mx)):
+        return []
+
+    def _violates(order) -> list[str]:
+        bad = []
+        for a, b, la, lb in (
+            (mn, ty, "min", "typ"),
+            (ty, mx, "typ", "max"),
+            (mn, mx, "min", "max"),
+        ):
+            if a is not None and b is not None and order(a) > order(b):
+                bad.append(f"{la}={a} > {lb}={b}")
+        return bad
+
+    if not rail.strip().startswith("-"):
+        return _violates(lambda v: v)
+
+    # 带符号方向成立就够了; 不成立再看绝对值方向。两个都不成立才报。
+    if not _violates(lambda v: v):
+        return []
+    return _violates(lambda v: abs(v))
 
 
 def test_ordering_holds_for_positive_rails() -> None:
@@ -228,10 +254,14 @@ def test_ordering_holds_for_positive_rails() -> None:
 
 
 def test_ordering_holds_for_negative_rails() -> None:
-    """负压轨按绝对值校验 —— 数值递减是正确表述, 不得误报。"""
-    # PA601 SR-1201 原文形态
+    """负压轨两种写法都不得误报。"""
+    # 写法一: 按绝对值(PA601 实际形态)
     assert not _order_violations({"min": -53.2, "typ": -54.0, "max": -54.8}, "-54V"), (
-        "负压轨绝对值递减是正确表述, 按数值比较会误报"
+        "负压轨绝对值递增是正确表述, 按数值比较会误报"
+    )
+    # 写法二: 按带符号(PN2000-24A 夹具形态) —— 原先这条会报越界
+    assert not _order_violations({"min": -48.5, "max": -47.5}, "-48V"), (
+        "负压轨带符号递增同样是正确表述, 只认绝对值会误报"
     )
 
 
@@ -239,21 +269,36 @@ def test_ordering_check_catches_real_violation() -> None:
     """次序检查须真能抓到越界 —— 否则前两条只是装饰。"""
     bad = _order_violations({"min": 0.0, "typ": 91.0, "max": 70.0}, "3.45V")
     assert bad, "正压轨 typ>max 应被识别"
-    # 负压轨按绝对值: min 的绝对值必须 <= typ 的绝对值。
-    # min=-53.2 typ=-54.0 max=-54.8 是正确形态; 反过来 (min绝对值更大) 才算越界。
-    bad_neg = _order_violations({"min": -56.0, "typ": -54.0, "max": -53.2}, "-54V")
-    assert bad_neg, "负压轨绝对值序错(|-56| > |-54|)应被识别"
+
+    # 负压轨现在接受两种写法, 所以「越界」样本必须**两种方向都不单调**才算数。
+    # typ=-60 夹在 -53.2 与 -54.8 之间: 带符号看(-53.2 > -60 > -54.8 不成立)越界,
+    # 按幅度看(53.2 < 60 > 54.8)也越界 —— 两种解释都说它错, 那就是真错。
+    #
+    # 早先这里用的是 min=-56 typ=-54 max=-53.2, 那在带符号口径下是**合法**的
+    # (递增), 收窄到单一口径才显得像越界。样本选错会让门禁看起来更严, 实际更弱。
+    bad_neg = _order_violations({"min": -53.2, "typ": -60.0, "max": -54.8}, "-54V")
+    assert bad_neg, "负压轨 typ 两头都不靠, 两种口径下都该被识别"
+
+    # 轨名决定口径: 同一组数值在负轨上合法, 挪到正轨上就该报 —— 否则
+    # 「双口径」就退化成「不看轨名一律按绝对值」, 比原规则还宽。
+    same_on_pos = _order_violations({"min": -53.2, "typ": -60.0, "max": -54.8}, "3.45V")
+    assert same_on_pos, "正轨不适用绝对值口径, 同一组数值应被报越界"
     ok_neg = _order_violations({"min": -53.2, "typ": -54.0, "max": -54.8}, "-54V")
     assert not ok_neg, "PA601 SR-1201 的真实形态不应被误报"
 
 
 # ---------------------------------------------------------------------------
-# PA601 全量扫描: 四条契约同时跑
+# 全量扫描: 四条契约同时跑
 # ---------------------------------------------------------------------------
+#
+# 扫描**全部可入库夹具**, 不用 PA601 —— 它的规格书与侧车按 .gitignore 不入库,
+# 拿它当测试依赖等于这条扫描在 CI 上永远不跑(实测: 干净 checkout 上直接
+# ModelNotIngested)。PA601 那次实测抓到过真实缺陷(Vac/Vdc 未登记), 换成夹具后
+# 这条扫描依然能跑, 只是不再覆盖 PA601 的 95 条 —— 那部分见本地执行。
 
 
-def test_pa601_conformance() -> None:
-    """用 PA601 全量数据跑四条契约 —— 真实数据若有脏值必须报出。
+def test_fixture_models_conformance() -> None:
+    """用全量夹具数据跑四条契约 —— 数据若有脏值必须报出。
 
     这是本层的存在理由: 数据契约不是纸面约定, 每次回归都拿真实规格书验一遍。
     """
@@ -272,36 +317,44 @@ def test_pa601_conformance() -> None:
     lk = cfg["limit_kinds"]
     known = _known_kinds(cfg)
 
-    r = extract_test_conditions(
-        "PA601-D54A", doc_version="B", annotations=load_annotations("PA601-D54A")
-    )
-    assert r.conditions, "应能取到条件"
+    import fixture_blocks
+
+    models = fixture_blocks.fixture_models()
+    assert models, "tests/fixtures 里一个自造夹具都没有 —— 本测试会空转"
 
     bad_type: list[str] = []
     bad_kind: list[str] = []
     bad_unit: list[str] = []
     bad_order: list[str] = []
+    scanned = 0
 
-    for c in r.conditions:
-        lim = c.limits or {}
-        for k in _num_keys(lim):
-            if not isinstance(lim[k], (int, float)) or isinstance(lim[k], bool):
-                bad_type.append(f"{c.req_id}:{k}={lim[k]!r}")
-        # 契约 2: kind 词表
-        lk_kind = _limit_kind(c)
-        if lk_kind and lk_kind not in known:
-            bad_kind.append(f"{c.req_id}:{lk_kind}")
-        # 契约 3: 有数值则单位须登记。
-        # '-' 与空是规格书的无量纲记法(功率因数 0.98 记作 unit='-'), 合法;
-        # SHACL 约束按 kind 而非单位分组, 无量纲条款的约束不依赖单位。
-        DIMENSIONLESS = {"-", "—", "/", ""}
-        if _num_keys(lim):
-            u = lim.get("unit")
-            if u not in lk and u not in DIMENSIONLESS:
-                bad_unit.append(f"{c.req_id}:{u!r}")
-        # 契约 4: 次序 (按轨极性)
-        for v in _order_violations(lim, c.rail or ""):
-            bad_order.append(f"{c.req_id}({c.rail}): {v}")
+    for model in models:
+        r = extract_test_conditions(model, doc_version="A", annotations=load_annotations(model))
+        assert r.conditions, f"{model}: 应能取到条件"
+        scanned += len(r.conditions)
+
+        for c in r.conditions:
+            lim = c.limits or {}
+            for k in _num_keys(lim):
+                if not isinstance(lim[k], (int, float)) or isinstance(lim[k], bool):
+                    bad_type.append(f"{model}/{c.req_id}:{k}={lim[k]!r}")
+            # 契约 2: kind 词表
+            lk_kind = _limit_kind(c)
+            if lk_kind and lk_kind not in known:
+                bad_kind.append(f"{model}/{c.req_id}:{lk_kind}")
+            # 契约 3: 有数值则单位须登记。
+            # '-' 与空是规格书的无量纲记法(功率因数 0.98 记作 unit='-'), 合法;
+            # SHACL 约束按 kind 而非单位分组, 无量纲条款的约束不依赖单位。
+            DIMENSIONLESS = {"-", "—", "/", ""}
+            if _num_keys(lim):
+                u = lim.get("unit")
+                if u not in lk and u not in DIMENSIONLESS:
+                    bad_unit.append(f"{model}/{c.req_id}:{u!r}")
+            # 契约 4: 次序 (按轨极性)
+            for v in _order_violations(lim, c.rail or ""):
+                bad_order.append(f"{model}/{c.req_id}({c.rail}): {v}")
+
+    assert scanned >= 2, f"只扫到 {scanned} 条条件 —— 覆盖面太小, 等于没扫"
 
     assert not bad_type, f"非数值限值: {bad_type[:5]}"
     assert not bad_kind, f"limit_kind 不在词表: {bad_kind[:5]}"

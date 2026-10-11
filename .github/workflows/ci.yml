@@ -86,17 +86,27 @@ jobs:
           EMBED_MODEL: x
         run: python scripts/verify_no_hardcoded.py
       # 产测条件抽取: 走 blocks 侧车的离线通道, 无需存储栈; PG 一致性检查会自行跳过。
-      # 规格书与 blocks 侧车在仓库内, 故 CI 可直接跑真实数据。
-      - name: "Test conditions (section filter / sieve / assembly)"
+      #
+      # **跑的是自造夹具 PN2000-24A, 不是 PA601。** 原先这里跑 verify_conditions.py
+      # (PA601, 79 条断言), 注释写着「规格书与 blocks 侧车在仓库内, 故 CI 可直接跑
+      # 真实数据」—— 两句都与事实相反: PA601 规格书按 .gitignore 不入库(.gitignore
+      # 第 49 行), rag_storage/ 整个目录也不入库。而 verify_conditions.py 在既无
+      # 侧车又无规格书时是 `print("跳过"); return 0` —— 这条 CI 步骤**恒绿,
+      # 79 条断言一条没跑**。verify_conditions.py 现已改为缺数据即退出码 1。
+      #
+      # verify_pn2000.py 覆盖同类断言(实体抽取 + 条件抽取 + 型号隔离, 14 条)且
+      # 全部跑在已入库的自造夹具上, 是 CI 里真正能执行的那一份。
+      - name: "Extraction end-to-end on self-made fixture (PN2000-24A)"
         env:
           PYTHONIOENCODING: utf-8
-        run: python scripts/verify_conditions.py
+        run: python scripts/verify_pn2000.py
       # 4.3 (产测条件抽取范围) 必须零缺口 —— 范围内有未映射表格就意味着会漏条目。
       # 4.2 接口 / 4.4 可靠性的缺口是有意保留的范围外待办, 故只对 4.3 设门禁。
+      # doc 指向已入库的自造夹具: 真实规格书不在仓库里(客户知识产权)。
       - name: "Table schema coverage in 4.3 (must be zero gaps)"
         env:
           PYTHONIOENCODING: utf-8
-        run: python scripts/table_schema_report.py --doc "PA601-D54A 定制电源技术规格书.md" --scope 4.3
+        run: python scripts/table_schema_report.py --doc "tests/fixtures/PN1000-48A 迷你规格书.md" --scope 4.3
       # 人工注记必须已签字: draft 状态的注记虽已生效 (语义优于正则), 但未经确认,
       # 下游只能按 confidence=proposed 过滤, 不得视为定稿。
       - name: "Annotation review sign-off (no drafts allowed)"
@@ -107,14 +117,17 @@ jobs:
       # 失配已 fail-closed (章节选不中抛 SectionKeywordNotFound, 表头不认识抛
       # TableSchemaUnmapped)。这里管的是抽取管不到的那一类 —— 参数变了、抽取照样
       # 跑完、结果看着正常但其实 role/limits_to 判错了。
-      # 只列 PA601/PN1000: PN2000-24A 的 blocks 未入库, 门禁会报 ERROR 而不是
-      # 静默放过 (「测不了」不等于「没漂移」), 那不该让 CI 常红。
+      #
+      # 跑自造夹具 PN1000-48A(与 PA601 同属 power_spec_cn 档案, 章节形状一致)。
+      # blocks 侧车由 scripts/fixture_blocks.py 从夹具现生成到临时目录 —— 侧车是
+      # 派生物, 入库会与夹具漂移; PN1000-48A 的基线已在 config/template_baseline.yaml
+      # 里(PA601 的条目保留着, 本机有真实数据时仍可比对)。
       - name: "Template drift gate (fingerprint + coverage baseline)"
         env:
           PYTHONIOENCODING: utf-8
-        run: >
-          python scripts/template_drift.py
-          --model PA601-D54A --model PN1000-48A
+        run: |
+          python -c "import sys; sys.path.insert(0,'scripts'); import fixture_blocks; print(fixture_blocks.shared_dir())" > "$RUNNER_TEMP/blocks"
+          python scripts/template_drift.py --model PN1000-48A --blocks-dir "$(cat "$RUNNER_TEMP/blocks")"
 
   secrets:
     name: Secret scan

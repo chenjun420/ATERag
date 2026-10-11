@@ -53,11 +53,17 @@ limit_kinds:
   # 输出侧量
   V: output_voltage
   mV: ripple
+  # 峰峰值毫伏。规格书写「输出电压纹波 mVpp」很常见, 与 mV 同义不同写法 ——
+  # 由 tests/test_limits_contract.py 的全量扫描抓出来的: 只扫 PA601 时它不在
+  # 词表里也不报错(PA601 不这么写), 换个带 mVpp 的型号才报「未登记」。
+  mVpp: ripple
   A: output_current
   W: output_power
   "%": efficiency
   "%/℃": output_voltage      # 温度系数, 归到电压类响应
   ms: timing
+  # mS(毫西门子, 阻抗量纲)登记成 timing 很可能是笔误 —— 与 ms 只差大小写。
+  # 改它会牵动按 kind 分组的 SHACL 约束, 属独立立项, 这里只标明不擅动。
   mS: timing
   us: timing
   s: timing

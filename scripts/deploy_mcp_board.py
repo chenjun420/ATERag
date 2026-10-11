@@ -76,6 +76,22 @@ FILES = [
 EXCLUDE_DIRS = {"__pycache__", ".pytest_cache", ".ruff_cache"}
 
 
+def _gitignored(path: str) -> bool:
+    """该路径是否被 .gitignore 排除 (git 不可用时按「否」处理)。"""
+    import subprocess
+
+    try:
+        p = subprocess.run(
+            ["git", "check-ignore", "-q", "--", path],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            timeout=30,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return p.returncode == 0
+
+
 def assert_local_files_exist(files=None) -> list[str]:
     """上传前校验 :data:`FILES` 里的本地路径全部存在, 返回缺失清单。
 
@@ -84,15 +100,38 @@ def assert_local_files_exist(files=None) -> list[str]:
     停在「一半新一半旧」的状态, 而报错指向的是一个本地路径, 与板卡毫无关系。
 
     提前校验的成本是几毫秒 stat, 省掉的是「部署到一半才发现清单写错」。
+
+    **被 .gitignore 排除的清单条目不计入缺失**, 但会单独提示。``rag_storage`` 就是
+    这样一个条目: 它是 ingest 的产物、整个目录不入库, 所以干净 checkout 上本来
+    就没有 —— 而它确实必须跟着部署走(条件抽取的离线通道靠它)。把它当普通缺失
+    报, 会让「CI 跑这条测试」和「本机要部署」互相打架; 当成正常则会在真部署时
+    悄悄漏掉侧车。所以: 不计入缺失, 但在缺的时候明确告诉部署方先跑 ingest。
+
+    **该豁免只适用于 :data:`FILES` 清单本身。** 调用方显式传进来的 ``files``
+    逐个严查 —— 那不是仓库清单, 是调用者点名要的文件, 「它被 gitignore 了」
+    不足以解释它不在。走这条路径的测试正是靠这一点守住 fail-closed。
     """
+    entries = FILES if files is None else list(files)
+    default_manifest = files is None
     missing: list[str] = []
-    for local, _remote in FILES if files is None else files:
-        if not (REPO_ROOT / local).exists():
-            missing.append(local)
+    unbuilt: list[str] = []
+    for local, _remote in entries:
+        if (REPO_ROOT / local).exists():
+            continue
+        if default_manifest and _gitignored(local):
+            unbuilt.append(local)
+            continue
+        missing.append(local)
     if missing:
         raise FileNotFoundError(
             "以下部署源不存在 (路径相对仓库根 "
             f"{REPO_ROOT}, 已上传的板卡文件不会被回滚):\n  " + "\n  ".join(missing)
+        )
+    if unbuilt:
+        print(
+            "[warn] 以下部署源被 .gitignore 排除且尚未生成, 将跳过上传:\n  "
+            + "\n  ".join(unbuilt)
+            + "\n  若它们是本次部署必需的, 请先跑 scripts/ingest_*.py 生成。"
         )
     return []
 

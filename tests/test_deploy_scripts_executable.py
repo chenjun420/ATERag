@@ -167,6 +167,12 @@ class TestDeployManifestPathsResolve:
     """
 
     def test_every_entry_exists_relative_to_repo_root(self) -> None:
+        """清单里每个源都得存在, 或被 gitignore 排除(由部署方本机生成)。
+
+        ``rag_storage`` 属后者: ingest 的产物、整目录不入库, 干净 checkout 上本来
+        就没有, 但它必须跟着部署走。判断放在 ``assert_local_files_exist`` 里 ——
+        那里才知道「缺了要不要紧」; 测试只验它对该拦的仍拦得住。
+        """
         sys.path.insert(0, str(ROOT / "scripts"))
         try:
             import deploy_mcp_board as dmb  # noqa: PLC0415

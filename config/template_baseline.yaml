@@ -18,11 +18,7 @@
 # 的情形, 摊平之后总数看着正常。
 version: 1
 note: 由 scripts/template_drift.py --update 生成; 人工审核后接受
-update_note: '2026-10-09 门禁指标口径修正: needs_review 拆为 extract/assess 两层(方向相反, 混计会双向失真) + 新增 needs_review_by_section
-  章节分布独立判定。抽取侧指标未变: conditions_total=95 / scenarios=131 / unresolved_text=3 / excluded=53 与旧基线逐项一致; +45
-  全在评估层(pending_draft_proposal 35 / still_missing_side 5 / material_process_not_production_testable 4
-  / reference_presence_without_criterion 1), 系 358e65e 签字通道与 f790892 空判据分流引入, 非抽取退化。template_version 未递增:
-  模板参数(section_keywords/exclude_words/section_priors/表字段白名单)本次一个未改。'
+update_note: '为 CI 建立自造夹具基线: PA601 规格书属客户知识产权不入库, 干净 checkout 上拿不到'
 entries:
   PA601-D54A:
     profile: power_spec_cn
