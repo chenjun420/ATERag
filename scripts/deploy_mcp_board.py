@@ -52,6 +52,14 @@ FILES = [
     # 权威等级、废止关系、条款号都写在里面)。漏传的后果不是报错, 而是板卡上
     # 知识层静默停留在上一次部署的版本 —— 实测过。
     ("data/seed", "data/seed"),
+    # 人工签字的判据注记。**必须整目录部署** ——
+    # 它是唯一经人确认的条件语义来源(draft 状态的注记语义照常生效, 但置信度标
+    # proposed 并计入 stats.annotation_draft)。漏传的后果与种子知识同样静默:
+    # 板卡上签名停在某次部署的时刻, 而服务照常按 confidence=proposed 出判据。
+    # 实测踩过 —— 板卡上的 PA601-D54A.conditions.yaml 停留在 10 月 6 日,
+    # SR-1213 仍是 status: draft, 而仓库里早已 approved; 板卡
+    # `review_annotation.py --check` 报红, 但没人跑那一步。
+    ("data/annotations", "data/annotations"),
     # 表结构档案: entity_extract 运行时唯一的表头语义来源, 缺失会直接抛
     # FileNotFoundError (而不是静默丢列), 故必须随代码一起部署
     # config/ 同时承载表结构档案与抽取档案 (表头语义/章节先验/剔除词/条件规则),
