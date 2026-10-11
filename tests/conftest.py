@@ -60,16 +60,22 @@ SEEDED_SETTINGS = _seed_settings_env()
 # ``Settings.blocks_dir`` 默认是 ``rag_storage/blocks``, 而整个目录被
 # .gitignore 排除 —— 干净 checkout 上不存在。走默认路径的调用方
 # (``extract_test_conditions`` / MCP 的 ``get_coverage_summary`` 等)于是全部
-# ModelNotIngested。这里把 blocks_dir 指到现场生成的那份, 让这些调用方在 CI
-# 上能读到**真实解析结果**而不是被跳过。
+# ModelNotIngested。实测曾让 9 个测试模块的 46 条测试在 CI 上报错。
+#
+# **只在真实侧车目录不存在时才改指向夹具现生成的那份。** 无条件改会反过来打断
+# 本机: 开发机上 ``rag_storage/blocks/PA601-D54A.jsonl`` 是有的, 被挪走后
+# ``test_eid_variant_scheme`` 与 ``test_multi_model_extraction`` 反而全红 ——
+# 拿「CI 能跑」换「本机跑不了」是净负收益。真实数据在, 就用它。
 #
 # 必须在第一次 get_settings() 之前设好 —— 它是 lru_cache 的, 之后再改无效。
 # conftest 在各测试模块之前导入, 所以时机成立。
 #
-# 只放自造夹具(PN1000-48A / PN2000-24A)。PA601 规格书属客户知识产权, 不入库,
-# CI 上拿不到 —— 需要真实型号数据的断言应显式要求, 而不是靠本目录兜底。
+# 夹具侧车里只有 PN1000-48A / PN2000-24A: PA601 规格书属客户知识产权, 不入库。
 import fixture_blocks  # noqa: E402
 
-os.environ["blocks_dir"] = str(fixture_blocks.shared_dir())
-# 大写的也要设: 读 .env 的那套用的是大写名, 两边都设才不挑环境
-os.environ["BLOCKS_DIR"] = os.environ["blocks_dir"]
+_REAL_BLOCKS = ROOT / "rag_storage" / "blocks"
+if not _REAL_BLOCKS.is_dir():
+    _fixture_dir = str(fixture_blocks.shared_dir())
+    os.environ["blocks_dir"] = _fixture_dir
+    # 大写的也要设: 读 .env 的那套用的是大写名, 两边都设才不挑环境
+    os.environ["BLOCKS_DIR"] = _fixture_dir
