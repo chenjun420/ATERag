@@ -14,19 +14,36 @@
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 import pytest
 import yaml
 
-from aterag.extract.api import load_blocks
-from aterag.extract.quantity_aliases import (
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+
+import fixture_blocks  # noqa: E402
+
+from aterag.extract.api import load_blocks  # noqa: E402
+from aterag.extract.quantity_aliases import (  # noqa: E402
     MATCH_MODES,
     VALUE_FIELDS,
     QuantityAliasBook,
     QuantityFact,
 )
-from aterag.ingest.entity_extract import extract_from_blocks
+from aterag.ingest.entity_extract import extract_from_blocks  # noqa: E402
 
 ALIASES = "config/quantity_aliases.yaml"
+
+#: 等价性断言跑在 **PN2000-24A** 夹具上, 不用 PA601。
+#:
+#: 选它而不是 PN1000-48A 是因为这里要验**轨名参与取数**(主轨必须是承载功率的
+#: 那条), 而 PN1000-48A 的迷你样本只有 3 条需求、轨单一, 验不出「取错轨」。
+#: PN2000-24A 有 17 条需求、-48V 与空轨并存, 与 PA601 的形状一致。
+#:
+#: PA601 规格书属客户知识产权, 不入库 —— 用它当测试依赖等于让这三条在 CI 上
+#: 永远不跑(实测: 干净 checkout 上 3 条全 error)。
+MODEL = "PN2000-24A"
 
 
 @pytest.fixture(scope="module")
@@ -35,10 +52,10 @@ def book():
 
 
 @pytest.fixture(scope="module")
-def pa601_requirements():
+def model_requirements():
     """真实抽取产物 —— 不拿手写样本代替, 手写样本证明不了真实措辞。"""
-    blocks = load_blocks("PA601-D54A", "rag_storage/blocks")
-    return [e for e in extract_from_blocks(blocks, "PA601-D54A") if e.etype == "Requirement"]
+    blocks = load_blocks(MODEL, fixture_blocks.blocks_dir(MODEL))
+    return [e for e in extract_from_blocks(blocks, MODEL) if e.etype == "Requirement"]
 
 
 def _legacy_facts(ents: list[dict]) -> dict:
@@ -130,17 +147,54 @@ class TestBookContract:
 
 
 class TestEquivalenceWithLegacy:
-    def test_real_pa601_facts_unchanged(self, book, pa601_requirements):
+    def test_real_facts_unchanged(self, book, model_requirements):
         """真实数据上新旧实现取数一致 —— 不静默改变已上线行为。"""
-        ents = _as_dicts(pa601_requirements)
+        ents = _as_dicts(model_requirements)
         assert _new_facts(ents, book) == _legacy_facts(ents)
 
-    def test_real_pa601_main_rail_is_the_biggest_current_rail(self, book, pa601_requirements):
-        """主轨 = 额定输出电流最大者 (不写死轨名)。"""
-        f = _new_facts(_as_dicts(pa601_requirements), book)
-        assert f["main_rail"] == "-54V"
-        assert f["current"] == pytest.approx(11.1)
-        assert f["voltage"] == pytest.approx(54.0), "负号轨名的电压取绝对值"
+    def test_main_rail_is_the_biggest_current_rail(self, book, model_requirements):
+        """主轨 = 额定输出电流最大者 (不写死轨名)。
+
+        原先这里钉的是 PA601 的 ``-54V`` / ``11.1A`` / ``54.0V``, 而 docstring
+        写着「不写死轨名」—— 注释与代码说的相反。真实型号的数据不在 CI 里,
+        钉客户数值等于让这条断言只在有数据的地方成立。
+
+        改为按同一规则自己算一遍主轨再互校(独立复算, 不复用被测代码路径)。
+        注册表若声明了主轨则一并互校 —— 本仓库只给 PA601 / PN1000 声明,
+        PN2000-24A 未声明(它没上线过), 所以那半段在 CI 上自动跳过。
+        """
+        ents = _as_dicts(model_requirements)
+        f = _new_facts(ents, book)
+
+        currs: dict[str, float] = {}
+        for e in ents:
+            rail = e.get("rail", "") or "main"
+            if "输出电流" not in (e.get("title") or ""):
+                continue
+            try:
+                currs[rail] = float(e["max"])
+            except (KeyError, TypeError, ValueError):
+                continue
+        assert currs, "夹具里应至少有一条带轨名的输出电流需求 —— 否则本测试空转"
+        want_rail = max(currs, key=lambda r: currs[r])
+        assert f["main_rail"] == want_rail, (
+            f"按额定输出电流最大应取 {want_rail}({currs[want_rail]}A), 实际取 {f['main_rail']}"
+        )
+        assert f["current"] == pytest.approx(currs[want_rail])
+
+        from aterag.config import get_settings
+        from aterag.registry import Registry
+
+        declared = Registry.load(get_settings()).products[MODEL].main_rail
+        if declared:
+            assert f["main_rail"] == declared, (
+                f"注册表声明主轨 {declared}, 而取数拿到 {f['main_rail']}"
+            )
+        # 负号轨名的电压取绝对值 —— 只在真的抽出了电压事实时才断言。
+        # PN2000-24A 的夹具里没有「额定输出电压」这一行(它写的是「输出电压」),
+        # 所以对它这条不适用; PA601 上跑时才有电压事实, 那时这条才生效。
+        if str(want_rail).startswith("-") and "voltage" in f:
+            assert f["voltage"] > 0, "负号轨名的电压取绝对值, 不该是负数"
 
 
 class TestStricterThanSubstring:
@@ -172,10 +226,10 @@ class TestStricterThanSubstring:
                 f"{t!r} 被认成输出事实 {f.name}"
             )
 
-    def test_real_neighbour_titles_exist_in_data(self, pa601_requirements):
+    def test_real_neighbour_titles_exist_in_data(self, model_requirements):
         """哨兵: 上面那组邻近词必须真的在数据里, 否则测试是空转。"""
-        titles = {e.props.get("title", "") for e in pa601_requirements}
-        assert "输出电压" in titles, "PA601 里应存在裸'输出电压'这一行"
+        titles = {e.props.get("title", "") for e in model_requirements}
+        assert "输出电压" in titles, "夹具里应存在裸'输出电压'这一行"
         assert "输出电压上升时间" in titles
         assert "输入电流" in titles
 

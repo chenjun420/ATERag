@@ -68,10 +68,13 @@ class TestNewRulesExist:
     def test_new_rules_pass_selftest(self):
         """每条规则都要有自己的 test 段, 且 selftest 真跑过。"""
         import subprocess
+        import sys
 
+        # 用当前解释器而不是 ".venv/Scripts/python.exe": 那是 Windows 的 venv 布局,
+        # ubuntu CI 上不存在 —— 实测该条在 CI 报 FileNotFoundError。
         p = subprocess.run(
             [
-                str(ROOT / ".venv/Scripts/python.exe"),
+                sys.executable,
                 "-X",
                 "utf8",
                 "scripts/rules_selftest.py",

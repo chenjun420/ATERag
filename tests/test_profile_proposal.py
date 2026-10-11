@@ -454,7 +454,7 @@ class TestNoRuntimeImpact:
             "assert 'table_schema_report' not in sys.modules, '运行时引入了辅助工具'"
         )
         p = subprocess.run(
-            [".venv/Scripts/python.exe", "-X", "utf8", "-c", code],
+            [sys.executable, "-X", "utf8", "-c", code],
             capture_output=True,
             text=True,
             encoding="utf-8",

@@ -38,8 +38,6 @@ FIXTURE_MODELS: dict[str, tuple[str, str]] = {
     "PN2000-24A": ("tests/fixtures/PN2000-24A 定制电源技术规格书.md", "A"),
 }
 
-_CACHE: dict[str, Path] = {}
-
 
 class FixtureModelUnavailable(RuntimeError):
     """要一个没有自造夹具的型号 —— 典型是 PA601。"""
@@ -72,31 +70,27 @@ def doc_version(model_id: str) -> str:
 
 
 def blocks_dir(model_id: str, cache_root: str | Path | None = None) -> Path:
-    """生成(并缓存)该型号的 blocks 侧车, 返回目录。
+    """生成该型号的 blocks 侧车, 返回目录。
 
-    结果按进程缓存 —— 同一会话里多次调用只解析一次。测试里跨用例复用时,
-    侧车必须是同一份, 否则「改判据就换 id」这类断言会拿到不同输入。
+    **每次都重新生成, 不按文件存在与否跳过。** 曾经写成「文件在就复用」, 结果
+    夹具改完侧车还是旧的 —— 而测试照样全绿, 因为断言读到的是旧侧车算出的结果。
+    这正是本模块 docstring 里说的「派生物会静默过期」, 缓存把它又请了回来。
+    夹具只有几 KB, 重解析不到 10ms, 省这个没有收益。
     """
-    if model_id in _CACHE:
-        return _CACHE[model_id]
-
     if cache_root is None:
         cache_root = Path(tempfile.gettempdir()) / "aterag_fixture_blocks"
     root = Path(cache_root) / model_id
     root.mkdir(parents=True, exist_ok=True)
 
-    target = root / f"{model_id}.jsonl"
-    if not target.exists():
-        if "src" not in sys.path:
-            sys.path.insert(0, str(ROOT / "src"))
-        from aterag.ingest.markdown_parser import parse_file
+    if "src" not in sys.path:
+        sys.path.insert(0, str(ROOT / "src"))
+    from aterag.ingest.markdown_parser import parse_file
 
-        blocks = parse_file(fixture_path(model_id))
-        target.write_text(
-            "\n".join(json.dumps(b.to_dict(), ensure_ascii=False) for b in blocks),
-            encoding="utf-8",
-        )
-    _CACHE[model_id] = root
+    blocks = parse_file(fixture_path(model_id))
+    (root / f"{model_id}.jsonl").write_text(
+        "\n".join(json.dumps(b.to_dict(), ensure_ascii=False) for b in blocks),
+        encoding="utf-8",
+    )
     return root
 
 

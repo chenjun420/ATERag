@@ -71,9 +71,13 @@ def check(label: str, ok: bool, detail: str = "") -> None:
 reqs = [e for e in ents if e.etype == "Requirement"]
 sigs = [e for e in ents if e.etype == "Signal"]
 check("型号 ID 识别为 PN2000-24A", MODEL == "PN2000-24A")
-# 15 = 参数 12 (2.1 三条 + 2.2 五条 + 2.3 四条) + 遥测 3 (2.5)。信号接口
+# 17 = 参数 14 (2.1 四条 + 2.2 六条 + 2.3 四条) + 遥测 3 (2.5)。信号接口
 # (2.4) 走 signal_table 产 Signal 实体, 不产 Requirement。
-check("抽出需求实体 (参数 12 + 遥测 3 = 15)", len(reqs) == 15, f"got={len(reqs)}")
+# 2.1 的「输入电流」与 2.2 的「输出电压上升时间」是**故意加的**: 它们与
+# 「额定输出电压」构成易混淆标题族, tests/test_quantity_aliases.py 靠它们
+# 证明「邻近词不被子串匹配成额定输出电压」这条断言不是空转。少了它们,
+# 那个测试在只有自造夹具的 CI 上会静默失去意义。
+check("抽出需求实体 (参数 14 + 遥测 3 = 17)", len(reqs) == 17, f"got={len(reqs)}")
 check("抽出信号实体 (信号接口 3 条)", len(sigs) == 3, f"got={len(sigs)}")
 
 r1203 = [e for e in reqs if e.props.get("req_id", "").endswith("1203")]
@@ -109,8 +113,8 @@ if result is not None:
     # 条件只来自 2.1/2.2/2.3 (档案 section_keywords 逐节点名选, 不含 2.4/2.5):
     # 2.5 遥测虽产 Requirement 实体, 但它不是产测条件 (无限值列)。
     check(
-        "条件条数 = 参数表 12 条",
-        len(result.conditions) == 12,
+        "条件条数 = 参数表 14 条",
+        len(result.conditions) == 14,
         f"got={len(result.conditions)}",
     )
     unres = result.stats.get("unresolved_text", 0)
