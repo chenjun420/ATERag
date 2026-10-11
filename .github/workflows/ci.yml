@@ -107,12 +107,17 @@ jobs:
         env:
           PYTHONIOENCODING: utf-8
         run: python scripts/table_schema_report.py --doc "tests/fixtures/PN1000-48A 迷你规格书.md" --scope 4.3
-      # 人工注记必须已签字: draft 状态的注记虽已生效 (语义优于正则), 但未经确认,
-      # 下游只能按 confidence=proposed 过滤, 不得视为定稿。
-      - name: "Annotation review sign-off (no drafts allowed)"
-        env:
-          PYTHONIOENCODING: utf-8
-        run: python scripts/review_annotation.py -m PA601-D54A --check
+      # 注记签字门**不在 CI 跑**, 已移到部署流程(deploy_mcp_board.py 的
+      # 「注记签字门」一步, 在装依赖之前拦)。
+      #
+      # 原因: review_annotation --check 要算注记指纹, 指纹来自真实抽取结果, 而
+      # PA601 的 blocks 侧车按 .gitignore 不入库 —— 干净 checkout 与 CI 上都没有。
+      # 作为 CI 步骤它会稳定报 ModelNotIngested, 而那不是代码坏了, 是门禁依赖了
+      # CI 拿不到的数据。实测踩过: 它在 CI 上红了很久, 看着像回归。
+      #
+      # 它守的东西很要紧: 板卡上若有未签字注记, 服务会按 confidence=proposed 出
+      # 判据且不报错。所以放在「判据注记正要被部署上去」的那一刻才守得住。
+      #
       # 模板漂移门禁 (方案 §4.0③⑤)。**辅助工具**, 不是防线: 抽取过程本身对模板
       # 失配已 fail-closed (章节选不中抛 SectionKeywordNotFound, 表头不认识抛
       # TableSchemaUnmapped)。这里管的是抽取管不到的那一类 —— 参数变了、抽取照样

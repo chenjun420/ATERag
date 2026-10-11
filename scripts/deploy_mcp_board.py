@@ -350,6 +350,32 @@ def main() -> int:
             print("DEPLOY_MCP_BOARD FAIL (知识门未通过; 种子有引用/形态问题, 不往下装)")
             return 1
 
+        print("\n>>> 注记签字门 (人工判据是否有未签字条目)")
+        # **这个门在 CI 上跑不了, 只能放这里。**
+        # review_annotation --check 要算注记指纹, 指纹来自真实抽取结果, 而
+        # PA601 的 blocks 侧车按 .gitignore 不入库 —— 干净 checkout 与 CI 上都没有。
+        # 实测: 它作为 CI 步骤会稳定报 ModelNotIngested, 而那不是代码坏了, 是门禁
+        # 结构上依赖了 CI 拿不到的数据。
+        #
+        # 放在部署流程里才是它该守的位置: 判据注记正是这次部署要带上去的东西。
+        # 板卡上若有未签字条目, 服务会按 confidence=proposed 出判据且**不报错** ——
+        # 实测踩过: 板卡的注记文件停留在 10 月 6 日(SR-1213 仍是 draft), 而仓库里
+        # 早已 approved, 没有任何环节报出来。
+        rc = run(
+            cli,
+            "cd /opt/aterag && sudo -u aterag /opt/aterag/.venv/bin/python "
+            "scripts/review_annotation.py --model PA601-D54A --check",
+            timeout=180,
+            sudo=False,
+        )
+        print(f"    rc={rc}")
+        if rc != 0:
+            print(
+                "DEPLOY_MCP_BOARD FAIL (注记签字门未通过; 板卡上会有未签字判据按 "
+                "confidence=proposed 生效, 不往下装)"
+            )
+            return 1
+
         print("\n>>> 板卡 Step6 安装 (apt + uv + CPython3.13 + venv + 依赖 + systemd)")
         t0 = time.time()
         rc = run(cli, f"bash {APP_DIR}/native/06-install-aterag.sh", timeout=3000, sudo=True)
