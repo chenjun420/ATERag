@@ -15,6 +15,9 @@
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 import pytest
 
 from aterag.config import get_settings
@@ -23,19 +26,30 @@ from aterag.extract.models import ModelNotIngested
 from aterag.ingest.persist_requirements import ROLE_SIGNAL_IO, rows_from_result
 from aterag.registry import Registry
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+
+import fixture_blocks  # noqa: E402
+
 REGISTRY = Registry.load(get_settings())
 PROFILES = ProfileBook.load()
 
 
+def blocks_dir_for(model_id: str) -> Path | None:
+    """该型号的 blocks 目录; ``None`` 表示用默认值(``rag_storage/blocks``)。
+
+    自造夹具型号走**现场生成**的侧车 —— 仓库里没有 ``rag_storage/``, 干净
+    checkout 上这条路径根本不存在, 于是「至少一个型号已入库」会恒失败,
+    而 CI 从此对多型号抽取零覆盖。生成逻辑见 ``scripts/fixture_blocks.py``。
+    """
+    if fixture_blocks.available(model_id):
+        return fixture_blocks.blocks_dir(model_id)
+    return None
+
+
 def _ingested(model_id: str) -> bool:
-    return (Path_blocks(model_id)).exists()
-
-
-from pathlib import Path  # noqa: E402
-
-
-def Path_blocks(model_id: str) -> Path:
-    return Path("rag_storage/blocks") / f"{model_id}.jsonl"
+    if fixture_blocks.available(model_id):
+        return True
+    return (Path("rag_storage/blocks") / f"{model_id}.jsonl").exists()
 
 
 INGESTED = [m for m in sorted(REGISTRY.products) if _ingested(m)]
@@ -44,8 +58,15 @@ NOT_INGESTED = [m for m in sorted(REGISTRY.products) if not _ingested(m)]
 
 def _extract(model_id: str):
     entry = REGISTRY.products[model_id]
+    kw = {}
+    d = blocks_dir_for(model_id)
+    if d is not None:
+        kw["blocks_dir"] = d
     return extract_test_conditions(
-        model_id, doc_version=entry.doc_version, annotations=load_annotations(model_id)
+        model_id,
+        doc_version=entry.doc_version,
+        annotations=load_annotations(model_id),
+        **kw,
     )
 
 

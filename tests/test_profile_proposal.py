@@ -15,6 +15,10 @@ from pathlib import Path
 
 import pytest
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+
+import fixture_blocks  # noqa: E402
+
 from aterag.extract.supplement import MethodBook
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
@@ -28,7 +32,16 @@ from table_schema_report import (  # noqa: E402
     split_heading,
 )
 
-BLOCKS = "rag_storage/blocks/PA601-D54A.jsonl"
+#: 章节树断言跑在 **PN1000-48A** 夹具上, 不用 PA601。
+#:
+#: PN1000-48A 与 PA601 同属 ``power_spec_cn`` 档案, 章节形状一致 —— 实测:
+#: ``4`` 与 ``4.3`` 都只出现在子块的 parent_headings 里(from_parent=True),
+#: ``4.3.2`` / ``4.3.3`` 有自己的块。而 PN2000-24A 是另一套模板
+#: (``2 技术要求``), 拿它验「父章节只在 parent_headings」会得到不同结论。
+#:
+#: PA601 规格书是客户知识产权, 不入库, 干净 checkout 上拿不到 —— 用它当测试
+#: 依赖等于让这些章节断言在 CI 上永远不跑(实测: 整个模块 11 条在 CI 全 error)。
+BLOCKS = fixture_blocks.blocks_path("PN1000-48A")
 
 
 @pytest.fixture(scope="module")
@@ -106,15 +119,15 @@ class TestSectionTree:
     def test_real_document_tree_has_the_spec_chapters(self, blocks):
         tree = section_tree(blocks)
         paths = {r["section_path"] for r in tree}
-        # PA601 的板级信号表所在章节, 以及功能/性能要求
-        assert "4.2.4.3" in paths
+        # PN1000-48A 的保护功能章节, 以及功能/性能要求一节
+        assert "4.3.3" in paths
         assert any("4.3" == p or p.startswith("4.3.") for p in paths)
 
     def test_parent_headings_are_in_the_tree(self, blocks):
         """父章节常常只有子章节的块、自己没块 —— 而选择器要的恰恰是父章节。
 
-        实测 PA601 的 `4.3 功能/性能要求` 只出现在子块的 parent_headings 里,
-        遍历块看不到它, 而 PA601 档案的 section_keywords 用的就是它。
+        实测 PN1000-48A 的 `4.3 功能/性能要求` 只出现在子块的 parent_headings 里,
+        遍历块看不到它, 而该档案的 section_keywords 用的就是它。
         """
         tree = section_tree(blocks)
         by_path = {r["section_path"]: r for r in tree}
@@ -124,9 +137,9 @@ class TestSectionTree:
 
     def test_parent_heading_without_own_block_is_not_skipped_by_scope(self, blocks):
         """scope 限定的是**目标章节及其子树**, 祖先章节仍要给出 (关键词往往在祖先上)。"""
-        tree = section_tree(blocks, scope="4.3.1")
+        tree = section_tree(blocks, scope="4.3.2")
         paths = {r["section_path"] for r in tree}
-        assert "4.3.1" in paths
+        assert "4.3.2" in paths
         assert "4.3" in paths, "祖先章节被 scope 过滤掉了 -> 候选关键词会漏掉它"
 
 
@@ -135,11 +148,11 @@ class TestSplitHeading:
         assert split_heading("4.3.1 保护功能") == ("4.3.1", "保护功能")
 
     def test_strips_requirement_id(self):
-        """PA601 标题带实例编号; 换产品就变, 而关键词要跨文档稳定。"""
-        assert split_heading("4.2.1 SR-PA601-D54A-0300 结构要求") == ("4.2.1", "结构要求")
+        """标题带实例编号; 换产品就变, 而关键词要跨文档稳定。"""
+        assert split_heading("4.2.1 SR-PN1000-48A-0300 结构要求") == ("4.2.1", "结构要求")
 
     def test_both_stripped(self):
-        assert split_heading("4.2.1 SR-PA601-D54A-0300 结构要求")[1] == "结构要求"
+        assert split_heading("4.2.1 SR-PN1000-48A-0300 结构要求")[1] == "结构要求"
         assert split_heading("4.3 功能/性能要求")[1] == "功能/性能要求"
 
     def test_keeps_slashes_and_symbols_in_title(self):
@@ -173,7 +186,7 @@ class TestCandidateKeywords:
         assert kws[0]["keyword"] == "功能/性能要求"
 
     def test_real_document_has_the_keyword_profiles_actually_use(self, blocks):
-        """PA601 的档案用的就是「功能/性能要求」—— 候选表里必须出现它。"""
+        """``power_spec_cn`` 档案用的就是「功能/性能要求」—— 候选表里必须出现它。"""
         kws = candidate_keywords(section_tree(blocks))
         assert "功能/性能要求" in {k["keyword"] for k in kws}
 

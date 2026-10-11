@@ -24,6 +24,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
+import fixture_blocks  # noqa: E402
 from template_drift import (  # noqa: E402
     SECTION_TOLERANCE,
     TOLERANCE,
@@ -46,6 +47,14 @@ from aterag.extract.configs import (  # noqa: E402
 
 DP = "config/doc_profiles.yaml"
 BASELINE = "config/template_baseline.yaml"
+
+#: 漂移检测跑在 **PN1000-48A** 夹具上, 不用 PA601。
+#:
+#: PN1000-48A 与 PA601 同属 ``power_spec_cn`` 档案 —— 模板身份与覆盖率指标都
+#: 由档案驱动, 所以拿它验漂移机制与 PA601 等价; 而 PA601 规格书属客户知识产权,
+#: 不入库, 干净 checkout 上拿不到(实测: 本模块 12 条在 CI 全 error)。
+MODEL = "PN1000-48A"
+BLOCKS_DIR = str(fixture_blocks.blocks_dir(MODEL))
 
 
 @pytest.fixture(scope="module")
@@ -259,20 +268,30 @@ class TestTemplateIdentity:
 class TestProductCarriesTemplateIdentity:
     def test_extraction_result_has_template(self):
         """抽取产物必须带模板身份 —— 否则事后无从追责。"""
-        r = extract_test_conditions("PA601-D54A")
+        r = extract_test_conditions(MODEL, blocks_dir=BLOCKS_DIR)
         assert r.template["template_id"] == "power_spec_cn_v1"
         assert r.template["template_version"] == "1.0"
         assert r.template["fingerprint"]
 
     def test_to_dict_includes_template(self):
         """序列化也要带上 —— 落库/导出走的正是 to_dict。"""
-        d = extract_test_conditions("PA601-D54A").to_dict()
+        d = extract_test_conditions(MODEL, blocks_dir=BLOCKS_DIR).to_dict()
         assert d["template"]["template_id"] == "power_spec_cn_v1"
 
     def test_template_identity_does_not_change_conditions(self):
-        """加模板身份不得影响抽取结果本身 (纯记录, 不是逻辑)。"""
-        r = extract_test_conditions("PA601-D54A")
-        assert r.stats["conditions_total"] == 95, "条件数变了说明接入时碰了逻辑"
+        """加模板身份不得影响抽取结果本身 (纯记录, 不是逻辑)。
+
+        **不断言具体条数**。原先这里钉的是 PA601 的 95 —— 那是客户数据的规模,
+        拿它当基线等于让这条断言在只有自造夹具的 CI 上必然失败, 于是「模板身份
+        是纯记录」这个不变量反而没人守了。改为断言内部一致且非空: 接入若真碰了
+        抽取逻辑, 条数会掉到 0 或与 conditions 列表对不上, 两种都能抓住。
+        """
+        r = extract_test_conditions(MODEL, blocks_dir=BLOCKS_DIR)
+        n = r.stats["conditions_total"]
+        assert n == len(r.conditions), (
+            f"stats 记 {n} 条而 conditions 列表有 {len(r.conditions)} 条 —— 两者应同源"
+        )
+        assert n > 0, "抽取出一条都没有 —— 接入模板身份时把抽取逻辑碰坏了"
 
 
 class TestBaselineFile:
@@ -474,7 +493,7 @@ def measured():
     """跑一次真实抽取拿到当前状态 (measure() 的返回就是「当前」本身)。"""
     from template_drift import measure
 
-    return measure("PA601-D54A")
+    return measure(MODEL, blocks_dir=BLOCKS_DIR)
 
 
 def _baseline_from(measured: dict, **overrides) -> dict:
@@ -496,19 +515,19 @@ def _baseline_from(measured: dict, **overrides) -> dict:
         "governed_sections": list(measured["governed_sections"]),
     }
     entry.update(overrides)
-    return {"entries": {"PA601-D54A": entry}}
+    return {"entries": {MODEL: entry}}
 
 
 class TestCheck:
     def test_no_baseline_is_its_own_status(self, measured):
         """新增型号不是漂移, 是「还没有基线」—— 两者混在一起会养成忽略的习惯。"""
-        res = check("PA601-D54A", {"entries": {}})
+        res = check(MODEL, {"entries": {}}, blocks_dir=BLOCKS_DIR)
         assert res["status"] == "no_baseline"
         assert res["fingerprint_changed"] is None
         assert "--update" in res["message"]
 
     def test_matching_baseline_is_ok(self, measured):
-        res = check("PA601-D54A", _baseline_from(measured))
+        res = check(MODEL, _baseline_from(measured), blocks_dir=BLOCKS_DIR)
         assert res["status"] == "ok", res["message"]
         assert not res["fingerprint_changed"]
         assert not res["metric_diffs"]
@@ -516,7 +535,7 @@ class TestCheck:
     def test_fingerprint_change_reports_affected_sections(self, measured):
         """只报「变了」没用 —— 人得知道改了什么章节号。"""
         res = check(
-            "PA601-D54A",
+            MODEL,
             _baseline_from(measured, fingerprint="deadbeefdeadbeef", governed_sections=["9.9.9"]),
         )
         assert res["status"] == "drift"
@@ -526,7 +545,7 @@ class TestCheck:
 
     def test_metric_regression_alone_is_drift(self, measured):
         res = check(
-            "PA601-D54A",
+            MODEL,
             _baseline_from(
                 measured,
                 metrics={
@@ -541,15 +560,15 @@ class TestCheck:
 
     def test_check_stores_current_under_current_key(self, measured):
         """check() 的返回结构固定: 渲染与测试都依赖 result['current']。"""
-        res = check("PA601-D54A", _baseline_from(measured))
-        assert res["current"]["model_id"] == "PA601-D54A"
+        res = check(MODEL, _baseline_from(measured), blocks_dir=BLOCKS_DIR)
+        assert res["current"]["model_id"] == MODEL
         assert res["current"]["fingerprint"] == measured["fingerprint"]
 
     def test_render_says_something_on_every_status(self, capsys, measured):
         """三种状态都得有输出 —— 没输出的状态会被当成「没问题」。"""
         drift = _baseline_from(measured, fingerprint="deadbeefdeadbeef")
         for baseline in ({"entries": {}}, _baseline_from(measured), drift):
-            render(check("PA601-D54A", baseline))
+            render(check(MODEL, baseline, blocks_dir=BLOCKS_DIR))
             assert capsys.readouterr().out.strip(), "该状态没有输出"
 
 
@@ -569,7 +588,7 @@ class TestUpdateOnlyTouchesMeasured:
         results = [
             {
                 "current": {
-                    "model_id": "PA601-D54A",
+                    "model_id": MODEL,
                     "profile": "p",
                     "template_id": "t",
                     "template_version": "1.0",
@@ -581,7 +600,7 @@ class TestUpdateOnlyTouchesMeasured:
         ]
         out = update(baseline, results)
         assert out["entries"]["PN2000-24A"]["fingerprint"] == "keepme", "未测量的条目被覆盖了"
-        assert out["entries"]["PA601-D54A"]["fingerprint"] == "new"
+        assert out["entries"][MODEL]["fingerprint"] == "new"
 
     def test_update_records_the_note(self):
         """变更说明要跟着基线走 —— 基线是一串数字, 没人记得为什么改的。"""
@@ -626,7 +645,7 @@ class TestUnmeasurableIsNotClean:
         monkeypatch.setattr(
             td,
             "registered_models",
-            lambda: ["PA601-D54A", "GHOST-MODEL"],
+            lambda: [MODEL, "GHOST-MODEL"],
         )
         rc = td.main([])
         out = capsys.readouterr().out
@@ -638,7 +657,7 @@ class TestUnmeasurableIsNotClean:
     def test_main_passes_when_nothing_drifted(self, monkeypatch, capsys):
         import template_drift as td
 
-        monkeypatch.setattr(td, "registered_models", lambda: ["PA601-D54A"])
+        monkeypatch.setattr(td, "registered_models", lambda: [MODEL])
         rc = td.main([])
         out = capsys.readouterr().out
         assert rc == 0, out
