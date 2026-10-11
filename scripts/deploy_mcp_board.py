@@ -77,19 +77,29 @@ EXCLUDE_DIRS = {"__pycache__", ".pytest_cache", ".ruff_cache"}
 
 
 def _gitignored(path: str) -> bool:
-    """该路径是否被 .gitignore 排除 (git 不可用时按「否」处理)。"""
+    """该路径是否被 .gitignore 排除 (git 不可用时按「否」处理)。
+
+    **带斜杠要试两次。** ``.gitignore`` 里写的是 ``rag_storage/`` —— 带斜杠的模式
+    只匹配目录。而这个函数恰恰在**目录不存在**时调用(那正是要判断的场景),
+    git 无从判断 ``rag_storage`` 是目录还是普通文件, 于是只传不带斜杠的形式会
+    返回「未排除」。实测: ``check-ignore rag_storage`` rc=1, 而
+    ``check-ignore rag_storage/`` rc=0。
+    """
     import subprocess
 
-    try:
-        p = subprocess.run(
-            ["git", "check-ignore", "-q", "--", path],
-            cwd=REPO_ROOT,
-            capture_output=True,
-            timeout=30,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return False
-    return p.returncode == 0
+    for candidate in (path, path.rstrip("/") + "/"):
+        try:
+            p = subprocess.run(
+                ["git", "check-ignore", "-q", "--", candidate],
+                cwd=REPO_ROOT,
+                capture_output=True,
+                timeout=30,
+            )
+        except (OSError, subprocess.SubprocessError):
+            return False
+        if p.returncode == 0:
+            return True
+    return False
 
 
 def assert_local_files_exist(files=None) -> list[str]:

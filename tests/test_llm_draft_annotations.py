@@ -574,7 +574,7 @@ class TestNoLLMAtRuntime:
             "assert not bad, bad"
         )
         p = subprocess.run(
-            [str(ROOT / ".venv/Scripts/python.exe"), "-X", "utf8", "-c", code],
+            [sys.executable, "-X", "utf8", "-c", code],
             capture_output=True,
             text=True,
             encoding="utf-8",
